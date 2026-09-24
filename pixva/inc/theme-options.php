@@ -19,13 +19,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	return array(
-		'hero'         => esc_html__( 'هیرو (بنر اصلی)', 'pixva' ),
-		'calculator'   => esc_html__( 'محاسبه‌گر هزینه', 'pixva' ),
-		'services'     => esc_html__( 'خدمات تخصصی', 'pixva' ),
+		'hero'         => esc_html__( 'هیرو (بنر اصلی و استعلام سریع)', 'pixva' ),
+		'tv_simulator' => esc_html__( 'شبیه‌ساز لمسی تلویزیون مجازی (ابزار ۵)', 'pixva' ),
+		'screen_tester'=> esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
+		'services'     => esc_html__( 'خدمات تخصصی کارگاه', 'pixva' ),
+		'before_after' => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
+		'dispatch_hub' => esc_html__( 'هاب اعزام اورژانسی و پیگیری سفارش', 'pixva' ),
 		'process'      => esc_html__( 'مسیر پذیرش تا تحویل', 'pixva' ),
-		'before_after' => esc_html__( 'اسلایدر قبل/بعد', 'pixva' ),
-		'brands'       => esc_html__( 'برندها', 'pixva' ),
-		'errors'       => esc_html__( 'کدهای خطا', 'pixva' ),
+		'brands'       => esc_html__( 'برندها و ضرایب', 'pixva' ),
+		'errors'       => esc_html__( 'کدهای خطا و چشمک پاور', 'pixva' ),
 		'testimonials' => esc_html__( 'نظرات مشتریان', 'pixva' ),
 		'faq'          => esc_html__( 'سوالات متداول', 'pixva' ),
 		'blog'         => esc_html__( 'مجله تخصصی', 'pixva' ),

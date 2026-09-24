@@ -70,9 +70,24 @@ function pixva_schema_image( $post_id = 0 ) {
  * @return array
  */
 function pixva_schema_local_business() {
-	$phone   = (string) pixva_option( 'pixva_support_phone', '02191009990' );
-	$address = (string) pixva_option( 'pixva_workshop_address', '' );
-	$logo    = (string) pixva_option( 'pixva_logo_light', '' );
+	$workshop = function_exists( 'pixva_workshop_settings' ) ? pixva_workshop_settings() : array();
+	$phone    = isset( $workshop['phone'] ) ? (string) $workshop['phone'] : '02191009990';
+	$address  = isset( $workshop['address'] ) ? (string) $workshop['address'] : '';
+	$lat      = isset( $workshop['latitude'] ) ? (string) $workshop['latitude'] : '';
+	$lng      = isset( $workshop['longitude'] ) ? (string) $workshop['longitude'] : '';
+	$opens_w  = '09:00';
+	$closes_w = '20:00';
+	$opens_f  = '10:00';
+	$closes_f = '16:00';
+	if ( isset( $workshop['hours_week'] ) && preg_match( '/^(\d{2}:\d{2})-(\d{2}:\d{2})$/', (string) $workshop['hours_week'], $m ) ) {
+		$opens_w  = $m[1];
+		$closes_w = $m[2];
+	}
+	if ( isset( $workshop['hours_friday'] ) && preg_match( '/^(\d{2}:\d{2})-(\d{2}:\d{2})$/', (string) $workshop['hours_friday'], $m ) ) {
+		$opens_f  = $m[1];
+		$closes_f = $m[2];
+	}
+	$logo = (string) pixva_option( 'pixva_logo_light', '' );
 	if ( '' === $logo ) {
 		$logo = pixva_schema_image( 0 );
 	}
@@ -110,17 +125,27 @@ function pixva_schema_local_business() {
 			array(
 				'@type'     => 'OpeningHoursSpecification',
 				'dayOfWeek' => array( 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday' ),
-				'opens'     => '09:00',
-				'closes'    => '20:00',
+				'opens'     => $opens_w,
+				'closes'    => $closes_w,
 			),
 			array(
 				'@type'     => 'OpeningHoursSpecification',
 				'dayOfWeek' => 'Friday',
-				'opens'     => '10:00',
-				'closes'    => '16:00',
+				'opens'     => $opens_f,
+				'closes'    => $closes_f,
 			),
 		),
 	);
+
+	// مختصات نقشه و لینک نقشه از تنظیمات کارگاه (wp_options).
+	if ( '' !== $lat && '' !== $lng ) {
+		$node['geo'] = array(
+			'@type'     => 'GeoCoordinates',
+			'latitude'  => $lat,
+			'longitude' => $lng,
+		);
+		$node['hasMap'] = 'https://maps.google.com/?q=' . rawurlencode( $lat . ',' . $lng );
+	}
 
 	if ( ! empty( $same_as ) ) {
 		$node['sameAs'] = $same_as;

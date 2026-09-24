@@ -115,6 +115,113 @@ function pixva_disable_xmlrpc() {
 add_filter( 'xmlrpc_enabled', 'pixva_disable_xmlrpc' );
 
 /*
+ * غیرفعال‌سازی ویرایشگر آنلاین فایل پوسته/افزونه (DISALLOW_FILE_EDIT).
+ * تعریف در wp-config.php اولویت دارد؛ اینجا فقط اگر تعریف نشده باشد اضافه می‌شود.
+ */
+if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
+	define( 'DISALLOW_FILE_EDIT', true );
+}
+
+/**
+ * غیرفعال‌سازی مسیر /wp/v2/users در REST API برای کاربران مهمان
+ * (جلوگیری از شمارش/شناسایی کاربران).
+ *
+ * @param array $endpoints مسیرهای REST.
+ * @return array
+ */
+function pixva_restrict_rest_users( $endpoints ) {
+	if ( is_user_logged_in() ) {
+		return $endpoints;
+	}
+	unset( $endpoints['/wp/v2/users'] );
+	unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+	unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)/revisions'] );
+	unset( $endpoints['/wp/v2/users/me'] );
+	return $endpoints;
+}
+add_filter( 'rest_endpoints', 'pixva_restrict_rest_users' );
+
+/**
+ * بستن/هدایت آرشیو نویسندگان برای کاربران غیرمدیر (ضد شمارش کاربران).
+ *
+ * @return void
+ */
+function pixva_block_author_archives() {
+	if ( ! is_author() ) {
+		return;
+	}
+	// فقط مدیر اجازه دیدن آرشیو نویسندگان را دارد.
+	if ( current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	wp_safe_redirect( home_url( '/' ), 301 );
+	exit;
+}
+add_action( 'template_redirect', 'pixva_block_author_archives' );
+
+/**
+ * سربرگ‌های امنیتی پاسخ (X-Content-Type-Options و Referrer-Policy).
+ *
+ * @return void
+ */
+function pixva_send_security_headers() {
+	if ( headers_sent() ) {
+		return;
+	}
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+}
+add_action( 'send_headers', 'pixva_send_security_headers' );
+
+/**
+ * حذف characterهای \r و \n از رشته (جلوگیری از Header Injection در ایمیل).
+ *
+ * @param string $text رشته ورودی.
+ * @return string
+ */
+function pixva_strip_header_breaks( $text ) {
+	return trim( (string) preg_replace( '/[\r\n]+/', ' ', (string) $text ) );
+}
+
+/**
+ * ارسال ایمن ایمیل مدیریتی بدون امکان Header Injection.
+ *
+ * @param string $to      گیرنده.
+ * @param string $subject موضوع (بدون \r و \n).
+ * @param string $body    متن پیام.
+ * @return bool
+ */
+function pixva_safe_mail( $to, $subject, $body ) {
+	$to      = sanitize_email( (string) $to );
+	$subject = pixva_strip_header_breaks( $subject );
+	if ( ! is_email( $to ) || '' === $subject ) {
+		return false;
+	}
+	return wp_mail( $to, $subject, (string) $body );
+}
+
+/**
+ * پاکسازی سراسری هدرهای wp_mail از \r و \n (لایه دفاعی دوم).
+ *
+ * @param array $args آرگومان‌های wp_mail.
+ * @return array
+ */
+function pixva_harden_wp_mail( $args ) {
+	if ( isset( $args['subject'] ) ) {
+		$args['subject'] = pixva_strip_header_breaks( $args['subject'] );
+	}
+	if ( isset( $args['headers'] ) ) {
+		if ( is_array( $args['headers'] ) ) {
+			$args['headers'] = array_map( 'pixva_strip_header_breaks', $args['headers'] );
+		} else {
+			$args['headers'] = pixva_strip_header_breaks( $args['headers'] );
+		}
+	}
+	return $args;
+}
+add_filter( 'wp_mail', 'pixva_harden_wp_mail' );
+
+/*
  * ---------------------------------------------------------------------------
  * ۲) توابع کمکی ورودی/خروجی
  * ---------------------------------------------------------------------------

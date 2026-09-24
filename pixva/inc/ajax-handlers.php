@@ -3,9 +3,9 @@
  * پردازش درخواست‌های AJAX قالب پیکسوا
  *
  * اکشن‌ها:
- * - pixva_get_estimate  تخمین هزینه سمت سرور
+ * - pixva_get_estimate  تخمین هزینه سمت سرور (فرمول فقط در inc/pricing-engine.php)
  * - pixva_submit_order  ثبت نوبت و پرونده تعمیر
- * - pixva_track_order   استعلام وضعیت پرونده
+ * - pixva_track_device  استعلام وضعیت پرونده (الزام هم‌زمان کد PXV و شماره همراه)
  * - pixva_contact_form  فرم تماس
  *
  * همه اکشن‌ها nonce، honeypot و محدودیت نرخ دارند.
@@ -28,7 +28,8 @@ function pixva_register_ajax_actions() {
 	$actions = array(
 		'pixva_get_estimate' => 'pixva_ajax_get_estimate',
 		'pixva_submit_order' => 'pixva_ajax_submit_order',
-		'pixva_track_order'  => 'pixva_ajax_track_order',
+		'pixva_track_device' => 'pixva_ajax_track_device',
+		'pixva_track_order'  => 'pixva_ajax_track_device', // نام قدیمی برای سازگاری.
 		'pixva_contact_form' => 'pixva_ajax_contact_form',
 	);
 
@@ -38,37 +39,6 @@ function pixva_register_ajax_actions() {
 	}
 }
 add_action( 'init', 'pixva_register_ajax_actions' );
-
-/**
- * محاسبه تخمین قیمت بر اساس ماتریس سمت سرور.
- *
- * @param string $brand   کلید برند.
- * @param string $tech    کلید تکنولوژی.
- * @param string $size    سایز اینچ.
- * @param string $problem کلید مشکل.
- * @return array{min:int,max:int,days:string}|null
- */
-function pixva_calculate_estimate( $brand, $tech, $size, $problem ) {
-	$matrix = pixva_pricing_matrix();
-
-	if ( ! isset( $matrix['base'][ $problem ], $matrix['brand'][ $brand ], $matrix['tech'][ $tech ], $matrix['size'][ $size ] ) ) {
-		return null;
-	}
-
-	$coeff = (float) $matrix['brand'][ $brand ] * (float) $matrix['tech'][ $tech ] * (float) $matrix['size'][ $size ];
-	$min   = (int) ( round( ( $matrix['base'][ $problem ][0] * $coeff ) / 50000 ) * 50000 );
-	$max   = (int) ( round( ( $matrix['base'][ $problem ][1] * $coeff ) / 50000 ) * 50000 );
-
-	if ( $max < $min ) {
-		$max = $min;
-	}
-
-	return array(
-		'min'  => $min,
-		'max'  => $max,
-		'days' => isset( $matrix['days'][ $problem ] ) ? (string) $matrix['days'][ $problem ] : '',
-	);
-}
 
 /**
  * گارد مشترک AJAX: nonce، honeypot و rate limit.
@@ -105,7 +75,7 @@ function pixva_get_post_textarea( $key ) {
 }
 
 /**
- * AJAX: تخمین هزینه تعمیر.
+ * AJAX: تخمین هزینه تعمیر (خروجی موتور قیمت سمت سرور).
  *
  * @return void
  */
@@ -124,18 +94,40 @@ function pixva_ajax_get_estimate() {
 
 	$labels = pixva_calculator_labels();
 
+	// تعویض کامل پنل: فقط پیام هشدار، بدون بازه قیمت جدول.
+	if ( ! empty( $estimate['panel_replacement'] ) ) {
+		pixva_ajax_success(
+			array(
+				'min'              => 0,
+				'max'              => 0,
+				'minFormatted'     => '',
+				'maxFormatted'     => '',
+				'days'             => '',
+				'panelReplacement' => true,
+				'warning'          => $estimate['warning'],
+				'brand'            => isset( $labels['brand'][ $brand ] ) ? $labels['brand'][ $brand ] : $brand,
+				'tech'             => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
+				'size'             => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
+				'problem'          => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
+				'disclaimer'       => __( 'برای تعویض کامل پنل، قیمت پس از بازدید کارشناس و تأیید شما اعلام می‌شود.', 'pixva' ),
+			)
+		);
+	}
+
 	pixva_ajax_success(
 		array(
-			'min'          => $estimate['min'],
-			'max'          => $estimate['max'],
-			'minFormatted' => pixva_price( $estimate['min'] ),
-			'maxFormatted' => pixva_price( $estimate['max'] ),
-			'days'         => pixva_fa_num( $estimate['days'] ),
-			'brand'        => isset( $labels['brand'][ $brand ] ) ? $labels['brand'][ $brand ] : $brand,
-			'tech'         => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
-			'size'         => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
-			'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
-			'disclaimer'   => __( 'این مبلغ برآورد کارگاهی است و پس از عیب‌یابی حضوری قطعی می‌شود. ایاب‌وذهاب و قطعه کمیاب ممکن است جداگانه محاسبه شود.', 'pixva' ),
+			'min'              => $estimate['min'],
+			'max'              => $estimate['max'],
+			'minFormatted'     => pixva_price( $estimate['min'] ),
+			'maxFormatted'     => pixva_price( $estimate['max'] ),
+			'days'             => pixva_fa_num( $estimate['days'] ),
+			'panelReplacement' => false,
+			'warning'          => '',
+			'brand'            => isset( $labels['brand'][ $brand ] ) ? $labels['brand'][ $brand ] : $brand,
+			'tech'             => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
+			'size'             => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
+			'problem'          => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
+			'disclaimer'       => __( 'این مبلغ برآورد کارگاهی است و پس از عیب‌یابی حضوری قطعی می‌شود. ایاب‌وذهاب و قطعه کمیاب ممکن است جداگانه محاسبه شود.', 'pixva' ),
 		)
 	);
 }
@@ -179,12 +171,16 @@ function pixva_ajax_submit_order() {
 		isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem
 	);
 
-	$range = sprintf(
-		/* translators: 1: حداقل قیمت، 2: حداکثر قیمت */
-		__( '%1$s تا %2$s تومان', 'pixva' ),
-		pixva_price( $estimate['min'] ),
-		pixva_price( $estimate['max'] )
-	);
+	if ( ! empty( $estimate['panel_replacement'] ) ) {
+		$range = pixva_panel_replacement_warning();
+	} else {
+		$range = sprintf(
+			/* translators: 1: حداقل قیمت، 2: حداکثر قیمت */
+			__( '%1$s تا %2$s تومان', 'pixva' ),
+			pixva_price( $estimate['min'] ),
+			pixva_price( $estimate['max'] )
+		);
+	}
 
 	$result = pixva_create_order(
 		array(
@@ -234,36 +230,39 @@ function pixva_ajax_submit_order() {
 }
 
 /**
- * AJAX: استعلام وضعیت پرونده تعمیر.
+ * AJAX: استعلام وضعیت دستگاه (pixva_track_device).
+ *
+ * شرط صحت استعلام: تطابق «هم‌زمان» کد پیگیری با فرمت PXV-... و شماره همراه.
+ * استعلام فقط با شماره همراه (یا فقط با کد) اکیداً ممنوع است.
  *
  * @return void
  */
-function pixva_ajax_track_order() {
+function pixva_ajax_track_device() {
 	pixva_ajax_guard( 'pixva_tracking_nonce', 'tracking', 20, HOUR_IN_SECONDS );
 
 	$code  = strtoupper( pixva_get_post_var( 'code' ) );
 	$code  = preg_replace( '/[^A-Z0-9\-]/', '', $code );
-	$phone = pixva_get_post_var( 'phone' );
+	$phone = pixva_normalize_mobile( pixva_get_post_var( 'phone' ) );
 
-	if ( '' === $code && '' === $phone ) {
-		pixva_ajax_error( __( 'کد پیگیری یا شماره همراه را وارد کنید.', 'pixva' ), 422 );
+	// هر دو مقدار الزامی است؛ استعلام بدون کد یا بدون شماره پذیرفته نمی‌شود.
+	if ( '' === $code || '' === $phone ) {
+		pixva_ajax_error( __( 'برای استعلام، هم کد پیگیری و هم شماره همراه ثبت‌شده لازم است.', 'pixva' ), 422 );
 	}
 
-	if ( '' !== $phone && ! pixva_is_valid_iranian_mobile( $phone ) ) {
+	// کد باید با فرمت PXV-... باشد.
+	if ( ! preg_match( '/^PXV-[A-Z0-9]+(?:-[A-Z0-9]+)*$/', $code ) ) {
+		pixva_ajax_error( __( 'فرمت کد پیگیری درست نیست. کد باید با PXV- شروع شود؛ مثلاً PXV-2401.', 'pixva' ), 422 );
+	}
+
+	if ( ! pixva_is_valid_iranian_mobile( $phone ) ) {
 		pixva_ajax_error( __( 'شماره همراه معتبر نیست.', 'pixva' ), 422 );
 	}
 
-	$order = pixva_find_order( $code, '' !== $code ? '' : $phone );
-
-	if ( $order instanceof WP_Post && '' !== $code && '' !== $phone ) {
-		$stored = (string) get_post_meta( $order->ID, '_pixva_order_phone', true );
-		if ( pixva_normalize_mobile( $phone ) !== $stored ) {
-			$order = null;
-		}
-	}
+	// تطابق هم‌زمان کد و شماره در دیتابیس (هر دو متا باید یکی باشند).
+	$order = pixva_find_order( $code, $phone );
 
 	if ( ! $order instanceof WP_Post ) {
-		pixva_ajax_error( __( 'پرونده‌ای با این مشخصات پیدا نشد. کد را دقیق وارد کنید یا با پشتیبانی تماس بگیرید.', 'pixva' ), 404 );
+		pixva_ajax_error( __( 'پرونده‌ای با این مشخصات پیدا نشد. کد و شماره همراه باید هر دو دقیقاً همان چیزی باشند که هنگام پذیرش ثبت شده است.', 'pixva' ), 404 );
 	}
 
 	$statuses      = pixva_order_statuses();
@@ -384,7 +383,8 @@ function pixva_ajax_contact_form() {
 }
 
 /**
- * ایمیل اطلاع‌رسانی به مدیر. شکست ایمیل نباید درخواست کاربر را خراب کند.
+ * ایمیل اطلاع‌رسانی به مدیر (بدون امکان Header Injection).
+ * شکست ایمیل نباید درخواست کاربر را خراب کند.
  *
  * @param string $subject موضوع.
  * @param string $body    متن.
@@ -395,5 +395,5 @@ function pixva_notify_admin( $subject, $body ) {
 	if ( ! is_email( $admin ) ) {
 		return;
 	}
-	wp_mail( $admin, $subject, $body );
+	pixva_safe_mail( $admin, $subject, $body );
 }

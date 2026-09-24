@@ -15,43 +15,107 @@ if ( ! defined( 'ABSPATH' ) ) {
 // کاتالوگ‌ها.
 
 /**
- * برندهای پشتیبانی‌شده محاسبه‌گر. کلیدها با ماتریس قیمت یکی است.
+ * برندهای پشتیبانی‌شده محاسبه‌گر (۲۴ برند). کلیدها با موتور قیمت یکی است.
  *
  * @return array<string, array{fa:string,en:string}>
  */
 function pixva_brand_catalog() {
 	$brands = array(
-		'samsung' => array(
+		'samsung'   => array(
 			'fa' => 'سامسونگ',
 			'en' => 'Samsung',
 		),
-		'lg'      => array(
+		'lg'        => array(
 			'fa' => 'ال‌جی',
 			'en' => 'LG',
 		),
-		'sony'    => array(
+		'sony'      => array(
 			'fa' => 'سونی',
 			'en' => 'Sony',
 		),
-		'snowa'   => array(
+		'snowa'     => array(
 			'fa' => 'اسنوا',
 			'en' => 'Snowa',
 		),
-		'xvision' => array(
+		'xvision'   => array(
 			'fa' => 'ایکس‌ویژن',
 			'en' => 'X.Vision',
 		),
-		'gplus'   => array(
+		'gplus'     => array(
 			'fa' => 'جی‌پلاس',
 			'en' => 'Gplus',
 		),
-		'tcl'     => array(
+		'tcl'       => array(
 			'fa' => 'تی‌سی‌ال',
 			'en' => 'TCL',
 		),
-		'hisense' => array(
+		'hisense'   => array(
 			'fa' => 'هایسنس',
 			'en' => 'Hisense',
+		),
+		'xiaomi'    => array(
+			'fa' => 'شیائومی',
+			'en' => 'Xiaomi',
+		),
+		'panasonic' => array(
+			'fa' => 'پاناسونیک',
+			'en' => 'Panasonic',
+		),
+		'philips'   => array(
+			'fa' => 'فیلیپس',
+			'en' => 'Philips',
+		),
+		'sharp'     => array(
+			'fa' => 'شارپ',
+			'en' => 'Sharp',
+		),
+		'toshiba'   => array(
+			'fa' => 'توشیبا',
+			'en' => 'Toshiba',
+		),
+		'haier'     => array(
+			'fa' => 'های‌یر',
+			'en' => 'Haier',
+		),
+		'daewoo'    => array(
+			'fa' => 'دوو',
+			'en' => 'Daewoo',
+		),
+		'jvc'       => array(
+			'fa' => 'جی‌وی‌سی',
+			'en' => 'JVC',
+		),
+		'hitachi'   => array(
+			'fa' => 'هیتاچی',
+			'en' => 'Hitachi',
+		),
+		'sanyo'     => array(
+			'fa' => 'سانیو',
+			'en' => 'Sanyo',
+		),
+		'grundig'   => array(
+			'fa' => 'گروندیگ',
+			'en' => 'Grundig',
+		),
+		'vestel'    => array(
+			'fa' => 'وستل',
+			'en' => 'Vestel',
+		),
+		'skyworth'  => array(
+			'fa' => 'اسکای‌ورث',
+			'en' => 'Skyworth',
+		),
+		'konka'     => array(
+			'fa' => 'کونکا',
+			'en' => 'Konka',
+		),
+		'changhong' => array(
+			'fa' => 'چانگ‌هونگ',
+			'en' => 'Changhong',
+		),
+		'marshal'   => array(
+			'fa' => 'مارشال',
+			'en' => 'Marshal',
 		),
 	);
 	return apply_filters( 'pixva_brand_catalog', $brands );
@@ -64,16 +128,17 @@ function pixva_brand_catalog() {
  */
 function pixva_problem_catalog() {
 	$problems = array(
-		'no_picture' => __( 'بی‌تصویری (صدا دارد)', 'pixva' ),
-		'lines'      => __( 'خطوط عمودی یا افقی', 'pixva' ),
-		'no_power'   => __( 'خاموشی کامل', 'pixva' ),
-		'no_sound'   => __( 'قطع صدا', 'pixva' ),
-		'blink'      => __( 'چشمک زدن چراغ پاور', 'pixva' ),
-		'water'      => __( 'آب‌خوردگی پنل', 'pixva' ),
-		'backlight'  => __( 'تعویض بک‌لایت', 'pixva' ),
-		'panel'      => __( 'تعمیر پنل با بندینگ', 'pixva' ),
-		'mainboard'  => __( 'تعمیر برد اصلی', 'pixva' ),
-		'powerboard' => __( 'تعمیر برد پاور', 'pixva' ),
+		'no_picture'    => __( 'بی‌تصویری (صدا دارد)', 'pixva' ),
+		'lines'         => __( 'خطوط عمودی یا افقی', 'pixva' ),
+		'no_power'      => __( 'خاموشی کامل', 'pixva' ),
+		'no_sound'      => __( 'قطع صدا', 'pixva' ),
+		'blink'         => __( 'چشمک زدن چراغ پاور', 'pixva' ),
+		'water'         => __( 'آب‌خوردگی پنل', 'pixva' ),
+		'backlight'     => __( 'تعویض بک‌لایت', 'pixva' ),
+		'panel'         => __( 'تعمیر پنل با بندینگ', 'pixva' ),
+		'panel_replace' => __( 'تعویض کامل پنل', 'pixva' ),
+		'mainboard'     => __( 'تعمیر برد اصلی', 'pixva' ),
+		'powerboard'    => __( 'تعمیر برد پاور', 'pixva' ),
 	);
 	return apply_filters( 'pixva_problem_catalog', $problems );
 }
@@ -94,13 +159,13 @@ function pixva_tech_catalog() {
 }
 
 /**
- * سایزهای رایج اینچ.
+ * سایزهای رایج اینچ (منبع: جدول ضریب سایز موتور قیمت).
  *
  * @return array<string, string>
  */
 function pixva_size_catalog() {
 	$sizes = array();
-	foreach ( array_keys( pixva_pricing_matrix()['size'] ) as $size ) {
+	foreach ( array_keys( pixva_pricing_size_factors() ) as $size ) {
 		$sizes[ $size ] = sprintf(
 			/* translators: %s: سایز اینچ */
 			__( '%s اینچ', 'pixva' ),
@@ -599,6 +664,7 @@ function pixva_fallback_menu() {
 		get_post_type_archive_link( 'tv_services' ) => __( 'خدمات', 'pixva' ),
 		get_post_type_archive_link( 'tv_brands' )   => __( 'برندها', 'pixva' ),
 		pixva_page_url( 'calculator' )              => __( 'محاسبه هزینه', 'pixva' ),
+		pixva_page_url( 'rates' )                   => __( 'نرخ‌نامه', 'pixva' ),
 		pixva_page_url( 'tracking' )                => __( 'پیگیری تعمیر', 'pixva' ),
 		pixva_page_url( 'error-codes' )             => __( 'کدهای خطا', 'pixva' ),
 		pixva_blog_url()                            => __( 'مجله', 'pixva' ),
@@ -1309,7 +1375,8 @@ function pixva_render_calculator( $args = array() ) {
 		<div class="pixva-calc__step" data-step="4" hidden>
 			<div class="pixva-calc__result" data-calc-result>
 				<p class="pixva-muted" data-summary></p>
-				<p class="pixva-calc__price"><strong data-price>—</strong> <span><?php esc_html_e( 'تومان', 'pixva' ); ?></span></p>
+				<p class="pixva-notice pixva-notice--warning" data-calc-warning hidden></p>
+				<p class="pixva-calc__price" data-price-row><strong data-price>—</strong> <span><?php esc_html_e( 'تومان', 'pixva' ); ?></span></p>
 				<p class="pixva-calc__days"><?php echo pixva_icon( 'clock' ); ?><span data-days></span></p>
 				<p class="pixva-calc__note" data-disclaimer></p>
 			</div>

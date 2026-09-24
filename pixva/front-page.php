@@ -33,30 +33,37 @@ get_footer();
  */
 function pixva_home_hero() {
 	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی', 'pixva' ) );
-	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.', 'pixva' ) );
+	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'مرکز تخصصی پیکسوا با تجهیز کارگاهی پیشرفته، تعمیر پنل، بک‌لایت و بردهای OLED، QLED و LED را با قطعات فابریک و ضمانت کتبی ۶ ماهه انجام می‌دهد.', 'pixva' ) );
 	?>
-	<section class="pixva-hero">
+	<section class="pixva-hero pixva-hero--light">
 		<div class="pixva-container pixva-hero__grid">
-			<div>
-				<span class="pixva-badge"><?php esc_html_e( 'کارگاه تخصصی پنل و برد', 'pixva' ); ?></span>
+			<div class="pixva-hero__content">
+				<div class="pixva-hero__badges">
+					<span class="pixva-badge pixva-badge--brand"><?php esc_html_e( 'کارگاه تخصصی بندینگ و برد', 'pixva' ); ?></span>
+					<span class="pixva-badge pixva-badge--success"><?php esc_html_e( 'ضمانت ۶ ماهه کتبی', 'pixva' ); ?></span>
+					<span class="pixva-badge pixva-badge--accent"><?php esc_html_e( 'قطعات فابریک', 'pixva' ); ?></span>
+				</div>
 				<h1><?php echo esc_html( $title ); ?></h1>
 				<p class="pixva-hero__lead"><?php echo esc_html( $lead ); ?></p>
 				<div class="pixva-hero__actions">
-					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'برآورد هزینه تعمیر', 'pixva' ); ?></a>
-					<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="#quick-calc"><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--ghost-dark" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری وضعیت دستگاه', 'pixva' ); ?></a>
 				</div>
 				<div class="pixva-stats">
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '180' ) ); ?></strong><span><?php esc_html_e( 'روز گارانتی تعمیر', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '12+' ) ); ?></strong><span><?php esc_html_e( 'سال تجربه کارگاه', 'pixva' ); ?></span></div>
+					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '180' ) ); ?></strong><span><?php esc_html_e( 'روز گارانتی کتبی', 'pixva' ); ?></span></div>
+					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '12+' ) ); ?></strong><span><?php esc_html_e( 'سال سابقه کارگاهی', 'pixva' ); ?></span></div>
 					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '8000+' ) ); ?></strong><span><?php esc_html_e( 'دستگاه تعمیرشده', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php esc_html_e( 'تهران', 'pixva' ); ?></strong><span><?php esc_html_e( 'اعزام و جمع‌آوری', 'pixva' ); ?></span></div>
+					<div class="pixva-stat"><strong><?php esc_html_e( 'تهران', 'pixva' ); ?></strong><span><?php esc_html_e( 'پیک جمع‌آوری و تحویل', 'pixva' ); ?></span></div>
 				</div>
 			</div>
-			<div class="pixva-hero__visual">
-				<img src="<?php echo esc_url( PIXVA_URI . '/assets/images/hero-workshop.jpg' ); ?>" alt="<?php esc_attr_e( 'کارگاه تعمیر تلویزیون پیکسوا', 'pixva' ); ?>" width="960" height="640">
-				<div class="pixva-hero__float">
-					<span class="pixva-chip"><?php echo pixva_icon( 'shield' ); ?><?php esc_html_e( 'گارانتی کتبی', 'pixva' ); ?></span>
-					<span class="pixva-chip"><?php echo pixva_icon( 'truck' ); ?><?php esc_html_e( 'تحویل در محل', 'pixva' ); ?></span>
+			<div class="pixva-hero__calculator" id="quick-calc">
+				<div class="pixva-hero__calc-card">
+					<div class="pixva-hero__calc-header">
+						<span class="pixva-badge pixva-badge--pulse"><?php esc_html_e( 'محاسبه‌گر آنلاین نرخ ۱۴۰۵', 'pixva' ); ?></span>
+						<h3><?php esc_html_e( 'استعلام فوری هزینه تعمیر', 'pixva' ); ?></h3>
+						<p><?php esc_html_e( 'برند و نوع خرابی را انتخاب کنید؛ محاسبه در لحظه سمت سرور انجام می‌شود.', 'pixva' ); ?></p>
+					</div>
+					<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
 				</div>
 			</div>
 		</div>
@@ -381,4 +388,37 @@ function pixva_home_blog() {
 		</div>
 	</section>
 	<?php
+}
+
+/**
+ * سکشن شبیه‌ساز لمسی تلویزیون مجازی.
+ *
+ * @return void
+ */
+function pixva_home_tv_simulator() {
+	if ( function_exists( 'pixva_render_tv_canvas_simulator' ) ) {
+		pixva_render_tv_canvas_simulator();
+	}
+}
+
+/**
+ * سکشن تستر زنده پیکسل‌سوختگی و احیاکننده OLED.
+ *
+ * @return void
+ */
+function pixva_home_screen_tester() {
+	if ( function_exists( 'pixva_render_screen_rgb_tester' ) ) {
+		pixva_render_screen_rgb_tester();
+	}
+}
+
+/**
+ * سکشن هاب اعزام اورژانسی و پیگیری آنلاین.
+ *
+ * @return void
+ */
+function pixva_home_dispatch_hub() {
+	if ( function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
+		pixva_render_dispatch_and_warranty_hub();
+	}
 }

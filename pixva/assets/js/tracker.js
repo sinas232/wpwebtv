@@ -84,7 +84,7 @@
 				window.pixvaSetBusy(button, true);
 			}
 			try {
-				const data = await window.pixvaPostAjax('pixva_track_order', cfg.nonce.tracking, {
+				const data = await window.pixvaPostAjax('pixva_track_device', cfg.nonce.tracking, {
 					code: form.querySelector('[name="code"]').value.trim(),
 					phone: form.querySelector('[name="phone"]').value.trim(),
 					pixva_hp: form.querySelector('[name="pixva_hp"]') ? form.querySelector('[name="pixva_hp"]').value : '',

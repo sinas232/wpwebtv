@@ -1,0 +1,74 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"layout": {
+			"contentSize": "840px",
+			"wideSize": "1240px"
+		},
+		"color": {
+			"palette": [
+				{
+					"name": "پس‌زمینه روشن",
+					"slug": "bg-light",
+					"color": "#F8FAFC"
+				},
+				{
+					"name": "کارت و بخش",
+					"slug": "card-bg",
+					"color": "#FFFFFF"
+				},
+				{
+					"name": "متن اصلی",
+					"slug": "text-main",
+					"color": "#0F172A"
+				},
+				{
+					"name": "متن فرعی",
+					"slug": "text-muted",
+					"color": "#64748B"
+				},
+				{
+					"name": "رنگ برند های‌تک",
+					"slug": "primary",
+					"color": "#0284C7"
+				},
+				{
+					"name": "فیروزه‌ای های‌تک",
+					"slug": "accent",
+					"color": "#06B6D4"
+				},
+				{
+					"name": "دکمه و فراخوان",
+					"slug": "cta",
+					"color": "#F97316"
+				},
+				{
+					"name": "کادر و مرز",
+					"slug": "border",
+					"color": "#E2E8F0"
+				}
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "\"Vazirmatn\", \"Tahoma\", sans-serif",
+					"name": "وزیرمتن",
+					"slug": "primary"
+				}
+			]
+		}
+	},
+	"styles": {
+		"color": {
+			"background": "var(--wp--preset--color--bg-light)",
+			"text": "var(--wp--preset--color--text-main)"
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--primary)",
+			"lineHeight": "1.9"
+		}
+	}
+}

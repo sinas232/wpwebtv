@@ -4,7 +4,7 @@ Theme URI: https://pixva.ir/
 Author: تیم توسعه پیکسوا
 Author URI: https://pixva.ir/
 Description: قالب اختصاصی، سبک و راست‌چین مرکز تخصصی تعمیرات تلویزیون و نمایشگر «پیکسوا»؛ شامل محاسبه‌گر هزینه تعمیر، سامانه پیگیری آنلاین، پایگاه کدهای خطا، اسلایدر قبل/بعد، اسکیما مارک‌آپ JSON-LD و وبلاگ سئومحور. بدون وابستگی به افزونه جانبی و بدون jQuery.
-Version: 1.0.0
+Version: 1.2.0
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -18,17 +18,18 @@ Tags: custom-colors, custom-logo, custom-menu, featured-images, threaded-comment
    ۱) متغیرهای طراحی (Design Tokens)
    ========================================================================== */
 :root {
-	/* پالت رنگی اختصاصی پیکسوا */
-	--primary: #0F172A;
-	--primary-hover: #1E293B;
+	/* پالت رنگی اختصاصی پیکسوا (Light Mode Native & High-Tech) */
+	--bg-light: #F8FAFC;
+	--card-bg: #FFFFFF;
+	--text-main: #0F172A;
+	--text-muted: #64748B;
+	--primary: #0284C7;
+	--primary-hover: #0369A1;
+	--primary-dark: #0F172A;
 	--accent: #06B6D4;
 	--accent-soft: rgba(6, 182, 212, 0.12);
 	--cta: #F97316;
 	--cta-hover: #EA580C;
-	--bg-light: #F8FAFC;
-	--card-bg: #FFFFFF;
-	--text-main: #334155;
-	--text-muted: #64748B;
 
 	/* رنگ‌های کمکی وضعیت‌ها */
 	--success: #16A34A;
@@ -58,13 +59,13 @@ Tags: custom-colors, custom-logo, custom-menu, featured-images, threaded-comment
 	--header-h: 76px;
 
 	/* سایه و شیشه */
-	--shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.06);
-	--shadow-md: 0 6px 18px rgba(15, 23, 42, 0.09);
-	--shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.14);
+	--shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+	--shadow-md: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+	--shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
 	--shadow-cta: 0 10px 26px rgba(249, 115, 22, 0.35);
-	--glass-bg: rgba(255, 255, 255, 0.72);
-	--glass-border: rgba(255, 255, 255, 0.45);
-	--blur: saturate(160%) blur(14px);
+	--glass-bg: rgba(255, 255, 255, 0.85);
+	--glass-border: 1px solid #E2E8F0;
+	--blur: saturate(160%) blur(16px);
 
 	/* گذارها */
 	--tr-fast: 0.18s ease;
@@ -540,6 +541,12 @@ textarea {
 	background: var(--accent-soft);
 	color: #0E7490;
 	border-color: rgba(6, 182, 212, 0.3);
+}
+
+.pixva-notice--warning {
+	background: rgba(217, 119, 6, 0.1);
+	color: var(--warning);
+	border-color: rgba(217, 119, 6, 0.35);
 }
 
 /* ==========================================================================

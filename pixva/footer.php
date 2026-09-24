@@ -96,6 +96,11 @@ $pixva_phone = pixva_support_phone();
 	</a>
 </nav>
 
+<?php
+if ( function_exists( 'pixva_render_ai_chatbot_widget' ) ) {
+	pixva_render_ai_chatbot_widget();
+}
+?>
 <?php wp_footer(); ?>
 </body>
 </html>
