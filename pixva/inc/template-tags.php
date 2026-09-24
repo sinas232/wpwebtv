@@ -220,11 +220,11 @@ function pixva_default_faqs() {
 	$faqs = array(
 		array(
 			'q' => __( 'هزینه تعمیر قبل از باز کردن دستگاه قطعی است؟', 'pixva' ),
-			'a' => __( 'خیر. محاسبه‌گر پیکسوا یک بازه واقعی کارگاهی می‌دهد. مبلغ نهایی بعد از عیب‌یابی و تأیید شما ثبت می‌شود و بدون هماهنگی قطعه‌ای تعویض نمی‌گردد.', 'pixva' ),
+			'a' => __( 'نه، و هرکس قبل از دیدن دستگاه قیمت قطعی بدهد یا حدس می‌زند یا قرار است وسط کار اضافه بگیرد. محاسبه‌گر پیکسوا بر اساس نرخ‌نامه ۱۴۰۵ یک بازه واقعی می‌دهد؛ بعد از عیب‌یابی، مبلغ دقیق و علت خرابی را می‌گوییم و فقط با تأیید شما شروع می‌کنیم. بدون تأیید، حتی یک پیچ هم باز نمی‌شود.', 'pixva' ),
 		),
 		array(
-			'q' => __( 'گارانتی تعمیرات چقدر است؟', 'pixva' ),
-			'a' => __( 'تعمیرات برد و بک‌لایت ۱۸۰ روز ضمانت کتبی دارد. تعمیر پنل، به‌دلیل ماهیت شیشه، ضمانت عملکرد خط تعمیرشده را دارد و سوختگی پیکسلی جدید را پوشش نمی‌دهد.', 'pixva' ),
+			'q' => __( 'گارانتی تعمیرات دقیقاً چه چیزی را پوشش می‌دهد؟', 'pixva' ),
+			'a' => __( 'تعمیر برد و بک‌لایت ۱۸۰ روز ضمانت کتبی دارد: اگر همان ایراد برگردد، رایگان درستش می‌کنیم. بندینگ پنل، ضمانت عملکرد همان خط تعمیرشده را دارد؛ اما ترک جدید شیشه، ضربه بعدی یا سوختگی پیکسلی تازه، خرابی تازه است و شامل گارانتی نمی‌شود. همه این‌ها روی برگه تحویل نوشته می‌شود، نه شفاهی.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'آیا دستگاه از منزل جمع می‌شود؟', 'pixva' ),
@@ -236,7 +236,7 @@ function pixva_default_faqs() {
 		),
 		array(
 			'q' => __( 'خطوط عمودی یعنی پنل سوخته است؟', 'pixva' ),
-			'a' => __( 'نه همیشه. بخش زیادی از خطوط از قطع فلت COF یا آی‌سی تایمینگ است و با دستگاه بندینگ ترمیم می‌شود. شکستگی شیشه قابل بندینگ نیست.', 'pixva' ),
+			'a' => __( 'نه همیشه؛ این رایج‌ترین سوءتفاهم است. خط باریک و ثابت معمولاً قطع فلت COF است و با بندینگ ترمیم می‌شود، بدون تعویض شیشه. اما خط پهن و لرزان، چند خط هم‌زمان، یا لکه ضربه یعنی سلول آسیب دیده و تعویض کامل پنل — که اغلب از ۱۰ میلیون شروع می‌شود — تنها راه است. با یک عکس نزدیک از خط، قبل از آوردن دستگاه می‌گوییم کدام حالت است.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'چشمک زدن چراغ پاور را خودمان می‌توانیم رفع کنیم؟', 'pixva' ),
@@ -255,8 +255,20 @@ function pixva_default_faqs() {
 			'a' => __( 'بعد از ثبت نوبت یک کد مانند PXV-2509-1234 دریافت می‌کنید. در برگه پیگیری، کد پیگیری و شماره همراه همان پرونده را با هم وارد کنید تا تایم‌لاین شش‌مرحله‌ای را ببینید. پیگیری فقط با شماره ممکن نیست.', 'pixva' ),
 		),
 		array(
+			'q' => __( 'اگر دستگاه قابل تعمیر نباشد، هزینه‌ای می‌گیرید؟', 'pixva' ),
+			'a' => __( 'فقط هزینه کارشناسی و عیب‌یابی (۱۸۰ تا ۳۵۰ هزار تومان) که از قبل اعلام شده. اگر تعمیر اقتصادی نباشد — مثلاً نم به سلول پنل رسیده — صریح می‌گوییم «نمی‌صرفد» و دستگاه را سالم برمی‌گردانیم. چیزی به اسم «بازش کردیم پس باید پول بدهی» نداریم.', 'pixva' ),
+		),
+		array(
+			'q' => __( 'تعمیر چقدر طول می‌کشد؟', 'pixva' ),
+			'a' => __( 'بک‌لایت و برد پاور معمولاً ۱ تا ۳ روز کاری؛ مین‌برد ۲ تا ۵ روز؛ بندینگ پنل ۴ تا ۸ روز. اگر قطعه کمیاب باشد، قبل از شروع می‌گوییم و زمان دقیق تأمین را اعلام می‌کنیم. در تمام این مدت، مرحله کار را با کد پیگیری آنلاین می‌بینید.', 'pixva' ),
+		),
+		array(
+			'q' => __( 'چرا قیمت OLED و سایزهای بزرگ بالاتر است؟', 'pixva' ),
+			'a' => __( 'سه دلیل: قطعه گران‌تر و کمیاب‌تر، ریسک بالاتر حین تعمیر (یک اشتباه روی پنل ۷۵ اینچ یعنی خسارت چندبرابری)، و زمان بیشتر تست. برای همین در نرخ‌نامه ضریب تکنولوژی و سایز جداست — اما برای برد و صدا اثر سایز را ملایم کرده‌ایم تا تعمیر برد روی تلویزیون بزرگ منصفانه بماند.', 'pixva' ),
+		),
+		array(
 			'q' => __( 'ساعت کاری کارگاه چیست؟', 'pixva' ),
-			'a' => __( 'شنبه تا پنجشنبه ۹ تا ۲۰ و جمعه‌ها ۱۰ تا ۱۶. پذیرش حضوری تا یک ساعت قبل از پایان وقت انجام می‌شود.', 'pixva' ),
+			'a' => __( 'شنبه تا پنجشنبه ۹ تا ۲۰ و جمعه‌ها ۱۰ تا ۱۶. پذیرش حضوری تا یک ساعت قبل از پایان وقت انجام می‌شود. برای جمع‌آوری در تهران، هماهنگی تلفنی لازم است.', 'pixva' ),
 		),
 	);
 	return apply_filters( 'pixva_default_faqs', $faqs );
@@ -270,19 +282,24 @@ function pixva_default_faqs() {
 function pixva_testimonials() {
 	$items = array(
 		array(
-			'quote' => __( 'خطوط عمودی ۵۵ اینچ سامسونگ را بدون تعویض پنل بستند. عصر همان روز تصویر یکدست شد و برگه گارانتی هم دادند.', 'pixva' ),
-			'name'  => __( 'مهدی ر.', 'pixva' ),
-			'role'  => __( 'تعمیر پنل، تهران', 'pixva' ),
+			'quote' => __( 'سامسونگ ۵۵ اینچ ما دو خط عمودی ثابت داشت و دو تعمیرکار گفته بودند پنل باید عوض شود؛ یعنی بالای ده میلیون. پیکسوا با بندینگ فلت COF همان خط را بست، عکس تست خاکستری را هم نشانم داد. شش ماه گذشته و تصویر هنوز یکدست است.', 'pixva' ),
+			'name'  => __( 'مهدی رستمی', 'pixva' ),
+			'role'  => __( 'بندینگ پنل سامسونگ ۵۵ اینچ، تهران', 'pixva' ),
 		),
 		array(
-			'quote' => __( 'چراغ پاور ال‌جی سه بار چشمک می‌زد. برد تغذیه تعمیر شد، نه تعویض کامل. هزینه از برآورد سایت کمتر درآمد.', 'pixva' ),
-			'name'  => __( 'سارا ک.', 'pixva' ),
-			'role'  => __( 'برد پاور، کرج', 'pixva' ),
+			'quote' => __( 'چراغ ال‌جی سه بار چشمک می‌زد و دستگاه روشن نمی‌ماند. چیزی که برایم مهم بود این بود که قبل از هر کاری گفتند اگر برد قابل تعمیر نباشد، همان اول می‌گویند و هزینه‌ای نمی‌گیرند. برد پاور تعمیر شد، نه تعویض؛ فاکتور هم از سقف برآورد سایت کمتر شد.', 'pixva' ),
+			'name'  => __( 'سارا کریمی', 'pixva' ),
+			'role'  => __( 'برد پاور ال‌جی ۴۹ اینچ، کرج', 'pixva' ),
 		),
 		array(
-			'quote' => __( 'پیگیری آنلاین واقعاً کار می‌کرد. از مرحله تأمین قطعه تا آماده تحویل را با همان کد پیامکی دیدم.', 'pixva' ),
-			'name'  => __( 'حمید ن.', 'pixva' ),
-			'role'  => __( 'تعویض بک‌لایت، تهران', 'pixva' ),
+			'quote' => __( 'از شهرستان دستگاه را با باربری فرستادم. کد پیگیری گرفتم و هر مرحله — از عیب‌یابی تا تست نهایی — را آنلاین دیدم. بک‌لایت QLED عوض شد و موقع تحویل، برگه گارانتی ۱۸۰ روزه هم داخل جعبه بود. برای من که حضوری نیامدم، همین شفافیت همه‌چیز بود.', 'pixva' ),
+			'name'  => __( 'حمید نادری', 'pixva' ),
+			'role'  => __( 'تعویض بک‌لایت QLED، اصفهان', 'pixva' ),
+		),
+		array(
+			'quote' => __( 'آب روی تلویزیون اسنوا ریخته بود و خودم با سشوار خشکش کرده بودم — بدترین کار ممکن! صادقانه گفتند سشوار به فلت آسیب زده و شانس تعمیر پنجاه‌پنجاه است. برد شست‌وشو شد و دستگاه برگشت. این صداقت که «ممکن است نشود» را همان اول بگویند، جایی ندیده بودم.', 'pixva' ),
+			'name'  => __( 'الهام صادقی', 'pixva' ),
+			'role'  => __( 'رفع آب‌خوردگی اسنوا ۵۰ اینچ، تهران', 'pixva' ),
 		),
 	);
 	return apply_filters( 'pixva_testimonials', $items );
@@ -1048,9 +1065,60 @@ function pixva_post_card( $post_id = 0 ) {
 					<a href="<?php echo esc_url( get_category_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a>
 				<?php endif; ?>
 				<time datetime="<?php echo esc_attr( get_the_date( 'c', $post_id ) ); ?>"><?php echo esc_html( pixva_format_date( get_post_timestamp( $post_id ) ) ); ?></time>
+				<?php
+				$pixva_minutes = function_exists( 'pixva_reading_time' ) ? pixva_reading_time( (string) get_post_field( 'post_content', $post_id ) ) : 0;
+				if ( $pixva_minutes ) {
+					echo '<span class="pixva-reading">' . esc_html( sprintf( __( '%s دقیقه', 'pixva' ), pixva_fa_num( $pixva_minutes ) ) ) . '</span>';
+				}
+				?>
 			</div>
 			<h3><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></h3>
 			<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 22 ) ); ?></p>
+		</div>
+	</article>
+	<?php
+}
+
+/**
+ * کارت ویژه مطلب اول مجله (پهن و برجسته).
+ *
+ * @return void
+ */
+function pixva_featured_card() {
+	$post_id = get_the_ID();
+	if ( ! $post_id ) {
+		return;
+	}
+	$permalink = get_permalink( $post_id );
+	$cats      = get_the_category( $post_id );
+	$minutes   = function_exists( 'pixva_reading_time' ) ? pixva_reading_time( (string) get_post_field( 'post_content', $post_id ) ) : 0;
+	?>
+	<article class="pixva-card pixva-featured pixva-reveal">
+		<a class="pixva-featured__media" href="<?php echo esc_url( $permalink ); ?>" tabindex="-1" aria-hidden="true">
+			<?php
+			if ( has_post_thumbnail( $post_id ) ) {
+				echo get_the_post_thumbnail( $post_id, 'pixva-wide', array( 'alt' => esc_attr( get_the_title( $post_id ) ) ) );
+			} else {
+				echo '<span class="pixva-post-card__placeholder">' . pixva_icon( 'panel' ) . '</span>';
+			}
+			?>
+		</a>
+		<div class="pixva-featured__body">
+			<div class="pixva-post-card__meta">
+				<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'پیشنهاد کارگاه', 'pixva' ); ?></span>
+				<?php if ( ! empty( $cats ) ) : ?>
+					<a href="<?php echo esc_url( get_category_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a>
+				<?php endif; ?>
+			</div>
+			<h2><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></h2>
+			<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 30 ) ); ?></p>
+			<div class="pixva-post-card__foot">
+				<time datetime="<?php echo esc_attr( get_the_date( 'c', $post_id ) ); ?>"><?php echo esc_html( pixva_format_date( get_post_timestamp( $post_id ) ) ); ?></time>
+				<?php if ( $minutes ) : ?>
+					<span class="pixva-reading"><?php echo esc_html( sprintf( __( '%s دقیقه مطالعه', 'pixva' ), pixva_fa_num( $minutes ) ) ); ?></span>
+				<?php endif; ?>
+				<a class="pixva-btn pixva-btn--primary pixva-btn--sm" href="<?php echo esc_url( $permalink ); ?>"><?php esc_html_e( 'خواندن مقاله', 'pixva' ); ?></a>
+			</div>
 		</div>
 	</article>
 	<?php

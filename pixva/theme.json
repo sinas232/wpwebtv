@@ -13,32 +13,32 @@
       "palette": [
         {
           "slug": "primary",
-          "color": "#0F172A",
-          "name": "سرمه‌ای پیکسوا"
+          "color": "#23414F",
+          "name": "لجنی پیکسوا"
         },
         {
           "slug": "accent",
-          "color": "#06B6D4",
-          "name": "فیروزه‌ای پیکسوا"
+          "color": "#0D93A8",
+          "name": "فیروزه‌ای ملایم"
         },
         {
           "slug": "cta",
-          "color": "#F97316",
-          "name": "نارنجی CTA"
+          "color": "#E07B2A",
+          "name": "نارنجی گرم"
         },
         {
           "slug": "background",
-          "color": "#F8FAFC",
-          "name": "پس‌زمینه روشن"
+          "color": "#F7F6F1",
+          "name": "کاغذی گرم"
         },
         {
           "slug": "text",
-          "color": "#334155",
+          "color": "#414B5A",
           "name": "متن اصلی"
         },
         {
           "slug": "muted",
-          "color": "#64748B",
+          "color": "#6E7A8E",
           "name": "متن کم‌رنگ"
         },
         {
@@ -102,20 +102,20 @@
   },
   "styles": {
     "color": {
-      "background": "#F8FAFC",
-      "text": "#334155"
+      "background": "#F7F6F1",
+      "text": "#414B5A"
     },
     "typography": {
       "fontFamily": "\"Vazirmatn\", \"Tahoma\", sans-serif",
       "lineHeight": "1.9"
     },
     "elements": {
-      "h1": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.4"}},
-      "h2": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.4"}},
-      "h3": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.5"}},
-      "link": {"color": {"text": "#06B6D4"}},
+      "h1": {"color": {"text": "#23414F"}, "typography": {"lineHeight": "1.4"}},
+      "h2": {"color": {"text": "#23414F"}, "typography": {"lineHeight": "1.4"}},
+      "h3": {"color": {"text": "#23414F"}, "typography": {"lineHeight": "1.5"}},
+      "link": {"color": {"text": "#0D93A8"}},
       "button": {
-        "color": {"background": "#F97316", "text": "#FFFFFF"},
+        "color": {"background": "#E07B2A", "text": "#FFFFFF"},
         "border": {"radius": "14px"}
       }
     }

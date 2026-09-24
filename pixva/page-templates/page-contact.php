@@ -21,11 +21,11 @@ $postal = (string) pixva_option( 'pixva_workshop_postal', '1145644123' );
 $area = (string) pixva_option( 'pixva_service_area', 'تهران و کرج' );
 ?>
 <main id="content">
-	<?php pixva_page_hero( __( 'تماس با کارگاه پیکسوا', 'pixva' ), __( 'برای مشاوره، هماهنگی جمع‌آوری دستگاه یا پیگیری حضوری.', 'pixva' ) ); ?>
+	<?php pixva_page_hero( __( 'حرف بزنیم؛ مشاوره اول رایگان است', 'pixva' ), __( 'علائم دستگاه را بفرست تا بگوییم کاندید تعمیری یا نه. برای جمع‌آوری در تهران و کرج هم همین‌جا هماهنگ می‌کنیم.', 'pixva' ) ); ?>
 	<div class="pixva-container pixva-content">
 		<div class="pixva-contact-grid">
 			<section class="pixva-card">
-				<h2><?php esc_html_e( 'راه‌های ارتباط', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'کارگاه را پیدا کن', 'pixva' ); ?></h2>
 				<ul class="pixva-info-list">
 					<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( $address ); ?></span></li>
 					<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( $city . ' — ' . __( 'کدپستی', 'pixva' ) . ' ' . pixva_fa_num( $postal ) ); ?></span></li>
@@ -45,7 +45,8 @@ $area = (string) pixva_option( 'pixva_service_area', 'تهران و کرج' );
 				<p><a href="<?php echo esc_url( $map_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'باز کردن نقشه در صفحه جدا', 'pixva' ); ?></a></p>
 			</section>
 			<section class="pixva-card">
-				<h2><?php esc_html_e( 'فرم پیام', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'پیام بفرست؛ زود جواب می‌دهیم', 'pixva' ); ?></h2>
+				<p class="pixva-muted"><?php esc_html_e( 'برند، سایز، مدل و علامت خرابی را بنویس. اگر چشمک چراغ دارد، تعدادش را هم بگو — نصف عیب‌یابی همان است.', 'pixva' ); ?></p>
 				<form data-pixva-contact novalidate>
 					<?php pixva_honeypot_field(); ?>
 					<div class="pixva-field">

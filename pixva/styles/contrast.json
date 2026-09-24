@@ -4,24 +4,24 @@
   "title": "کنتراست بالا",
   "styles": {
     "color": {
-      "background": "#0F172A",
-      "text": "#F8FAFC"
+      "background": "#1B3442",
+      "text": "#F7F6F1"
     },
     "elements": {
       "h1": {"color": {"text": "#FFFFFF"}},
       "h2": {"color": {"text": "#FFFFFF"}},
       "h3": {"color": {"text": "#FFFFFF"}},
-      "link": {"color": {"text": "#06B6D4"}}
+      "link": {"color": {"text": "#0D93A8"}}
     }
   },
   "settings": {
     "color": {
       "palette": [
-        {"slug": "primary", "color": "#0F172A", "name": "سرمه‌ای"},
-        {"slug": "accent", "color": "#06B6D4", "name": "فیروزه‌ای"},
-        {"slug": "cta", "color": "#F97316", "name": "نارنجی"},
-        {"slug": "background", "color": "#0F172A", "name": "پس‌زمینه تیره"},
-        {"slug": "text", "color": "#F8FAFC", "name": "متن روشن"}
+        {"slug": "primary", "color": "#1B3442", "name": "لجنی تیره"},
+        {"slug": "accent", "color": "#0D93A8", "name": "فیروزه‌ای"},
+        {"slug": "cta", "color": "#E07B2A", "name": "نارنجی"},
+        {"slug": "background", "color": "#1B3442", "name": "پس‌زمینه تیره"},
+        {"slug": "text", "color": "#F7F6F1", "name": "متن روشن"}
       ]
     }
   }

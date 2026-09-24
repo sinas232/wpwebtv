@@ -6,8 +6,8 @@
  * Description: بنر اصلی با دو دکمه محاسبه و پیگیری.
  */
 ?>
-<!-- wp:group {"style":{"color":{"background":"#0F172A","text":"#ffffff"},"spacing":{"padding":{"top":"3rem","bottom":"3rem"}}},"layout":{"type":"constrained","contentSize":"1240px"}} -->
-<div class="wp-block-group has-white-color has-text-color has-background" style="background-color:#0F172A;color:#ffffff;padding-top:3rem;padding-bottom:3rem"><!-- wp:heading {"textAlign":"center","level":1} -->
+<!-- wp:group {"style":{"color":{"background":"#FFFDF8","text":"#414B5A"},"spacing":{"padding":{"top":"3rem","bottom":"3rem"}}},"layout":{"type":"constrained","contentSize":"1240px"}} -->
+<div class="wp-block-group has-text-color has-background" style="background-color:#FFFDF8;color:#414B5A;padding-top:3rem;padding-bottom:3rem"><!-- wp:heading {"textAlign":"center","level":1} -->
 <h1 class="wp-block-heading has-text-align-center">تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی</h1>
 <!-- /wp:heading -->
 <!-- wp:paragraph {"align":"center"} -->

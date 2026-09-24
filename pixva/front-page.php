@@ -32,31 +32,32 @@ get_footer();
  * @return void
  */
 function pixva_home_hero() {
-	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی', 'pixva' ) );
-	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.', 'pixva' ) );
+	$title = (string) pixva_option( 'pixva_hero_title', __( 'تلویزیونت را دور ننداز؛ ۸۰٪ خرابی‌ها بدون تعویض پنل درست می‌شود', 'pixva' ) );
+	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'پیکسوا کارگاه تخصصی پنل، بک‌لایت و برد است: برآورد شفاف ۱۴۰۵ قبل از آوردن دستگاه، عیب‌یابی با عدد و عکس، گارانتی کتبی ۱۸۰ روزه و پیگیری آنلاین مرحله‌به‌مرحله.', 'pixva' ) );
 	?>
 	<section class="pixva-hero">
 		<div class="pixva-container pixva-hero__grid">
 			<div>
-				<span class="pixva-badge"><?php esc_html_e( 'کارگاه تخصصی پنل و برد', 'pixva' ); ?></span>
+				<span class="pixva-badge"><?php esc_html_e( 'کارگاه تخصصی پنل، بک‌لایت و برد — تهران', 'pixva' ); ?></span>
 				<h1><?php echo esc_html( $title ); ?></h1>
 				<p class="pixva-hero__lead"><?php echo esc_html( $lead ); ?></p>
 				<div class="pixva-hero__actions">
-					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'برآورد هزینه تعمیر', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'هزینه تعمیر من چقدر می‌شود؟', 'pixva' ); ?></a>
 					<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></a>
 				</div>
-				<div class="pixva-stats">
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '180' ) ); ?></strong><span><?php esc_html_e( 'روز گارانتی تعمیر', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '12+' ) ); ?></strong><span><?php esc_html_e( 'سال تجربه کارگاه', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '8000+' ) ); ?></strong><span><?php esc_html_e( 'دستگاه تعمیرشده', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php esc_html_e( 'تهران', 'pixva' ); ?></strong><span><?php esc_html_e( 'اعزام و جمع‌آوری', 'pixva' ); ?></span></div>
-				</div>
+				<p class="pixva-hero__micro"><?php esc_html_e( 'بدون ثبت‌نام · بدون تماس اجباری · نتیجه در ۳۰ ثانیه', 'pixva' ); ?></p>
+				<dl class="pixva-stats">
+					<div class="pixva-stat"><dt><?php esc_html_e( 'گارانتی کتبی', 'pixva' ); ?></dt><dd><?php echo esc_html( pixva_fa_num( '۱۸۰ روز' ) ); ?></dd></div>
+					<div class="pixva-stat"><dt><?php esc_html_e( 'تجربه کارگاه', 'pixva' ); ?></dt><dd><?php echo esc_html( pixva_fa_num( '۱۲+ سال' ) ); ?></dd></div>
+					<div class="pixva-stat"><dt><?php esc_html_e( 'دستگاه برگشته به زندگی', 'pixva' ); ?></dt><dd><?php echo esc_html( pixva_fa_num( '۸۰۰۰+' ) ); ?></dd></div>
+					<div class="pixva-stat"><dt><?php esc_html_e( 'برند تحت پوشش', 'pixva' ); ?></dt><dd><?php echo esc_html( pixva_fa_num( '۲۴ برند' ) ); ?></dd></div>
+				</dl>
 			</div>
 			<div class="pixva-hero__visual">
 				<img src="<?php echo esc_url( PIXVA_URI . '/assets/images/hero-workshop.jpg' ); ?>" alt="<?php esc_attr_e( 'کارگاه تعمیر تلویزیون پیکسوا', 'pixva' ); ?>" width="960" height="640">
 				<div class="pixva-hero__float">
-					<span class="pixva-chip"><?php echo pixva_icon( 'shield' ); ?><?php esc_html_e( 'گارانتی کتبی', 'pixva' ); ?></span>
-					<span class="pixva-chip"><?php echo pixva_icon( 'truck' ); ?><?php esc_html_e( 'تحویل در محل', 'pixva' ); ?></span>
+					<span class="pixva-chip"><?php echo pixva_icon( 'shield' ); ?><?php esc_html_e( '۱۸۰ روز گارانتی کتبی', 'pixva' ); ?></span>
+					<span class="pixva-chip"><?php echo pixva_icon( 'truck' ); ?><?php esc_html_e( 'جمع‌آوری در تهران و کرج', 'pixva' ); ?></span>
 				</div>
 			</div>
 		</div>
@@ -74,9 +75,9 @@ function pixva_home_calculator() {
 	<section class="pixva-section" id="calculator">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
-				<span class="pixva-badge"><?php esc_html_e( 'برآورد شفاف', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'هزینه تعمیر را قبل از آوردن دستگاه ببینید', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'برند، تکنولوژی، سایز و نوع خرابی را انتخاب کنید. بازه قیمت روی سرور محاسبه می‌شود، نه داخل مرورگر.', 'pixva' ); ?></p>
+				<span class="pixva-badge"><?php esc_html_e( 'برآورد شفاف ۱۴۰۵', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'قبل از آوردن دستگاه، از هزینه باخبر شو', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'برند، تکنولوژی، سایز و نوع خرابی را انتخاب کن؛ بازه واقعی قیمت را از نرخ‌نامه ۱۴۰۵ بگیر. بدون تماس، بدون چانه‌زنی، بدون غافلگیری وسط کار.', 'pixva' ); ?></p>
 			</div>
 			<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
 		</div>
@@ -101,9 +102,9 @@ function pixva_home_services() {
 	<section class="pixva-section pixva-section--alt pixva-home-services">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
-				<span class="pixva-badge"><?php esc_html_e( 'خدمات', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'تعمیر همان‌جایی که خرابی است', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'پنل را بی‌دلیل تعویض نمی‌کنیم. اول مسیر ارزان‌تر و قابل ضمانت بررسی می‌شود.', 'pixva' ); ?></p>
+				<span class="pixva-badge"><?php esc_html_e( 'خدمات تخصصی', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'تعمیر همان‌جایی که خرابی است، نه گران‌ترین قطعه', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'قاعده کارگاه ما ساده است: اول ارزان‌ترین مسیر قابل ضمانت. پنل سالم را به‌خاطر یک فلت قطع، عوض نمی‌کنیم؛ برد قابل تعمیر را دور نمی‌اندازیم.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--3">
 				<?php if ( ! empty( $services ) ) : ?>
@@ -136,6 +137,56 @@ function pixva_home_services() {
 }
 
 /**
+ * چرا پیکسوا: چهار ستون اعتماد.
+ *
+ * @return void
+ */
+function pixva_home_why() {
+	$items = array(
+		array(
+			'icon'  => 'shield',
+			'title' => __( 'گارانتی کتبی، نه شفاهی', 'pixva' ),
+			'text'  => __( '۱۸۰ روز برای برد و بک‌لایت، روی برگه تحویل با مهر. اگر همان ایراد برگردد، رایگان درستش می‌کنیم — بدون «شاید یه چیز دیگه‌ست».', 'pixva' ),
+		),
+		array(
+			'icon'  => 'tool',
+			'title' => __( 'بندینگ واقعی، نه حرف', 'pixva' ),
+			'text'  => __( 'دستگاه بندینگ COF داریم و فلت را ترمیم می‌کنیم؛ برای همین لازم نیست هر خط عمودی را به تعویض ۱۰ میلیونی پنل گره بزنیم.', 'pixva' ),
+		),
+		array(
+			'icon'  => 'search',
+			'title' => __( 'عیب‌یابی با سند', 'pixva' ),
+			'text'  => __( 'ولتاژ، عکس تست و علت خرابی را نشان می‌دهیم و بعد قیمت می‌گوییم. اگر تعمیر نصرفد، همان اول می‌گوییم «نمی‌صرفد».', 'pixva' ),
+		),
+		array(
+			'icon'  => 'clock',
+			'title' => __( 'پیگیری آنلاین واقعی', 'pixva' ),
+			'text'  => __( 'از عیب‌یابی تا تست نهایی را با کد پیگیری می‌بینی. لازم نیست هر روز زنگ بزنی بپرسی «دستگاهم چی شد؟».', 'pixva' ),
+		),
+	);
+	?>
+	<section class="pixva-section pixva-section--alt">
+		<div class="pixva-container">
+			<div class="pixva-section-head">
+				<span class="pixva-badge"><?php esc_html_e( 'چرا پیکسوا', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'تعمیرکار زیاد است؛ کارگاه پاسخ‌گو کم است', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'فرق ما با «آشنای برق‌کار» چهار چیز است — و هر چهار را می‌شود راستی‌آزمایی کرد.', 'pixva' ); ?></p>
+			</div>
+			<div class="pixva-grid pixva-grid--4 pixva-why-grid">
+				<?php foreach ( $items as $item ) : ?>
+					<article class="pixva-card pixva-why-card pixva-reveal">
+						<span class="pixva-why-card__icon"><?php echo pixva_icon( $item['icon'] ); ?></span>
+						<h3><?php echo esc_html( $item['title'] ); ?></h3>
+						<p><?php echo esc_html( $item['text'] ); ?></p>
+					</article>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
  * اسلایدر قبل و بعد.
  *
  * @return void
@@ -152,8 +203,8 @@ function pixva_home_before_after() {
 		'before' => PIXVA_URI . '/assets/images/panel-before.jpg',
 		'after'  => PIXVA_URI . '/assets/images/panel-after.jpg',
 	);
-	$title  = __( 'یک پنل خط‌دار، بدون تعویض شیشه', 'pixva' );
-	$text   = __( 'خط جداکننده را بکشید. تصویر چپ وضعیت پذیرش است و تصویر راست خروجی تست نهایی کارگاه.', 'pixva' );
+	$title  = __( 'این پنل قرار بود ۱۰ میلیون خرج بردارد؛ با بندینگ برگشت', 'pixva' );
+	$text   = __( 'خط جداکننده را بکشید: چپ، لحظه پذیرش با خط عمودی ثابت است؛ راست، خروجی تست نهایی بعد از بندینگ فلت. شیشه عوض نشد، فقط مسیر قطع وصل شد.', 'pixva' );
 	if ( ! empty( $case ) ) {
 		$images = pixva_case_images( $case[0]->ID );
 		$title  = get_the_title( $case[0] );
@@ -194,8 +245,8 @@ function pixva_home_brands() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'برندها', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'هر ۲۴ برند، از سامسونگ تا مارشال', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'برند خود را پیدا کنید؛ الگوی چشمک و برآورد همان برند را ببینید.', 'pixva' ); ?></p>
+				<h2><?php esc_html_e( 'هر ۲۴ برند؛ هر شاسی، قلق خودش را دارد', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'سه چشمک سونی با سه چشمک اسنوا یکی نیست. هر برند را با الگوی چشمک، شاسی و قطعه خودش عیب‌یابی می‌کنیم — برندت را پیدا کن و مسیر تعمیرش را ببین.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--4">
 				<?php if ( ! empty( $posts ) ) : ?>
@@ -232,9 +283,10 @@ function pixva_home_testimonials() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'از زبان مشتری', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'تعمیر را با نتیجه می‌سنجیم', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'حرف ما را باور نکن؛ حرف آن‌ها را بخوان', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'روایت واقعی کسانی که دستگاه‌شان روی همین میز تعمیر شده — با جزئیات، نه با ستاره خشک و خالی.', 'pixva' ); ?></p>
 			</div>
-			<div class="pixva-grid pixva-grid--3">
+			<div class="pixva-grid pixva-grid--2">
 				<?php foreach ( pixva_testimonials() as $item ) : ?>
 					<blockquote class="pixva-card pixva-quote pixva-reveal">
 						<div class="pixva-stars" aria-hidden="true">★★★★★</div>
@@ -256,20 +308,20 @@ function pixva_home_testimonials() {
 function pixva_home_process() {
 	$steps = array(
 		array(
-			'title' => __( 'ثبت علائم', 'pixva' ),
-			'text'  => __( 'برند، سایز، مدل و تعداد چشمک را در محاسبه‌گر یا واتساپ بفرستید. اگر ضربه یا آب‌خوردگی بوده همان اول بگویید.', 'pixva' ),
+			'title' => __( '۱. علائم را بفرست', 'pixva' ),
+			'text'  => __( 'برند، سایز، مدل و تعداد چشمک — با یک عکس از صفحه. اگر ضربه یا آب‌خوردگی بوده همان اول بگو؛ پنهانش کنی فقط هزینه‌ات بیشتر می‌شود.', 'pixva' ),
 		),
 		array(
-			'title' => __( 'برآورد و نوبت', 'pixva' ),
-			'text'  => __( 'بازه قیمت روی سرور حساب می‌شود. با ثبت شماره، کد پیگیری می‌گیرید و جمع‌آوری در تهران هماهنگ می‌شود.', 'pixva' ),
+			'title' => __( '۲. برآورد بگیر و نوبت ثبت کن', 'pixva' ),
+			'text'  => __( 'بازه قیمت ۱۴۰۵ را آنلاین می‌بینی. با ثبت شماره، کد پیگیری می‌گیری و جمع‌آوری در تهران و کرج هماهنگ می‌شود.', 'pixva' ),
 		),
 		array(
-			'title' => __( 'عیب‌یابی کارگاه', 'pixva' ),
-			'text'  => __( 'مسیر تغذیه، بک‌لایت، مین‌برد و پنل جدا تست می‌شود. قبل از تعویض قطعه، هزینه قطعی را تأیید می‌کنید.', 'pixva' ),
+			'title' => __( '۳. عیب‌یابی با عدد و عکس', 'pixva' ),
+			'text'  => __( 'تغذیه، بک‌لایت، مین‌برد و پنل جدا تست می‌شود. علت خرابی و هزینه قطعی را با سند می‌گوییم؛ بدون تأیید تو هیچ قطعه‌ای عوض نمی‌شود.', 'pixva' ),
 		),
 		array(
-			'title' => __( 'تست و گارانتی', 'pixva' ),
-			'text'  => __( 'تحویل با الگوی رنگ و خاکستری، به‌همراه برگه ۱۸۰ روزه برای برد و بک‌لایت. وضعیت را آنلاین پیگیری می‌کنید.', 'pixva' ),
+			'title' => __( '۴. تست نهایی و تحویل با گارانتی', 'pixva' ),
+			'text'  => __( 'تست حرارت و الگوی رنگ و خاکستری، بعد تحویل با برگه ۱۸۰ روزه برای برد و بک‌لایت. همه مراحل را با همان کد آنلاین دیده‌ای.', 'pixva' ),
 		),
 	);
 	?>
@@ -277,8 +329,8 @@ function pixva_home_process() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'مسیر کار', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'از تماس تا تحویل، چهار مرحله شفاف', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'دستگاه بی‌دلیل باز نمی‌شود و قطعه‌ای بدون تأیید شما عوض نمی‌شود.', 'pixva' ); ?></p>
+				<h2><?php esc_html_e( 'از اولین پیام تا تحویل: چهار قدم، صفر غافلگیری', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'دستگاه بی‌دلیل باز نمی‌شود، قطعه‌ای بدون تأیید تو عوض نمی‌شود، و هیچ‌وقت وسط کار با «یه چیز دیگه هم خرابه» روبه‌رو نمی‌شوی.', 'pixva' ); ?></p>
 			</div>
 			<ol class="pixva-steps pixva-steps--home">
 				<?php foreach ( $steps as $step ) : ?>
@@ -306,8 +358,8 @@ function pixva_home_errors() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'کدهای خطا', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'چشمک چراغ را قبل از باز کردن دستگاه بشمارید', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'این راهنمای کارگاهی است، نه سرویس‌منوال رسمی. برد پاور ولتاژ خطرناک دارد.', 'pixva' ); ?></p>
+				<h2><?php esc_html_e( 'چشمک چراغ، زبان تلویزیون است — یادش بگیر', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'هر الگوی چشمک یعنی یک مسیر خرابی مشخص. بشمار، تطبیق بده، بعد تصمیم بگیر. فقط یادت باشد: برد پاور ولتاژ خطرناک دارد و دیدن الگو به معنی باز کردن دستگاه نیست.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--2">
 				<?php foreach ( $rows as $row ) : ?>
@@ -333,6 +385,30 @@ function pixva_home_errors() {
 }
 
 /**
+ * نوار دعوت به اقدام.
+ *
+ * @return void
+ */
+function pixva_home_cta() {
+	?>
+	<section class="pixva-section pixva-section--tight">
+		<div class="pixva-container">
+			<div class="pixva-cta-band pixva-reveal">
+				<div class="pixva-cta-band__text">
+					<h2><?php esc_html_e( 'هنوز مطمئن نیستی تعمیر می‌صرفد یا نه؟', 'pixva' ); ?></h2>
+					<p><?php esc_html_e( 'علائم را بفرست؛ می‌گوییم کاندید تعمیری یا باید قیدش را بزنی — رایگان و بدون تعارف. اگر هم خواستی، برآورد دقیق ۱۴۰۵ را بگیر.', 'pixva' ); ?></p>
+				</div>
+				<div class="pixva-cta-band__actions">
+					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><?php esc_html_e( 'مشاوره رایگان', 'pixva' ); ?></a>
+				</div>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
  * سوالات متداول صفحه اصلی.
  *
  * @return void
@@ -343,7 +419,8 @@ function pixva_home_faq() {
 		<div class="pixva-container" style="max-width:860px">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'پرسش‌های رایج', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'قبل از آوردن دستگاه، این‌ها را بدانید', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'سؤال‌هایی که همه می‌پرسند، با جواب صریح', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'بدون طفره: از قیمت و گارانتی تا این‌که «اصلاً می‌صرفد تعمیرش کنم؟».', 'pixva' ); ?></p>
 			</div>
 			<?php pixva_render_faq( array_slice( pixva_default_faqs(), 0, 6 ), 'home-faq' ); ?>
 			<p style="text-align:center;margin-top:1.4rem">
@@ -371,8 +448,9 @@ function pixva_home_blog() {
 	<section class="pixva-section pixva-section--alt">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
-				<span class="pixva-badge"><?php esc_html_e( 'مجله', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'قبل از آوردن دستگاه، این‌ها را بخوانید', 'pixva' ); ?></h2>
+				<span class="pixva-badge"><?php esc_html_e( 'مجله تخصصی', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'عیب‌یابی را از کارگاه یاد بگیر، نه از حدس', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'مقاله‌های واقعی تعمیر: تست چراغ‌قوه، شمارش چشمک، تشخیص بندینگ از تعویض پنل. هر مقاله را می‌شود همین امروز روی دستگاه خودت اجرا کرد.', 'pixva' ); ?></p>
 			</div>
 			<?php if ( ! empty( $posts ) ) : ?>
 				<div class="pixva-grid pixva-grid--3">

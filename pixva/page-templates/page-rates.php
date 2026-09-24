@@ -19,7 +19,7 @@ $brands   = pixva_brand_catalog();
 $techs    = pixva_tech_catalog();
 ?>
 <main id="content">
-	<?php pixva_page_hero( __( 'نرخ‌نامه شفاف تعمیرات — سطح ۱۴۰۵', 'pixva' ), __( 'کف و سقف پایه هر خدمت برای مبنای ۳۲ اینچ است؛ ضریب برند، تکنولوژی و سایز روی آن اعمال می‌شود. مبلغ نهایی پس از عیب‌یابی حضوری قطعی می‌شود.', 'pixva' ) ); ?>
+	<?php pixva_page_hero( __( 'نرخ‌نامه ۱۴۰۵: همه عددها روی میز', 'pixva' ), __( 'کف و سقف پایه هر خدمت برای مبنای ۳۲ اینچ، به‌همراه ضریب برند و سایز. همین جدول، مبنای محاسبه‌گر و مبنای فاکتور کارگاه است — یک عدد برای همه.', 'pixva' ) ); ?>
 	<div class="pixva-container pixva-content">
 		<section class="pixva-card pixva-reveal">
 			<h2><?php esc_html_e( 'هزینه کارشناسی و نکته پنل', 'pixva' ); ?></h2>
@@ -37,11 +37,18 @@ $techs    = pixva_tech_catalog();
 			</p>
 			<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'تعویض کامل پنل خارج از جدول است و اغلب از ۱۰ میلیون تومان شروع می‌شود. اگر سلول سالم باشد، بندینگ جایگزین به‌صرفه‌تر است.', 'pixva' ); ?></p>
 			<p class="pixva-muted"><?php esc_html_e( 'اثر سایز برای بک‌لایت و پنل کامل است و برای برد پاور، برد اصلی و صدا ملایم می‌شود تا تعمیر برد روی تلویزیون بزرگ بی‌دلیل گران نشود.', 'pixva' ); ?></p>
+			<h3><?php esc_html_e( 'قیمت تو چطور حساب می‌شود؟', 'pixva' ); ?></h3>
+			<ol>
+				<li><?php esc_html_e( 'کف و سقف پایه خدمت را از جدول پایین بردار.', 'pixva' ); ?></li>
+				<li><?php esc_html_e( 'در ضریب برند و تکنولوژی دستگاهت ضرب کن.', 'pixva' ); ?></li>
+				<li><?php esc_html_e( 'ضریب سایز را اعمال کن — برای برد و صدا فقط یک‌چهارم اختلاف سایز حساب می‌شود.', 'pixva' ); ?></li>
+			</ol>
+			<p class="pixva-muted"><?php esc_html_e( 'حوصله حساب نداری؟ محاسبه‌گر همین کار را در ۳۰ ثانیه می‌کند.', 'pixva' ); ?></p>
 		</section>
 
 		<section class="pixva-card pixva-reveal" style="margin-top:1.2rem">
 			<h2><?php esc_html_e( 'کف و سقف پایه هر خدمت (تومان)', 'pixva' ); ?></h2>
-			<div style="overflow-x:auto">
+			<div class="pixva-rates-scroll">
 				<table class="pixva-rates-table">
 					<thead>
 						<tr>

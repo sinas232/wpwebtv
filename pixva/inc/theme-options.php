@@ -22,11 +22,13 @@ function pixva_home_sections() {
 		'hero'         => esc_html__( 'هیرو (بنر اصلی)', 'pixva' ),
 		'calculator'   => esc_html__( 'محاسبه‌گر هزینه', 'pixva' ),
 		'services'     => esc_html__( 'خدمات تخصصی', 'pixva' ),
+		'why'          => esc_html__( 'چرا پیکسوا', 'pixva' ),
 		'process'      => esc_html__( 'مسیر پذیرش تا تحویل', 'pixva' ),
 		'before_after' => esc_html__( 'اسلایدر قبل/بعد', 'pixva' ),
 		'brands'       => esc_html__( 'برندها', 'pixva' ),
 		'errors'       => esc_html__( 'کدهای خطا', 'pixva' ),
 		'testimonials' => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'cta'          => esc_html__( 'نوار دعوت به اقدام', 'pixva' ),
 		'faq'          => esc_html__( 'سوالات متداول', 'pixva' ),
 		'blog'         => esc_html__( 'مجله تخصصی', 'pixva' ),
 	);
@@ -561,7 +563,7 @@ function pixva_customize_register( $wp_customize ) {
 		'pixva_sections_order',
 		array(
 			'label'       => esc_html__( 'ترتیب سکشن‌ها (با ویرگول جدا کنید)', 'pixva' ),
-			'description' => esc_html__( 'کلیدهای مجاز: hero, calculator, services, process, before_after, brands, errors, testimonials, faq, blog', 'pixva' ),
+			'description' => esc_html__( 'کلیدهای مجاز: hero, calculator, services, why, process, before_after, brands, errors, testimonials, cta, faq, blog', 'pixva' ),
 			'section'     => 'pixva_homepage',
 			'type'        => 'text',
 		)
@@ -570,7 +572,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_title',
 		array(
-			'default'           => 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی',
+			'default'           => 'تلویزیونت را دور ننداز؛ ۸۰٪ خرابی‌ها بدون تعویض پنل درست می‌شود',
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -586,7 +588,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_subtitle',
 		array(
-			'default'           => 'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.',
+			'default'           => 'پیکسوا کارگاه تخصصی پنل، بک‌لایت و برد است: برآورد شفاف ۱۴۰۵ قبل از آوردن دستگاه، عیب‌یابی با عدد و عکس، گارانتی کتبی ۱۸۰ روزه و پیگیری آنلاین مرحله‌به‌مرحله.',
 			'sanitize_callback' => 'sanitize_textarea_field',
 		)
 	);
