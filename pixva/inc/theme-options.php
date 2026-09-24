@@ -265,6 +265,135 @@ function pixva_customize_register( $wp_customize ) {
 		)
 	);
 
+	// نشانه محلی، کدپستی، شهر، ساعت‌ها، محدوده اعزام و مختصات نقشه.
+	$wp_customize->add_setting(
+		'pixva_workshop_landmark',
+		array(
+			'default'           => 'نزدیک مترو ۱۵ خرداد',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_workshop_landmark',
+		array(
+			'label'   => esc_html__( 'نشانه محلی', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_workshop_postal',
+		array(
+			'default'           => '1145644123',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_workshop_postal',
+		array(
+			'label'   => esc_html__( 'کدپستی', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_workshop_city',
+		array(
+			'default'           => 'تهران',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_workshop_city',
+		array(
+			'label'   => esc_html__( 'شهر', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_hours_weekdays',
+		array(
+			'default'           => 'شنبه تا پنجشنبه ۹ تا ۲۰',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_hours_weekdays',
+		array(
+			'label'   => esc_html__( 'ساعت شنبه تا پنجشنبه', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_hours_friday',
+		array(
+			'default'           => 'جمعه ۱۰ تا ۱۶',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_hours_friday',
+		array(
+			'label'   => esc_html__( 'ساعت جمعه', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_service_area',
+		array(
+			'default'           => 'تهران و کرج',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_service_area',
+		array(
+			'label'   => esc_html__( 'محدوده اعزام و جمع‌آوری', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_map_lat',
+		array(
+			'default'           => '35.6788',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_map_lat',
+		array(
+			'label'   => esc_html__( 'عرض جغرافیایی نقشه (lat)', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_map_lng',
+		array(
+			'default'           => '51.4195',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_map_lng',
+		array(
+			'label'   => esc_html__( 'طول جغرافیایی نقشه (lng)', 'pixva' ),
+			'section' => 'pixva_footer',
+			'type'    => 'text',
+		)
+	);
+
 	$wp_customize->add_setting(
 		'pixva_footer_phones',
 		array(

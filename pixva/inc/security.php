@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// حذف ویرایشگر فایل از پیشخوان (اگر در wp-config تعریف نشده باشد).
+if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
+	define( 'DISALLOW_FILE_EDIT', true );
+}
+
 /*
  * پلی‌فیل توابع رشته‌ای PHP 8 برای میزبان‌هایی که هنوز PHP 7.4 دارند.
  * قالب در style.css حداقل PHP 7.4 را اعلام کرده است.
@@ -113,6 +118,130 @@ function pixva_disable_xmlrpc() {
 	return false;
 }
 add_filter( 'xmlrpc_enabled', 'pixva_disable_xmlrpc' );
+
+/**
+ * بستن کامل متدهای XML-RPC.
+ *
+ * @param array $methods متدها.
+ * @return array
+ */
+function pixva_disable_xmlrpc_methods( $methods ) {
+	return array();
+}
+add_filter( 'xmlrpc_methods', 'pixva_disable_xmlrpc_methods' );
+
+/**
+ * ارسال سربرگ‌های امنیتی.
+ *
+ * فقط nosniff و Referrer-Policy. عمداً X-Frame-Options گذاشته نمی‌شود
+ * تا پیش‌نمایش گوتنبرگ و سفارشی‌ساز نشکند.
+ *
+ * @return void
+ */
+function pixva_send_security_headers() {
+	if ( headers_sent() ) {
+		return;
+	}
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+}
+add_action( 'send_headers', 'pixva_send_security_headers' );
+
+/**
+ * حذف ویرایشگر فایل قالب و افزونه از پیشخوان.
+ *
+ * @return void
+ */
+function pixva_remove_file_editors() {
+	remove_submenu_page( 'themes.php', 'theme-editor.php' );
+	remove_submenu_page( 'plugins.php', 'plugin-editor.php' );
+}
+add_action( 'admin_menu', 'pixva_remove_file_editors', 999 );
+
+/**
+ * بستن فهرست کاربران REST برای مهمان.
+ *
+ * @param mixed $result پاسخ.
+ * @param mixed $server سرور.
+ * @param mixed $request درخواست.
+ * @return mixed
+ */
+function pixva_restrict_rest_users( $result, $server, $request ) {
+	if ( is_user_logged_in() ) {
+		return $result;
+	}
+	if ( ! $request instanceof WP_REST_Request ) {
+		return $result;
+	}
+	$route = (string) $request->get_route();
+	if ( 0 === strpos( $route, '/wp/v2/users' ) ) {
+		return new WP_Error( 'pixva_rest_forbidden', esc_html__( 'دسترسی غیرمجاز.', 'pixva' ), array( 'status' => 401 ) );
+	}
+	return $result;
+}
+add_filter( 'rest_pre_dispatch', 'pixva_restrict_rest_users', 10, 3 );
+
+/**
+ * بستن آرشیو نویسنده برای مهمان (جلوگیری از شمارش نام کاربری).
+ *
+ * @return void
+ */
+function pixva_block_author_archive() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( is_author() && ! is_user_logged_in() ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'pixva_block_author_archive', 1 );
+
+/**
+ * محدود کردن تلاش‌های ورود ناموفق (۵ تلاش در ۱۵ دقیقه برای هر IP).
+ *
+ * @param string $username نام کاربری.
+ * @return void
+ */
+function pixva_login_failed( $username ) {
+	$ip  = pixva_client_ip();
+	$key = 'pixva_login_fail_' . md5( (string) $ip );
+	$hits = (int) get_transient( $key );
+	set_transient( $key, $hits + 1, 15 * MINUTE_IN_SECONDS );
+}
+add_action( 'wp_login_failed', 'pixva_login_failed' );
+
+/**
+ * بررسی قفل ورود پیش از احراز هویت.
+ *
+ * @param mixed $user کاربر.
+ * @param string $username نام کاربری.
+ * @param string $password رمز.
+ * @return mixed
+ */
+function pixva_check_login_lock( $user, $username, $password ) {
+	$ip  = pixva_client_ip();
+	$key = 'pixva_login_fail_' . md5( (string) $ip );
+	$hits = (int) get_transient( $key );
+	if ( $hits >= 5 ) {
+		return new WP_Error( 'pixva_locked', esc_html__( 'تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه بعد دوباره تلاش کنید.', 'pixva' ) );
+	}
+	return $user;
+}
+add_filter( 'authenticate', 'pixva_check_login_lock', 30, 3 );
+
+/**
+ * پاک کردن شمارنده ورود پس از ورود موفق.
+ *
+ * @param string $login نام کاربری.
+ * @param mixed  $user  کاربر.
+ * @return void
+ */
+function pixva_login_success_reset( $login, $user ) {
+	$ip  = pixva_client_ip();
+	delete_transient( 'pixva_login_fail_' . md5( (string) $ip ) );
+}
+add_action( 'wp_login', 'pixva_login_success_reset', 10, 2 );
 
 /*
  * ---------------------------------------------------------------------------

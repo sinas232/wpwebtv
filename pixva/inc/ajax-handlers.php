@@ -49,15 +49,17 @@ add_action( 'init', 'pixva_register_ajax_actions' );
  * @return array{min:int,max:int,days:string}|null
  */
 function pixva_calculate_estimate( $brand, $tech, $size, $problem ) {
-	$matrix = pixva_pricing_matrix();
+	$rates = pixva_get_rates();
 
-	if ( ! isset( $matrix['base'][ $problem ], $matrix['brand'][ $brand ], $matrix['tech'][ $tech ], $matrix['size'][ $size ] ) ) {
+	if ( ! isset( $rates['base'][ $problem ], $rates['brand'][ $brand ], $rates['tech'][ $tech ], $rates['size'][ $size ] ) ) {
 		return null;
 	}
 
-	$coeff = (float) $matrix['brand'][ $brand ] * (float) $matrix['tech'][ $tech ] * (float) $matrix['size'][ $size ];
-	$min   = (int) ( round( ( $matrix['base'][ $problem ][0] * $coeff ) / 50000 ) * 50000 );
-	$max   = (int) ( round( ( $matrix['base'][ $problem ][1] * $coeff ) / 50000 ) * 50000 );
+	// ضریب سایز برای برد و صدا ملایم می‌شود تا روی سایز بزرگ نجومی نشود.
+	$size_factor = pixva_size_factor( $rates, $problem, $size );
+	$coeff       = (float) $rates['global'] * (float) $rates['brand'][ $brand ] * (float) $rates['tech'][ $tech ] * (float) $size_factor;
+	$min         = (int) ( round( ( $rates['base'][ $problem ][0] * $coeff ) / 50000 ) * 50000 );
+	$max         = (int) ( round( ( $rates['base'][ $problem ][1] * $coeff ) / 50000 ) * 50000 );
 
 	if ( $max < $min ) {
 		$max = $min;
@@ -66,7 +68,7 @@ function pixva_calculate_estimate( $brand, $tech, $size, $problem ) {
 	return array(
 		'min'  => $min,
 		'max'  => $max,
-		'days' => isset( $matrix['days'][ $problem ] ) ? (string) $matrix['days'][ $problem ] : '',
+		'days' => isset( $rates['days'][ $problem ] ) ? (string) $rates['days'][ $problem ] : '',
 	);
 }
 
@@ -134,8 +136,8 @@ function pixva_ajax_get_estimate() {
 			'brand'        => isset( $labels['brand'][ $brand ] ) ? $labels['brand'][ $brand ] : $brand,
 			'tech'         => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
 			'size'         => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
-			'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
-			'disclaimer'   => __( 'این مبلغ برآورد کارگاهی است و پس از عیب‌یابی حضوری قطعی می‌شود. ایاب‌وذهاب و قطعه کمیاب ممکن است جداگانه محاسبه شود.', 'pixva' ),
+		'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
+		'disclaimer'   => __( 'این مبلغ برآورد کارگاهی سطح ۱۴۰۵ است و پس از عیب‌یابی حضوری قطعی می‌شود. تعویض کامل پنل خارج از جدول است و اغلب از ۱۰ میلیون تومان شروع می‌شود. هزینه کارشناسی ۱۸۰ تا ۳۵۰ هزار تومان جداگانه است.', 'pixva' ),
 		)
 	);
 }
@@ -242,22 +244,28 @@ function pixva_ajax_track_order() {
 	pixva_ajax_guard( 'pixva_tracking_nonce', 'tracking', 20, HOUR_IN_SECONDS );
 
 	$code  = strtoupper( pixva_get_post_var( 'code' ) );
-	$code  = preg_replace( '/[^A-Z0-9\-]/', '', $code );
-	$phone = pixva_get_post_var( 'phone' );
+	$code  = (string) preg_replace( '/[^A-Z0-9\-]/', '', (string) $code );
+	$phone = pixva_normalize_mobile( pixva_get_post_var( 'phone' ) );
 
-	if ( '' === $code && '' === $phone ) {
-		pixva_ajax_error( __( 'کد پیگیری یا شماره همراه را وارد کنید.', 'pixva' ), 422 );
+	// پیگیری فقط با هر دو مشخصه: کد مطابق PXV-... به‌علاوه شماره همان پرونده.
+	// پیگیری فقط با شماره ممنوع است.
+	if ( '' === $code || '' === $phone ) {
+		pixva_ajax_error( __( 'کد پیگیری و شماره همراه همان پرونده، هر دو لازم است.', 'pixva' ), 422 );
 	}
 
-	if ( '' !== $phone && ! pixva_is_valid_iranian_mobile( $phone ) ) {
+	if ( 1 !== preg_match( '/^PXV-[A-Z0-9\-]+$/', $code ) ) {
+		pixva_ajax_error( __( 'قالب کد پیگیری معتبر نیست. نمونه: PXV-DEMO-2401', 'pixva' ), 422 );
+	}
+
+	if ( ! pixva_is_valid_iranian_mobile( $phone ) ) {
 		pixva_ajax_error( __( 'شماره همراه معتبر نیست.', 'pixva' ), 422 );
 	}
 
-	$order = pixva_find_order( $code, '' !== $code ? '' : $phone );
+	$order = pixva_find_order( $code, '' );
 
-	if ( $order instanceof WP_Post && '' !== $code && '' !== $phone ) {
+	if ( $order instanceof WP_Post ) {
 		$stored = (string) get_post_meta( $order->ID, '_pixva_order_phone', true );
-		if ( pixva_normalize_mobile( $phone ) !== $stored ) {
+		if ( $phone !== $stored ) {
 			$order = null;
 		}
 	}
@@ -395,5 +403,11 @@ function pixva_notify_admin( $subject, $body ) {
 	if ( ! is_email( $admin ) ) {
 		return;
 	}
-	wp_mail( $admin, $subject, $body );
+	// جلوگیری از تزریق سربرگ: حذف خط جدید از موضوع. ایمیل کاربر وارد سربرگ نمی‌شود.
+	$subject = str_replace( array( "\r", "\n" ), '', (string) $subject );
+	$subject = trim( wp_strip_all_tags( $subject ) );
+	if ( '' === $subject ) {
+		$subject = __( 'اطلاع‌رسانی پیکسوا', 'pixva' );
+	}
+	wp_mail( $admin, $subject, (string) $body );
 }

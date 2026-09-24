@@ -1,0 +1,130 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 2,
+  "settings": {
+    "appearanceTools": true,
+    "useRootPaddingAwareAlignments": true,
+    "layout": {
+      "contentSize": "1240px",
+      "wideSize": "1360px"
+    },
+    "color": {
+      "defaultPalette": false,
+      "palette": [
+        {
+          "slug": "primary",
+          "color": "#0F172A",
+          "name": "سرمه‌ای پیکسوا"
+        },
+        {
+          "slug": "accent",
+          "color": "#06B6D4",
+          "name": "فیروزه‌ای پیکسوا"
+        },
+        {
+          "slug": "cta",
+          "color": "#F97316",
+          "name": "نارنجی CTA"
+        },
+        {
+          "slug": "background",
+          "color": "#F8FAFC",
+          "name": "پس‌زمینه روشن"
+        },
+        {
+          "slug": "text",
+          "color": "#334155",
+          "name": "متن اصلی"
+        },
+        {
+          "slug": "muted",
+          "color": "#64748B",
+          "name": "متن کم‌رنگ"
+        },
+        {
+          "slug": "white",
+          "color": "#FFFFFF",
+          "name": "سفید"
+        }
+      ]
+    },
+    "typography": {
+      "defaultFontSizes": false,
+      "fontFamilies": [
+        {
+          "slug": "vazirmatn",
+          "name": "وزیرمتن",
+          "fontFamily": "\"Vazirmatn\", \"Tahoma\", sans-serif",
+          "fontFace": [
+            {
+              "fontFamily": "Vazirmatn",
+              "fontWeight": "100 900",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": ["file:./assets/fonts/vazirmatn-variable.woff2"]
+            }
+          ]
+        }
+      ],
+      "fontSizes": [
+        {"slug": "small", "size": "0.875rem", "name": "کوچک"},
+        {"slug": "medium", "size": "1rem", "name": "متوسط"},
+        {"slug": "large", "size": "1.375rem", "name": "بزرگ"},
+        {"slug": "x-large", "size": "2.25rem", "name": "خیلی بزرگ"},
+        {"slug": "xx-large", "size": "clamp(2.25rem, 5vw, 3.25rem)", "name": "تیتر اصلی"}
+      ]
+    },
+    "spacing": {
+      "units": ["px", "rem", "%"],
+      "spacingScale": {
+        "operator": "*",
+        "increment": 1.5,
+        "steps": 7,
+        "mediumStep": 1.5,
+        "unit": "rem"
+      }
+    },
+    "border": {
+      "radius": true,
+      "width": true,
+      "style": true,
+      "color": true
+    },
+    "custom": {
+      "pixva": {
+        "radius": {
+          "sm": "8px",
+          "md": "14px",
+          "lg": "22px"
+        }
+      }
+    }
+  },
+  "styles": {
+    "color": {
+      "background": "#F8FAFC",
+      "text": "#334155"
+    },
+    "typography": {
+      "fontFamily": "\"Vazirmatn\", \"Tahoma\", sans-serif",
+      "lineHeight": "1.9"
+    },
+    "elements": {
+      "h1": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.4"}},
+      "h2": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.4"}},
+      "h3": {"color": {"text": "#0F172A"}, "typography": {"lineHeight": "1.5"}},
+      "link": {"color": {"text": "#06B6D4"}},
+      "button": {
+        "color": {"background": "#F97316", "text": "#FFFFFF"},
+        "border": {"radius": "14px"}
+      }
+    }
+  },
+  "templateParts": [
+    {"name": "header", "area": "header", "title": "سربرگ"},
+    {"name": "footer", "area": "footer", "title": "پانوشت"}
+  ],
+  "customTemplates": [
+    {"name": "page-no-title", "title": "برگه بدون تیتر", "postTypes": ["page"]}
+  ]
+}

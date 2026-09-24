@@ -108,7 +108,7 @@ function pixva_home_services() {
 			<div class="pixva-grid pixva-grid--3">
 				<?php if ( ! empty( $services ) ) : ?>
 					<?php foreach ( $services as $service ) : ?>
-						<a class="pixva-card pixva-service-card" href="<?php echo esc_url( get_permalink( $service ) ); ?>">
+						<a class="pixva-card pixva-service-card pixva-reveal" href="<?php echo esc_url( get_permalink( $service ) ); ?>">
 							<?php
 							if ( has_post_thumbnail( $service ) ) {
 								echo get_the_post_thumbnail( $service, 'pixva-card' );
@@ -183,8 +183,10 @@ function pixva_home_brands() {
 	$posts = get_posts(
 		array(
 			'post_type'      => 'tv_brands',
-			'posts_per_page' => 8,
+			'posts_per_page' => 12,
 			'no_found_rows'  => true,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
 		)
 	);
 	?>
@@ -192,24 +194,28 @@ function pixva_home_brands() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'برندها', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'از سامسونگ و سونی تا اسنوا و جی‌پلاس', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'هر ۲۴ برند، از سامسونگ تا مارشال', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'برند خود را پیدا کنید؛ الگوی چشمک و برآورد همان برند را ببینید.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--4">
 				<?php if ( ! empty( $posts ) ) : ?>
 					<?php foreach ( $posts as $brand ) : ?>
-						<a class="pixva-card pixva-brand-tile" href="<?php echo esc_url( get_permalink( $brand ) ); ?>">
+						<a class="pixva-card pixva-brand-tile pixva-reveal" href="<?php echo esc_url( get_permalink( $brand ) ); ?>">
 							<strong><?php echo esc_html( get_the_title( $brand ) ); ?></strong>
 						</a>
 					<?php endforeach; ?>
 				<?php else : ?>
 					<?php foreach ( pixva_brand_catalog() as $key => $brand ) : ?>
-						<a class="pixva-card pixva-brand-tile" href="<?php echo esc_url( add_query_arg( 'brand', $key, pixva_page_url( 'calculator' ) ) ); ?>">
+						<a class="pixva-card pixva-brand-tile pixva-reveal" href="<?php echo esc_url( add_query_arg( 'brand', $key, pixva_page_url( 'calculator' ) ) ); ?>">
 							<span class="pixva-latin pixva-brand-tile__en"><?php echo esc_html( $brand['en'] ); ?></span>
 							<span><?php echo esc_html( $brand['fa'] ); ?></span>
 						</a>
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</div>
+			<p style="text-align:center;margin-top:1.4rem">
+				<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( get_post_type_archive_link( 'tv_brands' ) ); ?>"><?php esc_html_e( 'همه برندها', 'pixva' ); ?></a>
+			</p>
 		</div>
 	</section>
 	<?php
@@ -230,7 +236,7 @@ function pixva_home_testimonials() {
 			</div>
 			<div class="pixva-grid pixva-grid--3">
 				<?php foreach ( pixva_testimonials() as $item ) : ?>
-					<blockquote class="pixva-card pixva-quote">
+					<blockquote class="pixva-card pixva-quote pixva-reveal">
 						<div class="pixva-stars" aria-hidden="true">★★★★★</div>
 						<p><?php echo esc_html( $item['quote'] ); ?></p>
 						<footer><strong><?php echo esc_html( $item['name'] ); ?></strong> · <?php echo esc_html( $item['role'] ); ?></footer>
@@ -311,7 +317,7 @@ function pixva_home_errors() {
 						? pixva_fa_num( (string) $row['blinks'] ) . ' ' . __( 'چشمک', 'pixva' )
 						: $row['code'];
 					?>
-					<article class="pixva-card pixva-error-teaser">
+					<article class="pixva-card pixva-error-teaser pixva-reveal">
 						<p class="pixva-kicker"><?php echo esc_html( $brand_name . ' · ' . $blinks ); ?></p>
 						<h3><?php echo esc_html( $row['title'] ); ?></h3>
 						<p><?php echo esc_html( $row['symptom'] ); ?></p>

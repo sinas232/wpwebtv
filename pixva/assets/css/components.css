@@ -694,3 +694,51 @@
 		animation: none;
 	}
 }
+
+/* --------------------------------------------------------------------------
+   نرخ‌نامه ۱۴۰۵
+   -------------------------------------------------------------------------- */
+.pixva-rates-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--fs-sm);
+}
+
+.pixva-rates-table th,
+.pixva-rates-table td {
+	text-align: start;
+	padding: 0.6rem 0.7rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.pixva-rates-table thead th {
+	background: var(--bg-light);
+	color: var(--primary);
+}
+
+.pixva-rate-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.35rem;
+}
+
+.pixva-rate-list li {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.4rem 0.6rem;
+	background: var(--bg-light);
+	border-radius: 10px;
+}
+
+.pixva-calc__search {
+	margin-bottom: 0.9rem;
+}
+
+.pixva-calc__search input {
+	width: 100%;
+}
+

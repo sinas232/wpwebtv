@@ -93,6 +93,11 @@
 	}
 
 	function initReveal() {
+		qsa('.pixva-section, .pixva-card, .pixva-hero__visual, .pixva-page-hero').forEach((node) => {
+			if (!node.classList.contains('pixva-reveal')) {
+				node.classList.add('pixva-reveal');
+			}
+		});
 		const nodes = qsa('.pixva-reveal');
 		if (!nodes.length || !('IntersectionObserver' in window)) {
 			nodes.forEach((node) => node.classList.add('is-visible'));

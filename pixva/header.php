@@ -33,7 +33,7 @@ $pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
 				<?php echo pixva_icon( 'bolt' ); ?>
 				<span><?php echo esc_html( (string) pixva_option( 'pixva_topbar_text', __( 'ارسال رایگان دستگاه در تهران | گارانتی ۱۸۰ روزه تعمیرات', 'pixva' ) ) ); ?></span>
 			</p>
-			<p class="pixva-topbar__hours"><?php esc_html_e( 'شنبه تا پنجشنبه ۹ تا ۲۰', 'pixva' ); ?></p>
+			<p class="pixva-topbar__hours"><?php echo esc_html( pixva_fa_num( (string) pixva_option( 'pixva_hours_weekdays', 'شنبه تا پنجشنبه ۹ تا ۲۰' ) ) ); ?></p>
 		</div>
 	</div>
 <?php endif; ?>

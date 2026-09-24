@@ -73,6 +73,17 @@
 			});
 		});
 
+		const brandSearch = form.querySelector('[data-brand-search]');
+		if (brandSearch) {
+			brandSearch.addEventListener('input', () => {
+				const q = brandSearch.value.trim();
+				form.querySelectorAll('[data-group="brand"]').forEach((button) => {
+					const text = button.textContent || '';
+					button.hidden = q !== '' && !text.includes(q);
+				});
+			});
+		}
+
 		form.querySelectorAll('[data-next]').forEach((button) => {
 			button.addEventListener('click', () => showStep(current + 1));
 		});

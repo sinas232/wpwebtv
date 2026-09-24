@@ -4,9 +4,9 @@ Theme URI: https://pixva.ir/
 Author: تیم توسعه پیکسوا
 Author URI: https://pixva.ir/
 Description: قالب اختصاصی، سبک و راست‌چین مرکز تخصصی تعمیرات تلویزیون و نمایشگر «پیکسوا»؛ شامل محاسبه‌گر هزینه تعمیر، سامانه پیگیری آنلاین، پایگاه کدهای خطا، اسلایدر قبل/بعد، اسکیما مارک‌آپ JSON-LD و وبلاگ سئومحور. بدون وابستگی به افزونه جانبی و بدون jQuery.
-Version: 1.0.0
+Version: 1.2.0
 Requires at least: 6.5
-Tested up to: 7.1
+Tested up to: 6.8
 Requires PHP: 7.4
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -543,7 +543,54 @@ textarea {
 }
 
 /* ==========================================================================
-   ۱۱) انیمیشن‌های میکرو
+   ۱۱) انیمیشن‌های ملایم هیرو، کارت‌ها و سکشن‌ها
+   ========================================================================== */
+.pixva-hero {
+	animation: pixva-fade-up 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.pixva-hero__visual img {
+	animation: pixva-zoom-soft 1.1s ease both;
+}
+
+@keyframes pixva-zoom-soft {
+	from {
+		opacity: 0;
+		transform: scale(1.04);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.pixva-section {
+	animation: pixva-fade-up 0.6s ease both;
+}
+
+.pixva-card {
+	transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.3s ease, border-color 0.18s ease;
+}
+
+a.pixva-card:hover,
+.pixva-service-card:hover,
+.pixva-brand-tile:hover,
+.pixva-error-card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-lg);
+	border-color: rgba(6, 182, 212, 0.45);
+}
+
+.pixva-btn {
+	transition: transform 0.18s ease, box-shadow 0.3s ease, background-color 0.18s ease;
+}
+
+.pixva-btn:hover {
+	transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   ۱۱-ب) انیمیشن‌های میکرو
    ========================================================================== */
 @keyframes pixva-fade-up {
 	from {
@@ -608,6 +655,20 @@ textarea {
 
 	.pixva-reveal {
 		opacity: 1;
+		transform: none;
+	}
+
+	.pixva-hero,
+	.pixva-hero__visual img,
+	.pixva-section {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+
+	a.pixva-card:hover,
+	.pixva-service-card:hover,
+	.pixva-btn:hover {
 		transform: none;
 	}
 }

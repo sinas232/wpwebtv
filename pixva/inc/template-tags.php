@@ -21,38 +21,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_brand_catalog() {
 	$brands = array(
-		'samsung' => array(
-			'fa' => 'سامسونگ',
-			'en' => 'Samsung',
-		),
-		'lg'      => array(
-			'fa' => 'ال‌جی',
-			'en' => 'LG',
-		),
-		'sony'    => array(
-			'fa' => 'سونی',
-			'en' => 'Sony',
-		),
-		'snowa'   => array(
-			'fa' => 'اسنوا',
-			'en' => 'Snowa',
-		),
-		'xvision' => array(
-			'fa' => 'ایکس‌ویژن',
-			'en' => 'X.Vision',
-		),
-		'gplus'   => array(
-			'fa' => 'جی‌پلاس',
-			'en' => 'Gplus',
-		),
-		'tcl'     => array(
-			'fa' => 'تی‌سی‌ال',
-			'en' => 'TCL',
-		),
-		'hisense' => array(
-			'fa' => 'هایسنس',
-			'en' => 'Hisense',
-		),
+		'samsung'   => array( 'fa' => 'سامسونگ', 'en' => 'Samsung' ),
+		'lg'        => array( 'fa' => 'ال‌جی', 'en' => 'LG' ),
+		'sony'      => array( 'fa' => 'سونی', 'en' => 'Sony' ),
+		'panasonic' => array( 'fa' => 'پاناسونیک', 'en' => 'Panasonic' ),
+		'sharp'     => array( 'fa' => 'شارپ', 'en' => 'Sharp' ),
+		'toshiba'   => array( 'fa' => 'توشیبا', 'en' => 'Toshiba' ),
+		'philips'   => array( 'fa' => 'فیلیپس', 'en' => 'Philips' ),
+		'hitachi'   => array( 'fa' => 'هیتاچی', 'en' => 'Hitachi' ),
+		'tcl'       => array( 'fa' => 'تی‌سی‌ال', 'en' => 'TCL' ),
+		'hisense'   => array( 'fa' => 'هایسنس', 'en' => 'Hisense' ),
+		'xiaomi'    => array( 'fa' => 'شیائومی', 'en' => 'Xiaomi' ),
+		'haier'     => array( 'fa' => 'هایر', 'en' => 'Haier' ),
+		'skyworth'  => array( 'fa' => 'اسکای‌ورث', 'en' => 'Skyworth' ),
+		'blaupunkt' => array( 'fa' => 'بلاوپونکت', 'en' => 'Blaupunkt' ),
+		'snowa'     => array( 'fa' => 'اسنوا', 'en' => 'Snowa' ),
+		'xvision'   => array( 'fa' => 'ایکس‌ویژن', 'en' => 'X.Vision' ),
+		'gplus'     => array( 'fa' => 'جی‌پلاس', 'en' => 'Gplus' ),
+		'emersan'   => array( 'fa' => 'امرسان', 'en' => 'Emersan' ),
+		'pakshoma'  => array( 'fa' => 'پاکشوما', 'en' => 'Pakshoma' ),
+		'daewoo'    => array( 'fa' => 'دوو', 'en' => 'Daewoo' ),
+		'tuv'       => array( 'fa' => 'تو', 'en' => 'TUV' ),
+		'pars'      => array( 'fa' => 'پارس', 'en' => 'Pars' ),
+		'beko'      => array( 'fa' => 'بکو', 'en' => 'Beko' ),
+		'marshal'   => array( 'fa' => 'مارشال', 'en' => 'Marshal' ),
 	);
 	return apply_filters( 'pixva_brand_catalog', $brands );
 }
@@ -108,6 +100,51 @@ function pixva_size_catalog() {
 		);
 	}
 	return $sizes;
+}
+
+/**
+ * آدرس کامل کارگاه با نشانه محلی.
+ *
+ * @return string
+ */
+function pixva_workshop_full_address() {
+	$address  = (string) pixva_option( 'pixva_workshop_address', 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲' );
+	$landmark = (string) pixva_option( 'pixva_workshop_landmark', 'نزدیک مترو ۱۵ خرداد' );
+	if ( '' !== $landmark ) {
+		return $address . '. ' . $landmark;
+	}
+	return $address;
+}
+
+/**
+ * آدرس iframe نقشه OpenStreetMap از روی مختصات سفارشی‌ساز.
+ *
+ * @return string
+ */
+function pixva_map_embed_url() {
+	$lat = (float) pixva_option( 'pixva_map_lat', '35.6788' );
+	$lng = (float) pixva_option( 'pixva_map_lng', '51.4195' );
+	if ( 0.0 === $lat || 0.0 === $lng ) {
+		$lat = 35.6788;
+		$lng = 51.4195;
+	}
+	$bbox = sprintf( '%1$.4f,%2$.4f,%3$.4f,%4$.4f', $lng - 0.01, $lat - 0.007, $lng + 0.01, $lat + 0.007 );
+	return 'https://www.openstreetmap.org/export/embed.html?bbox=' . rawurlencode( $bbox ) . '&layer=mapnik&marker=' . rawurlencode( $lat . ',' . $lng );
+}
+
+/**
+ * لینک صفحه جدا نقشه.
+ *
+ * @return string
+ */
+function pixva_map_link_url() {
+	$lat = (float) pixva_option( 'pixva_map_lat', '35.6788' );
+	$lng = (float) pixva_option( 'pixva_map_lng', '51.4195' );
+	if ( 0.0 === $lat || 0.0 === $lng ) {
+		$lat = 35.6788;
+		$lng = 51.4195;
+	}
+	return 'https://www.openstreetmap.org/?mlat=' . rawurlencode( (string) $lat ) . '&mlon=' . rawurlencode( (string) $lng ) . '#map=16/' . rawurlencode( (string) $lat ) . '/' . rawurlencode( (string) $lng );
 }
 
 /**
@@ -215,7 +252,7 @@ function pixva_default_faqs() {
 		),
 		array(
 			'q' => __( 'چطور وضعیت دستگاه را پیگیری کنم؟', 'pixva' ),
-			'a' => __( 'بعد از ثبت نوبت یک کد مانند PXV-2509-1234 دریافت می‌کنید. در برگه پیگیری، کد یا شماره همراه را وارد کنید تا تایم‌لاین شش‌مرحله‌ای را ببینید.', 'pixva' ),
+			'a' => __( 'بعد از ثبت نوبت یک کد مانند PXV-2509-1234 دریافت می‌کنید. در برگه پیگیری، کد پیگیری و شماره همراه همان پرونده را با هم وارد کنید تا تایم‌لاین شش‌مرحله‌ای را ببینید. پیگیری فقط با شماره ممکن نیست.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'ساعت کاری کارگاه چیست؟', 'pixva' ),
@@ -299,6 +336,30 @@ function pixva_error_code_catalog() {
 		array( 'gplus', 5, '5 چشمک', __( 'خطوط پنل', 'pixva' ), __( 'پنج چشمک همراه با خط افقی پهن.', 'pixva' ), __( 'احتمال بندینگ یا T-CON. عکس تمام‌صفحه از خطوط برای برآورد دقیق لازم است.', 'pixva' ) ),
 		array( 'lg', 0, 'OLED Care', __( 'نگهداری پنل OLED', 'pixva' ), __( 'پیام OLED Care یا Pixel Refresher وسط کار ظاهر می‌شود.', 'pixva' ), __( 'این خطا نیست؛ چرخه جبران پیکسل است. اگر هر بار گیر کرد، مین‌برد و دمای محیط را بررسی کنید.', 'pixva' ) ),
 		array( 'sony', 0, '2 blink standby', __( 'استندبای غیرعادی', 'pixva' ), __( 'چراغ استندبای کند چشمک می‌زند ولی الگوهای سرویس نیست.', 'pixva' ), __( 'ریموت یا برد IR. باتری ریموت و نور محیط را حذف کنید، بعد برد گیرنده را تست کنید.', 'pixva' ) ),
+		array( 'panasonic', 2, '2 چشمک', __( 'برد پاور پاناسونیک', 'pixva' ), __( 'دو چشمک قرمز و ماندن در استندبای.', 'pixva' ), __( 'ولتاژ STB و رله تغذیه. خازن‌های ثانویه را بی‌بار تست کنید.', 'pixva' ) ),
+		array( 'panasonic', 3, '3 چشمک', __( 'مین‌برد پاناسونیک', 'pixva' ), __( 'سه چشمک پس از تلاش برای روشن شدن.', 'pixva' ), __( 'مین‌برد یا حافظه. برق را کامل قطع و کابل‌های پنل را رزیت کنید.', 'pixva' ) ),
+		array( 'panasonic', 4, '4 چشمک', __( 'بک‌لایت پاناسونیک', 'pixva' ), __( 'چهار چشمک با صدای بدون تصویر.', 'pixva' ), __( 'درایور LED یا نوار نور. تست چراغ‌قوه را اول انجام دهید.', 'pixva' ) ),
+		array( 'panasonic', 6, '6 چشمک', __( 'محافظت پنل', 'pixva' ), __( 'شش چشمک و قطع سریع.', 'pixva' ), __( 'اتصال کوتاه سمت پنل یا T-CON. فیوز را پل نکنید.', 'pixva' ) ),
+		array( 'sharp', 2, '2 چشمک', __( 'برد پاور شارپ', 'pixva' ), __( 'دو چشمک سبز و خاموشی.', 'pixva' ), __( 'تغذیه یا آی‌سی PWM. نوسان برق شایع‌ترین علت است.', 'pixva' ) ),
+		array( 'sharp', 3, '3 چشمک', __( 'مین‌برد شارپ', 'pixva' ), __( 'سه چشمک و گیر روی لوگو.', 'pixva' ), __( 'بوت یا حافظه. ولتاژ آماده‌به‌کار را قبل از پروگرام چک کنید.', 'pixva' ) ),
+		array( 'sharp', 5, '5 چشمک', __( 'خطای پنل شارپ', 'pixva' ), __( 'پنج چشمک با خطوط رنگی.', 'pixva' ), __( 'فلت یا تایمینگ. عکس نزدیک خطوط برای تصمیم بندینگ لازم است.', 'pixva' ) ),
+		array( 'toshiba', 2, '2 چشمک', __( 'برد پاور توشیبا', 'pixva' ), __( 'دو چشمک کهربایی.', 'pixva' ), __( 'برد تغذیه. خروجی ۱۲ و ۲۴ ولت را بی‌بار اندازه بگیرید.', 'pixva' ) ),
+		array( 'toshiba', 3, '3 چشمک', __( 'مین‌برد توشیبا', 'pixva' ), __( 'سه چشمک و ریست پیاپی.', 'pixva' ), __( 'مین‌برد یا ماژول وای‌فای داخلی. ماژول را جدا و دوباره تست کنید.', 'pixva' ) ),
+		array( 'toshiba', 4, '4 چشمک', __( 'بک‌لایت توشیبا', 'pixva' ), __( 'چهار چشمک و صفحه سیاه.', 'pixva' ), __( 'نوار LED. جریان درایور باید با نوار هم‌خوان باشد.', 'pixva' ) ),
+		array( 'philips', 2, '2 چشمک', __( 'برد پاور فیلیپس', 'pixva' ), __( 'دو چشمک قرمز روی استندبای.', 'pixva' ), __( 'تغذیه یا برد SSB. عیب‌یابی را از سمت پاور شروع کنید.', 'pixva' ) ),
+		array( 'philips', 3, '3 چشمک', __( 'برد SSB فیلیپس', 'pixva' ), __( 'سه چشمک و نبود تصویر.', 'pixva' ), __( 'برد سیگنال. فلت LVDS و ولتاژ پنل را بررسی کنید.', 'pixva' ) ),
+		array( 'philips', 4, '4 چشمک', __( 'بک‌لایت فیلیپس', 'pixva' ), __( 'چهار چشمک آمبیلایت‌دار.', 'pixva' ), __( 'درایور نور یا نوار. آمبیلایت را جدا کنید تا مسیر خطا مشخص شود.', 'pixva' ) ),
+		array( 'hitachi', 2, '2 چشمک', __( 'برد پاور هیتاچی', 'pixva' ), __( 'دو چشمک و صدای تیک.', 'pixva' ), __( 'رله یا خازن اولیه. برد را بدون قاب روی میز تست نکنید.', 'pixva' ) ),
+		array( 'hitachi', 3, '3 چشمک', __( 'مین‌برد هیتاچی', 'pixva' ), __( 'سه چشمک پس از نوسان.', 'pixva' ), __( 'مین‌برد. محافظ برق استاندارد برای این شاسی ضروری است.', 'pixva' ) ),
+		array( 'xiaomi', 2, '2 چشمک', __( 'برد پاور شیائومی', 'pixva' ), __( 'دو چشمک و ماندن روی لوگوی اندروید.', 'pixva' ), __( 'پاور یا بوت. اول ولتاژ، بعد حافظه را بررسی کنید.', 'pixva' ) ),
+		array( 'xiaomi', 3, '3 چشمک', __( 'مین‌برد شیائومی', 'pixva' ), __( 'سه چشمک و حلقه بوت.', 'pixva' ), __( 'سیستم‌عامل یا eMMC. فلش فقط با فایل همان شاسی انجام شود.', 'pixva' ) ),
+		array( 'xiaomi', 4, '4 چشمک', __( 'بک‌لایت شیائومی', 'pixva' ), __( 'چهار چشمک و تاریکی صفحه.', 'pixva' ), __( 'نوار LED. سایه تصویر با چراغ‌قوه یعنی پنل زنده است.', 'pixva' ) ),
+		array( 'daewoo', 2, '2 چشمک', __( 'برد پاور دوو', 'pixva' ), __( 'دو چشمک پایدار.', 'pixva' ), __( 'تغذیه. قطعه این بردها معمولاً موجود است و تعمیر به‌صرفه است.', 'pixva' ) ),
+		array( 'daewoo', 4, '4 چشمک', __( 'بک‌لایت دوو', 'pixva' ), __( 'چهار چشمک با صدا.', 'pixva' ), __( 'درایور یا نوار. ولتاژ خروجی را بی‌بار چک کنید.', 'pixva' ) ),
+		array( 'beko', 2, '2 چشمک', __( 'برد پاور بکو', 'pixva' ), __( 'دو چشمک و استندبای.', 'pixva' ), __( 'پاور یا محافظ ورودی. نوسان‌گیر را حذف و مستقیم تست نکنید.', 'pixva' ) ),
+		array( 'beko', 3, '3 چشمک', __( 'مین‌برد بکو', 'pixva' ), __( 'سه چشمک و نبود منو.', 'pixva' ), __( 'مین‌برد یا پنل IR. ریموت را حذف و با کلید پنل تست کنید.', 'pixva' ) ),
+		array( 'emersan', 2, '2 چشمک', __( 'برد پاور امرسان', 'pixva' ), __( 'دو چشمک پس از قطع برق.', 'pixva' ), __( 'تغذیه. خازن اولیه و فیوز ورودی را بررسی کنید.', 'pixva' ) ),
+		array( 'pakshoma', 2, '2 چشمک', __( 'برد پاور پاکشوما', 'pixva' ), __( 'دو چشمک و بوی خازن.', 'pixva' ), __( 'خازن بادکرده شایع است. هم‌ظرفیت و هم‌ولتاژ جایگزین شود.', 'pixva' ) ),
 	);
 
 	$catalog = array();
@@ -971,7 +1032,7 @@ function pixva_post_card( $post_id = 0 ) {
 	$permalink = get_permalink( $post_id );
 	$cats      = get_the_category( $post_id );
 	?>
-	<article class="pixva-card pixva-post-card">
+	<article class="pixva-card pixva-post-card pixva-reveal">
 		<a class="pixva-post-card__media" href="<?php echo esc_url( $permalink ); ?>" tabindex="-1" aria-hidden="true">
 			<?php
 			if ( has_post_thumbnail( $post_id ) ) {
@@ -1255,6 +1316,10 @@ function pixva_render_calculator( $args = array() ) {
 
 		<div class="pixva-calc__step is-active" data-step="1">
 			<h3><?php esc_html_e( 'برند تلویزیون را انتخاب کنید', 'pixva' ); ?></h3>
+			<div class="pixva-field pixva-calc__search">
+				<label for="pixva-brand-search"><?php esc_html_e( 'جستجوی برند', 'pixva' ); ?></label>
+				<input type="search" id="pixva-brand-search" data-brand-search placeholder="<?php esc_attr_e( 'مثلاً سامسونگ، سونی، اسنوا…', 'pixva' ); ?>" autocomplete="off">
+			</div>
 			<div class="pixva-choice-grid pixva-choice-grid--brand">
 				<?php foreach ( pixva_brand_catalog() as $key => $brand ) : ?>
 					<button type="button" class="pixva-choice" data-group="brand" data-value="<?php echo esc_attr( $key ); ?>">
@@ -1433,7 +1498,7 @@ function pixva_render_error_database() {
 				$brand_fa = isset( $brands[ $row['brand'] ] ) ? $brands[ $row['brand'] ]['fa'] : $row['brand'];
 				$brand_en = isset( $brands[ $row['brand'] ] ) ? $brands[ $row['brand'] ]['en'] : $row['brand'];
 				?>
-				<article class="pixva-card pixva-error-card" data-brand="<?php echo esc_attr( $row['brand'] ); ?>" data-blinks="<?php echo esc_attr( (string) $row['blinks'] ); ?>">
+				<article class="pixva-card pixva-error-card pixva-reveal" data-brand="<?php echo esc_attr( $row['brand'] ); ?>" data-blinks="<?php echo esc_attr( (string) $row['blinks'] ); ?>">
 					<header>
 						<span class="pixva-badge"><?php echo esc_html( $brand_fa ); ?></span>
 						<strong class="pixva-latin pixva-error-code__code"><?php echo esc_html( $row['code'] ); ?></strong>
@@ -1445,7 +1510,10 @@ function pixva_render_error_database() {
 				</article>
 			<?php endforeach; ?>
 		</div>
-		<p class="pixva-notice pixva-notice--info" data-empty hidden><?php esc_html_e( 'موردی با این فیلتر پیدا نشد. تعداد چشمک را دوباره بشمارید یا برند را روی همه بگذارید.', 'pixva' ); ?></p>
+		<div class="pixva-notice pixva-notice--info" data-empty hidden>
+			<p><?php esc_html_e( 'برای این برند کد چشمک ثبت نشده یا موردی با این فیلتر پیدا نشد. تعداد چشمک را دوباره بشمارید، یا مستقیم برآورد هزینه بگیرید.', 'pixva' ); ?></p>
+			<p><a class="pixva-btn pixva-btn--primary pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'رفتن به محاسبه‌گر هزینه', 'pixva' ); ?></a></p>
+		</div>
 	</div>
 	<?php
 }
