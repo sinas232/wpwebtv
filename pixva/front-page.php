@@ -41,6 +41,11 @@ function pixva_home_hero() {
 				<span class="pixva-badge"><?php esc_html_e( 'کارگاه تخصصی پنل، بک‌لایت و برد — تهران', 'pixva' ); ?></span>
 				<h1><?php echo esc_html( $title ); ?></h1>
 				<p class="pixva-hero__lead"><?php echo esc_html( $lead ); ?></p>
+				<ul class="pixva-hero__points">
+					<li><?php echo pixva_icon( 'check' ); ?><?php esc_html_e( 'گارانتی کتبی ۱۸۰ روزه', 'pixva' ); ?></li>
+					<li><?php echo pixva_icon( 'check' ); ?><?php esc_html_e( 'برآورد شفاف ۱۴۰۵', 'pixva' ); ?></li>
+					<li><?php echo pixva_icon( 'check' ); ?><?php esc_html_e( 'پیگیری آنلاین مرحله‌به‌مرحله', 'pixva' ); ?></li>
+				</ul>
 				<div class="pixva-hero__actions">
 					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'هزینه تعمیر من چقدر می‌شود؟', 'pixva' ); ?></a>
 					<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></a>
@@ -55,6 +60,11 @@ function pixva_home_hero() {
 			</div>
 			<div class="pixva-hero__visual">
 				<img src="<?php echo esc_url( PIXVA_URI . '/assets/images/hero-workshop.jpg' ); ?>" alt="<?php esc_attr_e( 'کارگاه تعمیر تلویزیون پیکسوا', 'pixva' ); ?>" width="960" height="640">
+				<div class="pixva-hero__rating">
+					<span class="pixva-stars" aria-hidden="true">★★★★★</span>
+					<strong><?php echo esc_html( sprintf( __( '%s از ۵', 'pixva' ), pixva_fa_num( '4.9' ) ) ); ?></strong>
+					<small><?php esc_html_e( 'رضایت مشتریان', 'pixva' ); ?></small>
+				</div>
 				<div class="pixva-hero__float">
 					<span class="pixva-chip"><?php echo pixva_icon( 'shield' ); ?><?php esc_html_e( '۱۸۰ روز گارانتی کتبی', 'pixva' ); ?></span>
 					<span class="pixva-chip"><?php echo pixva_icon( 'truck' ); ?><?php esc_html_e( 'جمع‌آوری در تهران و کرج', 'pixva' ); ?></span>

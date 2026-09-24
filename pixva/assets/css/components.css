@@ -49,6 +49,20 @@
 	margin-bottom: 1rem;
 }
 
+.pixva-choice-grid--size {
+	grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+
+.pixva-choice-grid--problem {
+	grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+	.pixva-choice-grid--problem {
+		grid-template-columns: 1fr;
+	}
+}
+
 .pixva-choice {
 	appearance: none;
 	border: 1.5px solid var(--border);

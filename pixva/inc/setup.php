@@ -170,6 +170,38 @@ function pixva_upgrade_120() {
 add_action( 'init', 'pixva_upgrade_120', 25 );
 
 /**
+ * ارتقا به ۱٫۳٫۰: نوسازی متن هیرو و مقاله‌های تازه برای نصب‌های قبلی.
+ *
+ * فقط وقتی متن هیرو دست‌نخورده و برابر پیش‌فرض قدیمی باشد جایگزین می‌شود؛
+ * متن سفارشی کاربر هرگز رونویسی نمی‌شود.
+ *
+ * @return void
+ */
+function pixva_upgrade_130() {
+	if ( '1.3.0' === (string) get_option( 'pixva_db_version', '' ) ) {
+		return;
+	}
+	$old_title = 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی';
+	$old_lead  = 'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.';
+	if ( $old_title === (string) get_theme_mod( 'pixva_hero_title', '' ) ) {
+		set_theme_mod( 'pixva_hero_title', 'تلویزیونت را دور ننداز؛ ۸۰٪ خرابی‌ها بدون تعویض پنل درست می‌شود' );
+	}
+	if ( $old_lead === (string) get_theme_mod( 'pixva_hero_subtitle', '' ) ) {
+		set_theme_mod( 'pixva_hero_subtitle', 'پیکسوا کارگاه تخصصی پنل، بک‌لایت و برد است: برآورد شفاف ۱۴۰۵ قبل از آوردن دستگاه، عیب‌یابی با عدد و عکس، گارانتی کتبی ۱۸۰ روزه و پیگیری آنلاین مرحله‌به‌مرحله.' );
+	}
+	if ( function_exists( 'pixva_install_sample_posts' ) ) {
+		$thumb = 0;
+		$map   = get_option( 'pixva_imported_images', array() );
+		if ( is_array( $map ) && ! empty( $map['assets/images/panel-after.jpg'] ) ) {
+			$thumb = (int) $map['assets/images/panel-after.jpg'];
+		}
+		pixva_install_sample_posts( $thumb );
+	}
+	update_option( 'pixva_db_version', '1.3.0' );
+}
+add_action( 'init', 'pixva_upgrade_130', 25 );
+
+/**
  * منوی اصلی، فقط اگر جایگاهی خالی باشد.
  *
  * @param array $pages شناسه برگه‌ها.

@@ -80,7 +80,7 @@ $pixva_phone = pixva_support_phone();
 	</div>
 	<div class="pixva-container pixva-footer__base">
 		<p class="pixva-copyright"><?php echo esc_html( (string) pixva_option( 'pixva_copyright', __( '© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.', 'pixva' ) ) ); ?></p>
-		<p><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?></p>
+		<p style="margin:0"><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?> <span class="pixva-footer__ver"><?php echo esc_html( sprintf( __( 'پیکسوا %s', 'pixva' ), pixva_fa_num( PIXVA_VERSION ) ) ); ?></span></p>
 	</div>
 </footer>
 
