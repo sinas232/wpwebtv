@@ -118,13 +118,14 @@
 					summary.textContent = `${data.brand} · ${data.size} · ${data.tech} · ${data.problem}`;
 				}
 				if (price) {
-					price.textContent = `${data.minFormatted} تا ${data.maxFormatted}`;
+					price.textContent = data.panelWarning ? '\u2014' : `${data.minFormatted} تا ${data.maxFormatted}`;
 				}
 				if (days) {
-					days.textContent = data.days;
+					days.textContent = data.days || '';
 				}
 				if (note) {
-					note.textContent = data.disclaimer;
+					note.textContent = data.panelWarning ? data.panelWarning : data.disclaimer;
+					note.classList.toggle('is-warning', Boolean(data.panelWarning));
 				}
 				showStep(4);
 			} catch (error) {

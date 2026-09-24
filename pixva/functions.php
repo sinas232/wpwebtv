@@ -23,13 +23,15 @@ define( 'PIXVA_URI', get_template_directory_uri() );
  * ---------------------------------------------------------------------------
  */
 require_once PIXVA_DIR . '/inc/security.php';
+require_once PIXVA_DIR . '/inc/pricing-engine.php';
 require_once PIXVA_DIR . '/inc/custom-post-types.php';
-require_once PIXVA_DIR . '/inc/rates-admin.php';
+require_once PIXVA_DIR . '/inc/admin-settings.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
+require_once PIXVA_DIR . '/inc/activation.php';
 
 /*
  * ---------------------------------------------------------------------------

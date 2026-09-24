@@ -65,7 +65,8 @@ function pixva_problem_catalog() {
 		'backlight'  => __( 'تعویض بک‌لایت', 'pixva' ),
 		'panel'      => __( 'تعمیر پنل با بندینگ', 'pixva' ),
 		'mainboard'  => __( 'تعمیر برد اصلی', 'pixva' ),
-		'powerboard' => __( 'تعمیر برد پاور', 'pixva' ),
+		'powerboard'   => __( 'تعمیر برد پاور', 'pixva' ),
+		'panel_replace' => __( 'تعویض کامل پنل', 'pixva' ),
 	);
 	return apply_filters( 'pixva_problem_catalog', $problems );
 }

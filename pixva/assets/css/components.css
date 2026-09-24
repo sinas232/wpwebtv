@@ -118,6 +118,15 @@
 }
 
 .pixva-calc__note,
+.pixva-calc__note.is-warning {
+	color: var(--warning);
+	font-weight: 800;
+	background: rgba(192, 122, 26, 0.10);
+	border: 1px solid rgba(192, 122, 26, 0.35);
+	border-radius: var(--radius-sm);
+	padding: 0.7rem 0.9rem;
+}
+
 .pixva-calc__result p {
 	color: var(--text-muted);
 	font-size: var(--fs-sm);

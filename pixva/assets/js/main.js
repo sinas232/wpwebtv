@@ -99,7 +99,8 @@
 			}
 		});
 		const nodes = qsa('.pixva-reveal');
-		if (!nodes.length || !('IntersectionObserver' in window)) {
+		const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (!nodes.length || calm || !('IntersectionObserver' in window)) {
 			nodes.forEach((node) => node.classList.add('is-visible'));
 			return;
 		}

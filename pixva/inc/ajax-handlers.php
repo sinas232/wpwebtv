@@ -40,39 +40,6 @@ function pixva_register_ajax_actions() {
 add_action( 'init', 'pixva_register_ajax_actions' );
 
 /**
- * محاسبه تخمین قیمت بر اساس ماتریس سمت سرور.
- *
- * @param string $brand   کلید برند.
- * @param string $tech    کلید تکنولوژی.
- * @param string $size    سایز اینچ.
- * @param string $problem کلید مشکل.
- * @return array{min:int,max:int,days:string}|null
- */
-function pixva_calculate_estimate( $brand, $tech, $size, $problem ) {
-	$rates = pixva_get_rates();
-
-	if ( ! isset( $rates['base'][ $problem ], $rates['brand'][ $brand ], $rates['tech'][ $tech ], $rates['size'][ $size ] ) ) {
-		return null;
-	}
-
-	// ضریب سایز برای برد و صدا ملایم می‌شود تا روی سایز بزرگ نجومی نشود.
-	$size_factor = pixva_size_factor( $rates, $problem, $size );
-	$coeff       = (float) $rates['global'] * (float) $rates['brand'][ $brand ] * (float) $rates['tech'][ $tech ] * (float) $size_factor;
-	$min         = (int) ( round( ( $rates['base'][ $problem ][0] * $coeff ) / 50000 ) * 50000 );
-	$max         = (int) ( round( ( $rates['base'][ $problem ][1] * $coeff ) / 50000 ) * 50000 );
-
-	if ( $max < $min ) {
-		$max = $min;
-	}
-
-	return array(
-		'min'  => $min,
-		'max'  => $max,
-		'days' => isset( $rates['days'][ $problem ] ) ? (string) $rates['days'][ $problem ] : '',
-	);
-}
-
-/**
  * گارد مشترک AJAX: nonce، honeypot و rate limit.
  *
  * @param string $nonce_action نام nonce.
@@ -118,6 +85,27 @@ function pixva_ajax_get_estimate() {
 	$tech     = sanitize_key( pixva_get_post_var( 'tech' ) );
 	$size     = sanitize_key( pixva_get_post_var( 'size' ) );
 	$problem  = sanitize_key( pixva_get_post_var( 'problem' ) );
+
+	// تعویض کامل پنل قیمت ندارد؛ فقط هشدار خارج از جدول برمی‌گردد.
+	if ( 'panel_replace' === $problem ) {
+		$warn_labels = pixva_calculator_labels();
+		pixva_ajax_success(
+			array(
+				'min'          => 0,
+				'max'          => 0,
+				'minFormatted' => '',
+				'maxFormatted' => '',
+				'days'         => '',
+					'brand'        => isset( $warn_labels['brand'][ $brand ] ) ? $warn_labels['brand'][ $brand ] : $brand,
+				'tech'         => isset( $warn_labels['tech'][ $tech ] ) ? $warn_labels['tech'][ $tech ] : $tech,
+				'size'         => isset( $warn_labels['size'][ $size ] ) ? $warn_labels['size'][ $size ] : $size,
+				'problem'      => isset( $warn_labels['problem'][ $problem ] ) ? $warn_labels['problem'][ $problem ] : $problem,
+				'panelWarning' => pixva_panel_replace_warning(),
+				'disclaimer'   => pixva_panel_replace_warning(),
+			)
+		);
+	}
+
 	$estimate = pixva_calculate_estimate( $brand, $tech, $size, $problem );
 
 	if ( null === $estimate ) {
@@ -137,7 +125,7 @@ function pixva_ajax_get_estimate() {
 			'tech'         => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
 			'size'         => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
 		'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
-		'disclaimer'   => __( 'این مبلغ برآورد کارگاهی سطح ۱۴۰۵ است و پس از عیب‌یابی حضوری قطعی می‌شود. تعویض کامل پنل خارج از جدول است و اغلب از ۱۰ میلیون تومان شروع می‌شود. هزینه کارشناسی ۱۸۰ تا ۳۵۰ هزار تومان جداگانه است.', 'pixva' ),
+		'disclaimer'   => __( 'این مبلغ برآورد کارگاهی سطح ۱۴۰۵ است و پس از عیب‌یابی حضوری قطعی می‌شود. تعویض کامل پنل خارج از جدول محاسبه بوده و اغلب از ۱۰ میلیون تومان شروع می‌شود. هزینه کارشناسی ۱۸۰ تا ۳۵۰ هزار تومان جداگانه است.', 'pixva' ),
 		)
 	);
 }
