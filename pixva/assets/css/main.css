@@ -1,0 +1,939 @@
+/* ==========================================================================
+   پیکسوا — چیدمان اصلی: هدر، فوتر، هیرو، آرشیو، برگه‌ها
+   ========================================================================== */
+
+body {
+	padding-bottom: 0;
+}
+
+.pixva-icon {
+	display: inline-flex;
+	width: 1.25em;
+	height: 1.25em;
+	flex: 0 0 auto;
+}
+
+.pixva-icon svg {
+	width: 100%;
+	height: 100%;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* --------------------------------------------------------------------------
+   هدر
+   -------------------------------------------------------------------------- */
+.pixva-topbar {
+	background: var(--primary);
+	color: #dbe7f3;
+	font-size: var(--fs-sm);
+	border-bottom: 1px solid rgba(6, 182, 212, 0.35);
+}
+
+.pixva-topbar__inner {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	min-height: 40px;
+}
+
+.pixva-topbar a {
+	color: #fff;
+	font-weight: 700;
+}
+
+.pixva-topbar__text {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.pixva-header {
+	position: sticky;
+	top: 0;
+	z-index: 40;
+	background: rgba(15, 23, 42, 0.92);
+	color: #fff;
+	backdrop-filter: saturate(160%) blur(16px);
+	-webkit-backdrop-filter: saturate(160%) blur(16px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	transition: box-shadow var(--tr-med);
+}
+
+.pixva-header.is-scrolled {
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.28);
+}
+
+body.admin-bar .pixva-header {
+	top: 32px;
+}
+
+.pixva-header__inner {
+	display: flex;
+	align-items: center;
+	gap: 1.25rem;
+	min-height: var(--header-h);
+}
+
+.pixva-logo {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.7rem;
+	color: #fff;
+	min-width: 0;
+}
+
+.pixva-logo:hover {
+	color: #fff;
+}
+
+.pixva-logo__mark,
+.pixva-logo__img,
+.pixva-logo .custom-logo {
+	width: 42px;
+	height: 42px;
+	object-fit: contain;
+}
+
+.pixva-logo__img,
+.pixva-logo .custom-logo {
+	width: auto;
+	max-width: 168px;
+	height: 42px;
+}
+
+.pixva-logo__text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.15;
+}
+
+.pixva-logo__text strong {
+	font-size: 1.15rem;
+	font-weight: 900;
+}
+
+.pixva-logo__text small {
+	color: #94a3b8;
+	font-size: 0.72rem;
+}
+
+.pixva-nav {
+	margin-inline-start: auto;
+}
+
+.pixva-nav__list,
+.pixva-nav .pixva-nav__list {
+	display: flex;
+	align-items: center;
+	gap: 0.2rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.pixva-nav__list a {
+	display: inline-flex;
+	align-items: center;
+	color: #e2e8f0;
+	font-weight: 700;
+	font-size: 0.86rem;
+	padding: 0.4rem 0.55rem;
+	border-radius: 10px;
+	white-space: nowrap;
+}
+
+.pixva-nav__list a:hover,
+.pixva-nav__list .current-menu-item > a,
+.pixva-nav__list .current_page_item > a {
+	color: #fff;
+	background: rgba(6, 182, 212, 0.16);
+}
+
+.pixva-nav__list .sub-menu {
+	display: none;
+	position: absolute;
+	inset-inline-start: 0;
+	top: 100%;
+	min-width: 220px;
+	background: #fff;
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-lg);
+	padding: 0.5rem;
+	list-style: none;
+	z-index: 5;
+}
+
+.pixva-nav__list > .menu-item {
+	position: relative;
+}
+
+.pixva-nav__list > .menu-item:hover > .sub-menu,
+.pixva-nav__list > .menu-item:focus-within > .sub-menu {
+	display: block;
+}
+
+.pixva-nav__list .sub-menu a {
+	color: var(--primary);
+	display: block;
+}
+
+.pixva-header__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.pixva-header-phone {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	color: #fff;
+	font-weight: 800;
+	letter-spacing: 0;
+}
+
+.pixva-header-phone:hover {
+	color: var(--accent);
+}
+
+.pixva-burger {
+	display: none;
+	width: 46px;
+	height: 46px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 12px;
+	background: transparent;
+	color: #fff;
+	cursor: pointer;
+}
+
+.pixva-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.55);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--tr-med);
+	z-index: 55;
+}
+
+.pixva-overlay.is-open {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.pixva-drawer {
+	position: fixed;
+	z-index: 60;
+	top: 0;
+	bottom: 0;
+	inset-inline-start: 0;
+	width: min(88vw, 380px);
+	background: #0b1220;
+	color: #fff;
+	padding: 1.2rem;
+	transform: translateX(-110%);
+	transition: transform var(--tr-med);
+	overflow: auto;
+	box-shadow: var(--shadow-lg);
+}
+
+html[dir="rtl"] .pixva-drawer {
+	transform: translateX(110%);
+}
+
+.pixva-drawer.is-open {
+	transform: translateX(0);
+}
+
+.pixva-drawer__head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.pixva-drawer .pixva-nav {
+	margin-inline-start: 0;
+}
+
+.pixva-drawer .pixva-nav__list {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.pixva-drawer .pixva-nav__list a {
+	padding: 0.8rem 0.7rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 0;
+}
+
+.pixva-drawer .sub-menu {
+	position: static;
+	display: block;
+	background: transparent;
+	box-shadow: none;
+	padding-inline-start: 0.8rem;
+}
+
+.pixva-drawer .sub-menu a {
+	color: #cbd5e1;
+}
+
+/* --------------------------------------------------------------------------
+   هیرو
+   -------------------------------------------------------------------------- */
+.pixva-hero {
+	position: relative;
+	color: #fff;
+	background:
+		radial-gradient(900px 480px at 100% 0%, rgba(6, 182, 212, 0.28), transparent 60%),
+		radial-gradient(700px 420px at 0% 100%, rgba(249, 115, 22, 0.16), transparent 55%),
+		var(--primary);
+	overflow: hidden;
+	padding-block: clamp(3.2rem, 7vw, 6rem);
+}
+
+.pixva-hero__grid {
+	display: grid;
+	grid-template-columns: 1.05fr 0.95fr;
+	gap: clamp(1.5rem, 4vw, 3.5rem);
+	align-items: center;
+}
+
+.pixva-hero h1 {
+	color: #fff;
+	margin-bottom: 0.8rem;
+}
+
+.pixva-hero h1 em {
+	font-style: normal;
+	color: var(--accent);
+}
+
+.pixva-hero__lead {
+	color: #cbd5e1;
+	font-size: var(--fs-lg);
+	max-width: 38rem;
+}
+
+.pixva-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-top: 1.6rem;
+}
+
+.pixva-hero .pixva-btn--ghost {
+	color: #fff;
+	box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.pixva-hero .pixva-btn--ghost:hover {
+	color: #fff;
+	box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.pixva-hero__visual {
+	position: relative;
+}
+
+.pixva-hero__visual img {
+	width: 100%;
+	height: 420px;
+	object-fit: cover;
+	border-radius: 28px;
+	box-shadow: var(--shadow-lg);
+}
+
+.pixva-hero__float {
+	position: absolute;
+	inset-inline-start: -1rem;
+	bottom: 1.2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+}
+
+.pixva-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	background: rgba(255, 255, 255, 0.86);
+	color: var(--primary);
+	border-radius: 999px;
+	padding: 0.45rem 0.85rem;
+	font-size: var(--fs-sm);
+	font-weight: 800;
+	box-shadow: var(--shadow-md);
+	backdrop-filter: blur(8px);
+}
+
+.pixva-stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.8rem;
+	margin-top: 2.2rem;
+}
+
+.pixva-stat {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: var(--radius-md);
+	padding: 0.9rem 1rem;
+}
+
+.pixva-stat strong {
+	display: block;
+	color: #fff;
+	font-size: var(--fs-xl);
+}
+
+.pixva-stat span {
+	color: #94a3b8;
+	font-size: var(--fs-sm);
+}
+
+/* --------------------------------------------------------------------------
+   سکشن‌های عمومی صفحه اصلی
+   -------------------------------------------------------------------------- */
+.pixva-home-services .pixva-service-card h3 {
+	font-size: var(--fs-lg);
+	margin: 0.8rem 0 0.4rem;
+}
+
+.pixva-service-card .pixva-icon {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--accent-soft);
+	color: #0e7490;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pixva-brand-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.2rem;
+	min-height: 120px;
+	text-align: center;
+	color: var(--primary);
+}
+
+.pixva-brand-tile:hover {
+	color: var(--primary);
+}
+
+.pixva-brand-tile__en {
+	font-weight: 800;
+	font-size: var(--fs-lg);
+}
+
+.pixva-quote {
+	position: relative;
+}
+
+.pixva-quote p {
+	font-size: var(--fs-lg);
+	color: var(--primary);
+}
+
+.pixva-quote footer {
+	color: var(--text-muted);
+	font-size: var(--fs-sm);
+}
+
+.pixva-stars {
+	color: var(--cta);
+	letter-spacing: 0.12em;
+	font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   سربرگ داخلی
+   -------------------------------------------------------------------------- */
+.pixva-page-hero {
+	background:
+		radial-gradient(600px 220px at 100% 0%, rgba(6, 182, 212, 0.25), transparent 70%),
+		var(--primary);
+	color: #fff;
+	padding-block: 2.2rem 2.6rem;
+}
+
+.pixva-page-hero h1 {
+	color: #fff;
+	font-size: clamp(1.7rem, 3vw, 2.5rem);
+	margin-bottom: 0.4rem;
+}
+
+.pixva-page-hero p {
+	color: #cbd5e1;
+	max-width: 46rem;
+	margin: 0;
+}
+
+.pixva-crumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 0.2rem;
+	list-style: none;
+	padding: 0;
+	margin: 0 0 0.9rem;
+	font-size: var(--fs-sm);
+	color: #94a3b8;
+}
+
+.pixva-crumbs li:not(:last-child)::after {
+	content: "/";
+	margin-inline: 0.35rem;
+	opacity: 0.6;
+}
+
+.pixva-crumbs a {
+	color: #e2e8f0;
+}
+
+.pixva-content {
+	padding-block: clamp(2rem, 4vw, 3.5rem);
+}
+
+.pixva-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 300px;
+	gap: 1.5rem;
+	align-items: start;
+}
+
+.pixva-layout--single {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* --------------------------------------------------------------------------
+   مقاله
+   -------------------------------------------------------------------------- */
+.entry-content > *:first-child {
+	margin-top: 0;
+}
+
+.entry-content h2,
+.entry-content h3 {
+	margin-top: 1.6em;
+}
+
+.entry-content img {
+	border-radius: var(--radius-md);
+}
+
+.entry-content table {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+}
+
+.entry-content th,
+.entry-content td {
+	border-bottom: 1px solid var(--border);
+	padding: 0.7rem 0.8rem;
+	text-align: start;
+}
+
+.entry-content th {
+	background: var(--bg-light);
+}
+
+.pixva-entry-footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-top: 1.5rem;
+}
+
+.pixva-entry-footer a {
+	background: var(--accent-soft);
+	color: #0e7490;
+	border-radius: 999px;
+	padding: 0.25rem 0.7rem;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   نظرات
+   -------------------------------------------------------------------------- */
+.pixva-comments {
+	margin-top: 2.5rem;
+}
+
+.comment-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.comment-list .children {
+	list-style: none;
+	padding-inline-start: 1.2rem;
+	margin: 0;
+}
+
+.pixva-comment {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	padding: 1rem;
+	margin-bottom: 0.8rem;
+}
+
+.pixva-comment__head {
+	display: flex;
+	gap: 0.7rem;
+	align-items: center;
+	margin-bottom: 0.4rem;
+}
+
+.pixva-comment .avatar {
+	border-radius: 50%;
+}
+
+.comment-respond {
+	margin-top: 1.2rem;
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	padding: 1.2rem;
+}
+
+.comment-form input[type="text"],
+.comment-form input[type="email"],
+.comment-form input[type="url"],
+.comment-form textarea {
+	width: 100%;
+	border: 1.5px solid var(--border);
+	border-radius: var(--radius-sm);
+	padding: 0.75rem 0.9rem;
+}
+
+.comment-form .submit {
+	background: var(--primary);
+	color: #fff;
+	border: 0;
+	border-radius: var(--radius-sm);
+	padding: 0.75rem 1.4rem;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   فوتر
+   -------------------------------------------------------------------------- */
+.pixva-footer {
+	background: var(--primary);
+	color: #cbd5e1;
+	padding-top: 3.2rem;
+	margin-top: 0;
+}
+
+.pixva-footer a {
+	color: #e2e8f0;
+}
+
+.pixva-footer a:hover {
+	color: var(--accent);
+}
+
+.pixva-footer__grid {
+	display: grid;
+	grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+	gap: 1.5rem;
+}
+
+.pixva-footer h2,
+.pixva-footer h3 {
+	color: #fff;
+	font-size: var(--fs-lg);
+}
+
+.pixva-footer .menu,
+.pixva-footer ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.pixva-footer li {
+	margin-bottom: 0.45rem;
+}
+
+.pixva-socials {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	margin-top: 0.8rem;
+}
+
+.pixva-socials a {
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 999px;
+	padding: 0.25rem 0.7rem;
+	font-size: var(--fs-sm);
+}
+
+.pixva-footer__base {
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	margin-top: 2rem;
+	padding-block: 1rem 1.3rem;
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: center;
+	font-size: var(--fs-sm);
+}
+
+.pixva-trust-row {
+	display: flex;
+	gap: 0.6rem;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.pixva-trust img {
+	background: #fff;
+	border-radius: 8px;
+	padding: 0.2rem;
+}
+
+.pixva-trust-note {
+	font-size: var(--fs-xs);
+}
+
+/* --------------------------------------------------------------------------
+   ابزارک و جستجو
+   -------------------------------------------------------------------------- */
+.pixva-widget {
+	margin-bottom: 1rem;
+}
+
+.pixva-widget__title,
+.pixva-widget .wp-block-heading {
+	font-size: var(--fs-lg);
+}
+
+.pixva-search {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.pixva-search input[type="search"] {
+	flex: 1;
+	border: 1.5px solid var(--border);
+	border-radius: var(--radius-sm);
+	padding: 0.75rem 0.9rem;
+	background: #fff;
+}
+
+.pixva-404 {
+	text-align: center;
+	padding-block: 1rem 2rem;
+}
+
+.pixva-404__code {
+	font-size: clamp(4rem, 12vw, 8rem);
+	font-weight: 900;
+	line-height: 0.9;
+	color: var(--primary);
+	margin: 0;
+}
+
+.pixva-404__code span {
+	color: var(--accent);
+}
+
+.pixva-result {
+	display: grid;
+	grid-template-columns: 180px minmax(0, 1fr);
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.pixva-result img,
+.pixva-result__ph {
+	width: 100%;
+	height: 120px;
+	object-fit: cover;
+	border-radius: var(--radius-sm);
+	background: var(--accent-soft);
+}
+
+.pixva-kicker {
+	display: inline-block;
+	font-size: var(--fs-xs);
+	font-weight: 800;
+	color: var(--cta-hover);
+	margin-bottom: 0.3rem;
+}
+
+/* --------------------------------------------------------------------------
+   درباره و تماس
+   -------------------------------------------------------------------------- */
+.pixva-steps {
+	counter-reset: pixva-step;
+	display: grid;
+	gap: 0.8rem;
+}
+
+.pixva-steps li {
+	list-style: none;
+	background: #fff;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	padding: 1rem 1rem 1rem 1.1rem;
+	position: relative;
+}
+
+.pixva-steps {
+	padding: 0;
+}
+
+.pixva-steps--home {
+	grid-template-columns: repeat(4, 1fr);
+}
+
+.pixva-error-teaser h3 {
+	margin: 0.2rem 0 0.45rem;
+	font-size: var(--fs-lg);
+}
+
+@media (max-width: 980px) {
+	.pixva-steps--home {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+@media (max-width: 640px) {
+	.pixva-steps--home {
+		grid-template-columns: 1fr;
+	}
+}
+
+.pixva-contact-grid {
+	display: grid;
+	grid-template-columns: 0.9fr 1.1fr;
+	gap: 1.2rem;
+}
+
+.pixva-map {
+	border: 0;
+	width: 100%;
+	min-height: 280px;
+	border-radius: var(--radius-md);
+	background: #e2e8f0;
+}
+
+.pixva-info-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.pixva-info-list li {
+	display: flex;
+	gap: 0.6rem;
+	align-items: flex-start;
+	margin-bottom: 0.8rem;
+}
+
+.pixva-hours {
+	width: 100%;
+}
+
+.pixva-hours td {
+	padding: 0.45rem 0;
+	border-bottom: 1px solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   واکنش‌گرا
+   -------------------------------------------------------------------------- */
+@media (min-width: 1600px) {
+	:root {
+		--container: 1360px;
+	}
+}
+
+@media (max-width: 1180px) {
+	.pixva-nav,
+	.pixva-header-phone,
+	.pixva-header .pixva-header-cta {
+		display: none;
+	}
+
+	.pixva-burger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-inline-start: auto;
+	}
+
+	.pixva-hero__grid,
+	.pixva-layout,
+	.pixva-footer__grid,
+	.pixva-contact-grid,
+	.pixva-result {
+		grid-template-columns: 1fr;
+	}
+
+	.pixva-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.pixva-hero__visual img {
+		height: 280px;
+	}
+}
+
+@media (max-width: 768px) {
+	body {
+		padding-bottom: calc(72px + env(safe-area-inset-bottom));
+	}
+
+	.pixva-topbar__hours {
+		display: none;
+	}
+
+	.pixva-footer__base {
+		flex-direction: column;
+		align-items: flex-start;
+		margin-bottom: 0.5rem;
+	}
+}
+
+@media (max-width: 782px) {
+	body.admin-bar .pixva-header {
+		top: 46px;
+	}
+}
+
+@media print {
+	.pixva-header,
+	.pixva-footer,
+	.pixva-fab,
+	.pixva-burger,
+	.pixva-cta-box,
+	.pixva-topbar {
+		display: none !important;
+	}
+
+	body {
+		background: #fff;
+		padding: 0;
+	}
+}

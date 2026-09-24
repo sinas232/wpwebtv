@@ -1,0 +1,631 @@
+/*
+Theme Name: پیکسوا
+Theme URI: https://pixva.ir/
+Author: تیم توسعه پیکسوا
+Author URI: https://pixva.ir/
+Description: قالب اختصاصی، سبک و راست‌چین مرکز تخصصی تعمیرات تلویزیون و نمایشگر «پیکسوا»؛ شامل محاسبه‌گر هزینه تعمیر، سامانه پیگیری آنلاین، پایگاه کدهای خطا، اسلایدر قبل/بعد، اسکیما مارک‌آپ JSON-LD و وبلاگ سئومحور. بدون وابستگی به افزونه جانبی و بدون jQuery.
+Version: 1.0.0
+Requires at least: 6.5
+Tested up to: 7.1
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: pixva
+Tags: custom-colors, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, blog, right-to-left
+*/
+
+/* ==========================================================================
+   ۱) متغیرهای طراحی (Design Tokens)
+   ========================================================================== */
+:root {
+	/* پالت رنگی اختصاصی پیکسوا */
+	--primary: #0F172A;
+	--primary-hover: #1E293B;
+	--accent: #06B6D4;
+	--accent-soft: rgba(6, 182, 212, 0.12);
+	--cta: #F97316;
+	--cta-hover: #EA580C;
+	--bg-light: #F8FAFC;
+	--card-bg: #FFFFFF;
+	--text-main: #334155;
+	--text-muted: #64748B;
+
+	/* رنگ‌های کمکی وضعیت‌ها */
+	--success: #16A34A;
+	--warning: #D97706;
+	--danger: #DC2626;
+	--border: #E2E8F0;
+
+	/* تایپوگرافی */
+	--font-primary: "Vazirmatn", "Tahoma", sans-serif;
+	--fs-xs: 0.75rem;
+	--fs-sm: 0.875rem;
+	--fs-md: 1rem;
+	--fs-lg: 1.125rem;
+	--fs-xl: 1.375rem;
+	--fs-2xl: 1.75rem;
+	--fs-3xl: 2.25rem;
+	--fs-4xl: clamp(2.25rem, 5vw, 3.25rem);
+	--lh-body: 1.9;
+	--lh-heading: 1.4;
+
+	/* فضا و گوشه‌ها */
+	--radius-sm: 8px;
+	--radius-md: 14px;
+	--radius-lg: 22px;
+	--container: 1240px;
+	--gap: 1.5rem;
+	--header-h: 76px;
+
+	/* سایه و شیشه */
+	--shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.06);
+	--shadow-md: 0 6px 18px rgba(15, 23, 42, 0.09);
+	--shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.14);
+	--shadow-cta: 0 10px 26px rgba(249, 115, 22, 0.35);
+	--glass-bg: rgba(255, 255, 255, 0.72);
+	--glass-border: rgba(255, 255, 255, 0.45);
+	--blur: saturate(160%) blur(14px);
+
+	/* گذارها */
+	--tr-fast: 0.18s ease;
+	--tr-med: 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ==========================================================================
+   ۲) فونت وزیرمتن (Variable Font — Selbst-hosted)
+   ========================================================================== */
+@font-face {
+	font-family: "Vazirmatn";
+	src: url("assets/fonts/vazirmatn-variable.woff2") format("woff2 supports variations"),
+		url("assets/fonts/vazirmatn-variable.woff2") format("woff2-variations");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* ==========================================================================
+   ۳) ریست و پایه‌ها
+   ========================================================================== */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	direction: rtl;
+	text-align: start;
+	font-family: var(--font-primary);
+	font-size: var(--fs-md);
+	line-height: var(--lh-body);
+	color: var(--text-main);
+	background-color: var(--bg-light);
+	font-feature-settings: "ss01";
+	overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+	transition: color var(--tr-fast);
+}
+
+a:hover {
+	color: var(--cta);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: var(--primary);
+	line-height: var(--lh-heading);
+	font-weight: 800;
+	margin: 0 0 0.75em;
+}
+
+h1 { font-size: var(--fs-4xl); }
+h2 { font-size: var(--fs-3xl); }
+h3 { font-size: var(--fs-2xl); }
+h4 { font-size: var(--fs-xl); }
+h5 { font-size: var(--fs-lg); }
+h6 { font-size: var(--fs-md); }
+
+p {
+	margin: 0 0 1em;
+}
+
+ul,
+ol {
+	margin: 0 0 1em;
+	padding-inline-start: 1.4em;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 3px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+::selection {
+	background: var(--accent);
+	color: #fff;
+}
+
+.screen-reader-text {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	overflow-wrap: normal !important;
+}
+
+.skip-link {
+	position: absolute;
+	inset-inline-start: 1rem;
+	top: -100px;
+	z-index: 200;
+	background: var(--primary);
+	color: #fff;
+	padding: 0.6rem 1.2rem;
+	border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+	transition: top var(--tr-fast);
+}
+
+.skip-link:focus {
+	top: 0;
+	color: #fff;
+}
+
+/* ==========================================================================
+   ۴) چیدمان عمومی
+   ========================================================================== */
+.pixva-container {
+	width: min(100% - 2.5rem, var(--container));
+	margin-inline: auto;
+}
+
+.pixva-section {
+	padding-block: clamp(3rem, 7vw, 5.5rem);
+}
+
+.pixva-section--tight {
+	padding-block: clamp(2rem, 4vw, 3rem);
+}
+
+.pixva-section--alt {
+	background: var(--card-bg);
+}
+
+.pixva-section-head {
+	text-align: center;
+	max-width: 720px;
+	margin: 0 auto clamp(2rem, 4vw, 3rem);
+}
+
+.pixva-section-head .pixva-badge {
+	display: inline-block;
+	margin-bottom: 0.75rem;
+}
+
+.pixva-section-head p {
+	color: var(--text-muted);
+	font-size: var(--fs-lg);
+}
+
+.pixva-grid {
+	display: grid;
+	gap: var(--gap);
+}
+
+.pixva-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.pixva-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.pixva-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ==========================================================================
+   ۵) تایپوگرافی کمکی و نشان‌ها
+   ========================================================================== */
+.pixva-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	background: var(--accent-soft);
+	color: #0E7490;
+	border: 1px solid rgba(6, 182, 212, 0.35);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	padding: 0.3rem 0.85rem;
+	border-radius: 999px;
+}
+
+.pixva-badge--cta {
+	background: rgba(249, 115, 22, 0.12);
+	color: var(--cta-hover);
+	border-color: rgba(249, 115, 22, 0.35);
+}
+
+.pixva-muted {
+	color: var(--text-muted);
+}
+
+.pixva-num {
+	font-variant-numeric: tabular-nums;
+}
+
+.pixva-section-head h2 strong,
+.pixva-highlight {
+	color: var(--accent);
+}
+
+/* ==========================================================================
+   ۶) دکمه‌ها
+   ========================================================================== */
+.pixva-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	border: 0;
+	cursor: pointer;
+	font-weight: 700;
+	font-size: var(--fs-md);
+	padding: 0.85rem 1.9rem;
+	border-radius: var(--radius-md);
+	transition: transform var(--tr-fast), box-shadow var(--tr-fast), background-color var(--tr-fast), color var(--tr-fast);
+	text-align: center;
+}
+
+.pixva-btn:active {
+	transform: scale(0.97);
+}
+
+.pixva-btn--cta {
+	background: linear-gradient(135deg, var(--cta), var(--cta-hover));
+	color: #fff;
+	box-shadow: var(--shadow-cta);
+}
+
+.pixva-btn--cta:hover {
+	background: var(--cta-hover);
+	color: #fff;
+	transform: translateY(-2px);
+}
+
+.pixva-btn--primary {
+	background: var(--primary);
+	color: #fff;
+}
+
+.pixva-btn--primary:hover {
+	background: var(--primary-hover);
+	color: #fff;
+	transform: translateY(-2px);
+}
+
+.pixva-btn--ghost {
+	background: transparent;
+	color: var(--primary);
+	box-shadow: inset 0 0 0 2px var(--border);
+}
+
+.pixva-btn--ghost:hover {
+	box-shadow: inset 0 0 0 2px var(--accent);
+	color: var(--accent);
+}
+
+.pixva-btn--sm {
+	padding: 0.55rem 1.2rem;
+	font-size: var(--fs-sm);
+	border-radius: var(--radius-sm);
+}
+
+.pixva-btn[disabled],
+.pixva-btn.is-loading {
+	opacity: 0.65;
+	cursor: wait;
+	transform: none;
+}
+
+/* افکت آذرخشی دکمه اصلی */
+.pixva-btn--bolt {
+	position: relative;
+	overflow: hidden;
+}
+
+.pixva-btn--bolt::after {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: -60%;
+	width: 40%;
+	background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+	transform: skewX(-20deg);
+	transition: inset-inline-start 0.5s ease;
+}
+
+.pixva-btn--bolt:hover::after {
+	inset-inline-start: 120%;
+}
+
+/* ==========================================================================
+   ۷) فرم‌ها
+   ========================================================================== */
+.pixva-field {
+	margin-bottom: 1.1rem;
+}
+
+.pixva-field label {
+	display: block;
+	font-weight: 700;
+	font-size: var(--fs-sm);
+	margin-bottom: 0.4rem;
+	color: var(--primary);
+}
+
+.pixva-field input[type="text"],
+.pixva-field input[type="tel"],
+.pixva-field input[type="email"],
+.pixva-field input[type="search"],
+.pixva-field input[type="number"],
+.pixva-field select,
+.pixva-field textarea {
+	width: 100%;
+	background: var(--card-bg);
+	border: 1.5px solid var(--border);
+	border-radius: var(--radius-sm);
+	padding: 0.8rem 1rem;
+	transition: border-color var(--tr-fast), box-shadow var(--tr-fast);
+}
+
+.pixva-field input:focus,
+.pixva-field select:focus,
+.pixva-field textarea:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 4px var(--accent-soft);
+	outline: none;
+}
+
+.pixva-field .pixva-hint {
+	font-size: var(--fs-xs);
+	color: var(--text-muted);
+	margin-top: 0.3rem;
+}
+
+.pixva-field.has-error input,
+.pixva-field.has-error select,
+.pixva-field.has-error textarea {
+	border-color: var(--danger);
+}
+
+.pixva-field .pixva-error-msg {
+	color: var(--danger);
+	font-size: var(--fs-xs);
+	margin-top: 0.3rem;
+	display: none;
+}
+
+.pixva-field.has-error .pixva-error-msg {
+	display: block;
+}
+
+/* honeypot — برای انسان‌ها نمایش داده نمی‌شود */
+.pixva-hp-field {
+	position: absolute !important;
+	inset-inline-start: -9999px !important;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+/* ==========================================================================
+   ۸) کارت‌ها و سطوح شیشه‌ای
+   ========================================================================== */
+.pixva-card {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-sm);
+	padding: 1.6rem;
+	transition: transform var(--tr-med), box-shadow var(--tr-med), border-color var(--tr-med);
+}
+
+.pixva-card:hover {
+	transform: translateY(-6px);
+	box-shadow: var(--shadow-lg);
+	border-color: rgba(6, 182, 212, 0.45);
+}
+
+.pixva-glass {
+	background: var(--glass-bg);
+	border: 1px solid var(--glass-border);
+	backdrop-filter: var(--blur);
+	-webkit-backdrop-filter: var(--blur);
+}
+
+/* ==========================================================================
+   ۹) ناوبری صفحات (Pagination)
+   ========================================================================== */
+.pixva-pagination {
+	display: flex;
+	justify-content: center;
+	gap: 0.4rem;
+	margin-top: 2.5rem;
+	flex-wrap: wrap;
+}
+
+.pixva-pagination .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 42px;
+	height: 42px;
+	padding-inline: 0.6rem;
+	border-radius: var(--radius-sm);
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	color: var(--text-main);
+	font-weight: 700;
+	font-size: var(--fs-sm);
+}
+
+.pixva-pagination .page-numbers.current {
+	background: var(--primary);
+	color: #fff;
+	border-color: var(--primary);
+}
+
+.pixva-pagination .page-numbers:hover:not(.current) {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+/* ==========================================================================
+   ۱۰) پیام‌های وضعیت
+   ========================================================================== */
+.pixva-notice {
+	border-radius: var(--radius-sm);
+	padding: 0.9rem 1.2rem;
+	font-size: var(--fs-sm);
+	font-weight: 600;
+	margin-bottom: 1rem;
+	border: 1px solid transparent;
+}
+
+.pixva-notice--success {
+	background: rgba(22, 163, 74, 0.1);
+	color: var(--success);
+	border-color: rgba(22, 163, 74, 0.3);
+}
+
+.pixva-notice--error {
+	background: rgba(220, 38, 38, 0.08);
+	color: var(--danger);
+	border-color: rgba(220, 38, 38, 0.3);
+}
+
+.pixva-notice--info {
+	background: var(--accent-soft);
+	color: #0E7490;
+	border-color: rgba(6, 182, 212, 0.3);
+}
+
+/* ==========================================================================
+   ۱۱) انیمیشن‌های میکرو
+   ========================================================================== */
+@keyframes pixva-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(26px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes pixva-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.45);
+	}
+	50% {
+		box-shadow: 0 0 0 12px rgba(6, 182, 212, 0);
+	}
+}
+
+@keyframes pixva-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.pixva-reveal {
+	opacity: 0;
+	transform: translateY(26px);
+	transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.pixva-reveal.is-visible {
+	opacity: 1;
+	transform: none;
+}
+
+.pixva-spinner {
+	width: 18px;
+	height: 18px;
+	border: 2.5px solid rgba(255, 255, 255, 0.4);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: pixva-spin 0.7s linear infinite;
+	display: inline-block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+
+	.pixva-reveal {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* ==========================================================================
+   ۱۲) واکنش‌گرایی پایه
+   ========================================================================== */
+@media (max-width: 1024px) {
+	.pixva-grid--4 { grid-template-columns: repeat(2, 1fr); }
+	.pixva-grid--3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+	.pixva-grid--4,
+	.pixva-grid--3,
+	.pixva-grid--2 { grid-template-columns: 1fr; }
+
+	body {
+		font-size: var(--fs-sm);
+	}
+}

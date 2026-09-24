@@ -1,0 +1,3 @@
+dist/*
+!dist/pixva.zip
+.DS_Store
