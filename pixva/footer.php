@@ -81,6 +81,25 @@ $pixva_phone = pixva_support_phone();
 	</div>
 </footer>
 
+<nav class="pixva-mobile-dock" aria-label="<?php esc_attr_e( 'نوار دسترسی سریع موبایل', 'pixva' ); ?>">
+	<a href="tel:02191009990" class="pixva-mobile-dock__item">
+		<span>📞</span>
+		<span><?php esc_html_e( 'تماس', 'pixva' ); ?></span>
+	</a>
+	<a href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>" class="pixva-mobile-dock__item is-cta">
+		<span>⚡</span>
+		<span><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></span>
+	</a>
+	<a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" class="pixva-mobile-dock__item">
+		<span>🔍</span>
+		<span><?php esc_html_e( 'پیگیری', 'pixva' ); ?></span>
+	</a>
+	<button type="button" class="pixva-mobile-dock__item" style="background:none;border:none;cursor:pointer;" data-ai-toggle>
+		<span>🤖</span>
+		<span><?php esc_html_e( 'چت AI', 'pixva' ); ?></span>
+	</button>
+</nav>
+
 <nav class="pixva-fab" aria-label="<?php esc_attr_e( 'دسترسی سریع موبایل', 'pixva' ); ?>">
 	<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>">
 		<?php echo pixva_icon( 'phone' ); ?>
