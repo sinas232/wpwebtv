@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<ruleset name="Pixva">
+	<description>استاندارد قالب پیکسوا</description>
+	<file>.</file>
+	<exclude-pattern>*/assets/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+
+	<rule ref="WordPress">
+		<!-- نام فایل‌های single-{$post_type} و taxonomy-{$taxonomy} را هسته وردپرس الزامی کرده است. -->
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+	</rule>
+
+	<rule ref="WordPress.Security.EscapeOutput">
+		<properties>
+			<property name="customEscapingFunctions" type="array">
+				<element value="pixva_icon"/>
+				<element value="pixva_kses_svg"/>
+				<element value="pixva_cta_box"/>
+				<element value="pixva_build_toc"/>
+				<element value="pixva_inject_cta"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

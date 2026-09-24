@@ -1,0 +1,126 @@
+/*
+ * rtl.css — تنظیمات اختصاصی راست‌چین قالب پیکسوا
+ *
+ * این فایل توسط هسته وردپرس هنگام فعال بودن زبان راست‌چین (fa_IR)
+ * به‌صورت خودکار پس از style.css بارگذاری می‌شود.
+ * طراحی پایه قالب «RTL-Native» و بر پایه ویژگی‌های منطقی (logical properties) است؛
+ * این فایل تنها ظرافت‌های اختصاصی راست‌چین و اعداد فارسی را نگه می‌دارد.
+ */
+
+/* جهت سند به‌صورت صریح برای حالت‌های خاص دوباره تأکید می‌شود */
+html[lang="fa-IR"] body,
+html[lang="fa"] body {
+	direction: rtl;
+	text-align: right;
+}
+
+/* اعداد فارسی در عناصری که کلاس کمکی دارند */
+.pixva-num,
+.pixva-price,
+time {
+	font-feature-settings: "ss01";
+}
+
+/* نقل‌قول و محتوای مقاله: تراز راست */
+.entry-content,
+.entry-content p,
+.entry-content li {
+	text-align: right;
+}
+
+.entry-content blockquote {
+	border-inline-start: 4px solid var(--accent);
+	border-inline-end: 0;
+	padding-inline-start: 1.2rem;
+	padding-inline-end: 0;
+	margin-inline-start: 0;
+	background: var(--accent-soft);
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* برندها و کدهای خطا که نام لاتین دارند با جهت داخلی صحیح نمایش داده شوند */
+.pixva-latin,
+.pixva-error-code__code,
+.pixva-brand-tile__en {
+	direction: ltr;
+	text-align: center;
+	unicode-bidi: isolate;
+	font-feature-settings: normal;
+	letter-spacing: 0.02em;
+}
+
+/* فهرست‌های داخل محتوا: بولت‌ها سمت راست */
+.entry-content ul,
+.entry-content ol,
+.pixva-toc__list {
+	padding-inline-start: 1.4em;
+	padding-inline-end: 0;
+}
+
+.entry-content ul li::marker {
+	color: var(--accent);
+}
+
+/* جدول محتوا: نوار کناری سمت راست */
+.pixva-toc {
+	border-inline-start-width: 0;
+	border-inline-end-width: 0;
+}
+
+/* تایم‌لاین پیگیری: خط عمودی سمت راست */
+.pixva-timeline {
+	padding-inline-start: 0;
+	padding-inline-end: 0;
+}
+
+/*
+ * اسلایدر قبل/بعد داخل خودش direction:ltr دارد تا مکانیک کشیدن پایدار بماند.
+ * برچسب‌های فارسی با isolate جدا می‌شوند و اینجا بازنویسی نمی‌شوند.
+ */
+
+/* فلش‌های ناوبری و آیکون‌های جهت‌دار برعکس می‌شوند */
+.pixva-icon-arrow::before {
+	content: "\2190"; /* در RTL پیش‌روی به سمت چپ است */
+}
+
+/* نوار ابزار شناور موبایل: ترتیب بصری راست‌به‌چپ */
+.pixva-fab__item:first-child {
+	border-start-start-radius: 0;
+	border-end-start-radius: 0;
+}
+
+/* کشو از سمت شروع (راست) وارد می‌شود؛ تبدیل فیزیکی در main.css با dir=rtl تنظیم شده است. */
+
+/* اسکرول‌بار باریک و هماهنگ با پالت */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--accent) var(--bg-light);
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: var(--accent);
+	border-radius: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: var(--bg-light);
+}
+
+/* فاصله‌گذاری صحیح علائم نگارشی فارسی (نیم‌فاصله‌ها توسط محتوا رعایت می‌شوند) */
+.entry-content {
+	word-spacing: 0.06em;
+}
+
+/* در حالت چاپ، عناصر شناور حذف شوند */
+@media print {
+	.pixva-fab,
+	.pixva-drawer,
+	.pixva-topbar {
+		display: none !important;
+	}
+}

@@ -1,0 +1,696 @@
+/* ==========================================================================
+   پیکسوا — کامپوننت‌ها: محاسبه‌گر، پیگیری، قبل/بعد، TOC، FAQ، کد خطا
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   محاسبه‌گر
+   -------------------------------------------------------------------------- */
+.pixva-calc {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	padding: clamp(1rem, 2vw, 1.6rem);
+}
+
+.pixva-calc__progress {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.4rem;
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1.2rem;
+}
+
+.pixva-calc__progress li {
+	text-align: center;
+	font-size: var(--fs-xs);
+	font-weight: 800;
+	color: var(--text-muted);
+	padding-bottom: 0.45rem;
+	border-bottom: 3px solid var(--border);
+}
+
+.pixva-calc__progress li.is-current,
+.pixva-calc__progress li.is-done {
+	color: var(--primary);
+	border-color: var(--accent);
+}
+
+.pixva-calc__step h3 {
+	font-size: var(--fs-lg);
+	margin-bottom: 0.8rem;
+}
+
+.pixva-choice-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 0.65rem;
+	margin-bottom: 1rem;
+}
+
+.pixva-choice {
+	appearance: none;
+	border: 1.5px solid var(--border);
+	background: var(--bg-light);
+	border-radius: var(--radius-md);
+	padding: 0.85rem 0.7rem;
+	cursor: pointer;
+	font-weight: 800;
+	color: var(--primary);
+	transition: border-color var(--tr-fast), transform var(--tr-fast), box-shadow var(--tr-fast);
+}
+
+.pixva-choice:hover {
+	border-color: var(--accent);
+	transform: translateY(-2px);
+}
+
+.pixva-choice.is-selected {
+	border-color: var(--accent);
+	background: var(--accent-soft);
+	box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.pixva-choice__en {
+	display: block;
+	font-size: var(--fs-sm);
+	color: var(--text-muted);
+	font-weight: 700;
+}
+
+.pixva-calc__nav {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.6rem;
+	margin-top: 0.4rem;
+}
+
+.pixva-calc__price {
+	margin: 0.4rem 0;
+}
+
+.pixva-calc__price strong {
+	font-size: clamp(1.4rem, 3vw, 2rem);
+	color: var(--primary);
+}
+
+.pixva-calc__days {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-weight: 800;
+	color: #0e7490;
+}
+
+.pixva-calc__note,
+.pixva-calc__result p {
+	color: var(--text-muted);
+	font-size: var(--fs-sm);
+}
+
+.pixva-calc__order {
+	margin-top: 1rem;
+	padding-top: 0.6rem;
+	border-top: 1px dashed var(--border);
+}
+
+.pixva-calc.is-busy {
+	opacity: 0.72;
+	pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   تایم‌لاین پیگیری
+   -------------------------------------------------------------------------- */
+.pixva-track-form {
+	display: grid;
+	grid-template-columns: 1fr 1fr auto;
+	gap: 0.7rem;
+	align-items: end;
+}
+
+.pixva-timeline {
+	list-style: none;
+	margin: 1.2rem 0 0;
+	padding: 0;
+	display: grid;
+	gap: 0;
+}
+
+.pixva-timeline li {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: 0.8rem;
+	position: relative;
+	padding-bottom: 1.1rem;
+}
+
+.pixva-timeline li::before {
+	content: "";
+	position: absolute;
+	inset-inline-start: 13px;
+	top: 22px;
+	bottom: 0;
+	width: 2px;
+	background: var(--border);
+}
+
+.pixva-timeline li:last-child::before {
+	display: none;
+}
+
+.pixva-timeline__dot {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 2px solid var(--border);
+	background: #fff;
+	display: grid;
+	place-items: center;
+	font-size: 0.75rem;
+	font-weight: 800;
+	color: var(--text-muted);
+	position: relative;
+	z-index: 1;
+}
+
+.pixva-timeline li.is-done .pixva-timeline__dot {
+	background: var(--success);
+	border-color: var(--success);
+	color: #fff;
+}
+
+.pixva-timeline li.is-current .pixva-timeline__dot {
+	background: var(--cta);
+	border-color: var(--cta);
+	color: #fff;
+	animation: pixva-pulse 1.8s ease infinite;
+}
+
+.pixva-timeline h3 {
+	margin: 0;
+	font-size: var(--fs-md);
+}
+
+.pixva-timeline time,
+.pixva-timeline p {
+	margin: 0;
+	color: var(--text-muted);
+	font-size: var(--fs-sm);
+}
+
+.pixva-track-card {
+	margin-top: 1rem;
+}
+
+.pixva-track-card dl {
+	display: grid;
+	grid-template-columns: 140px 1fr;
+	gap: 0.35rem 0.8rem;
+	margin: 0 0 1rem;
+}
+
+.pixva-track-card dt {
+	color: var(--text-muted);
+}
+
+.pixva-track-card dd {
+	margin: 0;
+	font-weight: 700;
+	color: var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   قبل / بعد
+   -------------------------------------------------------------------------- */
+.pixva-ba {
+	position: relative;
+	direction: ltr;
+	--pixva-ba: 58%;
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	aspect-ratio: 16 / 9;
+	background: #0f172a;
+	box-shadow: var(--shadow-lg);
+	user-select: none;
+	touch-action: none;
+}
+
+.pixva-ba__after,
+.pixva-ba__before img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.pixva-ba__before {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: var(--pixva-ba);
+	overflow: hidden;
+}
+
+.pixva-ba__before img {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	max-width: none;
+	width: 100%;
+}
+
+.pixva-ba__handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--pixva-ba);
+	width: 44px;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+
+.pixva-ba__handle::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	width: 2px;
+	background: #fff;
+	box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.25);
+}
+
+.pixva-ba__handle::after {
+	content: "";
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230F172A' stroke-width='2'%3E%3Cpath d='M8 8l-4 4 4 4M16 8l4 4-4 4'/%3E%3C/svg%3E") center / 22px no-repeat;
+	box-shadow: var(--shadow-md);
+	position: relative;
+}
+
+.pixva-ba__label {
+	position: absolute;
+	top: 1rem;
+	background: rgba(15, 23, 42, 0.78);
+	color: #fff;
+	font-size: var(--fs-xs);
+	font-weight: 800;
+	padding: 0.3rem 0.65rem;
+	border-radius: 999px;
+	direction: rtl;
+	unicode-bidi: isolate;
+}
+
+.pixva-ba__label--before {
+	left: 1rem;
+}
+
+.pixva-ba__label--after {
+	right: 1rem;
+}
+
+.pixva-ba__range {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: ew-resize;
+}
+
+/* --------------------------------------------------------------------------
+   جدول محتوا
+   -------------------------------------------------------------------------- */
+.pixva-toc {
+	border-radius: var(--radius-md);
+	padding: 0.4rem 0.9rem 0.8rem;
+	margin-bottom: 1.2rem;
+	border: 1px solid var(--border);
+}
+
+.pixva-toc__toggle {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: transparent;
+	border: 0;
+	padding: 0.7rem 0;
+	cursor: pointer;
+	font-weight: 800;
+	color: var(--primary);
+}
+
+.pixva-toc__chevron {
+	width: 0.55rem;
+	height: 0.55rem;
+	border-inline-end: 2px solid var(--primary);
+	border-bottom: 2px solid var(--primary);
+	transform: rotate(45deg);
+	transition: transform var(--tr-fast);
+}
+
+.pixva-toc.is-collapsed .pixva-toc__chevron {
+	transform: rotate(-45deg);
+}
+
+.pixva-toc__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.pixva-toc__item a {
+	display: block;
+	color: var(--text-main);
+	font-weight: 600;
+	padding: 0.28rem 0.4rem;
+	border-radius: 8px;
+	border-inline-start: 2px solid transparent;
+}
+
+.pixva-toc__item--l3 a {
+	padding-inline-start: 1.1rem;
+	font-weight: 500;
+	color: var(--text-muted);
+	font-size: var(--fs-sm);
+}
+
+.pixva-toc__item a.is-active,
+.pixva-toc__item a:hover {
+	background: var(--accent-soft);
+	border-inline-start-color: var(--accent);
+	color: #0e7490;
+}
+
+/* --------------------------------------------------------------------------
+   FAQ
+   -------------------------------------------------------------------------- */
+.pixva-faq {
+	display: grid;
+	gap: 0.6rem;
+}
+
+.pixva-faq__item {
+	background: #fff;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.pixva-faq__heading {
+	margin: 0;
+	font-size: var(--fs-md);
+}
+
+.pixva-faq__q {
+	width: 100%;
+	text-align: start;
+	background: transparent;
+	border: 0;
+	padding: 0.95rem 1rem;
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: center;
+	cursor: pointer;
+	font-weight: 800;
+	color: var(--primary);
+}
+
+.pixva-faq__q .pixva-icon {
+	transition: transform var(--tr-fast);
+}
+
+.pixva-faq__q[aria-expanded="true"] .pixva-icon {
+	transform: rotate(180deg);
+}
+
+.pixva-faq__a {
+	padding: 0 1rem 1rem;
+	color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   باکس عیب‌یابی، CTA، نویسنده
+   -------------------------------------------------------------------------- */
+.pixva-diag {
+	border-radius: var(--radius-md);
+	padding: 0.9rem;
+	margin-bottom: 1.1rem;
+	border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.pixva-diag ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.6rem;
+}
+
+.pixva-diag li {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	background: rgba(255, 255, 255, 0.72);
+	border-radius: 12px;
+	padding: 0.7rem;
+}
+
+.pixva-diag li span {
+	color: var(--text-muted);
+	font-size: var(--fs-xs);
+}
+
+.pixva-diag strong {
+	color: var(--primary);
+	font-size: var(--fs-sm);
+}
+
+.pixva-diag__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin-top: 0.7rem;
+}
+
+.pixva-diag__tags a {
+	background: #fff;
+	border-radius: 999px;
+	padding: 0.15rem 0.65rem;
+	font-size: var(--fs-xs);
+	font-weight: 800;
+}
+
+.pixva-cta-box {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	margin: 1.4rem 0;
+	padding: 1.2rem;
+	border-radius: var(--radius-lg);
+	background:
+		radial-gradient(400px 120px at 100% 0%, rgba(6, 182, 212, 0.25), transparent 70%),
+		var(--primary);
+	color: #fff;
+}
+
+.pixva-cta-box h2,
+.pixva-cta-box p {
+	color: #fff;
+}
+
+.pixva-cta-box h2 {
+	font-size: var(--fs-xl);
+	margin: 0.35rem 0;
+}
+
+.pixva-cta-box p {
+	margin: 0;
+	color: #cbd5e1;
+}
+
+.pixva-author {
+	display: flex;
+	gap: 0.9rem;
+	align-items: center;
+	margin-top: 1.5rem;
+}
+
+.pixva-author:hover {
+	transform: none;
+}
+
+.pixva-author__avatar,
+.pixva-author img,
+.pixva-author__mark {
+	border-radius: 50%;
+	width: 72px;
+	height: 72px;
+	flex: 0 0 72px;
+}
+
+.pixva-author__mark {
+	display: grid;
+	place-items: center;
+	background: var(--primary);
+	color: #fff;
+	font-weight: 900;
+	font-size: 1.4rem;
+}
+
+.pixva-author p {
+	margin: 0.25rem 0 0;
+	color: var(--text-muted);
+}
+
+.pixva-related {
+	margin-top: 2.2rem;
+}
+
+/* --------------------------------------------------------------------------
+   کدهای خطا
+   -------------------------------------------------------------------------- */
+.pixva-errors__filters {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1.4fr auto;
+	gap: 0.8rem;
+	align-items: end;
+	margin-bottom: 1rem;
+}
+
+.pixva-errors__filters:hover {
+	transform: none;
+}
+
+.pixva-errors__count {
+	font-weight: 800;
+	color: var(--primary);
+	margin: 0 0 1rem;
+}
+
+.pixva-errors__grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.8rem;
+}
+
+.pixva-error-card header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.4rem;
+}
+
+.pixva-error-code__code {
+	font-weight: 900;
+	color: var(--cta-hover);
+}
+
+.pixva-error-card h3 {
+	font-size: var(--fs-lg);
+	margin-bottom: 0.35rem;
+}
+
+.pixva-error-card__action span {
+	display: inline-block;
+	font-weight: 800;
+	color: #0e7490;
+	margin-inline-end: 0.3rem;
+}
+
+.pixva-error-card[hidden] {
+	display: none;
+}
+
+/* --------------------------------------------------------------------------
+   نوار شناور موبایل
+   -------------------------------------------------------------------------- */
+.pixva-fab {
+	display: none;
+}
+
+@media (max-width: 768px) {
+	.pixva-fab {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		position: fixed;
+		z-index: 45;
+		inset-inline: 0.6rem;
+		bottom: calc(0.45rem + env(safe-area-inset-bottom));
+		background: rgba(255, 255, 255, 0.92);
+		backdrop-filter: blur(12px);
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		box-shadow: var(--shadow-lg);
+		overflow: hidden;
+	}
+
+	.pixva-fab a {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.15rem;
+		min-height: 58px;
+		color: var(--primary);
+		font-size: var(--fs-xs);
+		font-weight: 800;
+	}
+
+	.pixva-fab a:hover {
+		background: var(--accent-soft);
+		color: #0e7490;
+	}
+
+	.pixva-fab a.is-cta {
+		background: var(--cta);
+		color: #fff;
+	}
+
+	.pixva-fab a.is-cta:hover {
+		background: var(--cta-hover);
+		color: #fff;
+	}
+}
+
+@media (max-width: 800px) {
+	.pixva-track-form,
+	.pixva-errors__filters,
+	.pixva-diag ul,
+	.pixva-cta-box {
+		grid-template-columns: 1fr;
+		display: grid;
+	}
+
+	.pixva-errors__grid,
+	.pixva-calc__progress {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.pixva-cta-box {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-timeline li.is-current .pixva-timeline__dot {
+		animation: none;
+	}
+}
