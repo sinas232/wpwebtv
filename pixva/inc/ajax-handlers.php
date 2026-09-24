@@ -40,37 +40,6 @@ function pixva_register_ajax_actions() {
 add_action( 'init', 'pixva_register_ajax_actions' );
 
 /**
- * محاسبه تخمین قیمت بر اساس ماتریس سمت سرور.
- *
- * @param string $brand   کلید برند.
- * @param string $tech    کلید تکنولوژی.
- * @param string $size    سایز اینچ.
- * @param string $problem کلید مشکل.
- * @return array{min:int,max:int,days:string}|null
- */
-function pixva_calculate_estimate( $brand, $tech, $size, $problem ) {
-	$matrix = pixva_pricing_matrix();
-
-	if ( ! isset( $matrix['base'][ $problem ], $matrix['brand'][ $brand ], $matrix['tech'][ $tech ], $matrix['size'][ $size ] ) ) {
-		return null;
-	}
-
-	$coeff = (float) $matrix['brand'][ $brand ] * (float) $matrix['tech'][ $tech ] * (float) $matrix['size'][ $size ];
-	$min   = (int) ( round( ( $matrix['base'][ $problem ][0] * $coeff ) / 50000 ) * 50000 );
-	$max   = (int) ( round( ( $matrix['base'][ $problem ][1] * $coeff ) / 50000 ) * 50000 );
-
-	if ( $max < $min ) {
-		$max = $min;
-	}
-
-	return array(
-		'min'  => $min,
-		'max'  => $max,
-		'days' => isset( $matrix['days'][ $problem ] ) ? (string) $matrix['days'][ $problem ] : '',
-	);
-}
-
-/**
  * گارد مشترک AJAX: nonce، honeypot و rate limit.
  *
  * @param string $nonce_action نام nonce.
@@ -116,6 +85,27 @@ function pixva_ajax_get_estimate() {
 	$tech     = sanitize_key( pixva_get_post_var( 'tech' ) );
 	$size     = sanitize_key( pixva_get_post_var( 'size' ) );
 	$problem  = sanitize_key( pixva_get_post_var( 'problem' ) );
+
+	// تعویض کامل پنل قیمت ندارد؛ فقط هشدار خارج از جدول برمی‌گردد.
+	if ( 'panel_replace' === $problem ) {
+		$warn_labels = pixva_calculator_labels();
+		pixva_ajax_success(
+			array(
+				'min'          => 0,
+				'max'          => 0,
+				'minFormatted' => '',
+				'maxFormatted' => '',
+				'days'         => '',
+					'brand'        => isset( $warn_labels['brand'][ $brand ] ) ? $warn_labels['brand'][ $brand ] : $brand,
+				'tech'         => isset( $warn_labels['tech'][ $tech ] ) ? $warn_labels['tech'][ $tech ] : $tech,
+				'size'         => isset( $warn_labels['size'][ $size ] ) ? $warn_labels['size'][ $size ] : $size,
+				'problem'      => isset( $warn_labels['problem'][ $problem ] ) ? $warn_labels['problem'][ $problem ] : $problem,
+				'panelWarning' => pixva_panel_replace_warning(),
+				'disclaimer'   => pixva_panel_replace_warning(),
+			)
+		);
+	}
+
 	$estimate = pixva_calculate_estimate( $brand, $tech, $size, $problem );
 
 	if ( null === $estimate ) {
@@ -134,8 +124,8 @@ function pixva_ajax_get_estimate() {
 			'brand'        => isset( $labels['brand'][ $brand ] ) ? $labels['brand'][ $brand ] : $brand,
 			'tech'         => isset( $labels['tech'][ $tech ] ) ? $labels['tech'][ $tech ] : $tech,
 			'size'         => isset( $labels['size'][ $size ] ) ? $labels['size'][ $size ] : $size,
-			'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
-			'disclaimer'   => __( 'این مبلغ برآورد کارگاهی است و پس از عیب‌یابی حضوری قطعی می‌شود. ایاب‌وذهاب و قطعه کمیاب ممکن است جداگانه محاسبه شود.', 'pixva' ),
+		'problem'      => isset( $labels['problem'][ $problem ] ) ? $labels['problem'][ $problem ] : $problem,
+		'disclaimer'   => __( 'این مبلغ برآورد کارگاهی سطح ۱۴۰۵ است و پس از عیب‌یابی حضوری قطعی می‌شود. تعویض کامل پنل خارج از جدول محاسبه بوده و اغلب از ۱۰ میلیون تومان شروع می‌شود. هزینه کارشناسی ۱۸۰ تا ۳۵۰ هزار تومان جداگانه است.', 'pixva' ),
 		)
 	);
 }
@@ -242,22 +232,28 @@ function pixva_ajax_track_order() {
 	pixva_ajax_guard( 'pixva_tracking_nonce', 'tracking', 20, HOUR_IN_SECONDS );
 
 	$code  = strtoupper( pixva_get_post_var( 'code' ) );
-	$code  = preg_replace( '/[^A-Z0-9\-]/', '', $code );
-	$phone = pixva_get_post_var( 'phone' );
+	$code  = (string) preg_replace( '/[^A-Z0-9\-]/', '', (string) $code );
+	$phone = pixva_normalize_mobile( pixva_get_post_var( 'phone' ) );
 
-	if ( '' === $code && '' === $phone ) {
-		pixva_ajax_error( __( 'کد پیگیری یا شماره همراه را وارد کنید.', 'pixva' ), 422 );
+	// پیگیری فقط با هر دو مشخصه: کد مطابق PXV-... به‌علاوه شماره همان پرونده.
+	// پیگیری فقط با شماره ممنوع است.
+	if ( '' === $code || '' === $phone ) {
+		pixva_ajax_error( __( 'کد پیگیری و شماره همراه همان پرونده، هر دو لازم است.', 'pixva' ), 422 );
 	}
 
-	if ( '' !== $phone && ! pixva_is_valid_iranian_mobile( $phone ) ) {
+	if ( 1 !== preg_match( '/^PXV-[A-Z0-9\-]+$/', $code ) ) {
+		pixva_ajax_error( __( 'قالب کد پیگیری معتبر نیست. نمونه: PXV-DEMO-2401', 'pixva' ), 422 );
+	}
+
+	if ( ! pixva_is_valid_iranian_mobile( $phone ) ) {
 		pixva_ajax_error( __( 'شماره همراه معتبر نیست.', 'pixva' ), 422 );
 	}
 
-	$order = pixva_find_order( $code, '' !== $code ? '' : $phone );
+	$order = pixva_find_order( $code, '' );
 
-	if ( $order instanceof WP_Post && '' !== $code && '' !== $phone ) {
+	if ( $order instanceof WP_Post ) {
 		$stored = (string) get_post_meta( $order->ID, '_pixva_order_phone', true );
-		if ( pixva_normalize_mobile( $phone ) !== $stored ) {
+		if ( $phone !== $stored ) {
 			$order = null;
 		}
 	}
@@ -395,5 +391,11 @@ function pixva_notify_admin( $subject, $body ) {
 	if ( ! is_email( $admin ) ) {
 		return;
 	}
-	wp_mail( $admin, $subject, $body );
+	// جلوگیری از تزریق سربرگ: حذف خط جدید از موضوع. ایمیل کاربر وارد سربرگ نمی‌شود.
+	$subject = str_replace( array( "\r", "\n" ), '', (string) $subject );
+	$subject = trim( wp_strip_all_tags( $subject ) );
+	if ( '' === $subject ) {
+		$subject = __( 'اطلاع‌رسانی پیکسوا', 'pixva' );
+	}
+	wp_mail( $admin, $subject, (string) $body );
 }

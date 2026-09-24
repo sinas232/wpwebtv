@@ -83,10 +83,34 @@
 			if (window.pixvaSetBusy) {
 				window.pixvaSetBusy(button, true);
 			}
+			const codeVal = form.querySelector('[name="code"]').value.trim().toUpperCase();
+			const phoneVal = form.querySelector('[name="phone"]').value.trim();
+			if (!codeVal || !phoneVal) {
+				if (msg) {
+					msg.hidden = false;
+					msg.className = 'pixva-notice pixva-notice--error';
+					msg.textContent = 'کد پیگیری و شماره همراه، هر دو لازم است.';
+				}
+				if (window.pixvaSetBusy) {
+					window.pixvaSetBusy(button, false);
+				}
+				return;
+			}
+			if (!/^PXV-[A-Z0-9-]+$/.test(codeVal)) {
+				if (msg) {
+					msg.hidden = false;
+					msg.className = 'pixva-notice pixva-notice--error';
+					msg.textContent = 'قالب کد پیگیری معتبر نیست. نمونه: PXV-DEMO-2401';
+				}
+				if (window.pixvaSetBusy) {
+					window.pixvaSetBusy(button, false);
+				}
+				return;
+			}
 			try {
 				const data = await window.pixvaPostAjax('pixva_track_order', cfg.nonce.tracking, {
-					code: form.querySelector('[name="code"]').value.trim(),
-					phone: form.querySelector('[name="phone"]').value.trim(),
+					code: codeVal,
+					phone: phoneVal,
 					pixva_hp: form.querySelector('[name="pixva_hp"]') ? form.querySelector('[name="pixva_hp"]').value : '',
 				});
 				if (result) {

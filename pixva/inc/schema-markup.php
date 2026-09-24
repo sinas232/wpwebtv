@@ -71,7 +71,12 @@ function pixva_schema_image( $post_id = 0 ) {
  */
 function pixva_schema_local_business() {
 	$phone   = (string) pixva_option( 'pixva_support_phone', '02191009990' );
-	$address = (string) pixva_option( 'pixva_workshop_address', '' );
+	$address = function_exists( 'pixva_workshop_full_address' ) ? pixva_workshop_full_address() : (string) pixva_option( 'pixva_workshop_address', '' );
+	$city    = (string) pixva_option( 'pixva_workshop_city', 'تهران' );
+	$postal  = (string) pixva_option( 'pixva_workshop_postal', '' );
+	$area    = (string) pixva_option( 'pixva_service_area', 'تهران' );
+	$lat     = (float) pixva_option( 'pixva_map_lat', '35.6788' );
+	$lng     = (float) pixva_option( 'pixva_map_lng', '51.4195' );
 	$logo    = (string) pixva_option( 'pixva_logo_light', '' );
 	if ( '' === $logo ) {
 		$logo = pixva_schema_image( 0 );
@@ -99,12 +104,15 @@ function pixva_schema_local_business() {
 		'address'                   => array(
 			'@type'           => 'PostalAddress',
 			'streetAddress'   => $address,
-			'addressLocality' => 'تهران',
+			'addressLocality' => $city,
+			'postalCode'      => $postal,
 			'addressCountry'  => 'IR',
 		),
-		'areaServed'                => array(
-			'@type' => 'City',
-			'name'  => 'تهران',
+		'areaServed'                => $area,
+		'geo'                       => array(
+			'@type'     => 'GeoCoordinates',
+			'latitude'  => $lat,
+			'longitude' => $lng,
 		),
 		'openingHoursSpecification' => array(
 			array(

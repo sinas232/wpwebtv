@@ -33,7 +33,7 @@ $pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
 				<?php echo pixva_icon( 'bolt' ); ?>
 				<span><?php echo esc_html( (string) pixva_option( 'pixva_topbar_text', __( 'ارسال رایگان دستگاه در تهران | گارانتی ۱۸۰ روزه تعمیرات', 'pixva' ) ) ); ?></span>
 			</p>
-			<p class="pixva-topbar__hours"><?php esc_html_e( 'شنبه تا پنجشنبه ۹ تا ۲۰', 'pixva' ); ?></p>
+			<p class="pixva-topbar__hours"><?php echo esc_html( pixva_fa_num( (string) pixva_option( 'pixva_hours_weekdays', 'شنبه تا پنجشنبه ۹ تا ۲۰' ) ) ); ?></p>
 		</div>
 	</div>
 <?php endif; ?>
@@ -41,7 +41,7 @@ $pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
 <header class="pixva-header">
 	<div class="pixva-container pixva-header__inner">
 		<a class="pixva-logo-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-			<?php pixva_the_logo( 'light' ); ?>
+			<?php pixva_the_logo( 'dark' ); ?>
 		</a>
 
 		<?php
@@ -74,7 +74,7 @@ $pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
 <div class="pixva-overlay" data-pixva-overlay></div>
 <div id="pixva-drawer" class="pixva-drawer" data-pixva-drawer aria-hidden="true">
 	<div class="pixva-drawer__head">
-		<?php pixva_the_logo( 'light' ); ?>
+		<?php pixva_the_logo( 'dark' ); ?>
 		<button type="button" class="pixva-burger" data-pixva-drawer-close aria-label="<?php esc_attr_e( 'بستن منو', 'pixva' ); ?>">
 			<?php echo pixva_icon( 'close' ); ?>
 		</button>

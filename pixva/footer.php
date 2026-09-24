@@ -67,7 +67,10 @@ $pixva_phone = pixva_support_phone();
 		<section>
 			<h2><?php esc_html_e( 'کارگاه', 'pixva' ); ?></h2>
 			<ul class="pixva-info-list">
-				<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) ) ); ?></span></li>
+				<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( pixva_workshop_full_address() ); ?></span></li>
+				<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( (string) pixva_option( 'pixva_workshop_city', 'تهران' ) . ' — ' . __( 'کدپستی', 'pixva' ) . ' ' . pixva_fa_num( (string) pixva_option( 'pixva_workshop_postal', '1145644123' ) ) ); ?></span></li>
+				<li><?php echo pixva_icon( 'clock' ); ?><span><?php echo esc_html( pixva_fa_num( (string) pixva_option( 'pixva_hours_weekdays', 'شنبه تا پنجشنبه ۹ تا ۲۰' ) ) . ' · ' . pixva_fa_num( (string) pixva_option( 'pixva_hours_friday', 'جمعه ۱۰ تا ۱۶' ) ) ); ?></span></li>
+				<li><?php echo pixva_icon( 'truck' ); ?><span><?php esc_html_e( 'محدوده اعزام:', 'pixva' ); ?> <?php echo esc_html( (string) pixva_option( 'pixva_service_area', 'تهران و کرج' ) ); ?></span></li>
 				<?php foreach ( pixva_footer_phones() as $phone ) : ?>
 					<li><?php echo pixva_icon( 'phone' ); ?><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $phone ) ); ?></a></li>
 				<?php endforeach; ?>
@@ -77,7 +80,7 @@ $pixva_phone = pixva_support_phone();
 	</div>
 	<div class="pixva-container pixva-footer__base">
 		<p class="pixva-copyright"><?php echo esc_html( (string) pixva_option( 'pixva_copyright', __( '© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.', 'pixva' ) ) ); ?></p>
-		<p><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?></p>
+		<p style="margin:0"><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?> <span class="pixva-footer__ver"><?php echo esc_html( sprintf( __( 'پیکسوا %s', 'pixva' ), pixva_fa_num( PIXVA_VERSION ) ) ); ?></span></p>
 	</div>
 </footer>
 

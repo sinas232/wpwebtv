@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 2,
+  "title": "کنتراست بالا",
+  "styles": {
+    "color": {
+      "background": "#1B3442",
+      "text": "#F7F6F1"
+    },
+    "elements": {
+      "h1": {"color": {"text": "#FFFFFF"}},
+      "h2": {"color": {"text": "#FFFFFF"}},
+      "h3": {"color": {"text": "#FFFFFF"}},
+      "link": {"color": {"text": "#0D93A8"}}
+    }
+  },
+  "settings": {
+    "color": {
+      "palette": [
+        {"slug": "primary", "color": "#1B3442", "name": "لجنی تیره"},
+        {"slug": "accent", "color": "#0D93A8", "name": "فیروزه‌ای"},
+        {"slug": "cta", "color": "#E07B2A", "name": "نارنجی"},
+        {"slug": "background", "color": "#1B3442", "name": "پس‌زمینه تیره"},
+        {"slug": "text", "color": "#F7F6F1", "name": "متن روشن"}
+      ]
+    }
+  }
+}

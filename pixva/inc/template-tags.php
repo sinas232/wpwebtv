@@ -21,38 +21,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_brand_catalog() {
 	$brands = array(
-		'samsung' => array(
-			'fa' => 'سامسونگ',
-			'en' => 'Samsung',
-		),
-		'lg'      => array(
-			'fa' => 'ال‌جی',
-			'en' => 'LG',
-		),
-		'sony'    => array(
-			'fa' => 'سونی',
-			'en' => 'Sony',
-		),
-		'snowa'   => array(
-			'fa' => 'اسنوا',
-			'en' => 'Snowa',
-		),
-		'xvision' => array(
-			'fa' => 'ایکس‌ویژن',
-			'en' => 'X.Vision',
-		),
-		'gplus'   => array(
-			'fa' => 'جی‌پلاس',
-			'en' => 'Gplus',
-		),
-		'tcl'     => array(
-			'fa' => 'تی‌سی‌ال',
-			'en' => 'TCL',
-		),
-		'hisense' => array(
-			'fa' => 'هایسنس',
-			'en' => 'Hisense',
-		),
+		'samsung'   => array( 'fa' => 'سامسونگ', 'en' => 'Samsung' ),
+		'lg'        => array( 'fa' => 'ال‌جی', 'en' => 'LG' ),
+		'sony'      => array( 'fa' => 'سونی', 'en' => 'Sony' ),
+		'panasonic' => array( 'fa' => 'پاناسونیک', 'en' => 'Panasonic' ),
+		'sharp'     => array( 'fa' => 'شارپ', 'en' => 'Sharp' ),
+		'toshiba'   => array( 'fa' => 'توشیبا', 'en' => 'Toshiba' ),
+		'philips'   => array( 'fa' => 'فیلیپس', 'en' => 'Philips' ),
+		'hitachi'   => array( 'fa' => 'هیتاچی', 'en' => 'Hitachi' ),
+		'tcl'       => array( 'fa' => 'تی‌سی‌ال', 'en' => 'TCL' ),
+		'hisense'   => array( 'fa' => 'هایسنس', 'en' => 'Hisense' ),
+		'xiaomi'    => array( 'fa' => 'شیائومی', 'en' => 'Xiaomi' ),
+		'haier'     => array( 'fa' => 'هایر', 'en' => 'Haier' ),
+		'skyworth'  => array( 'fa' => 'اسکای‌ورث', 'en' => 'Skyworth' ),
+		'blaupunkt' => array( 'fa' => 'بلاوپونکت', 'en' => 'Blaupunkt' ),
+		'snowa'     => array( 'fa' => 'اسنوا', 'en' => 'Snowa' ),
+		'xvision'   => array( 'fa' => 'ایکس‌ویژن', 'en' => 'X.Vision' ),
+		'gplus'     => array( 'fa' => 'جی‌پلاس', 'en' => 'Gplus' ),
+		'emersan'   => array( 'fa' => 'امرسان', 'en' => 'Emersan' ),
+		'pakshoma'  => array( 'fa' => 'پاکشوما', 'en' => 'Pakshoma' ),
+		'daewoo'    => array( 'fa' => 'دوو', 'en' => 'Daewoo' ),
+		'tuv'       => array( 'fa' => 'تو', 'en' => 'TUV' ),
+		'pars'      => array( 'fa' => 'پارس', 'en' => 'Pars' ),
+		'beko'      => array( 'fa' => 'بکو', 'en' => 'Beko' ),
+		'marshal'   => array( 'fa' => 'مارشال', 'en' => 'Marshal' ),
 	);
 	return apply_filters( 'pixva_brand_catalog', $brands );
 }
@@ -73,7 +65,8 @@ function pixva_problem_catalog() {
 		'backlight'  => __( 'تعویض بک‌لایت', 'pixva' ),
 		'panel'      => __( 'تعمیر پنل با بندینگ', 'pixva' ),
 		'mainboard'  => __( 'تعمیر برد اصلی', 'pixva' ),
-		'powerboard' => __( 'تعمیر برد پاور', 'pixva' ),
+		'powerboard'   => __( 'تعمیر برد پاور', 'pixva' ),
+		'panel_replace' => __( 'تعویض کامل پنل', 'pixva' ),
 	);
 	return apply_filters( 'pixva_problem_catalog', $problems );
 }
@@ -108,6 +101,51 @@ function pixva_size_catalog() {
 		);
 	}
 	return $sizes;
+}
+
+/**
+ * آدرس کامل کارگاه با نشانه محلی.
+ *
+ * @return string
+ */
+function pixva_workshop_full_address() {
+	$address  = (string) pixva_option( 'pixva_workshop_address', 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲' );
+	$landmark = (string) pixva_option( 'pixva_workshop_landmark', 'نزدیک مترو ۱۵ خرداد' );
+	if ( '' !== $landmark ) {
+		return $address . '. ' . $landmark;
+	}
+	return $address;
+}
+
+/**
+ * آدرس iframe نقشه OpenStreetMap از روی مختصات سفارشی‌ساز.
+ *
+ * @return string
+ */
+function pixva_map_embed_url() {
+	$lat = (float) pixva_option( 'pixva_map_lat', '35.6788' );
+	$lng = (float) pixva_option( 'pixva_map_lng', '51.4195' );
+	if ( 0.0 === $lat || 0.0 === $lng ) {
+		$lat = 35.6788;
+		$lng = 51.4195;
+	}
+	$bbox = sprintf( '%1$.4f,%2$.4f,%3$.4f,%4$.4f', $lng - 0.01, $lat - 0.007, $lng + 0.01, $lat + 0.007 );
+	return 'https://www.openstreetmap.org/export/embed.html?bbox=' . rawurlencode( $bbox ) . '&layer=mapnik&marker=' . rawurlencode( $lat . ',' . $lng );
+}
+
+/**
+ * لینک صفحه جدا نقشه.
+ *
+ * @return string
+ */
+function pixva_map_link_url() {
+	$lat = (float) pixva_option( 'pixva_map_lat', '35.6788' );
+	$lng = (float) pixva_option( 'pixva_map_lng', '51.4195' );
+	if ( 0.0 === $lat || 0.0 === $lng ) {
+		$lat = 35.6788;
+		$lng = 51.4195;
+	}
+	return 'https://www.openstreetmap.org/?mlat=' . rawurlencode( (string) $lat ) . '&mlon=' . rawurlencode( (string) $lng ) . '#map=16/' . rawurlencode( (string) $lat ) . '/' . rawurlencode( (string) $lng );
 }
 
 /**
@@ -183,11 +221,11 @@ function pixva_default_faqs() {
 	$faqs = array(
 		array(
 			'q' => __( 'هزینه تعمیر قبل از باز کردن دستگاه قطعی است؟', 'pixva' ),
-			'a' => __( 'خیر. محاسبه‌گر پیکسوا یک بازه واقعی کارگاهی می‌دهد. مبلغ نهایی بعد از عیب‌یابی و تأیید شما ثبت می‌شود و بدون هماهنگی قطعه‌ای تعویض نمی‌گردد.', 'pixva' ),
+			'a' => __( 'نه، و هرکس قبل از دیدن دستگاه قیمت قطعی بدهد یا حدس می‌زند یا قرار است وسط کار اضافه بگیرد. محاسبه‌گر پیکسوا بر اساس نرخ‌نامه ۱۴۰۵ یک بازه واقعی می‌دهد؛ بعد از عیب‌یابی، مبلغ دقیق و علت خرابی را می‌گوییم و فقط با تأیید شما شروع می‌کنیم. بدون تأیید، حتی یک پیچ هم باز نمی‌شود.', 'pixva' ),
 		),
 		array(
-			'q' => __( 'گارانتی تعمیرات چقدر است؟', 'pixva' ),
-			'a' => __( 'تعمیرات برد و بک‌لایت ۱۸۰ روز ضمانت کتبی دارد. تعمیر پنل، به‌دلیل ماهیت شیشه، ضمانت عملکرد خط تعمیرشده را دارد و سوختگی پیکسلی جدید را پوشش نمی‌دهد.', 'pixva' ),
+			'q' => __( 'گارانتی تعمیرات دقیقاً چه چیزی را پوشش می‌دهد؟', 'pixva' ),
+			'a' => __( 'تعمیر برد و بک‌لایت ۱۸۰ روز ضمانت کتبی دارد: اگر همان ایراد برگردد، رایگان درستش می‌کنیم. بندینگ پنل، ضمانت عملکرد همان خط تعمیرشده را دارد؛ اما ترک جدید شیشه، ضربه بعدی یا سوختگی پیکسلی تازه، خرابی تازه است و شامل گارانتی نمی‌شود. همه این‌ها روی برگه تحویل نوشته می‌شود، نه شفاهی.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'آیا دستگاه از منزل جمع می‌شود؟', 'pixva' ),
@@ -199,7 +237,7 @@ function pixva_default_faqs() {
 		),
 		array(
 			'q' => __( 'خطوط عمودی یعنی پنل سوخته است؟', 'pixva' ),
-			'a' => __( 'نه همیشه. بخش زیادی از خطوط از قطع فلت COF یا آی‌سی تایمینگ است و با دستگاه بندینگ ترمیم می‌شود. شکستگی شیشه قابل بندینگ نیست.', 'pixva' ),
+			'a' => __( 'نه همیشه؛ این رایج‌ترین سوءتفاهم است. خط باریک و ثابت معمولاً قطع فلت COF است و با بندینگ ترمیم می‌شود، بدون تعویض شیشه. اما خط پهن و لرزان، چند خط هم‌زمان، یا لکه ضربه یعنی سلول آسیب دیده و تعویض کامل پنل — که اغلب از ۱۰ میلیون شروع می‌شود — تنها راه است. با یک عکس نزدیک از خط، قبل از آوردن دستگاه می‌گوییم کدام حالت است.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'چشمک زدن چراغ پاور را خودمان می‌توانیم رفع کنیم؟', 'pixva' ),
@@ -215,11 +253,23 @@ function pixva_default_faqs() {
 		),
 		array(
 			'q' => __( 'چطور وضعیت دستگاه را پیگیری کنم؟', 'pixva' ),
-			'a' => __( 'بعد از ثبت نوبت یک کد مانند PXV-2509-1234 دریافت می‌کنید. در برگه پیگیری، کد یا شماره همراه را وارد کنید تا تایم‌لاین شش‌مرحله‌ای را ببینید.', 'pixva' ),
+			'a' => __( 'بعد از ثبت نوبت یک کد مانند PXV-2509-1234 دریافت می‌کنید. در برگه پیگیری، کد پیگیری و شماره همراه همان پرونده را با هم وارد کنید تا تایم‌لاین شش‌مرحله‌ای را ببینید. پیگیری فقط با شماره ممکن نیست.', 'pixva' ),
+		),
+		array(
+			'q' => __( 'اگر دستگاه قابل تعمیر نباشد، هزینه‌ای می‌گیرید؟', 'pixva' ),
+			'a' => __( 'فقط هزینه کارشناسی و عیب‌یابی (۱۸۰ تا ۳۵۰ هزار تومان) که از قبل اعلام شده. اگر تعمیر اقتصادی نباشد — مثلاً نم به سلول پنل رسیده — صریح می‌گوییم «نمی‌صرفد» و دستگاه را سالم برمی‌گردانیم. چیزی به اسم «بازش کردیم پس باید پول بدهی» نداریم.', 'pixva' ),
+		),
+		array(
+			'q' => __( 'تعمیر چقدر طول می‌کشد؟', 'pixva' ),
+			'a' => __( 'بک‌لایت و برد پاور معمولاً ۱ تا ۳ روز کاری؛ مین‌برد ۲ تا ۵ روز؛ بندینگ پنل ۴ تا ۸ روز. اگر قطعه کمیاب باشد، قبل از شروع می‌گوییم و زمان دقیق تأمین را اعلام می‌کنیم. در تمام این مدت، مرحله کار را با کد پیگیری آنلاین می‌بینید.', 'pixva' ),
+		),
+		array(
+			'q' => __( 'چرا قیمت OLED و سایزهای بزرگ بالاتر است؟', 'pixva' ),
+			'a' => __( 'سه دلیل: قطعه گران‌تر و کمیاب‌تر، ریسک بالاتر حین تعمیر (یک اشتباه روی پنل ۷۵ اینچ یعنی خسارت چندبرابری)، و زمان بیشتر تست. برای همین در نرخ‌نامه ضریب تکنولوژی و سایز جداست — اما برای برد و صدا اثر سایز را ملایم کرده‌ایم تا تعمیر برد روی تلویزیون بزرگ منصفانه بماند.', 'pixva' ),
 		),
 		array(
 			'q' => __( 'ساعت کاری کارگاه چیست؟', 'pixva' ),
-			'a' => __( 'شنبه تا پنجشنبه ۹ تا ۲۰ و جمعه‌ها ۱۰ تا ۱۶. پذیرش حضوری تا یک ساعت قبل از پایان وقت انجام می‌شود.', 'pixva' ),
+			'a' => __( 'شنبه تا پنجشنبه ۹ تا ۲۰ و جمعه‌ها ۱۰ تا ۱۶. پذیرش حضوری تا یک ساعت قبل از پایان وقت انجام می‌شود. برای جمع‌آوری در تهران، هماهنگی تلفنی لازم است.', 'pixva' ),
 		),
 	);
 	return apply_filters( 'pixva_default_faqs', $faqs );
@@ -233,19 +283,24 @@ function pixva_default_faqs() {
 function pixva_testimonials() {
 	$items = array(
 		array(
-			'quote' => __( 'خطوط عمودی ۵۵ اینچ سامسونگ را بدون تعویض پنل بستند. عصر همان روز تصویر یکدست شد و برگه گارانتی هم دادند.', 'pixva' ),
-			'name'  => __( 'مهدی ر.', 'pixva' ),
-			'role'  => __( 'تعمیر پنل، تهران', 'pixva' ),
+			'quote' => __( 'سامسونگ ۵۵ اینچ ما دو خط عمودی ثابت داشت و دو تعمیرکار گفته بودند پنل باید عوض شود؛ یعنی بالای ده میلیون. پیکسوا با بندینگ فلت COF همان خط را بست، عکس تست خاکستری را هم نشانم داد. شش ماه گذشته و تصویر هنوز یکدست است.', 'pixva' ),
+			'name'  => __( 'مهدی رستمی', 'pixva' ),
+			'role'  => __( 'بندینگ پنل سامسونگ ۵۵ اینچ، تهران', 'pixva' ),
 		),
 		array(
-			'quote' => __( 'چراغ پاور ال‌جی سه بار چشمک می‌زد. برد تغذیه تعمیر شد، نه تعویض کامل. هزینه از برآورد سایت کمتر درآمد.', 'pixva' ),
-			'name'  => __( 'سارا ک.', 'pixva' ),
-			'role'  => __( 'برد پاور، کرج', 'pixva' ),
+			'quote' => __( 'چراغ ال‌جی سه بار چشمک می‌زد و دستگاه روشن نمی‌ماند. چیزی که برایم مهم بود این بود که قبل از هر کاری گفتند اگر برد قابل تعمیر نباشد، همان اول می‌گویند و هزینه‌ای نمی‌گیرند. برد پاور تعمیر شد، نه تعویض؛ فاکتور هم از سقف برآورد سایت کمتر شد.', 'pixva' ),
+			'name'  => __( 'سارا کریمی', 'pixva' ),
+			'role'  => __( 'برد پاور ال‌جی ۴۹ اینچ، کرج', 'pixva' ),
 		),
 		array(
-			'quote' => __( 'پیگیری آنلاین واقعاً کار می‌کرد. از مرحله تأمین قطعه تا آماده تحویل را با همان کد پیامکی دیدم.', 'pixva' ),
-			'name'  => __( 'حمید ن.', 'pixva' ),
-			'role'  => __( 'تعویض بک‌لایت، تهران', 'pixva' ),
+			'quote' => __( 'از شهرستان دستگاه را با باربری فرستادم. کد پیگیری گرفتم و هر مرحله — از عیب‌یابی تا تست نهایی — را آنلاین دیدم. بک‌لایت QLED عوض شد و موقع تحویل، برگه گارانتی ۱۸۰ روزه هم داخل جعبه بود. برای من که حضوری نیامدم، همین شفافیت همه‌چیز بود.', 'pixva' ),
+			'name'  => __( 'حمید نادری', 'pixva' ),
+			'role'  => __( 'تعویض بک‌لایت QLED، اصفهان', 'pixva' ),
+		),
+		array(
+			'quote' => __( 'آب روی تلویزیون اسنوا ریخته بود و خودم با سشوار خشکش کرده بودم — بدترین کار ممکن! صادقانه گفتند سشوار به فلت آسیب زده و شانس تعمیر پنجاه‌پنجاه است. برد شست‌وشو شد و دستگاه برگشت. این صداقت که «ممکن است نشود» را همان اول بگویند، جایی ندیده بودم.', 'pixva' ),
+			'name'  => __( 'الهام صادقی', 'pixva' ),
+			'role'  => __( 'رفع آب‌خوردگی اسنوا ۵۰ اینچ، تهران', 'pixva' ),
 		),
 	);
 	return apply_filters( 'pixva_testimonials', $items );
@@ -299,6 +354,30 @@ function pixva_error_code_catalog() {
 		array( 'gplus', 5, '5 چشمک', __( 'خطوط پنل', 'pixva' ), __( 'پنج چشمک همراه با خط افقی پهن.', 'pixva' ), __( 'احتمال بندینگ یا T-CON. عکس تمام‌صفحه از خطوط برای برآورد دقیق لازم است.', 'pixva' ) ),
 		array( 'lg', 0, 'OLED Care', __( 'نگهداری پنل OLED', 'pixva' ), __( 'پیام OLED Care یا Pixel Refresher وسط کار ظاهر می‌شود.', 'pixva' ), __( 'این خطا نیست؛ چرخه جبران پیکسل است. اگر هر بار گیر کرد، مین‌برد و دمای محیط را بررسی کنید.', 'pixva' ) ),
 		array( 'sony', 0, '2 blink standby', __( 'استندبای غیرعادی', 'pixva' ), __( 'چراغ استندبای کند چشمک می‌زند ولی الگوهای سرویس نیست.', 'pixva' ), __( 'ریموت یا برد IR. باتری ریموت و نور محیط را حذف کنید، بعد برد گیرنده را تست کنید.', 'pixva' ) ),
+		array( 'panasonic', 2, '2 چشمک', __( 'برد پاور پاناسونیک', 'pixva' ), __( 'دو چشمک قرمز و ماندن در استندبای.', 'pixva' ), __( 'ولتاژ STB و رله تغذیه. خازن‌های ثانویه را بی‌بار تست کنید.', 'pixva' ) ),
+		array( 'panasonic', 3, '3 چشمک', __( 'مین‌برد پاناسونیک', 'pixva' ), __( 'سه چشمک پس از تلاش برای روشن شدن.', 'pixva' ), __( 'مین‌برد یا حافظه. برق را کامل قطع و کابل‌های پنل را رزیت کنید.', 'pixva' ) ),
+		array( 'panasonic', 4, '4 چشمک', __( 'بک‌لایت پاناسونیک', 'pixva' ), __( 'چهار چشمک با صدای بدون تصویر.', 'pixva' ), __( 'درایور LED یا نوار نور. تست چراغ‌قوه را اول انجام دهید.', 'pixva' ) ),
+		array( 'panasonic', 6, '6 چشمک', __( 'محافظت پنل', 'pixva' ), __( 'شش چشمک و قطع سریع.', 'pixva' ), __( 'اتصال کوتاه سمت پنل یا T-CON. فیوز را پل نکنید.', 'pixva' ) ),
+		array( 'sharp', 2, '2 چشمک', __( 'برد پاور شارپ', 'pixva' ), __( 'دو چشمک سبز و خاموشی.', 'pixva' ), __( 'تغذیه یا آی‌سی PWM. نوسان برق شایع‌ترین علت است.', 'pixva' ) ),
+		array( 'sharp', 3, '3 چشمک', __( 'مین‌برد شارپ', 'pixva' ), __( 'سه چشمک و گیر روی لوگو.', 'pixva' ), __( 'بوت یا حافظه. ولتاژ آماده‌به‌کار را قبل از پروگرام چک کنید.', 'pixva' ) ),
+		array( 'sharp', 5, '5 چشمک', __( 'خطای پنل شارپ', 'pixva' ), __( 'پنج چشمک با خطوط رنگی.', 'pixva' ), __( 'فلت یا تایمینگ. عکس نزدیک خطوط برای تصمیم بندینگ لازم است.', 'pixva' ) ),
+		array( 'toshiba', 2, '2 چشمک', __( 'برد پاور توشیبا', 'pixva' ), __( 'دو چشمک کهربایی.', 'pixva' ), __( 'برد تغذیه. خروجی ۱۲ و ۲۴ ولت را بی‌بار اندازه بگیرید.', 'pixva' ) ),
+		array( 'toshiba', 3, '3 چشمک', __( 'مین‌برد توشیبا', 'pixva' ), __( 'سه چشمک و ریست پیاپی.', 'pixva' ), __( 'مین‌برد یا ماژول وای‌فای داخلی. ماژول را جدا و دوباره تست کنید.', 'pixva' ) ),
+		array( 'toshiba', 4, '4 چشمک', __( 'بک‌لایت توشیبا', 'pixva' ), __( 'چهار چشمک و صفحه سیاه.', 'pixva' ), __( 'نوار LED. جریان درایور باید با نوار هم‌خوان باشد.', 'pixva' ) ),
+		array( 'philips', 2, '2 چشمک', __( 'برد پاور فیلیپس', 'pixva' ), __( 'دو چشمک قرمز روی استندبای.', 'pixva' ), __( 'تغذیه یا برد SSB. عیب‌یابی را از سمت پاور شروع کنید.', 'pixva' ) ),
+		array( 'philips', 3, '3 چشمک', __( 'برد SSB فیلیپس', 'pixva' ), __( 'سه چشمک و نبود تصویر.', 'pixva' ), __( 'برد سیگنال. فلت LVDS و ولتاژ پنل را بررسی کنید.', 'pixva' ) ),
+		array( 'philips', 4, '4 چشمک', __( 'بک‌لایت فیلیپس', 'pixva' ), __( 'چهار چشمک آمبیلایت‌دار.', 'pixva' ), __( 'درایور نور یا نوار. آمبیلایت را جدا کنید تا مسیر خطا مشخص شود.', 'pixva' ) ),
+		array( 'hitachi', 2, '2 چشمک', __( 'برد پاور هیتاچی', 'pixva' ), __( 'دو چشمک و صدای تیک.', 'pixva' ), __( 'رله یا خازن اولیه. برد را بدون قاب روی میز تست نکنید.', 'pixva' ) ),
+		array( 'hitachi', 3, '3 چشمک', __( 'مین‌برد هیتاچی', 'pixva' ), __( 'سه چشمک پس از نوسان.', 'pixva' ), __( 'مین‌برد. محافظ برق استاندارد برای این شاسی ضروری است.', 'pixva' ) ),
+		array( 'xiaomi', 2, '2 چشمک', __( 'برد پاور شیائومی', 'pixva' ), __( 'دو چشمک و ماندن روی لوگوی اندروید.', 'pixva' ), __( 'پاور یا بوت. اول ولتاژ، بعد حافظه را بررسی کنید.', 'pixva' ) ),
+		array( 'xiaomi', 3, '3 چشمک', __( 'مین‌برد شیائومی', 'pixva' ), __( 'سه چشمک و حلقه بوت.', 'pixva' ), __( 'سیستم‌عامل یا eMMC. فلش فقط با فایل همان شاسی انجام شود.', 'pixva' ) ),
+		array( 'xiaomi', 4, '4 چشمک', __( 'بک‌لایت شیائومی', 'pixva' ), __( 'چهار چشمک و تاریکی صفحه.', 'pixva' ), __( 'نوار LED. سایه تصویر با چراغ‌قوه یعنی پنل زنده است.', 'pixva' ) ),
+		array( 'daewoo', 2, '2 چشمک', __( 'برد پاور دوو', 'pixva' ), __( 'دو چشمک پایدار.', 'pixva' ), __( 'تغذیه. قطعه این بردها معمولاً موجود است و تعمیر به‌صرفه است.', 'pixva' ) ),
+		array( 'daewoo', 4, '4 چشمک', __( 'بک‌لایت دوو', 'pixva' ), __( 'چهار چشمک با صدا.', 'pixva' ), __( 'درایور یا نوار. ولتاژ خروجی را بی‌بار چک کنید.', 'pixva' ) ),
+		array( 'beko', 2, '2 چشمک', __( 'برد پاور بکو', 'pixva' ), __( 'دو چشمک و استندبای.', 'pixva' ), __( 'پاور یا محافظ ورودی. نوسان‌گیر را حذف و مستقیم تست نکنید.', 'pixva' ) ),
+		array( 'beko', 3, '3 چشمک', __( 'مین‌برد بکو', 'pixva' ), __( 'سه چشمک و نبود منو.', 'pixva' ), __( 'مین‌برد یا پنل IR. ریموت را حذف و با کلید پنل تست کنید.', 'pixva' ) ),
+		array( 'emersan', 2, '2 چشمک', __( 'برد پاور امرسان', 'pixva' ), __( 'دو چشمک پس از قطع برق.', 'pixva' ), __( 'تغذیه. خازن اولیه و فیوز ورودی را بررسی کنید.', 'pixva' ) ),
+		array( 'pakshoma', 2, '2 چشمک', __( 'برد پاور پاکشوما', 'pixva' ), __( 'دو چشمک و بوی خازن.', 'pixva' ), __( 'خازن بادکرده شایع است. هم‌ظرفیت و هم‌ولتاژ جایگزین شود.', 'pixva' ) ),
 	);
 
 	$catalog = array();
@@ -971,7 +1050,7 @@ function pixva_post_card( $post_id = 0 ) {
 	$permalink = get_permalink( $post_id );
 	$cats      = get_the_category( $post_id );
 	?>
-	<article class="pixva-card pixva-post-card">
+	<article class="pixva-card pixva-post-card pixva-reveal">
 		<a class="pixva-post-card__media" href="<?php echo esc_url( $permalink ); ?>" tabindex="-1" aria-hidden="true">
 			<?php
 			if ( has_post_thumbnail( $post_id ) ) {
@@ -987,9 +1066,60 @@ function pixva_post_card( $post_id = 0 ) {
 					<a href="<?php echo esc_url( get_category_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a>
 				<?php endif; ?>
 				<time datetime="<?php echo esc_attr( get_the_date( 'c', $post_id ) ); ?>"><?php echo esc_html( pixva_format_date( get_post_timestamp( $post_id ) ) ); ?></time>
+				<?php
+				$pixva_minutes = function_exists( 'pixva_reading_time' ) ? pixva_reading_time( (string) get_post_field( 'post_content', $post_id ) ) : 0;
+				if ( $pixva_minutes ) {
+					echo '<span class="pixva-reading">' . esc_html( sprintf( __( '%s دقیقه', 'pixva' ), pixva_fa_num( $pixva_minutes ) ) ) . '</span>';
+				}
+				?>
 			</div>
 			<h3><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></h3>
 			<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 22 ) ); ?></p>
+		</div>
+	</article>
+	<?php
+}
+
+/**
+ * کارت ویژه مطلب اول مجله (پهن و برجسته).
+ *
+ * @return void
+ */
+function pixva_featured_card() {
+	$post_id = get_the_ID();
+	if ( ! $post_id ) {
+		return;
+	}
+	$permalink = get_permalink( $post_id );
+	$cats      = get_the_category( $post_id );
+	$minutes   = function_exists( 'pixva_reading_time' ) ? pixva_reading_time( (string) get_post_field( 'post_content', $post_id ) ) : 0;
+	?>
+	<article class="pixva-card pixva-featured pixva-reveal">
+		<a class="pixva-featured__media" href="<?php echo esc_url( $permalink ); ?>" tabindex="-1" aria-hidden="true">
+			<?php
+			if ( has_post_thumbnail( $post_id ) ) {
+				echo get_the_post_thumbnail( $post_id, 'pixva-wide', array( 'alt' => esc_attr( get_the_title( $post_id ) ) ) );
+			} else {
+				echo '<span class="pixva-post-card__placeholder">' . pixva_icon( 'panel' ) . '</span>';
+			}
+			?>
+		</a>
+		<div class="pixva-featured__body">
+			<div class="pixva-post-card__meta">
+				<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'پیشنهاد کارگاه', 'pixva' ); ?></span>
+				<?php if ( ! empty( $cats ) ) : ?>
+					<a href="<?php echo esc_url( get_category_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a>
+				<?php endif; ?>
+			</div>
+			<h2><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></h2>
+			<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 30 ) ); ?></p>
+			<div class="pixva-post-card__foot">
+				<time datetime="<?php echo esc_attr( get_the_date( 'c', $post_id ) ); ?>"><?php echo esc_html( pixva_format_date( get_post_timestamp( $post_id ) ) ); ?></time>
+				<?php if ( $minutes ) : ?>
+					<span class="pixva-reading"><?php echo esc_html( sprintf( __( '%s دقیقه مطالعه', 'pixva' ), pixva_fa_num( $minutes ) ) ); ?></span>
+				<?php endif; ?>
+				<a class="pixva-btn pixva-btn--primary pixva-btn--sm" href="<?php echo esc_url( $permalink ); ?>"><?php esc_html_e( 'خواندن مقاله', 'pixva' ); ?></a>
+			</div>
 		</div>
 	</article>
 	<?php
@@ -1255,6 +1385,10 @@ function pixva_render_calculator( $args = array() ) {
 
 		<div class="pixva-calc__step is-active" data-step="1">
 			<h3><?php esc_html_e( 'برند تلویزیون را انتخاب کنید', 'pixva' ); ?></h3>
+			<div class="pixva-field pixva-calc__search">
+				<label for="pixva-brand-search"><?php esc_html_e( 'جستجوی برند', 'pixva' ); ?></label>
+				<input type="search" id="pixva-brand-search" data-brand-search placeholder="<?php esc_attr_e( 'مثلاً سامسونگ، سونی، اسنوا…', 'pixva' ); ?>" autocomplete="off">
+			</div>
 			<div class="pixva-choice-grid pixva-choice-grid--brand">
 				<?php foreach ( pixva_brand_catalog() as $key => $brand ) : ?>
 					<button type="button" class="pixva-choice" data-group="brand" data-value="<?php echo esc_attr( $key ); ?>">
@@ -1433,7 +1567,7 @@ function pixva_render_error_database() {
 				$brand_fa = isset( $brands[ $row['brand'] ] ) ? $brands[ $row['brand'] ]['fa'] : $row['brand'];
 				$brand_en = isset( $brands[ $row['brand'] ] ) ? $brands[ $row['brand'] ]['en'] : $row['brand'];
 				?>
-				<article class="pixva-card pixva-error-card" data-brand="<?php echo esc_attr( $row['brand'] ); ?>" data-blinks="<?php echo esc_attr( (string) $row['blinks'] ); ?>">
+				<article class="pixva-card pixva-error-card pixva-reveal" data-brand="<?php echo esc_attr( $row['brand'] ); ?>" data-blinks="<?php echo esc_attr( (string) $row['blinks'] ); ?>">
 					<header>
 						<span class="pixva-badge"><?php echo esc_html( $brand_fa ); ?></span>
 						<strong class="pixva-latin pixva-error-code__code"><?php echo esc_html( $row['code'] ); ?></strong>
@@ -1445,7 +1579,10 @@ function pixva_render_error_database() {
 				</article>
 			<?php endforeach; ?>
 		</div>
-		<p class="pixva-notice pixva-notice--info" data-empty hidden><?php esc_html_e( 'موردی با این فیلتر پیدا نشد. تعداد چشمک را دوباره بشمارید یا برند را روی همه بگذارید.', 'pixva' ); ?></p>
+		<div class="pixva-notice pixva-notice--info" data-empty hidden>
+			<p><?php esc_html_e( 'برای این برند کد چشمک ثبت نشده یا موردی با این فیلتر پیدا نشد. تعداد چشمک را دوباره بشمارید، یا مستقیم برآورد هزینه بگیرید.', 'pixva' ); ?></p>
+			<p><a class="pixva-btn pixva-btn--primary pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'رفتن به محاسبه‌گر هزینه', 'pixva' ); ?></a></p>
+		</div>
 	</div>
 	<?php
 }

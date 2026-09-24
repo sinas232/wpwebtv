@@ -343,6 +343,7 @@ function pixva_add_meta_boxes() {
 	add_meta_box( 'pixva_order_meta', esc_html__( 'وضعیت پرونده تعمیر', 'pixva' ), 'pixva_render_order_meta_box', 'pixva_orders', 'normal', 'high' );
 	add_meta_box( 'pixva_post_meta', esc_html__( 'مشخصات عیب‌یابی و سوالات متداول', 'pixva' ), 'pixva_render_post_meta_box', 'post', 'normal', 'high' );
 	add_meta_box( 'pixva_inbox_meta', esc_html__( 'متن پیام', 'pixva' ), 'pixva_render_inbox_meta_box', 'pixva_inbox', 'normal', 'high' );
+	add_meta_box( 'pixva_brand_blinks', esc_html__( 'الگوهای چشمک این برند', 'pixva' ), 'pixva_render_brand_blink_meta_box', 'tv_brands', 'normal', 'default' );
 }
 add_action( 'add_meta_boxes', 'pixva_add_meta_boxes' );
 
@@ -381,6 +382,33 @@ function pixva_render_case_meta_box( $post ) {
 		<input type="text" id="pixva_case_duration" name="pixva_case_duration" value="<?php echo esc_attr( $duration ); ?>" class="widefat">
 	</p>
 	<?php
+}
+
+/**
+ * نمایش فقط‌خواندنی الگوهای چشمک این برند در ویرایش برند.
+ *
+ * @param WP_Post $post نوشته برند.
+ * @return void
+ */
+function pixva_render_brand_blink_meta_box( $post ) {
+	$slug = isset( $post->post_name ) ? sanitize_key( $post->post_name ) : '';
+	$rows = array();
+	if ( '' !== $slug && function_exists( 'pixva_error_code_catalog' ) ) {
+		foreach ( pixva_error_code_catalog() as $row ) {
+			if ( isset( $row['brand'] ) && $slug === $row['brand'] ) {
+				$rows[] = $row;
+			}
+		}
+	}
+	if ( empty( $rows ) ) {
+		echo '<p>' . esc_html__( 'برای این برند الگوی چشمکی در پایگاه کد خطا ثبت نشده است.', 'pixva' ) . '</p>';
+		return;
+	}
+	echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'الگو', 'pixva' ) . '</th><th>' . esc_html__( 'عنوان', 'pixva' ) . '</th><th>' . esc_html__( 'اقدام کارگاه', 'pixva' ) . '</th></tr></thead><tbody>';
+	foreach ( $rows as $row ) {
+		echo '<tr><td><strong>' . esc_html( $row['code'] ) . '</strong></td><td>' . esc_html( $row['title'] ) . '<br><span class="description">' . esc_html( $row['symptom'] ) . '</span></td><td>' . esc_html( $row['action'] ) . '</td></tr>';
+	}
+	echo '</tbody></table>';
 }
 
 /**
@@ -710,67 +738,5 @@ if ( ! function_exists( 'pixva_find_order' ) ) {
 			return null;
 		}
 		return get_post( (int) $ids[0] );
-	}
-}
-
-if ( ! function_exists( 'pixva_pricing_matrix' ) ) {
-	/**
-	 * ماتریس ضرایب و پایه‌های قیمت محاسبه‌گر (منبع حقیقت سمت سرور).
-	 *
-	 * @return array
-	 */
-	function pixva_pricing_matrix() {
-		return array(
-			'base'  => array(
-				'no_picture' => array( 900000, 2500000 ),  // بی‌تصویری.
-				'lines'      => array( 1200000, 3200000 ), // خطوط عمودی/افقی.
-				'no_power'   => array( 700000, 1900000 ),  // خاموشی کامل.
-				'no_sound'   => array( 500000, 1400000 ),  // قطع صدا.
-				'blink'      => array( 600000, 1700000 ), // چشمک‌زدن چراغ.
-				'water'      => array( 800000, 2400000 ),  // آب‌خوردگی.
-				'backlight'  => array( 1000000, 2500000 ), // تعویض بک‌لایت.
-				'panel'      => array( 1500000, 4500000 ), // تعمیر پنل.
-				'mainboard'  => array( 900000, 2800000 ),  // برد اصلی.
-				'powerboard' => array( 700000, 2000000 ),  // برد پاور.
-			),
-			'brand' => array(
-				'samsung' => 1.15,
-				'lg'      => 1.10,
-				'sony'    => 1.20,
-				'snowa'   => 1.00,
-				'xvision' => 1.00,
-				'gplus'   => 1.00,
-				'tcl'     => 1.05,
-				'hisense' => 1.05,
-			),
-			'tech'  => array(
-				'led'      => 1.00,
-				'qled'     => 1.25,
-				'oled'     => 1.55,
-				'plasma'   => 1.20,
-				'microled' => 1.80,
-			),
-			'size'  => array(
-				'32' => 1.00,
-				'43' => 1.10,
-				'50' => 1.25,
-				'55' => 1.35,
-				'65' => 1.60,
-				'75' => 1.90,
-				'85' => 2.30,
-			),
-			'days'  => array(
-				'no_picture' => '2 تا 4 روز کاری',
-				'lines'      => '3 تا 6 روز کاری',
-				'no_power'   => '1 تا 3 روز کاری',
-				'no_sound'   => '1 تا 2 روز کاری',
-				'blink'      => '1 تا 3 روز کاری',
-				'water'      => '3 تا 7 روز کاری',
-				'backlight'  => '1 تا 2 روز کاری',
-				'panel'      => '4 تا 8 روز کاری',
-				'mainboard'  => '2 تا 5 روز کاری',
-				'powerboard' => '1 تا 3 روز کاری',
-			),
-		);
 	}
 }

@@ -3,7 +3,7 @@
  * پرونده اصلی قالب پیکسوا: بارگذاری بخش‌ها، ثبت ویژگی‌ها و صف‌گذاری دارایی‌ها
  *
  * @package Pixva
- * @since   1.0.0
+ * @since   1.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.0.0' );
+define( 'PIXVA_VERSION', '1.3.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -23,12 +23,15 @@ define( 'PIXVA_URI', get_template_directory_uri() );
  * ---------------------------------------------------------------------------
  */
 require_once PIXVA_DIR . '/inc/security.php';
+require_once PIXVA_DIR . '/inc/pricing-engine.php';
 require_once PIXVA_DIR . '/inc/custom-post-types.php';
+require_once PIXVA_DIR . '/inc/admin-settings.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
+require_once PIXVA_DIR . '/inc/activation.php';
 
 /*
  * ---------------------------------------------------------------------------
@@ -51,6 +54,11 @@ if ( ! function_exists( 'pixva_setup' ) ) {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_theme_support( 'responsive-embeds' );
 		add_theme_support( 'align-wide' );
+		add_theme_support( 'appearance-tools' );
+		add_theme_support( 'border' );
+		add_theme_support( 'block-templates' );
+		add_theme_support( 'block-template-parts' );
+		add_theme_support( 'wp-block-styles' );
 		add_theme_support( 'editor-styles' );
 		add_editor_style( 'assets/css/editor.css' );
 		add_theme_support(
@@ -91,6 +99,25 @@ if ( ! function_exists( 'pixva_setup' ) ) {
 	}
 }
 add_action( 'after_setup_theme', 'pixva_setup' );
+
+/**
+ * ثبت دسته‌های الگو (پترن) قالب.
+ *
+ * @return void
+ */
+function pixva_register_pattern_categories() {
+	if ( ! function_exists( 'register_block_pattern_category' ) ) {
+		return;
+	}
+	if ( class_exists( 'WP_Block_Pattern_Categories_Registry' ) ) {
+		$registry = WP_Block_Pattern_Categories_Registry::get_instance();
+		if ( $registry->is_registered( 'pixva' ) ) {
+			return;
+		}
+	}
+	register_block_pattern_category( 'pixva', array( 'label' => esc_html__( 'پیکسوا', 'pixva' ) ) );
+}
+add_action( 'init', 'pixva_register_pattern_categories' );
 
 /**
  * عرض محتوای اصلی.
@@ -246,6 +273,8 @@ if ( ! function_exists( 'pixva_needs_components_css' ) ) {
 					'page-templates/page-error-codes.php',
 					'page-templates/page-faq.php',
 					'page-templates/page-contact.php',
+					'page-templates/page-rates.php',
+					'page-templates/page-about.php',
 				)
 			)
 			|| is_404()

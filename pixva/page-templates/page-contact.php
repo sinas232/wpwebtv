@@ -11,17 +11,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
-$address = (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) );
-$map_src = 'https://www.openstreetmap.org/export/embed.html?bbox=51.410%2C35.672%2C51.430%2C35.686&layer=mapnik&marker=35.6788%2C51.4195';
+$address = pixva_workshop_full_address();
+$map_src = pixva_map_embed_url();
+$map_link = pixva_map_link_url();
+$hours_week = (string) pixva_option( 'pixva_hours_weekdays', 'شنبه تا پنجشنبه ۹ تا ۲۰' );
+$hours_fri = (string) pixva_option( 'pixva_hours_friday', 'جمعه ۱۰ تا ۱۶' );
+$city = (string) pixva_option( 'pixva_workshop_city', 'تهران' );
+$postal = (string) pixva_option( 'pixva_workshop_postal', '1145644123' );
+$area = (string) pixva_option( 'pixva_service_area', 'تهران و کرج' );
 ?>
 <main id="content">
-	<?php pixva_page_hero( __( 'تماس با کارگاه پیکسوا', 'pixva' ), __( 'برای مشاوره، هماهنگی جمع‌آوری دستگاه یا پیگیری حضوری.', 'pixva' ) ); ?>
+	<?php pixva_page_hero( __( 'حرف بزنیم؛ مشاوره اول رایگان است', 'pixva' ), __( 'علائم دستگاه را بفرست تا بگوییم کاندید تعمیری یا نه. برای جمع‌آوری در تهران و کرج هم همین‌جا هماهنگ می‌کنیم.', 'pixva' ) ); ?>
 	<div class="pixva-container pixva-content">
 		<div class="pixva-contact-grid">
 			<section class="pixva-card">
-				<h2><?php esc_html_e( 'راه‌های ارتباط', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'کارگاه را پیدا کن', 'pixva' ); ?></h2>
 				<ul class="pixva-info-list">
 					<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( $address ); ?></span></li>
+					<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( $city . ' — ' . __( 'کدپستی', 'pixva' ) . ' ' . pixva_fa_num( $postal ) ); ?></span></li>
+					<li><?php echo pixva_icon( 'truck' ); ?><span><?php esc_html_e( 'محدوده اعزام:', 'pixva' ); ?> <?php echo esc_html( $area ); ?></span></li>
 					<?php foreach ( pixva_footer_phones() as $phone ) : ?>
 						<li><?php echo pixva_icon( 'phone' ); ?><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $phone ) ); ?></a></li>
 					<?php endforeach; ?>
@@ -29,15 +37,16 @@ $map_src = 'https://www.openstreetmap.org/export/embed.html?bbox=51.410%2C35.672
 				</ul>
 				<table class="pixva-hours">
 					<tbody>
-						<tr><td><?php esc_html_e( 'شنبه تا پنجشنبه', 'pixva' ); ?></td><td><?php echo esc_html( pixva_fa_num( '۹:۰۰ تا ۲۰:۰۰' ) ); ?></td></tr>
-						<tr><td><?php esc_html_e( 'جمعه', 'pixva' ); ?></td><td><?php echo esc_html( pixva_fa_num( '۱۰:۰۰ تا ۱۶:۰۰' ) ); ?></td></tr>
+						<tr><td><?php esc_html_e( 'شنبه تا پنجشنبه', 'pixva' ); ?></td><td><?php echo esc_html( pixva_fa_num( $hours_week ) ); ?></td></tr>
+						<tr><td><?php esc_html_e( 'جمعه', 'pixva' ); ?></td><td><?php echo esc_html( pixva_fa_num( $hours_fri ) ); ?></td></tr>
 					</tbody>
 				</table>
 				<iframe class="pixva-map" title="<?php esc_attr_e( 'نقشه کارگاه پیکسوا', 'pixva' ); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<?php echo esc_url( $map_src ); ?>"></iframe>
-				<p><a href="<?php echo esc_url( 'https://www.openstreetmap.org/?mlat=35.6788&mlon=51.4195#map=16/35.6788/51.4195' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'باز کردن نقشه در صفحه جدا', 'pixva' ); ?></a></p>
+				<p><a href="<?php echo esc_url( $map_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'باز کردن نقشه در صفحه جدا', 'pixva' ); ?></a></p>
 			</section>
 			<section class="pixva-card">
-				<h2><?php esc_html_e( 'فرم پیام', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'پیام بفرست؛ زود جواب می‌دهیم', 'pixva' ); ?></h2>
+				<p class="pixva-muted"><?php esc_html_e( 'برند، سایز، مدل و علامت خرابی را بنویس. اگر چشمک چراغ دارد، تعدادش را هم بگو — نصف عیب‌یابی همان است.', 'pixva' ); ?></p>
 				<form data-pixva-contact novalidate>
 					<?php pixva_honeypot_field(); ?>
 					<div class="pixva-field">
