@@ -1,3 +1,5 @@
 dist/*
 !dist/pixva.zip
 .DS_Store
+preview/
+index.html

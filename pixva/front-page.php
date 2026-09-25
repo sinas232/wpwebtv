@@ -85,28 +85,46 @@ function pixva_home_hero() {
 			</div>
 
 			<div class="pixva-hero__visual">
-				<div class="pixva-tv-mockup">
-					<span class="pixva-scanline" aria-hidden="true"></span>
+				<figure class="pixva-tv-mockup" role="img" aria-label="<?php esc_attr_e( 'ماکت تلویزیون در حال اجرای آزمون نهایی کارگاه: الگوی RGB، شیب خاکستری و سنجش یکنواختی بک‌لایت', 'pixva' ); ?>">
+					<span class="pixva-tv-mockup__glow" aria-hidden="true"></span>
+
 					<div class="pixva-tv-mockup__bezel">
-						<div class="pixva-tv-mockup__ui">
-							<strong><?php esc_html_e( 'تست نهایی کارگاه', 'pixva' ); ?></strong>
-							<span><?php esc_html_e( 'الگوی RGB · شیب خاکستری · یکنواختی بک‌لایت', 'pixva' ); ?></span>
-							<div class="pixva-tv-mockup__bars" aria-hidden="true">
-								<i></i><i></i><i></i><i></i><i></i><i></i>
+						<div class="pixva-tv-mockup__screen">
+							<span class="pixva-scanline" aria-hidden="true"></span>
+							<span class="pixva-tv-mockup__grid" aria-hidden="true"></span>
+
+							<div class="pixva-tv-mockup__ui">
+								<span class="pixva-tv-mockup__tag"><?php esc_html_e( 'مرحله ۵ از ۵ — کنترل کیفیت', 'pixva' ); ?></span>
+								<strong class="pixva-tv-mockup__title"><?php esc_html_e( 'تست نهایی کارگاه', 'pixva' ); ?></strong>
+								<span class="pixva-tv-mockup__sub"><?php esc_html_e( 'الگوی RGB · شیب خاکستری · یکنواختی بک‌لایت', 'pixva' ); ?></span>
+
+								<div class="pixva-tv-mockup__bars" aria-hidden="true">
+									<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+								</div>
+
+								<div class="pixva-tv-mockup__signal" aria-hidden="true">
+									<span class="pixva-tv-mockup__led"></span>
+									<span class="pixva-tv-mockup__signal-text">RGB 1080p · 60Hz · HDR10 · ΔE &lt; 2</span>
+								</div>
 							</div>
 						</div>
 					</div>
-					<span class="pixva-tv-mockup__stand" aria-hidden="true"></span>
-				</div>
 
-				<span class="pixva-hero__chip pixva-hero__chip--top">
-					<?php echo pixva_icon( 'truck' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<span><?php echo esc_html( sprintf( __( 'اعزام اورژانسی زیر %s', 'pixva' ), $hours ) ); ?></span>
-				</span>
-				<span class="pixva-hero__chip pixva-hero__chip--bottom">
-					<?php echo pixva_icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<span><?php esc_html_e( 'فاکتور رسمی و رسید کتبی', 'pixva' ); ?></span>
-				</span>
+					<span class="pixva-tv-mockup__stand" aria-hidden="true"></span>
+				</figure>
+
+				<p class="pixva-tv-mockup__caption"><?php esc_html_e( 'هر دستگاه پیش از تحویل، روی میز تست الگوی رنگ، شیب خاکستری و یکنواختی بک‌لایت بررسی می‌شود.', 'pixva' ); ?></p>
+
+				<div class="pixva-hero__chips">
+					<span class="pixva-hero__chip pixva-hero__chip--top">
+						<?php echo pixva_icon( 'truck' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php echo esc_html( sprintf( __( 'اعزام اورژانسی زیر %s', 'pixva' ), $hours ) ); ?></span>
+					</span>
+					<span class="pixva-hero__chip pixva-hero__chip--bottom">
+						<?php echo pixva_icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'فاکتور رسمی و رسید کتبی', 'pixva' ); ?></span>
+					</span>
+				</div>
 			</div>
 		</div>
 	</section>

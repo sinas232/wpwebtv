@@ -325,8 +325,8 @@ body.admin-bar .pixva-header {
 .pixva-aurora-blob {
 	position: absolute;
 	border-radius: 50%;
-	filter: blur(var(--aurora-blur));
-	opacity: 0.55;
+	filter: blur(90px);
+	opacity: 0.1;
 	will-change: transform;
 }
 
@@ -349,7 +349,7 @@ body.admin-bar .pixva-header {
 	background: #E8F5F8;
 	inset-inline-start: 2%;
 	top: 18%;
-	opacity: 0.9;
+	opacity: 0.1;
 	animation: pixva-aurora-b 46s ease-in-out infinite alternate;
 }
 
@@ -358,10 +358,11 @@ body.admin-bar .pixva-header {
 	height: 26vw;
 	max-width: 400px;
 	max-height: 400px;
-	background: rgba(23, 107, 135, 0.35);
+	background: #176B87;
 	inset-inline-start: 34%;
 	bottom: -12%;
 	top: auto;
+	opacity: 0.08;
 	animation: pixva-aurora-c 54s ease-in-out infinite alternate;
 }
 
@@ -418,42 +419,70 @@ body.admin-bar .pixva-header {
 	position: relative;
 	width: min(100%, 560px);
 	aspect-ratio: 16 / 9;
+	margin: 0;
 	border-radius: 18px;
-	background: linear-gradient(155deg, #123B4A 0%, #176B87 55%, #123B4A 100%);
-	box-shadow:
-		0 30px 60px -28px rgba(18, 59, 74, 0.45),
-		inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-	overflow: hidden;
+	background: #0F172A;
+	border: 1px solid #1E293B;
+	box-shadow: 0 34px 64px -30px rgba(15, 23, 42, 0.55);
+	overflow: visible;
 	isolation: isolate;
 }
 
-.pixva-tv-mockup::after {
-	/* هاله نور بسیار ملایم پشت تلویزیون */
-	content: "";
+.pixva-tv-mockup__glow {
 	position: absolute;
-	inset: -14%;
+	inset: -12%;
 	z-index: -1;
-	background: radial-gradient(closest-side, rgba(85, 184, 200, 0.35), transparent 72%);
-	filter: blur(28px);
+	border-radius: 50%;
+	background: radial-gradient(closest-side, rgba(85, 184, 200, 0.28), transparent 72%);
+	filter: blur(30px);
+	pointer-events: none;
 }
 
 .pixva-tv-mockup__bezel {
 	position: absolute;
 	inset: 10px 10px 26px 10px;
 	border-radius: 10px;
-	background:
-		radial-gradient(120% 120% at 20% 10%, rgba(85, 184, 200, 0.22), transparent 60%),
-		linear-gradient(160deg, #0E2C38 0%, #123B4A 60%, #0B2530 100%);
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	background: linear-gradient(160deg, #111C2E 0%, #0F172A 55%, #0B1220 100%);
+	overflow: hidden;
+}
+
+.pixva-tv-mockup__screen {
+	position: absolute;
+	inset: 0;
+	border-radius: 9px;
 	overflow: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	background:
+		radial-gradient(120% 130% at 20% 0%, rgba(85, 184, 200, 0.16), transparent 62%),
+		linear-gradient(165deg, #0F172A 0%, #131F33 60%, #0B1220 100%);
+}
+
+.pixva-tv-mockup__grid {
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(rgba(148, 163, 184, 0.10) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+	background-size: 32px 32px;
+	opacity: 0.55;
+	pointer-events: none;
 }
 
 .pixva-tv-mockup__ui {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	max-width: 92%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.45rem;
 	text-align: center;
-	color: #DCEAEE;
-	padding: 1rem;
+	color: #E2E8F0;
+	padding: clamp(0.6rem, 2vw, 1.1rem);
 }
 
 .pixva-tv-mockup__ui strong {
@@ -474,28 +503,24 @@ body.admin-bar .pixva-header {
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
-	gap: 6px;
-	height: 42px;
-	margin-top: 0.9rem;
+	gap: clamp(3px, 0.7vw, 6px);
+	height: clamp(28px, 6vw, 46px);
+	width: 100%;
+	max-width: 260px;
+	margin: 0.35rem 0 0;
+	padding: 0;
 }
 
 .pixva-tv-mockup__bars i {
-	width: 8px;
-	border-radius: 4px;
-	background: rgba(85, 184, 200, 0.55);
-	animation: pixva-bar 4.5s ease-in-out infinite;
-}
-
-.pixva-tv-mockup__bars i:nth-child(1) { height: 40%; animation-delay: 0s; }
-.pixva-tv-mockup__bars i:nth-child(2) { height: 70%; animation-delay: 0.4s; }
-.pixva-tv-mockup__bars i:nth-child(3) { height: 55%; animation-delay: 0.8s; }
-.pixva-tv-mockup__bars i:nth-child(4) { height: 90%; animation-delay: 1.2s; }
-.pixva-tv-mockup__bars i:nth-child(5) { height: 45%; animation-delay: 1.6s; }
-.pixva-tv-mockup__bars i:nth-child(6) { height: 65%; animation-delay: 2s; }
-
-@keyframes pixva-bar {
-	0%, 100% { transform: scaleY(1); opacity: 0.75; }
-	50%      { transform: scaleY(0.55); opacity: 1; }
+	flex: 1 1 0;
+	min-width: 4px;
+	max-width: 12px;
+	height: 100%;
+	border-radius: 3px;
+	transform-origin: bottom center;
+	transform: scaleY(0.45);
+	background: #55B8C8;
+	animation: pixva-eq 3.6s ease-in-out infinite;
 }
 
 .pixva-tv-mockup__stand {
@@ -534,10 +559,13 @@ body.admin-bar .pixva-header {
 /* شناورهای شیشه‌ای روی هیرو */
 .pixva-hero__chip {
 	position: absolute;
+	pointer-events: auto;
 	display: inline-flex;
 	align-items: center;
 	gap: 0.45rem;
-	background: rgba(255, 255, 255, 0.82);
+	max-width: min(78%, 17rem);
+	overflow-wrap: anywhere;
+	background: rgba(255, 255, 255, 0.94);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
 	border: 1px solid rgba(85, 184, 200, 0.25);
@@ -549,15 +577,26 @@ body.admin-bar .pixva-header {
 	box-shadow: 0 10px 24px -12px rgba(18, 59, 74, 0.25);
 }
 
+.pixva-hero__chips {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+}
+
 .pixva-hero__chip--top {
-	top: 6%;
-	inset-inline-start: -2%;
+	top: clamp(0.25rem, 3%, 1.25rem);
+	inset-inline-start: clamp(0.25rem, 2%, 1rem);
+	inset-inline-end: auto;
+	bottom: auto;
 	animation: pixva-float 9s ease-in-out infinite;
 }
 
 .pixva-hero__chip--bottom {
-	bottom: 4%;
-	inset-inline-end: 0%;
+	bottom: clamp(0.25rem, 4%, 1.5rem);
+	inset-inline-end: clamp(0.25rem, 2%, 1rem);
+	inset-inline-start: auto;
+	top: auto;
 	animation: pixva-float 11s ease-in-out infinite reverse;
 }
 
@@ -1353,8 +1392,13 @@ body.admin-bar .pixva-header {
 		grid-template-columns: 1fr;
 	}
 
+	/* در تبلت و موبایل اول متن و اقدام‌ها، بعد ماکت تلویزیون (H1 و CTA بالاتر بمانند). */
+	.pixva-hero__content {
+		order: 1;
+	}
+
 	.pixva-hero__visual {
-		order: -1;
+		order: 2;
 	}
 
 	.pixva-journey__steps {
@@ -1400,9 +1444,10 @@ body.admin-bar .pixva-header {
 		grid-template-columns: 1fr;
 	}
 
+	/* بج‌های اعتماد در موبایل حذف نمی‌شوند؛ به ردیف ثابت زیر ماکت منتقل می‌شوند (لایه ۲۳). */
 	.pixva-hero__chip--top,
 	.pixva-hero__chip--bottom {
-		display: none;
+		display: inline-flex;
 	}
 
 	.pixva-quote-widget {
@@ -3435,5 +3480,600 @@ html.is-offline .pixva-offline-bar {
 @media (prefers-reduced-motion: reduce) {
 	.pixva-dock-preview__frame {
 		box-shadow: var(--shadow-sm);
+	}
+}
+
+/* ==========================================================================
+   ۲۳) اصلاح فوری هیرو v25.0: قفل کنتراست متن + بازسازی ماکت تلویزیون
+   --------------------------------------------------------------------------
+   دو مشکل گزارش‌شده در این بخش به‌صورت قطعی حل می‌شود:
+   ۱) متن سفید روی پس‌زمینه روشن (ارث‌بری color از قاعده قدیمی .pixva-hero)
+      → رنگ همه اجزای هیرو به‌صورت صریح و با اختصاص‌پذیری بالاتر قفل شد.
+   ۲) بیرون‌زدگی بج‌های شناور و کادر شکسته «تست نهایی کارگاه»
+      → همه موقعیت‌های absolute داخل والد relative مهار شدند و ماکت
+         تلویزیون با بدنه تیره #0F172A و حاشیه #1E293B بازسازی شد.
+   ========================================================================== */
+.pixva-hero.pixva-hero--light {
+	--hero-ink: #0F172A;
+	--hero-ink-soft: #334155;
+	--hero-ink-mute: #475569;
+	--hero-tv: #0F172A;
+	--hero-tv-line: #1E293B;
+	--hero-tv-ink: #E2E8F0;
+	--hero-tv-ink-soft: #94A3B8;
+	--hero-rgb-red: #E4836F;
+	--hero-rgb-green: #6FBFA4;
+	--hero-rgb-blue: #55B8C8;
+
+	color: var(--hero-ink-soft);
+	background:
+		radial-gradient(1000px 520px at 88% -5%, rgba(85, 184, 200, 0.10), transparent 68%),
+		radial-gradient(760px 420px at 8% 105%, rgba(23, 107, 135, 0.07), transparent 62%),
+		var(--bg-light);
+	overflow: hidden;
+}
+
+/* --- ۱) قفل کنتراست: هیچ متنی سفید نمی‌ماند ---------------------------- */
+.pixva-hero.pixva-hero--light .pixva-hero__content,
+.pixva-hero.pixva-hero--light .pixva-hero__content p,
+.pixva-hero.pixva-hero--light .pixva-hero__lead,
+.pixva-hero.pixva-hero--light .pixva-hero__content li,
+.pixva-hero.pixva-hero--light .pixva-hero__content small,
+.pixva-hero.pixva-hero--light .pixva-hero__content figcaption,
+.pixva-hero.pixva-hero--light .pixva-hero__content span:not(.pixva-badge):not(.pixva-btn) {
+	color: var(--hero-ink-soft);
+}
+
+.pixva-hero.pixva-hero--light h1,
+.pixva-hero.pixva-hero--light h2,
+.pixva-hero.pixva-hero--light h3,
+.pixva-hero.pixva-hero--light strong,
+.pixva-hero.pixva-hero--light .pixva-hero__content em {
+	color: var(--hero-ink);
+}
+
+.pixva-hero.pixva-hero--light h1 em {
+	color: var(--primary);
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__lead {
+	font-size: clamp(0.98rem, 1.6vw, 1.14rem);
+	line-height: 2;
+	max-width: 40rem;
+}
+
+.pixva-hero.pixva-hero--light a:not(.pixva-btn) {
+	color: var(--primary);
+	text-underline-offset: 3px;
+}
+
+.pixva-hero.pixva-hero--light a:not(.pixva-btn):hover {
+	color: var(--primary-hover);
+}
+
+/* دکمه‌ها و بج‌ها رنگ اختصاصی خود را حفظ می‌کنند */
+.pixva-hero.pixva-hero--light .pixva-btn--cta {
+	color: #3A2415;
+}
+
+.pixva-hero.pixva-hero--light .pixva-btn--cta:hover {
+	color: #33200F;
+}
+
+.pixva-hero.pixva-hero--light .pixva-btn--ghost-dark {
+	color: var(--hero-ink);
+	background: #FFFFFF;
+	box-shadow: inset 0 0 0 1px rgba(85, 184, 200, 0.35), 0 6px 16px -8px rgba(15, 23, 42, 0.18);
+}
+
+.pixva-hero.pixva-hero--light .pixva-btn--ghost-dark:hover {
+	color: var(--primary);
+	box-shadow: inset 0 0 0 1px var(--primary), 0 10px 22px -10px rgba(23, 107, 135, 0.35);
+}
+
+.pixva-hero.pixva-hero--light .pixva-badge--brand {
+	color: #14536B;
+	background: rgba(23, 107, 135, 0.10);
+	border-color: rgba(23, 107, 135, 0.24);
+}
+
+.pixva-hero.pixva-hero--light .pixva-badge--success {
+	color: #1F7A59;
+	background: rgba(46, 158, 119, 0.12);
+	border-color: rgba(46, 158, 119, 0.26);
+}
+
+.pixva-hero.pixva-hero--light .pixva-badge--accent {
+	color: #2C7E8E;
+	background: rgba(85, 184, 200, 0.14);
+	border-color: rgba(85, 184, 200, 0.3);
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__badges .pixva-badge {
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.18);
+}
+
+/* کارت‌های آمار (stat / stat-card) */
+.pixva-hero.pixva-hero--light .pixva-stat,
+.pixva-hero.pixva-hero--light .stat-card {
+	background: rgba(255, 255, 255, 0.92);
+	border: 1px solid rgba(85, 184, 200, 0.22);
+	box-shadow: 0 8px 22px -14px rgba(15, 23, 42, 0.22);
+}
+
+.pixva-hero.pixva-hero--light .pixva-stat strong,
+.pixva-hero.pixva-hero--light .stat-card strong {
+	color: var(--hero-ink);
+}
+
+.pixva-hero.pixva-hero--light .pixva-stat span,
+.pixva-hero.pixva-hero--light .stat-card span {
+	color: var(--hero-ink-mute);
+}
+
+/* --- ۲) هاله‌های پس‌زمینه: محو و بی‌آزار (opacity: 0.1) ------------------ */
+.pixva-hero.pixva-hero--light .pixva-hero__aurora {
+	inset: -15% -8% auto -8%;
+	height: 125%;
+	z-index: 0;
+	pointer-events: none;
+}
+
+.pixva-hero.pixva-hero--light .pixva-aurora-blob {
+	opacity: 0.1;
+	filter: blur(90px);
+}
+
+.pixva-hero.pixva-hero--light .pixva-aurora-blob--a {
+	background: #55B8C8;
+	opacity: 0.1;
+}
+
+.pixva-hero.pixva-hero--light .pixva-aurora-blob--b {
+	background: #E8F5F8;
+	opacity: 0.1;
+}
+
+.pixva-hero.pixva-hero--light .pixva-aurora-blob--c {
+	background: #176B87;
+	opacity: 0.08;
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__grid,
+.pixva-hero.pixva-hero--light .pixva-hero__content,
+.pixva-hero.pixva-hero--light .pixva-hero__visual {
+	position: relative;
+	z-index: 1;
+}
+
+/* --- ۳) ماکت تلویزیون: بدنه تیره، قاب مهارشده، بدون سرریز --------------- */
+.pixva-hero.pixva-hero--light .pixva-hero__visual {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.9rem;
+	min-width: 0;
+	padding: clamp(0.5rem, 2vw, 1.25rem);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup {
+	position: relative;
+	width: min(100%, 560px);
+	aspect-ratio: 16 / 9;
+	margin: 0;
+	padding: 0;
+	border-radius: 18px;
+	background: var(--hero-tv);
+	border: 1px solid var(--hero-tv-line);
+	box-shadow:
+		0 34px 64px -30px rgba(15, 23, 42, 0.55),
+		0 2px 0 rgba(255, 255, 255, 0.04) inset;
+	overflow: visible;
+	isolation: isolate;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__glow {
+	position: absolute;
+	inset: -12%;
+	z-index: -1;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, rgba(85, 184, 200, 0.28), transparent 72%);
+	filter: blur(30px);
+	pointer-events: none;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bezel {
+	position: absolute;
+	inset: 10px 10px 26px 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	background: linear-gradient(160deg, #111C2E 0%, #0F172A 55%, #0B1220 100%);
+	overflow: hidden;
+	display: block;
+	padding: 0;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__screen {
+	position: absolute;
+	inset: 0;
+	border-radius: 9px;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background:
+		radial-gradient(120% 130% at 20% 0%, rgba(85, 184, 200, 0.16), transparent 62%),
+		linear-gradient(165deg, #0F172A 0%, #131F33 60%, #0B1220 100%);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__grid {
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(rgba(148, 163, 184, 0.10) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+	background-size: 32px 32px;
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__screen .pixva-scanline {
+	inset-inline: 0;
+	top: 0;
+	z-index: 3;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__ui {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	max-width: 92%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.45rem;
+	text-align: center;
+	padding: clamp(0.6rem, 2vw, 1.1rem);
+	color: var(--hero-tv-ink);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.2rem 0.7rem;
+	border-radius: 999px;
+	background: rgba(85, 184, 200, 0.14);
+	border: 1px solid rgba(85, 184, 200, 0.32);
+	color: #BFE7EE;
+	font-size: clamp(0.58rem, 1.2vw, 0.72rem);
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__title {
+	color: #FFFFFF;
+	font-size: clamp(0.95rem, 2.1vw, 1.4rem);
+	font-weight: 800;
+	line-height: 1.5;
+	margin: 0;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__sub {
+	color: var(--hero-tv-ink-soft);
+	font-size: clamp(0.62rem, 1.35vw, 0.8rem);
+	line-height: 1.8;
+	letter-spacing: 0.01em;
+}
+
+/* اکولایزر/نشانگر سیگنال RGB (بازسازی‌شده با ۹ میله) */
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	gap: clamp(3px, 0.7vw, 6px);
+	height: clamp(28px, 6vw, 46px);
+	width: 100%;
+	max-width: 260px;
+	margin: 0.35rem 0 0;
+	padding: 0;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i {
+	flex: 1 1 0;
+	min-width: 4px;
+	max-width: 12px;
+	height: 100%;
+	border-radius: 3px;
+	transform-origin: bottom center;
+	transform: scaleY(0.45);
+	opacity: 0.9;
+	background: var(--hero-rgb-blue);
+	box-shadow: 0 0 10px rgba(85, 184, 200, 0.35);
+	animation: pixva-eq 3.6s ease-in-out infinite;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(3n+1) {
+	background: var(--hero-rgb-red);
+	box-shadow: 0 0 10px rgba(228, 131, 111, 0.35);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(3n+2) {
+	background: var(--hero-rgb-green);
+	box-shadow: 0 0 10px rgba(111, 191, 164, 0.35);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(1) { animation-delay: 0s;     animation-duration: 3.2s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(2) { animation-delay: 0.18s;  animation-duration: 3.8s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(3) { animation-delay: 0.36s;  animation-duration: 3.4s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(4) { animation-delay: 0.54s;  animation-duration: 4.1s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(5) { animation-delay: 0.72s;  animation-duration: 3.0s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(6) { animation-delay: 0.9s;   animation-duration: 3.9s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(7) { animation-delay: 1.08s;  animation-duration: 3.3s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(8) { animation-delay: 1.26s;  animation-duration: 4.2s; }
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i:nth-child(9) { animation-delay: 1.44s;  animation-duration: 3.6s; }
+
+@keyframes pixva-eq {
+	0%, 100% { transform: scaleY(0.34); opacity: 0.72; }
+	25%      { transform: scaleY(0.78); opacity: 0.95; }
+	50%      { transform: scaleY(1);    opacity: 1; }
+	75%      { transform: scaleY(0.55); opacity: 0.85; }
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__signal {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.25rem 0.7rem;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.55);
+	border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__led {
+	flex: 0 0 auto;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #6FBFA4;
+	box-shadow: 0 0 0 3px rgba(111, 191, 164, 0.22), 0 0 12px rgba(111, 191, 164, 0.7);
+	animation: pixva-led 2.6s ease-in-out infinite;
+}
+
+@keyframes pixva-led {
+	0%, 100% { opacity: 1; }
+	50%      { opacity: 0.45; }
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__signal-text {
+	color: #CBD5E1;
+	font-size: clamp(0.56rem, 1.15vw, 0.7rem);
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__stand {
+	position: absolute;
+	bottom: 9px;
+	inset-inline-start: 50%;
+	transform: translateX(-50%);
+	width: 20%;
+	max-width: 120px;
+	height: 4px;
+	border-radius: 999px;
+	background: linear-gradient(90deg, rgba(148, 163, 184, 0.25), rgba(203, 213, 225, 0.5), rgba(148, 163, 184, 0.25));
+}
+
+.pixva-hero.pixva-hero--light .pixva-tv-mockup__caption {
+	margin: 0;
+	max-width: 34rem;
+	text-align: center;
+	font-size: 0.78rem;
+	line-height: 1.9;
+	color: var(--hero-ink-mute);
+}
+
+/* --- ۴) بج‌های شناور: مهار کامل داخل والد relative ---------------------- */
+.pixva-hero.pixva-hero--light .pixva-hero__chips {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__chip {
+	position: absolute;
+	pointer-events: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	max-width: min(78%, 17rem);
+	padding: 0.45rem 0.9rem;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.94);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(85, 184, 200, 0.28);
+	box-shadow: 0 14px 28px -16px rgba(15, 23, 42, 0.35);
+	color: var(--hero-ink);
+	font-size: 0.8rem;
+	font-weight: 800;
+	line-height: 1.6;
+	text-align: start;
+	overflow-wrap: anywhere;
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__chip svg {
+	flex: 0 0 auto;
+	width: 17px;
+	height: 17px;
+	color: var(--primary);
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__chip > span {
+	min-width: 0;
+	color: var(--hero-ink);
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__chip--top {
+	top: clamp(0.25rem, 3%, 1.25rem);
+	inset-inline-start: clamp(0.25rem, 2%, 1rem);
+	inset-inline-end: auto;
+	bottom: auto;
+	animation: pixva-float 9s ease-in-out infinite;
+}
+
+.pixva-hero.pixva-hero--light .pixva-hero__chip--bottom {
+	bottom: clamp(0.25rem, 4%, 1.5rem);
+	inset-inline-end: clamp(0.25rem, 2%, 1rem);
+	inset-inline-start: auto;
+	top: auto;
+	animation: pixva-float 11s ease-in-out infinite reverse;
+}
+
+/* --- ۵) واکنش‌گرایی: بدون سرریز افقی در هیچ عرضی ------------------------ */
+@media (max-width: 1024px) {
+	.pixva-hero.pixva-hero--light .pixva-hero__chip {
+		max-width: min(70%, 15rem);
+		font-size: 0.76rem;
+		padding: 0.4rem 0.8rem;
+	}
+}
+
+@media (max-width: 782px) {
+	.pixva-hero.pixva-hero--light .pixva-hero__visual {
+		gap: 0.75rem;
+		padding-inline: 0;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-hero__chips {
+		position: static;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem;
+		pointer-events: auto;
+		width: 100%;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-hero__chip {
+		position: static;
+		max-width: 100%;
+		animation: none;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__signal-text {
+		white-space: normal;
+	}
+}
+
+@media (max-width: 480px) {
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup {
+		border-radius: 14px;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__bezel {
+		inset: 7px 7px 20px 7px;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars {
+		max-width: 190px;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__signal {
+		padding: 0.2rem 0.55rem;
+	}
+}
+
+/* --- ۶) حرکت کاهش‌یافته: خوانایی کامل بدون انیمیشن --------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__bars i {
+		animation: none;
+		transform: scaleY(0.72);
+		opacity: 0.95;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-tv-mockup__led {
+		animation: none;
+		opacity: 1;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-hero__chip {
+		animation: none;
+	}
+
+	.pixva-hero.pixva-hero--light .pixva-aurora-blob {
+		animation: none;
+	}
+}
+
+/* ==========================================================================
+   ۲۴) سربرگ هاب‌ها و برگه‌ها روی پس‌زمینه روشن (قفل کنتراست)
+   --------------------------------------------------------------------------
+   قالب‌های هاب از pixva_page_hero(..., 'pixva-hub-hero') استفاده می‌کنند؛ چون
+   پس‌زمینه این سربرگ روشن است، رنگ‌های سفید ارثی از .pixva-page-hero باید
+   صریحاً بازنویسی شوند تا متن روی پس‌زمینه روشن گم نشود.
+   ========================================================================== */
+.pixva-page-hero.pixva-hub-hero {
+	position: relative;
+	overflow: hidden;
+	color: #334155;
+	background:
+		radial-gradient(700px 320px at 90% -10%, rgba(85, 184, 200, 0.10), transparent 70%),
+		radial-gradient(520px 260px at 5% 110%, rgba(23, 107, 135, 0.07), transparent 65%),
+		var(--surface-soft);
+	border-bottom: 1px solid rgba(85, 184, 200, 0.24);
+}
+
+.pixva-page-hero.pixva-hub-hero h1 {
+	color: #0F172A;
+}
+
+.pixva-page-hero.pixva-hub-hero p {
+	color: #334155;
+	line-height: 2;
+}
+
+.pixva-page-hero.pixva-hub-hero a:not(.pixva-btn) {
+	color: #176B87;
+}
+
+.pixva-page-hero.pixva-hub-hero a:not(.pixva-btn):hover {
+	color: #12586F;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-crumbs ol {
+	color: #475569;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-crumbs a {
+	color: #176B87;
+	font-weight: 700;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-crumbs a:hover {
+	color: #12586F;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-crumbs span[aria-current="page"] {
+	color: #0F172A;
+	font-weight: 700;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-crumbs li:not(:last-child)::after {
+	color: #94A3B8;
+	opacity: 1;
+}
+
+.pixva-page-hero.pixva-hub-hero .pixva-badge {
+	background: rgba(255, 255, 255, 0.86);
+	box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-page-hero.pixva-hub-hero {
+		background: var(--surface-soft);
 	}
 }
