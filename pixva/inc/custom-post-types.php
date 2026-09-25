@@ -148,6 +148,69 @@ function pixva_register_content_types() {
 		)
 	);
 
+	// انبار قطعات فابریک (pixva_part)
+	register_post_type(
+		'pixva_part',
+		array(
+			'labels'        => array(
+				'name'          => esc_html__( 'انبار قطعات فابریک', 'pixva' ),
+				'singular_name' => esc_html__( 'قطعه', 'pixva' ),
+				'add_new_item'  => esc_html__( 'ثبت قطعه جدید', 'pixva' ),
+				'edit_item'     => esc_html__( 'ویرایش قطعه', 'pixva' ),
+				'menu_name'     => esc_html__( 'انبار قطعات', 'pixva' ),
+			),
+			'public'        => true,
+			'menu_icon'     => 'dashicons-hammer',
+			'menu_position' => 26,
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+			'has_archive'   => true,
+			'rewrite'       => array( 'slug' => 'parts', 'with_front' => false ),
+			'show_in_rest'  => true,
+		)
+	);
+
+	// کدهای خطا و دیاگنوستیک (pixva_error)
+	register_post_type(
+		'pixva_error',
+		array(
+			'labels'        => array(
+				'name'          => esc_html__( 'پایگاه کدهای خطا', 'pixva' ),
+				'singular_name' => esc_html__( 'کد خطا', 'pixva' ),
+				'add_new_item'  => esc_html__( 'افزودن کد خطای جدید', 'pixva' ),
+				'edit_item'     => esc_html__( 'ویرایش کد خطا', 'pixva' ),
+				'menu_name'     => esc_html__( 'کدهای خطا (CPT)', 'pixva' ),
+			),
+			'public'        => true,
+			'menu_icon'     => 'dashicons-warning',
+			'menu_position' => 27,
+			'supports'      => array( 'title', 'editor', 'excerpt' ),
+			'has_archive'   => true,
+			'rewrite'       => array( 'slug' => 'error-database', 'with_front' => false ),
+			'show_in_rest'  => true,
+		)
+	);
+
+	// شعب و تکنسین‌ها (pixva_branch)
+	register_post_type(
+		'pixva_branch',
+		array(
+			'labels'        => array(
+				'name'          => esc_html__( 'شعب و تکنسین‌ها', 'pixva' ),
+				'singular_name' => esc_html__( 'شعبه/تکنسین', 'pixva' ),
+				'add_new_item'  => esc_html__( 'افزودن شعبه/تکنسین', 'pixva' ),
+				'edit_item'     => esc_html__( 'ویرایش شعبه', 'pixva' ),
+				'menu_name'     => esc_html__( 'شعب و تکنسین‌ها', 'pixva' ),
+			),
+			'public'        => true,
+			'menu_icon'     => 'dashicons-location',
+			'menu_position' => 28,
+			'supports'      => array( 'title', 'editor', 'thumbnail' ),
+			'has_archive'   => true,
+			'rewrite'       => array( 'slug' => 'branches', 'with_front' => false ),
+			'show_in_rest'  => true,
+		)
+	);
+
 	// تاکسونومی نوع خرابی.
 	register_taxonomy(
 		'tv_problem',
@@ -671,13 +734,23 @@ if ( ! function_exists( 'pixva_create_order' ) ) {
 
 if ( ! function_exists( 'pixva_find_order' ) ) {
 	/**
-	 * جست‌وجوی پرونده تعمیر بر اساس کد پیگیری یا شماره همراه.
+	 * جست‌وجوی پرونده تعمیر با تطابق «هم‌زمان» کد پیگیری و شماره همراه.
 	 *
-	 * @param string $code  کد پیگیری.
+	 * استعلام فقط با شماره همراه (یا فقط با کد) ممنوع است؛ هر دو مقدار الزامی
+	 * و هر دو باید دقیقاً با متای پرونده یکی باشند.
+	 *
+	 * @param string $code  کد پیگیری (فرمت PXV-...).
 	 * @param string $phone شماره همراه.
 	 * @return WP_Post|null
 	 */
 	function pixva_find_order( $code, $phone ) {
+		$code  = (string) $code;
+		$phone = pixva_normalize_mobile( $phone );
+
+		if ( '' === $code || '' === $phone ) {
+			return null;
+		}
+
 		$args = array(
 			'post_type'      => 'pixva_orders',
 			'post_status'    => array( 'private', 'publish' ),
@@ -685,25 +758,18 @@ if ( ! function_exists( 'pixva_find_order' ) ) {
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'fields'         => 'ids',
-		);
-
-		if ( '' !== $code ) {
-			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'relation' => 'AND',
 				array(
 					'key'   => '_pixva_order_code',
 					'value' => $code,
 				),
-			);
-		} elseif ( '' !== $phone ) {
-			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				array(
 					'key'   => '_pixva_order_phone',
-					'value' => pixva_normalize_mobile( $phone ),
+					'value' => $phone,
 				),
-			);
-		} else {
-			return null;
-		}
+			),
+		);
 
 		$ids = get_posts( $args );
 		if ( empty( $ids ) ) {
@@ -713,64 +779,37 @@ if ( ! function_exists( 'pixva_find_order' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pixva_pricing_matrix' ) ) {
+if ( ! function_exists( 'pixva_find_order_by_code' ) ) {
 	/**
-	 * ماتریس ضرایب و پایه‌های قیمت محاسبه‌گر (منبع حقیقت سمت سرور).
+	 * جست‌وجوی داخلی پرونده فقط با کد پیگیری (برای پیشخوان/نصب — نه استعلام عمومی).
 	 *
-	 * @return array
+	 * @param string $code کد پیگیری.
+	 * @return WP_Post|null
 	 */
-	function pixva_pricing_matrix() {
-		return array(
-			'base'  => array(
-				'no_picture' => array( 900000, 2500000 ),  // بی‌تصویری.
-				'lines'      => array( 1200000, 3200000 ), // خطوط عمودی/افقی.
-				'no_power'   => array( 700000, 1900000 ),  // خاموشی کامل.
-				'no_sound'   => array( 500000, 1400000 ),  // قطع صدا.
-				'blink'      => array( 600000, 1700000 ), // چشمک‌زدن چراغ.
-				'water'      => array( 800000, 2400000 ),  // آب‌خوردگی.
-				'backlight'  => array( 1000000, 2500000 ), // تعویض بک‌لایت.
-				'panel'      => array( 1500000, 4500000 ), // تعمیر پنل.
-				'mainboard'  => array( 900000, 2800000 ),  // برد اصلی.
-				'powerboard' => array( 700000, 2000000 ),  // برد پاور.
-			),
-			'brand' => array(
-				'samsung' => 1.15,
-				'lg'      => 1.10,
-				'sony'    => 1.20,
-				'snowa'   => 1.00,
-				'xvision' => 1.00,
-				'gplus'   => 1.00,
-				'tcl'     => 1.05,
-				'hisense' => 1.05,
-			),
-			'tech'  => array(
-				'led'      => 1.00,
-				'qled'     => 1.25,
-				'oled'     => 1.55,
-				'plasma'   => 1.20,
-				'microled' => 1.80,
-			),
-			'size'  => array(
-				'32' => 1.00,
-				'43' => 1.10,
-				'50' => 1.25,
-				'55' => 1.35,
-				'65' => 1.60,
-				'75' => 1.90,
-				'85' => 2.30,
-			),
-			'days'  => array(
-				'no_picture' => '2 تا 4 روز کاری',
-				'lines'      => '3 تا 6 روز کاری',
-				'no_power'   => '1 تا 3 روز کاری',
-				'no_sound'   => '1 تا 2 روز کاری',
-				'blink'      => '1 تا 3 روز کاری',
-				'water'      => '3 تا 7 روز کاری',
-				'backlight'  => '1 تا 2 روز کاری',
-				'panel'      => '4 تا 8 روز کاری',
-				'mainboard'  => '2 تا 5 روز کاری',
-				'powerboard' => '1 تا 3 روز کاری',
-			),
+	function pixva_find_order_by_code( $code ) {
+		$code = (string) $code;
+		if ( '' === $code ) {
+			return null;
+		}
+		$ids = get_posts(
+			array(
+				'post_type'      => 'pixva_orders',
+				'post_status'    => array( 'private', 'publish' ),
+				'posts_per_page' => 1,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'   => '_pixva_order_code',
+						'value' => $code,
+					),
+				),
+			)
 		);
+		if ( empty( $ids ) ) {
+			return null;
+		}
+		return get_post( (int) $ids[0] );
 	}
 }

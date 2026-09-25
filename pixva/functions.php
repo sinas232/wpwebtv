@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.0.0' );
+define( 'PIXVA_VERSION', '1.2.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -23,12 +23,21 @@ define( 'PIXVA_URI', get_template_directory_uri() );
  * ---------------------------------------------------------------------------
  */
 require_once PIXVA_DIR . '/inc/security.php';
+require_once PIXVA_DIR . '/inc/pricing-engine.php';
 require_once PIXVA_DIR . '/inc/custom-post-types.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
+require_once PIXVA_DIR . '/inc/control-center.php';
+require_once PIXVA_DIR . '/inc/admin-settings.php';
+require_once PIXVA_DIR . '/inc/ai-bot.php';
+require_once PIXVA_DIR . '/inc/interactive-tools.php';
+require_once PIXVA_DIR . '/inc/rest-api.php';
+require_once PIXVA_DIR . '/inc/roles-and-cron.php';
+require_once PIXVA_DIR . '/inc/elementor-support.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
+require_once PIXVA_DIR . '/inc/activation.php';
 
 /*
  * ---------------------------------------------------------------------------
@@ -156,6 +165,26 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			)
 		);
 
+		wp_enqueue_script(
+			'pixva-tools',
+			PIXVA_URI . '/assets/js/interactive-tools.js',
+			array( 'pixva-main' ),
+			PIXVA_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
+
+		wp_localize_script(
+			'pixva-tools',
+			'pixvaVars',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'pixva_nonce' ),
+			)
+		);
+
 		if ( pixva_needs_calculator_js() ) {
 			wp_enqueue_script(
 				'pixva-calculator',
@@ -246,6 +275,7 @@ if ( ! function_exists( 'pixva_needs_components_css' ) ) {
 					'page-templates/page-error-codes.php',
 					'page-templates/page-faq.php',
 					'page-templates/page-contact.php',
+					'page-templates/page-rates.php',
 				)
 			)
 			|| is_404()

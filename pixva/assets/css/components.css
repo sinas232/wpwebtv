@@ -689,8 +689,306 @@
 	}
 }
 
+/* ==========================================================================
+   نرخ‌نامه (برگه rates)
+   ========================================================================== */
+.pixva-rates-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0.75rem 0;
+	font-size: var(--fs-sm);
+}
+
+.pixva-rates-table th,
+.pixva-rates-table td {
+	padding: 0.7rem 0.9rem;
+	border-bottom: 1px solid var(--border);
+	text-align: right;
+}
+
+.pixva-rates-table thead th {
+	background: var(--bg-light);
+	font-weight: 700;
+	color: var(--primary);
+	border-bottom: 2px solid var(--border);
+}
+
+.pixva-rates-table tbody tr:hover {
+	background: var(--accent-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.pixva-timeline li.is-current .pixva-timeline__dot {
 		animation: none;
+	}
+}
+
+/* ==========================================================================
+   ابزارهای تعاملی و هوشمند پیکسوا (Interactive Tools v21.0)
+   ========================================================================== */
+
+/* ۱) ویجت چت‌بات شناور هوش مصنوعی */
+.pixva-ai-widget {
+	position: fixed;
+	bottom: 24px;
+	left: 24px;
+	z-index: 9999;
+}
+
+.pixva-ai-trigger {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: #4F46E5;
+	color: #fff;
+	border: none;
+	border-radius: 999px;
+	padding: 12px 20px;
+	font-family: inherit;
+	font-weight: 800;
+	cursor: pointer;
+	box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+	transition: transform var(--tr-fast), background var(--tr-fast);
+}
+
+.pixva-ai-trigger:hover {
+	transform: translateY(-2px);
+	background: #4338CA;
+}
+
+.pixva-ai-trigger__pulse {
+	position: absolute;
+	top: -3px;
+	right: -3px;
+	width: 12px;
+	height: 12px;
+	background: #10B981;
+	border-radius: 50%;
+	border: 2px solid #fff;
+	animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+	0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+	70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+	100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.pixva-ai-panel {
+	position: fixed;
+	bottom: 84px;
+	left: 24px;
+	width: clamp(320px, 90vw, 400px);
+	height: 520px;
+	background: #fff;
+	border: 1px solid #E2E8F0;
+	border-radius: 18px;
+	box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.16);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	z-index: 10000;
+}
+
+.pixva-ai-header {
+	padding: 14px 18px;
+	background: #F8FAFC;
+	border-bottom: 1px solid #E2E8F0;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.pixva-ai-header h4 {
+	margin: 4px 0 0;
+	font-size: var(--fs-md);
+	color: #0F172A;
+}
+
+.pixva-ai-close {
+	background: none;
+	border: none;
+	font-size: 18px;
+	color: #64748B;
+	cursor: pointer;
+}
+
+.pixva-ai-messages {
+	flex: 1;
+	padding: 16px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.pixva-ai-msg {
+	max-width: 85%;
+	padding: 10px 14px;
+	border-radius: 14px;
+	font-size: var(--fs-sm);
+	line-height: 1.6;
+}
+
+.pixva-ai-msg p {
+	margin: 0;
+}
+
+.pixva-ai-msg--bot {
+	align-self: flex-start;
+	background: #F1F5F9;
+	color: #0F172A;
+	border-bottom-right-radius: 4px;
+}
+
+.pixva-ai-msg--user {
+	align-self: flex-end;
+	background: #4F46E5;
+	color: #fff;
+	border-bottom-left-radius: 4px;
+}
+
+.pixva-ai-input-form {
+	padding: 12px;
+	border-top: 1px solid #E2E8F0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.pixva-ai-field-group {
+	display: flex;
+	gap: 6px;
+}
+
+.pixva-ai-brand-select {
+	width: 110px;
+	font-size: var(--fs-xs);
+	padding: 6px;
+	border-radius: 8px;
+	border: 1px solid #CBD5E1;
+}
+
+.pixva-ai-input {
+	flex: 1;
+	font-size: var(--fs-sm);
+	padding: 8px 12px;
+	border-radius: 8px;
+	border: 1px solid #CBD5E1;
+}
+
+/* ۲) شبیه‌ساز لمسی تلویزیون مجازی */
+.pixva-simulator-card {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+	align-items: center;
+	padding: clamp(1.5rem, 3vw, 2.5rem);
+	background: #fff;
+	border: 1px solid #E2E8F0;
+	border-radius: 20px;
+	box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04);
+}
+
+.pixva-sim-tv {
+	background: #0F172A;
+	border-radius: 12px;
+	padding: 12px 12px 24px;
+	box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2);
+	position: relative;
+}
+
+.pixva-sim-screen {
+	background: #1E293B;
+	border-radius: 6px;
+	height: 260px;
+	position: relative;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #334155;
+}
+
+.pixva-sim-hotspot {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	background: rgba(249, 115, 22, 0.85);
+	color: #fff;
+	font-size: var(--fs-xs);
+	font-weight: 800;
+	padding: 4px 10px;
+	border-radius: 999px;
+	cursor: pointer;
+	box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+	transition: transform var(--tr-fast), background var(--tr-fast);
+}
+
+.pixva-sim-hotspot:hover,
+.pixva-sim-hotspot.is-active {
+	background: #06B6D4;
+	box-shadow: 0 0 16px rgba(6, 182, 212, 0.8);
+	transform: translate(-50%, -50%) scale(1.1);
+}
+
+.pixva-sim-display-msg {
+	position: absolute;
+	bottom: 10px;
+	background: rgba(15, 23, 42, 0.85);
+	padding: 6px 14px;
+	border-radius: 8px;
+}
+
+.pixva-sim-price-box {
+	margin-top: 1.2rem;
+	padding: 14px 18px;
+	background: #F8FAFC;
+	border: 1px solid #E2E8F0;
+	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.pixva-sim-price-box strong {
+	font-size: var(--fs-xl);
+	color: #0284C7;
+}
+
+/* ۳) تستر زنده RGB */
+.pixva-rgb-tester {
+	padding: 1.5rem;
+}
+
+.pixva-rgb-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 1.2rem;
+}
+
+.pixva-rgb-canvas {
+	width: 100%;
+	height: 220px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.3s ease;
+	border: 1px solid #E2E8F0;
+}
+
+@media (max-width: 768px) {
+	.pixva-simulator-card {
+		grid-template-columns: 1fr;
+	}
+	.pixva-ai-widget {
+		bottom: 78px;
+		left: 16px;
+	}
+	.pixva-ai-panel {
+		bottom: 140px;
+		left: 16px;
 	}
 }

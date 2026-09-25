@@ -101,16 +101,26 @@
 				});
 				const summary = form.querySelector('[data-summary]');
 				const price = form.querySelector('[data-price]');
+				const priceRow = form.querySelector('[data-price-row]');
 				const days = form.querySelector('[data-days]');
 				const note = form.querySelector('[data-disclaimer]');
+				const warning = form.querySelector('[data-calc-warning]');
 				if (summary) {
 					summary.textContent = `${data.brand} · ${data.size} · ${data.tech} · ${data.problem}`;
 				}
+				// هشدار تعویض کامل پنل (قیمت خارج از جدول محاسبه است).
+				if (warning) {
+					warning.hidden = !data.warning;
+					warning.textContent = data.warning || '';
+				}
+				if (priceRow) {
+					priceRow.hidden = Boolean(data.panelReplacement);
+				}
 				if (price) {
-					price.textContent = `${data.minFormatted} تا ${data.maxFormatted}`;
+					price.textContent = data.panelReplacement ? '—' : `${data.minFormatted} تا ${data.maxFormatted}`;
 				}
 				if (days) {
-					days.textContent = data.days;
+					days.textContent = data.days || '';
 				}
 				if (note) {
 					note.textContent = data.disclaimer;
