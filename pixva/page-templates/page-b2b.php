@@ -12,33 +12,55 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
+
+$pixva_control = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
+$pixva_eta     = isset( $pixva_control['hub_eta_hours'] ) ? $pixva_control['hub_eta_hours'] : '۲ ساعت';
 ?>
 <main id="content">
-	<?php pixva_page_hero( __( 'پورتال خدمات سازمانی، ارگان‌ها و هتل‌ها (B2B)', 'pixva' ), __( 'قرارداد رسمی نگهداری و تعمیرات دوره‌ای انواع نمایشگرها و تلویزیون‌های هتلی با فاکتور رسمی معتبر و گارانتی کتبی ۱۸۰ روزه.', 'pixva' ) ); ?>
-	<div class="pixva-container pixva-content">
-		<div class="pixva-grid pixva-grid--2" style="gap:2rem;margin-bottom:2rem;">
-			<div class="pixva-card">
-				<span class="pixva-badge pixva-badge--brand"><?php esc_html_e( 'مزایای همکاری سازمانی', 'pixva' ); ?></span>
-				<h3 style="margin:0.8rem 0;color:#0F172A;"><?php esc_html_e( 'پشتیبانی ویژه هتل‌ها و شرکت‌ها', 'pixva' ); ?></h3>
-				<ul style="line-height:2.2;padding-right:1.2rem;color:#334155;">
-					<li>تأمین دست کامل بک‌لایت و بردهای فابریک با قیمت عمده کارگاهی</li>
-					<li>اعزام تیم تکنسین‌های کارگاه مرکزی پاساژ علاءالدین زیر ۲ ساعت در تهران</li>
-					<li>صدور فاکتور رسمی به همراه شناسه یکتا جهت سامانه‌های مالی</li>
-					<li>چک‌اپ و سرویس دوره‌ای رایگان هر ۶ ماه یک‌بار برای کلیه دستگاه‌ها</li>
-				</ul>
-			</div>
-			<div class="pixva-card">
-				<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'ثبت درخواست استعلام B2B', 'pixva' ); ?></span>
-				<h3 style="margin:0.8rem 0;color:#0F172A;"><?php esc_html_e( 'فرم تماس مستقیم مدیریت سازمانی', 'pixva' ); ?></h3>
-				<form action="" method="post" style="display:flex;flex-direction:column;gap:12px;">
-					<input type="text" name="org_name" placeholder="نام سازمان / هتل / شرکت" class="pixva-input" required>
-					<input type="text" name="contact_person" placeholder="نام مسئول هماهنگی" class="pixva-input" required>
-					<input type="tel" name="phone" placeholder="شماره تماس مستقیم" class="pixva-input" required>
-					<textarea name="details" rows="3" placeholder="تعداد تلویزیون‌ها، مدل‌ها یا شرح خرابی" class="pixva-input"></textarea>
-					<button type="button" class="pixva-btn pixva-btn--cta" onclick="alert('درخواست سازمانی شما ثبت شد؛ کارشناس امور هتل‌ها ظرف ۳۰ دقیقه با شما تماس خواهد گرفت.');">ثبت استعلام سازمانی</button>
-				</form>
+	<?php
+	pixva_page_hero(
+		__( 'پورتال خدمات سازمانی، ارگان‌ها و هتل‌ها', 'pixva' ),
+		__( 'قرارداد نگهداری دوره‌ای، تأمین قطعات فابریک، پوشش اورژانسی ۲۴ ساعته و صدور فاکتور رسمی با گارانتی کتبی.', 'pixva' ),
+		'pixva-hub-hero'
+	);
+	?>
+	<section class="pixva-section">
+		<div class="pixva-container">
+			<div class="pixva-grid pixva-grid--3">
+				<article class="pixva-card pixva-service-card pixva-reveal">
+					<?php echo pixva_icon( 'box' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<h3><?php esc_html_e( 'تأمین قطعه با قیمت عمده', 'pixva' ); ?></h3>
+					<p><?php esc_html_e( 'دست کامل بک‌لایت، برد تغذیه و مین‌برد فابریک از انبار مرکزی با هولوگرام اصالت و فاکتور رسمی.', 'pixva' ); ?></p>
+				</article>
+				<article class="pixva-card pixva-service-card pixva-reveal">
+					<?php echo pixva_icon( 'truck' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<h3><?php echo esc_html( sprintf( __( 'اعزام تیم زیر %s', 'pixva' ), $pixva_eta ) ); ?></h3>
+					<p><?php esc_html_e( 'تکنسین‌های کارگاه مرکزی برای هتل‌ها و مجتمع‌های اداری در تهران، با امکان سرویس شبانه و تعطیلات.', 'pixva' ); ?></p>
+				</article>
+				<article class="pixva-card pixva-service-card pixva-reveal">
+					<?php echo pixva_icon( 'cert' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<h3><?php esc_html_e( 'فاکتور رسمی و قرارداد سالانه', 'pixva' ); ?></h3>
+					<p><?php esc_html_e( 'صدور فاکتور رسمی با شناسه یکتا، گزارش کارشناسی برای بیمه و چک‌اپ دوره‌ای رایگان دستگاه‌ها.', 'pixva' ); ?></p>
+				</article>
 			</div>
 		</div>
+	</section>
+
+	<div class="pixva-container pixva-content">
+		<?php
+		foreach ( array( 21, 54, 52, 47, 53, 60 ) as $pixva_tool_id ) {
+			echo pixva_render_tool_by_id( $pixva_tool_id, 'section' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+
+		while ( have_posts() ) :
+			the_post();
+			if ( get_the_content() ) {
+				echo '<div class="pixva-content">';
+				the_content();
+				echo '</div>';
+			}
+		endwhile;
+		?>
 	</div>
 </main>
 <?php

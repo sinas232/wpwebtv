@@ -3,7 +3,7 @@ Theme Name: پیکسوا
 Theme URI: https://pixva.ir/
 Author: تیم توسعه پیکسوا
 Author URI: https://pixva.ir/
-Description: قالب اختصاصی، سبک و راست‌چین مرکز تخصصی تعمیرات تلویزیون و نمایشگر «پیکسوا»؛ شامل محاسبه‌گر هزینه تعمیر، سامانه پیگیری آنلاین، پایگاه کدهای خطا، اسلایدر قبل/بعد، اسکیما مارک‌آپ JSON-LD و وبلاگ سئومحور. بدون وابستگی به افزونه جانبی و بدون jQuery.
+Description: قالب اختصاصی، سبک و راست‌چین مرکز تخصصی تعمیرات تلویزیون «پیکسوا» بر پایه مشخصات v25.0 (Calm Premium UI & Real AI): پنج هاب تخصصی با مگامنوی شیشه‌ای، ۶۰ ابزار تعاملی عیب‌یابی، دستیار هوش مصنوعی واقعی Gemini (سمت سرور)، موتور نرخ‌نامه ۱۴۰۵ با کف ۸ میلیون تومان، سامانه پیگیری و گارانتی دیجیتال با هش SHA-256، انبار قطعات، پورتال B2B، ویجت‌های المنتور و REST API اختصاصی. بدون وابستگی به افزونه جانبی و بدون jQuery.
 Version: 1.2.0
 Requires at least: 6.5
 Tested up to: 7.1
@@ -18,24 +18,30 @@ Tags: custom-colors, custom-logo, custom-menu, featured-images, threaded-comment
    ۱) متغیرهای طراحی (Design Tokens)
    ========================================================================== */
 :root {
-	/* پالت رنگی اختصاصی پیکسوا (Light Mode Native & High-Tech) */
-	--bg-light: #F8FAFC;
-	--card-bg: #FFFFFF;
-	--text-main: #0F172A;
-	--text-muted: #64748B;
-	--primary: #0284C7;
-	--primary-hover: #0369A1;
-	--primary-dark: #0F172A;
-	--accent: #06B6D4;
-	--accent-soft: rgba(6, 182, 212, 0.12);
-	--cta: #F97316;
-	--cta-hover: #EA580C;
+	/* ---------------------------------------------------------------------
+	   پالت آرام و سرد ۲۰۲۶ — Calm Cool Palette (Master Spec v25.0)
+	   بدون رنگ نئونی، بدون گرادینت شلوغ، بدون نارنجی جیغ.
+	   --------------------------------------------------------------------- */
+	--bg-light: #F7FAFC;                 /* پس‌زمینه مرواریدی خاکستری-آبی */
+	--card-bg: #FFFFFF;                   /* کارت سفید خالص */
+	--surface-soft: #E8F5F8;              /* سطوح آبی روشن */
+	--surface-pearl: #F7FAFC;
+	--text-main: #17313B;                 /* متن اصلی سرمه‌ای تیره خوانا */
+	--text-muted: #5B7A87;
+	--primary: #176B87;                   /* آبی اقیانوسی های‌تک */
+	--primary-hover: #12586F;
+	--primary-dark: #123B4A;              /* سرمه‌ای عمیق: هدر، فوتر، سرتیترها */
+	--accent: #55B8C8;                    /* فیروزه‌ای ملایم */
+	--accent-soft: rgba(85, 184, 200, 0.12);
+	--cta: #F59E6C;                       /* مرجانی بسیار ملایم: فقط CTA و نشان‌ها */
+	--cta-hover: #E9884F;
 
 	/* رنگ‌های کمکی وضعیت‌ها */
-	--success: #16A34A;
-	--warning: #D97706;
-	--danger: #DC2626;
-	--border: #E2E8F0;
+	--success: #2E9E77;
+	--warning: #C77A34;
+	--danger: #C2493D;
+	--border: #DCEAEE;
+	--card-border: 1px solid rgba(85, 184, 200, 0.2);
 
 	/* تایپوگرافی */
 	--font-primary: "Vazirmatn", "Tahoma", sans-serif;
@@ -58,18 +64,25 @@ Tags: custom-colors, custom-logo, custom-menu, featured-images, threaded-comment
 	--gap: 1.5rem;
 	--header-h: 76px;
 
-	/* سایه و شیشه */
-	--shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-	--shadow-md: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
-	--shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
-	--shadow-cta: 0 10px 26px rgba(249, 115, 22, 0.35);
-	--glass-bg: rgba(255, 255, 255, 0.85);
-	--glass-border: 1px solid #E2E8F0;
-	--blur: saturate(160%) blur(16px);
+	/* سایه و شیشه — گلس‌مورفیک حساب‌شده (Subtle Glassmorphic) */
+	--shadow-sm: 0 1px 3px rgba(18, 59, 74, 0.04), 0 1px 2px rgba(18, 59, 74, 0.02);
+	--shadow-md: 0 10px 30px -5px rgba(18, 59, 74, 0.06);
+	--shadow-lg: 0 20px 40px -10px rgba(18, 59, 74, 0.09);
+	--shadow-card-hover: 0 12px 30px rgba(23, 107, 135, 0.12);
+	--shadow-cta: 0 10px 26px rgba(245, 158, 108, 0.28);
+	--glass-bg: rgba(247, 250, 252, 0.72);
+	--glass-bg-strong: rgba(255, 255, 255, 0.86);
+	--glass-border: 1px solid rgba(85, 184, 200, 0.22);
+	--blur: saturate(140%) blur(12px);
 
-	/* گذارها */
-	--tr-fast: 0.18s ease;
-	--tr-med: 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+	/* گذارها و توکن‌های حرکتی (Motion Tokens — آرام و صبورانه) */
+	--tr-fast: 0.2s ease;
+	--tr-med: 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+	--tr-slow: 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+	--tr-spring: 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+	--reveal-y: 20px;
+	--reveal-duration: 650ms;
+	--aurora-blur: 90px;
 }
 
 /* ==========================================================================
@@ -120,13 +133,13 @@ video {
 }
 
 a {
-	color: var(--accent);
+	color: var(--primary);
 	text-decoration: none;
 	transition: color var(--tr-fast);
 }
 
 a:hover {
-	color: var(--cta);
+	color: var(--cta-hover);
 }
 
 h1,
@@ -135,9 +148,10 @@ h3,
 h4,
 h5,
 h6 {
-	color: var(--primary);
+	color: var(--primary-dark);
 	line-height: var(--lh-heading);
 	font-weight: 800;
+	letter-spacing: -0.01em;
 	margin: 0 0 0.75em;
 }
 
@@ -264,8 +278,8 @@ textarea {
 	align-items: center;
 	gap: 0.4rem;
 	background: var(--accent-soft);
-	color: #0E7490;
-	border: 1px solid rgba(6, 182, 212, 0.35);
+	color: #12586F;
+	border: 1px solid rgba(85, 184, 200, 0.35);
 	font-size: var(--fs-xs);
 	font-weight: 700;
 	padding: 0.3rem 0.85rem;
@@ -273,9 +287,9 @@ textarea {
 }
 
 .pixva-badge--cta {
-	background: rgba(249, 115, 22, 0.12);
+	background: rgba(245, 158, 108, 0.12);
 	color: var(--cta-hover);
-	border-color: rgba(249, 115, 22, 0.35);
+	border-color: rgba(245, 158, 108, 0.35);
 }
 
 .pixva-muted {
@@ -466,7 +480,7 @@ textarea {
 .pixva-card:hover {
 	transform: translateY(-6px);
 	box-shadow: var(--shadow-lg);
-	border-color: rgba(6, 182, 212, 0.45);
+	border-color: rgba(85, 184, 200, 0.45);
 }
 
 .pixva-glass {
@@ -532,21 +546,21 @@ textarea {
 }
 
 .pixva-notice--error {
-	background: rgba(220, 38, 38, 0.08);
+	background: rgba(194, 73, 61, 0.08);
 	color: var(--danger);
-	border-color: rgba(220, 38, 38, 0.3);
+	border-color: rgba(194, 73, 61, 0.3);
 }
 
 .pixva-notice--info {
 	background: var(--accent-soft);
-	color: #0E7490;
-	border-color: rgba(6, 182, 212, 0.3);
+	color: #12586F;
+	border-color: rgba(85, 184, 200, 0.3);
 }
 
 .pixva-notice--warning {
-	background: rgba(217, 119, 6, 0.1);
+	background: rgba(199, 122, 52, 0.1);
 	color: var(--warning);
-	border-color: rgba(217, 119, 6, 0.35);
+	border-color: rgba(199, 122, 52, 0.35);
 }
 
 /* ==========================================================================
@@ -566,10 +580,10 @@ textarea {
 @keyframes pixva-pulse {
 	0%,
 	100% {
-		box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.45);
+		box-shadow: 0 0 0 0 rgba(85, 184, 200, 0.45);
 	}
 	50% {
-		box-shadow: 0 0 0 12px rgba(6, 182, 212, 0);
+		box-shadow: 0 0 0 12px rgba(85, 184, 200, 0);
 	}
 }
 

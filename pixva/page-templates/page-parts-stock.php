@@ -3,6 +3,9 @@
  * Template Name: استعلام انبار قطعات فابریک
  * Template Post Type: page
  *
+ * موجودی از رکوردهای CPT «انبار قطعات فابریک» در پیشخوان خوانده می‌شود و در
+ * نبود رکورد، کاتالوگ مرجع کارگاه نمایش داده می‌شود.
+ *
  * @package Pixva
  * @since   1.2.0
  */
@@ -14,42 +17,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 ?>
 <main id="content">
-	<?php pixva_page_hero( __( 'انبار مرکزی قطعات فابریک و اصالت کالا', 'pixva' ), __( 'استعلام زنده موجودی انواع بردهای تغذیه، مین‌برد و دست کامل بک‌لایت‌های اورجینال کره‌ای و ژاپنی.', 'pixva' ) ); ?>
+	<?php
+	pixva_page_hero(
+		__( 'انبار مرکزی قطعات فابریک و اصالت کالا', 'pixva' ),
+		__( 'استعلام زنده موجودی دست کامل بک‌لایت، برد تغذیه، مین‌برد و فلت‌های COF به‌همراه زمان تحویل قطعات وارداتی و استعلام اصالت با شماره سریال.', 'pixva' ),
+		'pixva-hub-hero'
+	);
+	?>
 	<div class="pixva-container pixva-content">
-		<div class="pixva-card" style="margin-bottom:1.5rem;">
-			<div style="display:flex;gap:12px;flex-wrap:wrap;">
-				<input type="text" placeholder="جستجوی مدل دستگاه یا پارت نامبر (مثلاً 55AU7000 یا BN44...)" class="pixva-input" style="flex:2;min-width:240px;">
-				<select class="pixva-input" style="flex:1;min-width:140px;">
-					<option>همه قطعات</option>
-					<option>دست کامل بک‌لایت</option>
-					<option>برد تغذیه (Power)</option>
-					<option>برد اصلی (Mainboard)</option>
-					<option>تیکان و فلت COF</option>
-				</select>
-				<button type="button" class="pixva-btn pixva-btn--primary">استعلام موجودی کارگاه</button>
-			</div>
-		</div>
-
-		<div class="pixva-grid pixva-grid--3" style="gap:1.2rem;">
-			<div class="pixva-card">
-				<span class="pixva-badge pixva-badge--success">موجود در کارگاه علاءالدین</span>
-				<h4 style="margin:0.6rem 0;color:#0F172A;">بک‌لایت دست کامل سامسونگ 55RU/NU</h4>
-				<p class="pixva-muted" style="font-size:13px;">جنس هیت‌سینک آلومینیوم تقویت‌شده با لنز اورجینال ضدحرارت.</p>
-				<div style="margin-top:10px;font-size:12px;color:#64748B;">شناسه پارت: BN96-45913A</div>
-			</div>
-			<div class="pixva-card">
-				<span class="pixva-badge pixva-badge--success">موجود در کارگاه علاءالدین</span>
-				<h4 style="margin:0.6rem 0;color:#0F172A;">برد پاور تلویزیون سونی 55X8500G</h4>
-				<p class="pixva-muted" style="font-size:13px;">تست‌شده زیر بار ۲۴ ساعته با خازن‌های ژاپنی Rubycon اورجینال.</p>
-				<div style="margin-top:10px;font-size:12px;color:#64748B;">شناسه پارت: 1-984-255-11</div>
-			</div>
-			<div class="pixva-card">
-				<span class="pixva-badge pixva-badge--brand">آماده تحویل ۱ ساعته</span>
-				<h4 style="margin:0.6rem 0;color:#0F172A;">مین‌برد ال‌جی 49LJ520V</h4>
-				<p class="pixva-muted" style="font-size:13px;">پروگرام‌شده با فریمور فارسی و تیونر دیجیتال DVB-T2 فعال.</p>
-				<div style="margin-top:10px;font-size:12px;color:#64748B;">شناسه پارت: EAX67166104</div>
-			</div>
-		</div>
+		<?php
+		foreach ( array( 14, 22, 51, 30, 46 ) as $pixva_tool_id ) {
+			echo pixva_render_tool_by_id( $pixva_tool_id, 'section' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		?>
+		<aside class="pixva-notice pixva-notice--info">
+			<strong><?php esc_html_e( 'ثبت قطعه در انبار:', 'pixva' ); ?></strong>
+			<?php esc_html_e( 'مدیر سایت می‌تواند هر قطعه را با شماره سریال، کد فنی، موجودی، قیمت و مدت گارانتی در پیشخوان ← انبار قطعات ثبت کند؛ استعلام‌های این صفحه از همان رکوردها خوانده می‌شود.', 'pixva' ); ?>
+		</aside>
+		<?php
+		while ( have_posts() ) :
+			the_post();
+			if ( get_the_content() ) {
+				echo '<div class="pixva-content">';
+				the_content();
+				echo '</div>';
+			}
+		endwhile;
+		?>
 	</div>
 </main>
 <?php

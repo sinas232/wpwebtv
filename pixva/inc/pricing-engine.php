@@ -5,10 +5,18 @@
  * منبع حقیقت قیمت‌گذاری پیکسوا. هیچ فرمول قیمتی در جاوااسکریپت نیست؛
  * همه محاسبات در همین پرونده PHP انجام و به‌صورت JSON خروجی داده می‌شود.
  *
- * فرمول محاسباتی (نرخ پایه سال ۱۴۰۵):
+ * فرمول محاسباتی (نرخ پایه بازار ۱۴۰۵ — Master Specification v25.0):
  *
- *   Price_Min = (Base_Min × BrandMultiplier × SizeFactor_Min) + DiagnosticFee_Min
- *   Price_Max = (Base_Max × BrandMultiplier × SizeFactor_Max) + DiagnosticFee_Max
+ *   SizeFactor  = 1.0 + ((Size − 32) / 32)^1.35      (برای سایز ۳۲ ضریب ۱٫۰)
+ *   Price_Min   = (Base_Min × BrandMultiplier × TechFactor × SizeFactor_Min) + DiagnosticFee_Min
+ *   Price_Max   = (Base_Max × BrandMultiplier × TechFactor × SizeFactor_Max) + DiagnosticFee_Max
+ *   Price_Min   = max(Price_Min , Floor_Min)          (کف قیمت نرخ‌نامه رعایت می‌شود)
+ *
+ * کف قیمت چهار خدمت اصلی نرخ‌نامه ۱۴۰۵ (۳۲ اینچ):
+ *   تعویض کامل بک‌لایت ................ ۸٬۰۰۰٬۰۰۰ تومان
+ *   تعمیر/تعویض برد تغذیه (Power) ..... ۹٬۵۰۰٬۰۰۰ تومان
+ *   تعمیر/تعویض برد اصلی (Mainboard) .. ۱۲٬۵۰۰٬۰۰۰ تومان
+ *   ترمیم لیزری پنل / آب‌خوردگی (T-Con) ۱۶٬۰۰۰٬۰۰۰ تومان
  *
  * - «Base» قیمت پایه هر خدمت است که ضریب کلی نرخ (۰٫۵ تا ۳) و ضریب تکنولوژی صفحه
  *   روی آن اعمال می‌شود و سپس وارد فرمول بالا می‌شود.
@@ -46,57 +54,77 @@ if ( ! function_exists( 'pixva_pricing_service_defaults' ) ) {
 	 */
 	function pixva_pricing_service_defaults() {
 		return array(
-			// چهار خدمت اصلی نرخ‌نامه با کف ۸ میلیون تومان (۳۲ اینچ) مطابق مستر اسپک v21.0
+			/*
+			 * چهار خدمت اصلی نرخ‌نامه ۱۴۰۵ مطابق مستر اسپک v25.0.
+			 * «min» همان کف قیمت ۳۲ اینچ است و «max» طوری کالیبره شده که برای
+			 * برندهای پرفروش بازار (ضریب ۱٫۱۸ مانند سامسونگ و ال‌جی) بازه برآورد
+			 * دقیقاً روی جدول مرجع بازار ۱۴۰۵ بنشیند:
+			 *   بک‌لایت   ۵۵ اینچ: ۱۵٫۵ تا ۲۱ میلیون   | ۶۵ تا ۸۵ اینچ: ۲۶ تا ۴۲ میلیون
+			 *   برد پاور  ۵۵ اینچ: ۱۸ تا ۲۶ میلیون     | ۶۵ تا ۸۵ اینچ: ۳۲ تا ۴۸ میلیون
+			 *   برد اصلی  ۵۵ اینچ: ۲۵ تا ۳۶ میلیون     | ۶۵ تا ۸۵ اینچ: ۴۵ تا ۶۸ میلیون
+			 *   T-Con     ۵۵ اینچ: ۳۲ تا ۴۸ میلیون     | ۶۵ تا ۸۵ اینچ: ۵۸ تا ۸۵ میلیون
+			 *
+			 * part_share = سهم قطعه فابریک در قیمت (باقی اجرت تخصصی و ذخیره گارانتی).
+			 */
 			'backlight'  => array(
 				'min'        => 8000000,
-				'max'        => 10500000,
+				'max'        => 10000000,
 				'size_class' => 'full',
+				'part_share' => 0.62,
 			),
 			'powerboard' => array(
 				'min'        => 9500000,
-				'max'        => 13000000,
-				'size_class' => 'weak',
+				'max'        => 12500000,
+				'size_class' => 'full',
+				'part_share' => 0.48,
 			),
 			'mainboard'  => array(
 				'min'        => 12500000,
-				'max'        => 18000000,
-				'size_class' => 'weak',
+				'max'        => 17200000,
+				'size_class' => 'full',
+				'part_share' => 0.44,
 			),
 			'water'      => array(
 				'min'        => 16000000,
-				'max'        => 24000000,
-				'size_class' => 'mid',
+				'max'        => 23000000,
+				'size_class' => 'full',
+				'part_share' => 0.55,
 			),
-			'no_sound'   => array(
-				'min'        => 4500000,
-				'max'        => 8000000,
-				'size_class' => 'weak',
+			'lines'      => array(
+				'min'        => 16000000,
+				'max'        => 20000000,
+				'size_class' => 'full',
+				'part_share' => 0.55,
 			),
-			// سایر خدمات محاسبه‌گر هماهنگ با کف بازار
+			'panel'      => array(
+				'min'        => 16000000,
+				'max'        => 20000000,
+				'size_class' => 'full',
+				'part_share' => 0.55,
+			),
 			'no_power'   => array(
 				'min'        => 9500000,
-				'max'        => 13500000,
-				'size_class' => 'weak',
+				'max'        => 12500000,
+				'size_class' => 'full',
+				'part_share' => 0.48,
+			),
+			'no_picture' => array(
+				'min'        => 9000000,
+				'max'        => 14000000,
+				'size_class' => 'mid',
+				'part_share' => 0.46,
 			),
 			'blink'      => array(
 				'min'        => 8500000,
 				'max'        => 12000000,
 				'size_class' => 'mid',
+				'part_share' => 0.45,
 			),
-			'no_picture' => array(
-				'min'        => 9000000,
-				'max'        => 15000000,
-				'size_class' => 'mid',
-			),
-			'lines'      => array(
-				'min'        => 16000000,
-				'max'        => 24000000,
-				'size_class' => 'mid',
-			),
-			'panel'      => array(
-				'min'        => 16000000,
-				'max'        => 25000000,
-				'size_class' => 'mid',
+			'no_sound'   => array(
+				'min'        => 4500000,
+				'max'        => 8000000,
+				'size_class' => 'weak',
+				'part_share' => 0.40,
 			),
 		);
 	}
@@ -423,16 +451,180 @@ if ( ! function_exists( 'pixva_calculate_estimate' ) ) {
 		$price_min = (int) ( floor( $price_min / 50000 ) * 50000 );
 		$price_max = (int) ( ceil( $price_max / 50000 ) * 50000 );
 
+		// کف قیمت نرخ‌نامه: برآورد هیچ‌گاه از پایه ۳۲ اینچ خدمت کمتر نمی‌شود
+		// (مثلاً تعویض کامل بک‌لایت هرگز زیر ۸٬۰۰۰٬۰۰۰ تومان اعلام نمی‌گردد).
+		$floor_min = (int) $settings['services'][ $problem ]['min'];
+		if ( $price_min < $floor_min ) {
+			$price_min = $floor_min;
+		}
+
 		if ( $price_max < $price_min ) {
 			$price_max = $price_min;
 		}
 
-		return array(
+		$estimate = array(
 			'min'               => $price_min,
 			'max'               => $price_max,
 			'days'              => isset( $days[ $problem ] ) ? (string) $days[ $problem ] : '',
 			'panel_replacement' => false,
 			'warning'           => '',
+			'service'           => $problem,
+			'brand'             => $brand,
+			'tech'              => $tech,
+			'size'              => $size,
+			'size_factor'       => round( $sf_min, 3 ),
+			'brand_multiplier'  => round( $brand_mult, 2 ),
+			'tech_factor'       => (float) $techs[ $tech ],
+		);
+
+		$estimate['breakdown'] = pixva_estimate_breakdown( $estimate, $settings, $services[ $problem ] );
+
+		return $estimate;
+	}
+}
+
+if ( ! function_exists( 'pixva_estimate_breakdown' ) ) {
+	/**
+	 * تفکیک شفاف برآورد به قطعه، اجرت، ذخیره گارانتی و هزینه کارشناسی.
+	 *
+	 * همه درصدها از ساختار هزینه واقعی کارگاه می‌آید (part_share هر خدمت) و
+	 * محاسبه کاملاً قطعی است.
+	 *
+	 * @param array $estimate نتیجه pixva_calculate_estimate().
+	 * @param array $settings تنظیمات نرخ‌نامه.
+	 * @param array $service  تعریف خدمت از مقادیر پایه.
+	 * @return array<string, array<string, mixed>>
+	 */
+	function pixva_estimate_breakdown( $estimate, $settings, $service ) {
+		$part_share = isset( $service['part_share'] ) ? (float) $service['part_share'] : 0.5;
+		$warranty   = 0.025; // ذخیره گارانتی ۱۸۰ روزه: ۲٫۵٪ از هسته قیمت.
+
+		$rows = array();
+		foreach ( array( 'min', 'max' ) as $bound ) {
+			$diagnostic = (float) ( 'min' === $bound ? $settings['diagnostic_min'] : $settings['diagnostic_max'] );
+			$core       = max( 0, (float) $estimate[ $bound ] - $diagnostic );
+			$part       = (int) round( ( $core * $part_share ) / 50000 ) * 50000;
+			$warranty_v = (int) round( ( $core * $warranty ) / 50000 ) * 50000;
+			$labor      = (int) max( 0, $core - $part - $warranty_v );
+
+			$rows[ $bound ] = array(
+				'part'       => $part,
+				'labor'      => $labor,
+				'warranty'   => $warranty_v,
+				'diagnostic' => (int) $diagnostic,
+				'total'      => (int) $estimate[ $bound ],
+			);
+		}
+
+		return array(
+			'labels' => array(
+				'part'       => __( 'قطعه فابریک', 'pixva' ),
+				'labor'      => __( 'اجرت تخصصی کارگاه', 'pixva' ),
+				'warranty'   => __( 'ذخیره گارانتی ۱۸۰ روزه', 'pixva' ),
+				'diagnostic' => __( 'هزینه کارشناسی و عیب‌یابی', 'pixva' ),
+			),
+			'values' => $rows,
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_pricing_market_bands' ) ) {
+	/**
+	 * جدول بازه‌های مرجع بازار ۱۴۰۵ (مستر اسپک v25.0) برای نرخ‌نامه عمومی.
+	 *
+	 * این جدول داده مرجع اعلام‌شده کارگاه است و مستقیماً در صفحه نرخ‌نامه و
+	 * ابزارهای محاسبه‌گر نمایش داده می‌شود.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_pricing_market_bands() {
+		$bands = array(
+			array(
+				'service' => 'backlight',
+				'title'   => __( 'تعویض کامل بک‌لایت', 'pixva' ),
+				'floor'   => 8000000,
+				'size_55' => array( 15500000, 21000000 ),
+				'size_65' => array( 26000000, 42000000 ),
+				'note'    => __( 'دست کامل فابریک با هیت‌سینک آلومینیومی و اصلاحیه ولتاژ برد پاور.', 'pixva' ),
+			),
+			array(
+				'service' => 'powerboard',
+				'title'   => __( 'تعمیر / تعویض برد تغذیه (Power)', 'pixva' ),
+				'floor'   => 9500000,
+				'size_55' => array( 18000000, 26000000 ),
+				'size_65' => array( 32000000, 48000000 ),
+				'note'    => __( 'تست ولتاژ استندبای، تعویض ماس‌فت و آی‌سی سوئیچینگ با قطعه اورجینال.', 'pixva' ),
+			),
+			array(
+				'service' => 'mainboard',
+				'title'   => __( 'تعمیر / تعویض برد اصلی (Mainboard)', 'pixva' ),
+				'floor'   => 12500000,
+				'size_55' => array( 25000000, 36000000 ),
+				'size_65' => array( 45000000, 68000000 ),
+				'note'    => __( 'پروگرام مجدد حافظه eMMC/NAND یا ریبال آی‌سی با دستگاه BGA.', 'pixva' ),
+			),
+			array(
+				'service' => 'water',
+				'title'   => __( 'ترمیم لیزری پنل / آب‌خوردگی (T-Con)', 'pixva' ),
+				'floor'   => 16000000,
+				'size_55' => array( 32000000, 48000000 ),
+				'size_65' => array( 58000000, 85000000 ),
+				'note'    => __( 'بندینگ مجدد فلت‌های COF زیر میکروسکوپ صنعتی؛ فقط در صورت سالم بودن گلس.', 'pixva' ),
+			),
+		);
+
+		return apply_filters( 'pixva_pricing_market_bands', $bands );
+	}
+}
+
+if ( ! function_exists( 'pixva_pricing_reference_table' ) ) {
+	/**
+	 * جدول مرجع قیمت برای نمایش عمومی: برای هر خدمت و سایز، بازه محاسبه‌شده
+	 * با پیکربندی مرجع (برند میانگین بازار و تکنولوژی LED).
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_pricing_reference_table() {
+		$settings  = pixva_pricing_settings();
+		$brands    = $settings['brands'];
+		$avg_brand = 1.0;
+		if ( ! empty( $brands ) ) {
+			$avg_brand = round( array_sum( $brands ) / count( $brands ), 3 );
+		}
+
+		// برند مرجع: نزدیک‌ترین برند به میانگین ضریب بازار.
+		$reference_brand = 'xiaomi';
+		$best_delta      = null;
+		foreach ( $brands as $key => $multiplier ) {
+			$delta = abs( (float) $multiplier - $avg_brand );
+			if ( null === $best_delta || $delta < $best_delta ) {
+				$best_delta      = $delta;
+				$reference_brand = $key;
+			}
+		}
+
+		$rows = array();
+		foreach ( pixva_pricing_market_bands() as $band ) {
+			$row = array(
+				'title'    => $band['title'],
+				'floor'    => $band['floor'],
+				'size_55'  => $band['size_55'],
+				'size_65'  => $band['size_65'],
+				'note'     => $band['note'],
+				'computed' => array(),
+			);
+			foreach ( array( '55', '65', '75', '85' ) as $size ) {
+				$estimate = pixva_calculate_estimate( $reference_brand, 'led', $size, $band['service'] );
+				$row['computed'][ $size ] = is_array( $estimate )
+					? array( (int) $estimate['min'], (int) $estimate['max'] )
+					: array( 0, 0 );
+			}
+			$rows[] = $row;
+		}
+
+		return array(
+			'reference_brand' => $reference_brand,
+			'rows'            => $rows,
 		);
 	}
 }

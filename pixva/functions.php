@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
 define( 'PIXVA_VERSION', '1.2.0' );
+define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -28,13 +29,19 @@ require_once PIXVA_DIR . '/inc/custom-post-types.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
 require_once PIXVA_DIR . '/inc/control-center.php';
 require_once PIXVA_DIR . '/inc/admin-settings.php';
+require_once PIXVA_DIR . '/inc/hubs.php';
+require_once PIXVA_DIR . '/inc/tool-data.php';
+require_once PIXVA_DIR . '/inc/tools-registry.php';
+require_once PIXVA_DIR . '/inc/tool-renderers.php';
 require_once PIXVA_DIR . '/inc/ai-bot.php';
 require_once PIXVA_DIR . '/inc/interactive-tools.php';
 require_once PIXVA_DIR . '/inc/rest-api.php';
 require_once PIXVA_DIR . '/inc/roles-and-cron.php';
 require_once PIXVA_DIR . '/inc/elementor-support.php';
+require_once PIXVA_DIR . '/inc/elementor-widgets.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
+require_once PIXVA_DIR . '/inc/pwa.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
 require_once PIXVA_DIR . '/inc/activation.php';
@@ -133,6 +140,12 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
 		}
 
+		/*
+		 * لایه طراحی ۲۰۲۶ (Calm Premium) همیشه آخرین لایه است تا توکن‌ها، هدر شیشه‌ای،
+		 * مگامنو، فوتر سرمه‌ای و انیمیشن‌های جدید بر قواعد قدیمی کامپوننت‌ها اولویت داشته باشند.
+		 */
+		wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array( 'pixva-main' ), PIXVA_VERSION );
+
 		wp_enqueue_script(
 			'pixva-main',
 			PIXVA_URI . '/assets/js/main.js',
@@ -180,10 +193,45 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			'pixva-tools',
 			'pixvaVars',
 			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'pixva_nonce' ),
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				'restUrl'      => esc_url_raw( rest_url( 'pixva/v1' ) ),
+				'homeUrl'      => esc_url_raw( home_url( '/' ) ),
+				'nonce'        => wp_create_nonce( 'pixva_nonce' ),
+				'nonces'       => array(
+					'tool'       => wp_create_nonce( 'pixva_nonce' ),
+					'calculator' => wp_create_nonce( 'pixva_calculator_nonce' ),
+					'order'      => wp_create_nonce( 'pixva_order_nonce' ),
+					'tracking'   => wp_create_nonce( 'pixva_tracking_nonce' ),
+					'contact'    => wp_create_nonce( 'pixva_contact_nonce' ),
+				),
+				'aiConfigured' => function_exists( 'pixva_ai_is_configured' ) && pixva_ai_is_configured(),
+				'pwa'          => array(
+					'enabled' => function_exists( 'pixva_pwa_enabled' ) && pixva_pwa_enabled(),
+					'offline' => function_exists( 'pixva_pwa_offline_message' ) ? pixva_pwa_offline_message() : '',
+				),
+				'i18n'         => array(
+					'toman'    => esc_html__( 'تومان', 'pixva' ),
+					'loading'  => esc_html__( 'در حال پردازش…', 'pixva' ),
+					'error'    => esc_html__( 'خطایی رخ داد؛ دوباره تلاش کنید.', 'pixva' ),
+					'sent'     => esc_html__( 'ارسال شد', 'pixva' ),
+					'analysis' => esc_html__( 'در حال تحلیل…', 'pixva' ),
+				),
 			)
 		);
+
+		// کتابخانه تولید QR (فقط در صفحه‌هایی که کارت QR گارانتی دارند).
+		if ( pixva_needs_qrcode_js() ) {
+			wp_enqueue_script(
+				'pixva-qrcode',
+				PIXVA_URI . '/assets/js/vendor/qrcode-generator.js',
+				array(),
+				'2.0.4',
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
+		}
 
 		if ( pixva_needs_calculator_js() ) {
 			wp_enqueue_script(
@@ -268,6 +316,10 @@ if ( ! function_exists( 'pixva_needs_components_css' ) ) {
 			|| is_singular( 'tv_services' )
 			|| is_singular( 'tv_brands' )
 			|| is_singular( 'repair_cases' )
+			|| is_singular( 'pixva_repair' )
+			|| is_singular( 'pixva_part' )
+			|| is_singular( 'pixva_error' )
+			|| is_singular( 'pixva_branch' )
 			|| is_page_template(
 				array(
 					'page-templates/page-calculator.php',
@@ -276,8 +328,16 @@ if ( ! function_exists( 'pixva_needs_components_css' ) ) {
 					'page-templates/page-faq.php',
 					'page-templates/page-contact.php',
 					'page-templates/page-rates.php',
+					'page-templates/page-hub-ai.php',
+					'page-templates/page-hub-pricing.php',
+					'page-templates/page-hub-tracking.php',
+					'page-templates/page-hub-parts-b2b.php',
+					'page-templates/page-parts-stock.php',
+					'page-templates/page-client-hub.php',
+					'page-templates/page-b2b.php',
 				)
 			)
+			|| is_page()
 			|| is_404()
 			|| is_search()
 		);
@@ -310,8 +370,29 @@ if ( ! function_exists( 'pixva_needs_before_after_js' ) ) {
 		return (
 			is_front_page()
 			|| is_singular( 'repair_cases' )
-			|| is_page_template( 'page-templates/page-about.php' )
+			|| is_page_template(
+				array(
+					'page-templates/page-about.php',
+					'page-templates/page-hub-ai.php',
+				)
+			)
 		);
+	}
+}
+
+if ( ! function_exists( 'pixva_needs_qrcode_js' ) ) {
+	/**
+	 * آیا صفحه جاری کارت QR گارانتی دارد؟
+	 *
+	 * @return bool
+	 */
+	function pixva_needs_qrcode_js() {
+		if ( is_admin() ) {
+			return false;
+		}
+
+		// کارت QR استعلام گارانتی در فوتر همه صفحه‌های عمومی نمایش داده می‌شود.
+		return (bool) apply_filters( 'pixva_needs_qrcode_js', (bool) pixva_option( 'pixva_footer_qr_enabled', true ) );
 	}
 }
 
@@ -473,6 +554,12 @@ if ( ! function_exists( 'pixva_body_classes' ) ) {
 		}
 		if ( wp_is_mobile() ) {
 			$classes[] = 'pixva-is-mobile';
+		}
+		if ( function_exists( 'pixva_current_hub' ) ) {
+			$hub = pixva_current_hub();
+			if ( $hub ) {
+				$classes[] = 'pixva-hub-' . sanitize_html_class( $hub );
+			}
 		}
 		return $classes;
 	}

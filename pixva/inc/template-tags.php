@@ -484,6 +484,17 @@ function pixva_icon( $name ) {
 		'cert'     => '<circle cx="12" cy="10" r="5"/><path d="M9 14.5L8 20l4-2 4 2-1-5.5"/>',
 		'user'     => '<circle cx="12" cy="8" r="3"/><path d="M5 19c1.4-3 3.8-4.5 7-4.5S17.6 16 19 19"/>',
 		'book'     => '<path d="M5 5.5A3.5 3.5 0 0 1 8.5 4H20v15H8.5A3.5 3.5 0 0 0 5 22.5z"/><path d="M5 5.5V22"/>',
+		'ai'       => '<path d="M12 3.5l1.6 3.9 3.9 1.6-3.9 1.6L12 14.5l-1.6-3.9L6.5 9l3.9-1.6z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/><path d="M5.5 14l.6 1.6 1.6.6-1.6.6L5.5 18.4 4.9 16.8 3.3 16.2l1.6-.6z"/>',
+		'camera'   => '<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>',
+		'mic'      => '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>',
+		'layers'   => '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/>',
+		'chart'    => '<path d="M4 20V6M4 20h16"/><path d="M8 20v-6M12.5 20V9M17 20v-4"/>',
+		'box'      => '<path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/>',
+		'route'    => '<circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.4 6H14a3.5 3.5 0 0 1 0 7H9a3.5 3.5 0 0 0 0 7h6.6"/>',
+		'calendar' => '<rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M3.5 10.5h17"/>',
+		'plug'     => '<path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/>',
+		'doc'      => '<path d="M6.5 3.5h7L18 8v12.5H6.5z"/><path d="M13 3.5V8h5"/><path d="M9 12h6M9 15.5h6"/>',
+		'calculator' => '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8 11.5h2M12 11.5h2M16 11.5h0M8 15.5h2M12 15.5h2M16 15.5h0"/>',
 	);
 
 	if ( ! isset( $paths[ $name ] ) ) {
@@ -856,11 +867,13 @@ function pixva_pagination() {
  *
  * @param string $title    عنوان.
  * @param string $subtitle زیرعنوان.
+ * @param string $class    کلاس افزوده (مثلاً pixva-hub-hero برای صفحه‌های هاب).
  * @return void
  */
-function pixva_page_hero( $title, $subtitle = '' ) {
+function pixva_page_hero( $title, $subtitle = '', $class = '' ) {
+	$classes = 'pixva-page-hero' . ( '' !== $class ? ' ' . $class : '' );
 	?>
-	<header class="pixva-page-hero">
+	<header class="<?php echo esc_attr( $classes ); ?>">
 		<div class="pixva-container">
 			<?php pixva_breadcrumbs(); ?>
 			<h1><?php echo esc_html( $title ); ?></h1>
@@ -1122,9 +1135,10 @@ function pixva_render_faq( $items, $prefix = 'faq' ) {
 		$id = $prefix . '-' . $index;
 		echo '<div class="pixva-faq__item">';
 		echo '<h3 class="pixva-faq__heading"><button type="button" class="pixva-faq__q" aria-expanded="false" aria-controls="' . esc_attr( $id ) . '">';
-		echo '<span>' . esc_html( $item['q'] ) . '</span>' . pixva_icon( 'chevron' );
+		echo '<span>' . esc_html( $item['q'] ) . '</span>';
+		echo '<span class="pixva-faq__icon" aria-hidden="true"></span>';
 		echo '</button></h3>';
-		echo '<div id="' . esc_attr( $id ) . '" class="pixva-faq__a" hidden><p>' . esc_html( $item['a'] ) . '</p></div>';
+		echo '<div id="' . esc_attr( $id ) . '" class="pixva-faq__a"><p>' . esc_html( $item['a'] ) . '</p></div>';
 		echo '</div>';
 		++$index;
 	}
@@ -1514,5 +1528,122 @@ function pixva_render_error_database() {
 		</div>
 		<p class="pixva-notice pixva-notice--info" data-empty hidden><?php esc_html_e( 'موردی با این فیلتر پیدا نشد. تعداد چشمک را دوباره بشمارید یا برند را روی همه بگذارید.', 'pixva' ); ?></p>
 	</div>
+	<?php
+}
+
+/**
+ * جدول مرجع نرخ‌نامه بازار ۱۴۰۵ (مستر اسپک v25.0).
+ *
+ * دو بخش دارد:
+ * ۱) بازه‌های اعلام‌شده بازار برای چهار خدمت اصلی در سایزهای ۵۵ و ۶۵ تا ۸۵ اینچ.
+ * ۲) خروجی واقعی موتور نرخ‌نامه برای برند مرجع بازار در همان سایزها، تا مشتری
+ *    ببیند برآورد آنلاین دقیقاً از کدام فرمول می‌آید.
+ *
+ * @return void
+ */
+function pixva_render_rates_reference() {
+	if ( ! function_exists( 'pixva_pricing_market_bands' ) ) {
+		return;
+	}
+
+	$bands    = pixva_pricing_market_bands();
+	$settings = pixva_pricing_settings();
+	$labels   = pixva_calculator_labels();
+	$reference = function_exists( 'pixva_pricing_reference_table' ) ? pixva_pricing_reference_table() : array();
+	$ref_brand = isset( $reference['reference_brand'] ) ? $reference['reference_brand'] : 'samsung';
+	$ref_label = isset( $labels['brand'][ $ref_brand ] ) ? $labels['brand'][ $ref_brand ] : $ref_brand;
+	$computed  = array();
+	if ( isset( $reference['rows'] ) ) {
+		foreach ( $reference['rows'] as $row ) {
+			$computed[ $row['title'] ] = $row['computed'];
+		}
+	}
+	?>
+	<section class="pixva-card pixva-rates-reference">
+		<span class="pixva-badge pixva-badge--brand"><?php esc_html_e( 'نرخ‌نامه مصوب بازار ۱۴۰۵', 'pixva' ); ?></span>
+		<h2><?php esc_html_e( 'بازه قیمت چهار خدمت اصلی', 'pixva' ); ?></h2>
+		<p class="pixva-muted"><?php esc_html_e( 'کف قیمت برای سایز ۳۲ اینچ اعلام می‌شود و بازه سایزهای بزرگ‌تر بر اساس فرمول ضریب سایز محاسبه می‌گردد.', 'pixva' ); ?></p>
+
+		<div class="pixva-table-scroll">
+			<table class="pixva-rates-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'خدمت', 'pixva' ); ?></th>
+						<th><?php esc_html_e( 'کف ۳۲ اینچ', 'pixva' ); ?></th>
+						<th><?php esc_html_e( 'بازه ۵۵ اینچ', 'pixva' ); ?></th>
+						<th><?php esc_html_e( 'بازه ۶۵ تا ۸۵ اینچ', 'pixva' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $bands as $band ) : ?>
+						<tr>
+							<td>
+								<strong><?php echo esc_html( $band['title'] ); ?></strong>
+								<small class="pixva-muted"><?php echo esc_html( $band['note'] ); ?></small>
+							</td>
+							<td class="pixva-latin"><?php echo esc_html( pixva_price( (int) $band['floor'] ) ); ?></td>
+							<td class="pixva-latin"><?php echo esc_html( pixva_price( (int) $band['size_55'][0] ) . ' – ' . pixva_price( (int) $band['size_55'][1] ) ); ?></td>
+							<td class="pixva-latin"><?php echo esc_html( pixva_price( (int) $band['size_65'][0] ) . ' – ' . pixva_price( (int) $band['size_65'][1] ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+
+		<h3><?php esc_html_e( 'خروجی زنده موتور نرخ‌نامه', 'pixva' ); ?></h3>
+		<p class="pixva-muted">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: برند مرجع */
+					__( 'برآورد زیر برای برند مرجع بازار (%s) و تکنولوژی LED از فرمول نرخ‌نامه محاسبه شده است؛ با انتخاب برند دیگر در محاسبه‌گر، ضریب برند تغییر می‌کند.', 'pixva' ),
+					$ref_label
+				)
+			);
+			?>
+		</p>
+		<div class="pixva-table-scroll">
+			<table class="pixva-rates-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'خدمت', 'pixva' ); ?></th>
+						<?php foreach ( array( '55', '65', '75', '85' ) as $size ) : ?>
+							<th><?php echo esc_html( sprintf( __( '%s اینچ', 'pixva' ), pixva_fa_num( $size ) ) ); ?></th>
+						<?php endforeach; ?>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $bands as $band ) : ?>
+						<?php $row = isset( $computed[ $band['title'] ] ) ? $computed[ $band['title'] ] : array(); ?>
+						<tr>
+							<td><strong><?php echo esc_html( $band['title'] ); ?></strong></td>
+							<?php foreach ( array( '55', '65', '75', '85' ) as $size ) : ?>
+								<td class="pixva-latin">
+									<?php
+									if ( isset( $row[ $size ] ) && (int) $row[ $size ][1] > 0 ) {
+										echo esc_html( pixva_price( (int) $row[ $size ][0] ) . ' – ' . pixva_price( (int) $row[ $size ][1] ) );
+									} else {
+										echo esc_html( '—' );
+									}
+									?>
+								</td>
+							<?php endforeach; ?>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+
+		<h3><?php esc_html_e( 'ضریب برندها در نرخ‌نامه', 'pixva' ); ?></h3>
+		<ul class="pixva-brand-multipliers">
+			<?php foreach ( $settings['brands'] as $key => $multiplier ) : ?>
+				<li>
+					<span><?php echo esc_html( isset( $labels['brand'][ $key ] ) ? $labels['brand'][ $key ] : $key ); ?></span>
+					<b class="pixva-latin"><?php echo esc_html( pixva_fa_num( number_format_i18n( (float) $multiplier, 2 ) ) ); ?></b>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+		<p class="pixva-muted"><?php esc_html_e( 'فرمول: قیمت = (پایه خدمت × ضریب برند × ضریب تکنولوژی × ضریب سایز) + هزینه کارشناسی. ضریب سایز = ۱ + ((سایز − ۳۲) ÷ ۳۲)^۱٫۳۵ و قیمت هیچ‌گاه از کف نرخ‌نامه کمتر نمی‌شود.', 'pixva' ); ?></p>
+	</section>
 	<?php
 }

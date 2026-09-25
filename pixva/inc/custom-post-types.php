@@ -211,10 +211,35 @@ function pixva_register_content_types() {
 		)
 	);
 
+	// گزارش‌های تعمیر و دانش فنی کارگاه (pixva_repair)
+	register_post_type(
+		'pixva_repair',
+		array(
+			'labels'        => array(
+				'name'          => esc_html__( 'گزارش‌های تعمیر', 'pixva' ),
+				'singular_name' => esc_html__( 'گزارش تعمیر', 'pixva' ),
+				'add_new_item'  => esc_html__( 'ثبت گزارش تعمیر جدید', 'pixva' ),
+				'edit_item'     => esc_html__( 'ویرایش گزارش تعمیر', 'pixva' ),
+				'all_items'     => esc_html__( 'همه گزارش‌ها', 'pixva' ),
+				'search_items'  => esc_html__( 'جست‌وجوی گزارش تعمیر', 'pixva' ),
+				'not_found'     => esc_html__( 'گزارشی یافت نشد.', 'pixva' ),
+				'menu_name'     => esc_html__( 'گزارش‌های تعمیر', 'pixva' ),
+			),
+			'description'   => esc_html__( 'مستندسازی فنی هر پرونده تعمیر: علائم، عیب‌یابی، قطعه تعویضی، مدت تعمیر و بازه هزینه.', 'pixva' ),
+			'public'        => true,
+			'menu_icon'     => 'dashicons-clipboard',
+			'menu_position' => 29,
+			'supports'      => array( 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields', 'revisions' ),
+			'has_archive'   => true,
+			'rewrite'       => array( 'slug' => 'repairs', 'with_front' => false ),
+			'show_in_rest'  => true,
+		)
+	);
+
 	// تاکسونومی نوع خرابی.
 	register_taxonomy(
 		'tv_problem',
-		array( 'post', 'tv_services', 'repair_cases' ),
+		array( 'post', 'tv_services', 'repair_cases', 'pixva_repair' ),
 		array(
 			'labels'            => array(
 				'name'          => esc_html__( 'انواع خرابی', 'pixva' ),
@@ -235,7 +260,7 @@ function pixva_register_content_types() {
 	// تاکسونومی تکنولوژی صفحه.
 	register_taxonomy(
 		'tv_tech',
-		array( 'post', 'tv_services', 'tv_brands', 'repair_cases' ),
+		array( 'post', 'tv_services', 'tv_brands', 'repair_cases', 'pixva_repair' ),
 		array(
 			'labels'            => array(
 				'name'          => esc_html__( 'تکنولوژی صفحه', 'pixva' ),
@@ -811,5 +836,461 @@ if ( ! function_exists( 'pixva_find_order_by_code' ) ) {
 			return null;
 		}
 		return get_post( (int) $ids[0] );
+	}
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * ۳) انبار قطعات، کدهای خطا، شعبه‌ها و گزارش‌های تعمیر (v25.0)
+ * ---------------------------------------------------------------------------
+ */
+
+if ( ! function_exists( 'pixva_hub_meta_schema' ) ) {
+	/**
+	 * تعریف فیلدهای متاباکس برای CPTهای هاب.
+	 *
+	 * @return array<string, array<string, array<string, mixed>>>
+	 */
+	function pixva_hub_meta_schema() {
+		$brands  = function_exists( 'pixva_brand_catalog' ) ? pixva_brand_catalog() : array();
+		$sizes   = function_exists( 'pixva_size_catalog' ) ? pixva_size_catalog() : array();
+		$service = function_exists( 'pixva_problem_catalog' ) ? pixva_problem_catalog() : array();
+		$zones   = function_exists( 'pixva_zone_catalog' ) ? pixva_zone_catalog() : array();
+
+		return array(
+			'pixva_part'   => array(
+				'_pixva_part_serial'   => array( 'label' => __( 'شماره سریال قطعه', 'pixva' ), 'type' => 'text', 'hint' => __( 'سریال چاپ‌شده روی قطعه؛ مبنای استعلام اصالت در ابزار ۲۲ و ۳۰.', 'pixva' ) ),
+				'_pixva_part_sku'      => array( 'label' => __( 'کد فنی (SKU)', 'pixva' ), 'type' => 'text' ),
+				'_pixva_part_brand'    => array( 'label' => __( 'برند', 'pixva' ), 'type' => 'select', 'options' => wp_list_pluck( $brands, 'fa' ) ),
+				'_pixva_part_qty'      => array( 'label' => __( 'موجودی انبار', 'pixva' ), 'type' => 'number' ),
+				'_pixva_part_price'    => array( 'label' => __( 'قیمت (تومان)', 'pixva' ), 'type' => 'number' ),
+				'_pixva_part_warranty' => array( 'label' => __( 'گارانتی (روز)', 'pixva' ), 'type' => 'number', 'hint' => __( 'پیش‌فرض کارگاه ۱۸۰ روز است.', 'pixva' ) ),
+				'_pixva_part_batch'    => array( 'label' => __( 'کد پارتی ورود', 'pixva' ), 'type' => 'text' ),
+				'_pixva_part_origin'   => array( 'label' => __( 'کشور سازنده', 'pixva' ), 'type' => 'text' ),
+				'_pixva_part_status'   => array(
+					'label'   => __( 'وضعیت قطعه', 'pixva' ),
+					'type'    => 'select',
+					'options' => array(
+						'original' => __( 'فابریک (اورجینال)', 'pixva' ),
+						'oem'      => __( 'OEM سازگار', 'pixva' ),
+						'refurb'   => __( 'بازسازی‌شده کارگاهی', 'pixva' ),
+					),
+				),
+				'_pixva_part_sizes'    => array( 'label' => __( 'سایزهای سازگار (با ویرگول)', 'pixva' ), 'type' => 'text' ),
+			),
+			'pixva_error'  => array(
+				'_pixva_error_code'   => array( 'label' => __( 'کد خطا', 'pixva' ), 'type' => 'text', 'hint' => __( 'مثلاً E:20 یا ۶ چشمک چراغ استندبای.', 'pixva' ) ),
+				'_pixva_error_brand'  => array( 'label' => __( 'برند', 'pixva' ), 'type' => 'select', 'options' => wp_list_pluck( $brands, 'fa' ) ),
+				'_pixva_error_level'  => array(
+					'label'   => __( 'سطح خطر', 'pixva' ),
+					'type'    => 'select',
+					'options' => array(
+						'info'     => __( 'اطلاع‌رسانی', 'pixva' ),
+						'warning'  => __( 'هشدار', 'pixva' ),
+						'danger'   => __( 'خطرناک — نیاز به اعزام', 'pixva' ),
+						'critical' => __( 'بحرانی — قطع برق فوری', 'pixva' ),
+					),
+				),
+				'_pixva_error_part'   => array( 'label' => __( 'قطعه درگیر', 'pixva' ), 'type' => 'select', 'options' => $service ),
+				'_pixva_error_blinks' => array( 'label' => __( 'تعداد چشمک چراغ (اختیاری)', 'pixva' ), 'type' => 'number' ),
+			),
+			'pixva_branch' => array(
+				'_pixva_branch_address'   => array( 'label' => __( 'نشانی کامل', 'pixva' ), 'type' => 'textarea' ),
+				'_pixva_branch_phone'     => array( 'label' => __( 'شماره تماس', 'pixva' ), 'type' => 'text' ),
+				'_pixva_branch_hours'     => array( 'label' => __( 'ساعات کاری', 'pixva' ), 'type' => 'text' ),
+				'_pixva_branch_zones'     => array( 'label' => __( 'مناطق پوششی', 'pixva' ), 'type' => 'multiselect', 'options' => wp_list_pluck( $zones, 'label' ) ),
+				'_pixva_branch_map'       => array( 'label' => __( 'پیوند نقشه', 'pixva' ), 'type' => 'url' ),
+				'_pixva_branch_technician' => array( 'label' => __( 'تکنسین مسئول', 'pixva' ), 'type' => 'text' ),
+			),
+			'pixva_repair' => array(
+				'_pixva_repair_brand'    => array( 'label' => __( 'برند دستگاه', 'pixva' ), 'type' => 'select', 'options' => wp_list_pluck( $brands, 'fa' ) ),
+				'_pixva_repair_size'     => array( 'label' => __( 'سایز پنل', 'pixva' ), 'type' => 'select', 'options' => $sizes ),
+				'_pixva_repair_service'  => array( 'label' => __( 'خدمت انجام‌شده', 'pixva' ), 'type' => 'select', 'options' => $service ),
+				'_pixva_repair_duration' => array( 'label' => __( 'مدت تعمیر', 'pixva' ), 'type' => 'text', 'hint' => __( 'مثلاً ۴ ساعت کاری.', 'pixva' ) ),
+				'_pixva_repair_warranty' => array( 'label' => __( 'گارانتی (روز)', 'pixva' ), 'type' => 'number' ),
+				'_pixva_repair_cost_min' => array( 'label' => __( 'حداقل هزینه (تومان)', 'pixva' ), 'type' => 'number' ),
+				'_pixva_repair_cost_max' => array( 'label' => __( 'حداکثر هزینه (تومان)', 'pixva' ), 'type' => 'number' ),
+				'_pixva_repair_difficulty' => array(
+					'label'   => __( 'سطح دشواری', 'pixva' ),
+					'type'    => 'select',
+					'options' => array(
+						'easy'     => __( 'ساده', 'pixva' ),
+						'medium'   => __( 'متوسط', 'pixva' ),
+						'advanced' => __( 'پیشرفته (بندینگ/BGA)', 'pixva' ),
+					),
+				),
+				'_pixva_repair_parts'    => array( 'label' => __( 'قطعات تعویض‌شده', 'pixva' ), 'type' => 'text' ),
+			),
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_register_hub_meta' ) ) {
+	/**
+	 * ثبت رسمی متافیلدهای CPTهای هاب برای REST و گوتنبرگ.
+	 *
+	 * @return void
+	 */
+	function pixva_register_hub_meta() {
+		foreach ( pixva_hub_meta_schema() as $post_type => $fields ) {
+			foreach ( $fields as $key => $field ) {
+				register_post_meta(
+					$post_type,
+					$key,
+					array(
+						'type'         => 'number' === $field['type'] ? 'integer' : 'string',
+						'description'  => $field['label'],
+						'single'       => true,
+						'show_in_rest' => true,
+						'auth_callback' => static function () {
+							return current_user_can( 'edit_posts' );
+						},
+					)
+				);
+			}
+		}
+	}
+	add_action( 'init', 'pixva_register_hub_meta', 20 );
+}
+
+if ( ! function_exists( 'pixva_add_hub_meta_boxes' ) ) {
+	/**
+	 * افزودن متاباکس مشخصات به CPTهای هاب.
+	 *
+	 * @return void
+	 */
+	function pixva_add_hub_meta_boxes() {
+		foreach ( array_keys( pixva_hub_meta_schema() ) as $post_type ) {
+			add_meta_box(
+				'pixva_hub_meta_' . $post_type,
+				esc_html__( 'مشخصات فنی پیکسوا', 'pixva' ),
+				'pixva_render_hub_meta_box',
+				$post_type,
+				'normal',
+				'high'
+			);
+		}
+	}
+	add_action( 'add_meta_boxes', 'pixva_add_hub_meta_boxes' );
+}
+
+if ( ! function_exists( 'pixva_metabox_styles' ) ) {
+	/**
+	 * استایل سبک متاباکس‌های پیکسوا در پیشخوان.
+	 *
+	 * @return void
+	 */
+	function pixva_metabox_styles() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen || ! in_array( $screen->post_type, array( 'pixva_part', 'pixva_error', 'pixva_branch', 'pixva_repair', 'pixva_orders', 'repair_cases', 'post' ), true ) ) {
+			return;
+		}
+		?>
+		<style>
+			.pixva-metabox{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px 18px}
+			.pixva-metabox p{margin:0 0 10px}
+			.pixva-metabox label{display:block;margin-bottom:4px}
+			.pixva-metabox label strong{font-size:12.5px;color:rgb(18,59,74)}
+			.pixva-metabox .description,.pixva-metabox small{display:block;margin-top:4px;font-size:11.5px;color:rgb(91,122,135);line-height:1.8}
+			.pixva-metabox select[multiple]{min-height:110px}
+		</style>
+		<?php
+	}
+}
+add_action( 'admin_head-post.php', 'pixva_metabox_styles' );
+add_action( 'admin_head-post-new.php', 'pixva_metabox_styles' );
+
+if ( ! function_exists( 'pixva_render_hub_meta_box' ) ) {
+	/**
+	 * رندر متاباکس مشخصات فنی.
+	 *
+	 * @param WP_Post $post پرونده جاری.
+	 * @return void
+	 */
+	function pixva_render_hub_meta_box( $post ) {
+		$schema = pixva_hub_meta_schema();
+		if ( ! isset( $schema[ $post->post_type ] ) ) {
+			return;
+		}
+
+		wp_nonce_field( 'pixva_hub_meta', 'pixva_hub_meta_nonce' );
+
+		echo '<div class="pixva-metabox">';
+		foreach ( $schema[ $post->post_type ] as $key => $field ) {
+			$value = get_post_meta( $post->ID, $key, true );
+			echo '<p><label for="' . esc_attr( $key ) . '"><strong>' . esc_html( $field['label'] ) . '</strong></label>';
+
+			if ( 'select' === $field['type'] ) {
+				echo '<select id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" class="widefat">';
+				echo '<option value="">' . esc_html__( '— انتخاب کنید —', 'pixva' ) . '</option>';
+				foreach ( (array) $field['options'] as $option_key => $option_label ) {
+					echo '<option value="' . esc_attr( $option_key ) . '"' . selected( (string) $value, (string) $option_key, false ) . '>' . esc_html( $option_label ) . '</option>';
+				}
+				echo '</select>';
+			} elseif ( 'multiselect' === $field['type'] ) {
+				$selected = is_array( $value ) ? $value : array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
+				echo '<select id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '[]" class="widefat" multiple size="6">';
+				foreach ( (array) $field['options'] as $option_key => $option_label ) {
+					echo '<option value="' . esc_attr( $option_key ) . '"' . ( in_array( (string) $option_key, $selected, true ) ? ' selected' : '' ) . '>' . esc_html( $option_label ) . '</option>';
+				}
+				echo '</select>';
+			} elseif ( 'textarea' === $field['type'] ) {
+				echo '<textarea id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" class="widefat" rows="3">' . esc_textarea( (string) $value ) . '</textarea>';
+			} elseif ( 'number' === $field['type'] ) {
+				echo '<input type="number" step="1" min="0" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" class="widefat" value="' . esc_attr( (string) $value ) . '">';
+			} else {
+				$type = 'url' === $field['type'] ? 'url' : 'text';
+				echo '<input type="' . esc_attr( $type ) . '" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" class="widefat" value="' . esc_attr( (string) $value ) . '">';
+			}
+
+			if ( ! empty( $field['hint'] ) ) {
+				echo '<span class="description">' . esc_html( $field['hint'] ) . '</span>';
+			}
+			echo '</p>';
+		}
+		echo '</div>';
+	}
+}
+
+if ( ! function_exists( 'pixva_save_hub_meta' ) ) {
+	/**
+	 * ذخیره متادیتای متاباکس هاب‌ها.
+	 *
+	 * @param int $post_id شناسه پرونده.
+	 * @return void
+	 */
+	function pixva_save_hub_meta( $post_id ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( ! isset( $_POST['pixva_hub_meta_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['pixva_hub_meta_nonce'] ) ), 'pixva_hub_meta' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$post_type = get_post_type( $post_id );
+		$schema    = pixva_hub_meta_schema();
+		if ( ! isset( $schema[ $post_type ] ) ) {
+			return;
+		}
+
+		foreach ( $schema[ $post_type ] as $key => $field ) {
+			if ( 'multiselect' === $field['type'] ) {
+				$raw = isset( $_POST[ $key ] ) ? (array) wp_unslash( $_POST[ $key ] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				update_post_meta( $post_id, $key, array_values( array_filter( array_map( 'sanitize_key', $raw ) ) ) );
+				continue;
+			}
+
+			if ( ! isset( $_POST[ $key ] ) ) {
+				update_post_meta( $post_id, $key, '' );
+				continue;
+			}
+
+			$raw = wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+
+			if ( 'number' === $field['type'] ) {
+				update_post_meta( $post_id, $key, absint( $raw ) );
+			} elseif ( 'textarea' === $field['type'] ) {
+				update_post_meta( $post_id, $key, sanitize_textarea_field( $raw ) );
+			} elseif ( 'url' === $field['type'] ) {
+				update_post_meta( $post_id, $key, esc_url_raw( $raw ) );
+			} elseif ( 'select' === $field['type'] ) {
+				update_post_meta( $post_id, $key, sanitize_key( $raw ) );
+			} else {
+				update_post_meta( $post_id, $key, sanitize_text_field( $raw ) );
+			}
+		}
+	}
+	add_action( 'save_post', 'pixva_save_hub_meta' );
+}
+
+if ( ! function_exists( 'pixva_part_records' ) ) {
+	/**
+	 * رکوردهای انبار قطعات.
+	 *
+	 * اولویت با رکوردهای واقعی CPT «انبار قطعات فابریک» است؛ اگر مدیر هنوز
+	 * رکوردی ثبت نکرده باشد، کاتالوگ مرجع کارگاه (inc/tool-data.php) برگردانده
+	 * می‌شود تا ابزارها هیچ‌گاه خالی نمانند.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_part_records() {
+		$posts = get_posts(
+			array(
+				'post_type'      => 'pixva_part',
+				'post_status'    => 'publish',
+				'posts_per_page' => 120,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'no_found_rows'  => true,
+			)
+		);
+
+		$items = array();
+		if ( ! empty( $posts ) ) {
+			foreach ( $posts as $post ) {
+				$items[] = array(
+					'name'     => get_the_title( $post ),
+					'sku'      => (string) get_post_meta( $post->ID, '_pixva_part_sku', true ),
+					'brand'    => (string) get_post_meta( $post->ID, '_pixva_part_brand', true ),
+					'qty'      => (int) get_post_meta( $post->ID, '_pixva_part_qty', true ),
+					'price'    => (int) get_post_meta( $post->ID, '_pixva_part_price', true ),
+					'warranty' => (int) get_post_meta( $post->ID, '_pixva_part_warranty', true ) ?: pixva_warranty_days(),
+					'serial'   => (string) get_post_meta( $post->ID, '_pixva_part_serial', true ),
+					'status'   => (string) get_post_meta( $post->ID, '_pixva_part_status', true ),
+					'source'   => 'cpt',
+				);
+			}
+			update_option( 'pixva_stock_updated', time(), false );
+			return $items;
+		}
+
+		foreach ( pixva_stock_catalog() as $row ) {
+			$items[] = array(
+				'name'     => $row['name'],
+				'sku'      => $row['sku'],
+				'brand'    => $row['brand'],
+				'qty'      => (int) $row['qty'],
+				'price'    => (int) $row['price'],
+				'warranty' => (int) $row['warranty'],
+				'serial'   => '',
+				'status'   => 'original',
+				'source'   => 'defaults',
+			);
+		}
+
+		return $items;
+	}
+}
+
+if ( ! function_exists( 'pixva_find_part_by_serial' ) ) {
+	/**
+	 * یافتن قطعه با شماره سریال (تطابق کامل یا انتهای سریال).
+	 *
+	 * @param string $serial شماره سریال.
+	 * @return array<string, mixed>|null
+	 */
+	function pixva_find_part_by_serial( $serial ) {
+		$serial = strtoupper( preg_replace( '/[^A-Za-z0-9\-\/]/', '', (string) $serial ) );
+		if ( '' === $serial ) {
+			return null;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => 'pixva_part',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					'relation' => 'OR',
+					array(
+						'key'     => '_pixva_part_serial',
+						'value'   => $serial,
+						'compare' => '=',
+					),
+					array(
+						'key'     => '_pixva_part_batch',
+						'value'   => $serial,
+						'compare' => '=',
+					),
+				),
+			)
+		);
+
+		if ( empty( $posts ) ) {
+			return null;
+		}
+
+		$post          = $posts[0];
+		$status_labels = array(
+			'original' => __( 'فابریک (اورجینال) — ثبت‌شده در انبار مرکزی پیکسوا', 'pixva' ),
+			'oem'      => __( 'OEM سازگار — تأییدشده توسط واحد فنی پیکسوا', 'pixva' ),
+			'refurb'   => __( 'بازسازی‌شده کارگاهی با گارانتی کتبی', 'pixva' ),
+		);
+		$status        = (string) get_post_meta( $post->ID, '_pixva_part_status', true );
+
+		return array(
+			'id'       => (int) $post->ID,
+			'name'     => get_the_title( $post ),
+			'sku'      => (string) get_post_meta( $post->ID, '_pixva_part_sku', true ),
+			'brand'    => (string) get_post_meta( $post->ID, '_pixva_part_brand', true ),
+			'qty'      => (int) get_post_meta( $post->ID, '_pixva_part_qty', true ),
+			'price'    => (int) get_post_meta( $post->ID, '_pixva_part_price', true ),
+			'warranty' => (int) get_post_meta( $post->ID, '_pixva_part_warranty', true ) ?: pixva_warranty_days(),
+			'serial'   => (string) get_post_meta( $post->ID, '_pixva_part_serial', true ),
+			'batch'    => (string) get_post_meta( $post->ID, '_pixva_part_batch', true ),
+			'origin'   => (string) get_post_meta( $post->ID, '_pixva_part_origin', true ),
+			'status'   => isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : $status_labels['original'],
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_repair_records' ) ) {
+	/**
+	 * گزارش‌های تعمیر ثبت‌شده (دانش فنی کارگاه).
+	 *
+	 * @param array $args فیلترها: brand، service، limit.
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_repair_records( $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'brand'   => '',
+				'service' => '',
+				'limit'   => 12,
+			)
+		);
+
+		$query = array(
+			'post_type'      => 'pixva_repair',
+			'post_status'    => 'publish',
+			'posts_per_page' => max( 1, min( 60, (int) $args['limit'] ) ),
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'no_found_rows'  => true,
+		);
+
+		if ( '' !== $args['brand'] ) {
+			$query['meta_query'][] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'key'   => '_pixva_repair_brand',
+				'value' => sanitize_key( $args['brand'] ),
+			);
+		}
+		if ( '' !== $args['service'] ) {
+			$query['meta_query'][] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'key'   => '_pixva_repair_service',
+				'value' => sanitize_key( $args['service'] ),
+			);
+		}
+
+		$posts   = get_posts( $query );
+		$brands  = function_exists( 'pixva_brand_catalog' ) ? pixva_brand_catalog() : array();
+		$records = array();
+
+		foreach ( $posts as $post ) {
+			$brand_key = (string) get_post_meta( $post->ID, '_pixva_repair_brand', true );
+			$records[] = array(
+				'id'         => (int) $post->ID,
+				'title'      => get_the_title( $post ),
+				'excerpt'    => get_the_excerpt( $post ),
+				'url'        => get_permalink( $post ),
+				'brand'      => isset( $brands[ $brand_key ] ) ? $brands[ $brand_key ]['fa'] : $brand_key,
+				'size'       => (string) get_post_meta( $post->ID, '_pixva_repair_size', true ),
+				'service'    => (string) get_post_meta( $post->ID, '_pixva_repair_service', true ),
+				'duration'   => (string) get_post_meta( $post->ID, '_pixva_repair_duration', true ),
+				'warranty'   => (int) get_post_meta( $post->ID, '_pixva_repair_warranty', true ),
+				'cost_min'   => (int) get_post_meta( $post->ID, '_pixva_repair_cost_min', true ),
+				'cost_max'   => (int) get_post_meta( $post->ID, '_pixva_repair_cost_max', true ),
+				'difficulty' => (string) get_post_meta( $post->ID, '_pixva_repair_difficulty', true ),
+				'parts'      => (string) get_post_meta( $post->ID, '_pixva_repair_parts', true ),
+			);
+		}
+
+		return $records;
 	}
 }

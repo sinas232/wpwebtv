@@ -94,10 +94,23 @@
 
 	function initReveal() {
 		const nodes = qsa('.pixva-reveal');
-		if (!nodes.length || !('IntersectionObserver' in window)) {
+		const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		if (!nodes.length || reduce || !('IntersectionObserver' in window)) {
 			nodes.forEach((node) => node.classList.add('is-visible'));
 			return;
 		}
+
+		// تأخیر پلکانی: هر گروه هم‌سطح با فاصله ۹۰ms و سقف ۶۳۰ms ظاهر می‌شود.
+		const groups = new Map();
+		nodes.forEach((node) => {
+			const parent = node.parentElement || document.body;
+			const index = groups.get(parent) || 0;
+			groups.set(parent, index + 1);
+			node.style.setProperty('--reveal-delay', `${Math.min(index * 90, 630)}ms`);
+			node.style.setProperty('--reveal-duration', `${500 + (index % 4) * 100}ms`);
+		});
+
 		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting) {
@@ -105,7 +118,7 @@
 					observer.unobserve(entry.target);
 				}
 			});
-		}, { threshold: 0.14 });
+		}, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
 		nodes.forEach((node) => observer.observe(node));
 	}
 
@@ -113,23 +126,128 @@
 		qsa('[data-pixva-faq]', root).forEach((wrap) => {
 			qsa('.pixva-faq__q', wrap).forEach((button) => {
 				button.addEventListener('click', () => {
-					const panel = document.getElementById(button.getAttribute('aria-controls'));
+					const item = button.closest('.pixva-faq__item');
 					const open = button.getAttribute('aria-expanded') === 'true';
+
 					qsa('.pixva-faq__q', wrap).forEach((other) => {
-						if (other !== button) {
-							other.setAttribute('aria-expanded', 'false');
-							const otherPanel = document.getElementById(other.getAttribute('aria-controls'));
-							if (otherPanel) {
-								otherPanel.hidden = true;
-							}
+						if (other === button) {
+							return;
+						}
+						other.setAttribute('aria-expanded', 'false');
+						const otherItem = other.closest('.pixva-faq__item');
+						if (otherItem) {
+							otherItem.classList.remove('is-open');
 						}
 					});
+
 					button.setAttribute('aria-expanded', open ? 'false' : 'true');
-					if (panel) {
-						panel.hidden = open;
+					if (item) {
+						item.classList.toggle('is-open', !open);
 					}
 				});
 			});
+		});
+	}
+
+	function initAccordions(root) {
+		qsa('[data-pixva-accordion]', root).forEach((button) => {
+			button.addEventListener('click', () => {
+				const panel = document.getElementById(button.getAttribute('aria-controls'));
+				const open = button.getAttribute('aria-expanded') === 'true';
+				button.setAttribute('aria-expanded', open ? 'false' : 'true');
+				const holder = button.closest('[data-pixva-accordion-item]');
+				if (holder) {
+					holder.classList.toggle('is-open', !open);
+				}
+				if (panel) {
+					panel.hidden = open;
+				}
+			});
+		});
+	}
+
+	function initMegaMenu() {
+		const nav = qs('[data-pixva-mega]');
+		if (!nav) {
+			return;
+		}
+		const items = qsa('[data-mega-item]', nav);
+		let hoverTimer = null;
+		const isTouch = window.matchMedia('(hover: none)').matches;
+
+		const closeAll = (except) => {
+			items.forEach((item) => {
+				if (item === except) {
+					return;
+				}
+				const trigger = qs('[data-mega-trigger]', item);
+				item.classList.remove('is-open');
+				if (trigger) {
+					trigger.setAttribute('aria-expanded', 'false');
+				}
+			});
+		};
+
+		const setOpen = (item, open) => {
+			const trigger = qs('[data-mega-trigger]', item);
+			item.classList.toggle('is-open', open);
+			if (trigger) {
+				trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+			}
+		};
+
+		items.forEach((item) => {
+			const trigger = qs('[data-mega-trigger]', item);
+			if (!trigger) {
+				return;
+			}
+
+			trigger.addEventListener('click', () => {
+				const open = !item.classList.contains('is-open');
+				closeAll(item);
+				setOpen(item, open);
+			});
+
+			if (!isTouch) {
+				item.addEventListener('mouseenter', () => {
+					window.clearTimeout(hoverTimer);
+					closeAll(item);
+					setOpen(item, true);
+				});
+				item.addEventListener('mouseleave', () => {
+					hoverTimer = window.setTimeout(() => setOpen(item, false), 180);
+				});
+			}
+
+			trigger.addEventListener('keydown', (event) => {
+				if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+					closeAll(item);
+					setOpen(item, true);
+					const firstLink = qs('.pixva-mega__panel a', item);
+					if (event.key === 'ArrowDown' && firstLink) {
+						event.preventDefault();
+						firstLink.focus();
+					}
+				}
+			});
+
+			item.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape') {
+					setOpen(item, false);
+					trigger.focus();
+				}
+			});
+		});
+
+		document.addEventListener('click', (event) => {
+			if (!nav.contains(event.target)) {
+				closeAll(null);
+			}
+		});
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') {
+				closeAll(null);
+			}
 		});
 	}
 
@@ -220,8 +338,10 @@
 	document.addEventListener('DOMContentLoaded', () => {
 		initNav();
 		initHeader();
+		initMegaMenu();
 		initReveal();
 		initFaq(document);
+		initAccordions(document);
 		initContact();
 		initErrorFilter();
 	});

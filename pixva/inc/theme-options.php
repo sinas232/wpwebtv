@@ -19,19 +19,43 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	return array(
-		'hero'         => esc_html__( 'هیرو (بنر اصلی و استعلام سریع)', 'pixva' ),
-		'tv_simulator' => esc_html__( 'شبیه‌ساز لمسی تلویزیون مجازی (ابزار ۵)', 'pixva' ),
-		'screen_tester'=> esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
-		'services'     => esc_html__( 'خدمات تخصصی کارگاه', 'pixva' ),
-		'before_after' => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
-		'dispatch_hub' => esc_html__( 'هاب اعزام اورژانسی و پیگیری سفارش', 'pixva' ),
-		'process'      => esc_html__( 'مسیر پذیرش تا تحویل', 'pixva' ),
-		'brands'       => esc_html__( 'برندها و ضرایب', 'pixva' ),
-		'errors'       => esc_html__( 'کدهای خطا و چشمک پاور', 'pixva' ),
-		'testimonials' => esc_html__( 'نظرات مشتریان', 'pixva' ),
-		'faq'          => esc_html__( 'سوالات متداول', 'pixva' ),
-		'blog'         => esc_html__( 'مجله تخصصی', 'pixva' ),
+		'hero'          => esc_html__( 'هیرو با هاله نورانی و آمار کارگاه', 'pixva' ),
+		'quote'         => esc_html__( 'ویجت استعلام سریع قیمت (نرخ‌نامه ۱۴۰۵)', 'pixva' ),
+		'services'      => esc_html__( 'چهار کارت خدمت تخصصی', 'pixva' ),
+		'journey'       => esc_html__( 'مسیر پنج‌مرحله‌ای تعمیر با نقطه نورانی', 'pixva' ),
+		'before_after'  => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
+		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'dispatch_hub'  => esc_html__( 'هاب اعزام اورژانسی و پیگیری پرونده (ابزار ۱۷ و ۱۹)', 'pixva' ),
+		'tv_simulator'  => esc_html__( 'شبیه‌ساز لمسی تلویزیون مجازی (ابزار ۵)', 'pixva' ),
+		'screen_tester' => esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
+		'errors'        => esc_html__( 'کدهای خطا و چشمک چراغ پاور', 'pixva' ),
+		'brands'        => esc_html__( 'برندها و ضرایب نرخ‌نامه', 'pixva' ),
+		'faq'           => esc_html__( 'سوالات متداول', 'pixva' ),
+		'blog'          => esc_html__( 'مجله تخصصی', 'pixva' ),
+		'process'       => esc_html__( 'مسیر چهارمرحله‌ای پذیرش تا تحویل (قدیمی)', 'pixva' ),
 	);
+}
+
+/**
+ * وضعیت پیش‌فرض نمایش هر سکشن.
+ *
+ * ترتیب و انتخاب پیش‌فرض بر اساس Master Specification v25.0 است:
+ * هیرو، ویجت قیمت، چهار کارت خدمت، مسیر تعمیر، قبل/بعد و نظرات مشتریان.
+ *
+ * @return array<string, bool>
+ */
+function pixva_home_section_defaults() {
+	$defaults = array(
+		'process' => false, // با سکشن «مسیر پنج‌مرحله‌ای تعمیر» جایگزین شده است.
+	);
+
+	foreach ( array_keys( pixva_home_sections() ) as $key ) {
+		if ( ! isset( $defaults[ $key ] ) ) {
+			$defaults[ $key ] = true;
+		}
+	}
+
+	return apply_filters( 'pixva_home_section_defaults', $defaults );
 }
 
 /**
@@ -40,6 +64,10 @@ function pixva_home_sections() {
  * @return string
  */
 function pixva_default_section_order() {
+	/*
+	 * ترتیب فرود طبق مستر اسپک v25.0: هیرو ← ویجت قیمت ← چهار خدمت ← مسیر تعمیر
+	 * ← قبل/بعد ← نظرات مشتریان، سپس بلوک‌های تکمیلی و در پایان مسیر قدیمی.
+	 */
 	return implode( ',', array_keys( pixva_home_sections() ) );
 }
 
@@ -404,11 +432,12 @@ function pixva_customize_register( $wp_customize ) {
 		)
 	);
 
+	$section_defaults = pixva_home_section_defaults();
 	foreach ( pixva_home_sections() as $key => $label ) {
 		$wp_customize->add_setting(
 			'pixva_section_' . $key,
 			array(
-				'default'           => true,
+				'default'           => isset( $section_defaults[ $key ] ) ? $section_defaults[ $key ] : true,
 				'sanitize_callback' => 'pixva_sanitize_checkbox',
 			)
 		);
@@ -505,10 +534,12 @@ function pixva_active_home_sections() {
 	$order = array_map( 'trim', explode( ',', (string) pixva_option( 'pixva_sections_order', pixva_default_section_order() ) ) );
 	$order = pixva_sanitize_section_order( implode( ',', $order ) );
 	$keys  = array_map( 'trim', explode( ',', $order ) );
-	$keys  = array_filter(
+	$defaults = pixva_home_section_defaults();
+	$keys     = array_filter(
 		$keys,
-		static function ( $key ) {
-			return (bool) pixva_option( 'pixva_section_' . $key, true );
+		static function ( $key ) use ( $defaults ) {
+			$default = isset( $defaults[ $key ] ) ? $defaults[ $key ] : true;
+			return (bool) pixva_option( 'pixva_section_' . $key, $default );
 		}
 	);
 	return array_values( $keys );

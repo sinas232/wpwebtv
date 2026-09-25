@@ -3,13 +3,16 @@
  * خودکارسازی راه‌اندازی قالب پیکسوا (inc/activation.php)
  *
  * با هوک after_switch_theme انجام می‌شود:
- * - ساخت خودکار تمام برگه‌های اصلی: خانه، مجله، محاسبه هزینه، پیگیری، کدهای خطا،
- *   درباره ما، تماس با ما، سوالات متداول و نرخ‌نامه.
- * - ساخت خودکار داده‌های دمو در دیتابیس: کد پیگیری PXV-DEMO-2401 با شماره
- *   ۰۹۱۲۱۱۱۱۱۱۱ و تایم‌لاین کامل (دریافت ➔ عیب‌یابی ➔ تامین قطعه ➔
- *   در حال تعمیر ➔ تست نهایی ➔ آماده تحویل).
+ * - ساخت خودکار برگه‌های اصلی: خانه، مجله، محاسبه هزینه، پیگیری، کدهای خطا،
+ *   درباره ما، تماس با ما، سوالات متداول، نرخ‌نامه، انبار قطعات، پنل مشتریان،
+ *   خدمات سازمانی و چهار هاب تخصصی (ai-diagnostics، pricing-calculator،
+ *   tracking-warranty و parts-b2b).
+ * - ساخت منوی اصلی، تنظیم صفحه خانه/مجله و ثبت واژه‌های تاکسونومی.
  * - مقداردهی اولیه تنظیمات کارگاه در wp_options: آدرس پیش‌فرض علاءالدین تهران،
  *   تلفن، ساعت کاری و مختصات نقشه.
+ *
+ * هیچ داده نمایشی (پرونده تعمیر یا کارت گارانتی نمونه) ساخته نمی‌شود؛ همه
+ * رکوردها باید واقعی و از طریق فرم‌های سایت یا پیشخوان ثبت گردند.
  *
  * @package Pixva
  * @since   1.2.0
@@ -134,7 +137,6 @@ function pixva_install_site() {
 	pixva_install_reading( $pages );
 	pixva_install_terms();
 	pixva_install_sample_content();
-	pixva_install_demo_order();
 
 	update_option( 'pixva_installed', 1 );
 	update_option( 'pixva_show_setup_notice', 1 );
@@ -180,6 +182,11 @@ if ( ! function_exists( 'pixva_page_definitions' ) ) {
 			'b2b'         => array( 'خدمات سازمانی و B2B', 'page-templates/page-b2b.php' ),
 			'client-hub'  => array( 'پنل مشتریان و گارانتی دیجیتال', 'page-templates/page-client-hub.php' ),
 			'parts-stock' => array( 'استعلام انبار قطعات فابریک', 'page-templates/page-parts-stock.php' ),
+			/* پنج هاب تخصصی Master Specification v25.0 */
+			'ai-diagnostics'    => array( 'عیب‌یابی هوشمند با هوش مصنوعی', 'page-templates/page-hub-ai.php' ),
+			'pricing-calculator' => array( 'محاسبه‌گر و نرخ‌نامه تعمیر', 'page-templates/page-hub-pricing.php' ),
+			'tracking-warranty' => array( 'پیگیری پرونده و گارانتی', 'page-templates/page-hub-tracking.php' ),
+			'parts-b2b'         => array( 'انبار قطعات و خدمات سازمانی', 'page-templates/page-hub-parts-b2b.php' ),
 		);
 	}
 }
@@ -366,59 +373,6 @@ function pixva_install_terms() {
 }
 
 /**
- * یک پرونده نمونه با تایم‌لاین کامل برای آزمون سامانه پیگیری.
- *
- * کد پیگیری: PXV-DEMO-2401 — شماره همراه: ۰۹۱۲۱۱۱۱۱۱۱
- * تایم‌لاین: دریافت ➔ عیب‌یابی ➔ تامین قطعه ➔ در حال تعمیر ➔ تست نهایی ➔ آماده تحویل
- *
- * @return void
- */
-function pixva_install_demo_order() {
-	$existing = function_exists( 'pixva_find_order_by_code' )
-		? pixva_find_order_by_code( 'PXV-DEMO-2401' )
-		: null;
-	if ( $existing instanceof WP_Post ) {
-		return;
-	}
-	$result = pixva_create_order(
-		array(
-			'phone'    => '09121111111',
-			'brand'    => 'سامسونگ',
-			'model'    => '55AU7000',
-			'problem'  => 'سامسونگ ۵۵ اینچ LED — خطوط عمودی یا افقی',
-			'estimate' => '۱٬۶۰۰٬۰۰۰ تا ۴٬۳۰۰٬۰۰۰ تومان',
-		)
-	);
-	if ( empty( $result['id'] ) ) {
-		return;
-	}
-	update_post_meta( $result['id'], '_pixva_order_code', 'PXV-DEMO-2401' );
-	update_post_meta( $result['id'], '_pixva_order_name', 'پرونده نمونه' );
-	// وضعیت دمو: تایم‌لاین کامل (همه مراحل طی شده و دستگاه آماده تحویل است).
-	update_post_meta( $result['id'], '_pixva_order_status', 'ready' );
-	update_post_meta(
-		$result['id'],
-		'_pixva_order_steps',
-		wp_json_encode(
-			array(
-				'received'  => time() - 6 * DAY_IN_SECONDS,
-				'diagnosed' => time() - 5 * DAY_IN_SECONDS,
-				'parts'     => time() - 4 * DAY_IN_SECONDS,
-				'repairing' => time() - 2 * DAY_IN_SECONDS,
-				'testing'   => time() - DAY_IN_SECONDS,
-				'ready'     => time(),
-			)
-		)
-	);
-	wp_update_post(
-		array(
-			'ID'         => $result['id'],
-			'post_title' => 'پرونده نمونه PXV-DEMO-2401',
-		)
-	);
-}
-
-/**
  * اعلان یک‌باره پیشخوان پس از نصب.
  *
  * @return void
@@ -433,7 +387,7 @@ function pixva_setup_admin_notice() {
 	}
 	$url = wp_nonce_url( add_query_arg( 'pixva_dismiss_notice', '1' ), 'pixva_dismiss_notice' );
 	echo '<div class="notice notice-info"><p>';
-	echo esc_html__( 'پیکسوا برگه‌ها، منو و محتوای نمونه را ساخت. پرونده آزمایشی پیگیری کد PXV-DEMO-2401 و شماره ۰۹۱۲۱۱۱۱۱۱۱ است. قبل از استفاده واقعی، نمونه را حذف کنید.', 'pixva' );
+	echo esc_html__( 'پیکسوا برگه‌های پنج هاب، منوها و محتوای آغازین (خدمات، برندها و دو مقاله نمونه) را ساخت. کلید Gemini را در مرکز کنترل ← عمومی & AI وارد کنید و محتوای نمونه را با داده واقعی کارگاه جایگزین کنید.', 'pixva' );
 	echo ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'متوجه شدم', 'pixva' ) . '</a></p></div>';
 }
 add_action( 'admin_notices', 'pixva_setup_admin_notice' );
@@ -450,13 +404,19 @@ add_action( 'admin_notices', 'pixva_setup_admin_notice' );
  * @return void
  */
 function pixva_maybe_upgrade() {
-	if ( get_option( 'pixva_theme_version' ) === PIXVA_VERSION ) {
+	$version = defined( 'PIXVA_VERSION' ) ? PIXVA_VERSION : '1.2.0';
+	$spec    = defined( 'PIXVA_SPEC_VERSION' ) ? PIXVA_SPEC_VERSION : '25.0';
+
+	$stored_version = (string) get_option( 'pixva_theme_version' );
+	$stored_spec    = (string) get_option( 'pixva_spec_version' );
+
+	if ( $stored_version === $version && $stored_spec === $spec ) {
 		return;
 	}
 
 	pixva_install_workshop_options();
 
-	// ساخت برگه‌هایی که هنوز وجود ندارند (مثلاً نرخ‌نامه در ارتقا از ۱٫۰).
+	// ساخت برگه‌هایی که هنوز وجود ندارند (هاب‌های پنج‌گانه در ارتقا به v25.0).
 	foreach ( pixva_page_definitions() as $slug => $item ) {
 		$existing = get_page_by_path( $slug );
 		if ( ! $existing instanceof WP_Post ) {
@@ -465,6 +425,18 @@ function pixva_maybe_upgrade() {
 		}
 	}
 
-	update_option( 'pixva_theme_version', PIXVA_VERSION );
+	/*
+	 * اگر ترتیب سکشن‌های خانه از نسخه قدیمی مانده باشد، بازنشانی می‌شود تا ترتیب
+	 * جدید (هیرو ← ویجت قیمت ← خدمات ← مسیر تعمیر ← قبل/بعد ← نظرات) اعمال گردد.
+	 */
+	if ( '' !== $stored_spec && $stored_spec !== $spec ) {
+		$order = (string) get_theme_mod( 'pixva_sections_order', '' );
+		if ( '' !== $order && ( false === strpos( $order, 'journey' ) || false === strpos( $order, 'quote' ) ) ) {
+			remove_theme_mod( 'pixva_sections_order' );
+		}
+	}
+
+	update_option( 'pixva_theme_version', $version );
+	update_option( 'pixva_spec_version', $spec );
 }
 add_action( 'init', 'pixva_maybe_upgrade', 5 );

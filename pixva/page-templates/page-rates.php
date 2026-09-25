@@ -35,7 +35,7 @@ $problems = pixva_problem_catalog();
 		</section>
 
 		<section class="pixva-card" style="margin-top:1.2rem">
-			<h2><?php esc_html_e( 'قیمت پایه خدمات (پیش از ضرایب برند و سایز)', 'pixva' ); ?></h2>
+			<h2><?php esc_html_e( 'قیمت پایه خدمات در سایز ۳۲ اینچ (پیش از ضرایب برند و سایز)', 'pixva' ); ?></h2>
 			<table class="pixva-rates-table">
 				<thead>
 					<tr>
@@ -63,11 +63,15 @@ $problems = pixva_problem_catalog();
 			<?php echo esc_html( pixva_panel_replacement_warning() ); ?>
 		</aside>
 
+		<div style="margin-top:1.2rem">
+			<?php pixva_render_rates_reference(); ?>
+		</div>
+
 		<section class="pixva-card" style="margin-top:1.2rem">
-			<h2><?php esc_html_e( 'ضریب برندها', 'pixva' ); ?></h2>
-			<p><?php esc_html_e( 'قیمت پایه در ضریب برند دستگاه ضرب می‌شود؛ مثلاً سونی ۱٫۲ و سامسونگ ۱٫۱۵. فهرست کامل ضرایب را مدیر سایت از پیشخوان ← پیگیری تعمیرات ← نرخ‌نامه کنترل می‌کند.', 'pixva' ); ?></p>
+			<h2><?php esc_html_e( 'محاسبه هزینه دستگاه من', 'pixva' ); ?></h2>
+			<p><?php esc_html_e( 'برند، تکنولوژی، سایز و نوع خرابی را در محاسبه‌گر انتخاب کنید تا بازه قیمت و زمان تعمیر به‌صورت زنده از موتور نرخ‌نامه برگردد.', 'pixva' ); ?></p>
 			<p>
-				<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه هزینه دستگاه من', 'pixva' ); ?></a>
+				<a class="pixva-btn pixva-btn--cta pixva-btn--shimmer" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></a>
 			</p>
 		</section>
 

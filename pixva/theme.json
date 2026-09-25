@@ -10,44 +10,54 @@
 		"color": {
 			"palette": [
 				{
-					"name": "پس‌زمینه روشن",
+					"name": "پس‌زمینه مرواریدی",
 					"slug": "bg-light",
-					"color": "#F8FAFC"
+					"color": "#F7FAFC"
 				},
 				{
-					"name": "کارت و بخش",
+					"name": "کارت سفید خالص",
 					"slug": "card-bg",
 					"color": "#FFFFFF"
 				},
 				{
-					"name": "متن اصلی",
+					"name": "سطح آبی روشن",
+					"slug": "surface-soft",
+					"color": "#E8F5F8"
+				},
+				{
+					"name": "متن اصلی سرمه‌ای",
 					"slug": "text-main",
-					"color": "#0F172A"
+					"color": "#17313B"
 				},
 				{
 					"name": "متن فرعی",
 					"slug": "text-muted",
-					"color": "#64748B"
+					"color": "#5B7A87"
 				},
 				{
-					"name": "رنگ برند های‌تک",
+					"name": "آبی اقیانوسی های‌تک",
 					"slug": "primary",
-					"color": "#0284C7"
+					"color": "#176B87"
 				},
 				{
-					"name": "فیروزه‌ای های‌تک",
+					"name": "سرمه‌ای عمیق (هدر/فوتر/سرتیتر)",
+					"slug": "primary-dark",
+					"color": "#123B4A"
+				},
+				{
+					"name": "فیروزه‌ای ملایم",
 					"slug": "accent",
-					"color": "#06B6D4"
+					"color": "#55B8C8"
 				},
 				{
-					"name": "دکمه و فراخوان",
+					"name": "مرجانی ملایم (فراخوان اقدام)",
 					"slug": "cta",
-					"color": "#F97316"
+					"color": "#F59E6C"
 				},
 				{
-					"name": "کادر و مرز",
+					"name": "کادر و مرز ظریف",
 					"slug": "border",
-					"color": "#E2E8F0"
+					"color": "#DCEAEE"
 				}
 			]
 		},
