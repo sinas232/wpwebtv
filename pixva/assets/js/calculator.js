@@ -193,6 +193,22 @@
 		preset('brand', form.dataset.presetBrand || '');
 		preset('problem', form.dataset.presetProblem || '');
 		showStep(1);
+
+		// API عمومی: سیمولاتور هیرو می‌تواند همان جادوگر را با ایراد انتخابی کاربر پیش‌تنظیم کند.
+		form.pixvaCalc = {
+			preset: preset,
+			setValues: function (values) {
+				Object.keys(values || {}).forEach(function (group) {
+					preset(group, values[group]);
+				});
+			},
+			value: function (group) {
+				const input = field(group);
+				return input ? input.value : '';
+			},
+			goTo: showStep,
+			estimate: requestEstimate
+		};
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {

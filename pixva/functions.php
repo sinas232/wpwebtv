@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.2.0' );
+define( 'PIXVA_VERSION', '1.2.1' );
 define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
@@ -37,14 +37,44 @@ require_once PIXVA_DIR . '/inc/ai-bot.php';
 require_once PIXVA_DIR . '/inc/interactive-tools.php';
 require_once PIXVA_DIR . '/inc/rest-api.php';
 require_once PIXVA_DIR . '/inc/roles-and-cron.php';
-require_once PIXVA_DIR . '/inc/elementor-support.php';
-require_once PIXVA_DIR . '/inc/elementor-widgets.php';
+require_once PIXVA_DIR . '/inc/shortcodes.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/pwa.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
 require_once PIXVA_DIR . '/inc/activation.php';
+
+/*
+ * ماژول‌های المنتور فقط پس از بارگذاری کامل خود المنتور include می‌شوند تا در
+ * نصب‌های بدون المنتور (یا هنگام به‌روزرسانی افزونه) خطای fatal رخ ندهد.
+ */
+if ( ! function_exists( 'pixva_load_elementor_modules' ) ) {
+	/**
+	 * بارگذاری مشروط پرونده‌های ادغام المنتور.
+	 *
+	 * @return void
+	 */
+	function pixva_load_elementor_modules() {
+		if ( ! did_action( 'elementor/loaded' ) ) {
+			return;
+		}
+
+		$modules = array(
+			'/inc/elementor-support.php',
+			'/inc/elementor-widgets.php',
+		);
+
+		foreach ( $modules as $module ) {
+			$path = PIXVA_DIR . $module;
+			if ( is_readable( $path ) ) {
+				require_once $path;
+			}
+		}
+	}
+	add_action( 'elementor/loaded', 'pixva_load_elementor_modules', 5 );
+}
+
 
 /*
  * ---------------------------------------------------------------------------

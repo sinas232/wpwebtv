@@ -5,7 +5,9 @@
  * - دسته‌بندی رسمی ویجت‌ها: Pixva Diagnostics
  * - ۶۰ ویجت بومی المنتور (یک ویجت به ازای هر ابزار) با کنترل‌های کامل محتوایی و سبک
  * - ویجت هاب (نمایه ۵ هاب تخصصی) و ویجت جامع «۶۰ در ۱»
- * - شورت‌کد جایگزین: [pixva_tool id="1"] تا [pixva_tool id="60"]
+ *
+ * شورت‌کدهای [pixva_tool] و [pixva_hub] به پرونده مستقل inc/shortcodes.php منتقل شدند
+ * تا بدون المنتور هم کار کنند؛ این پرونده فقط وقتی بارگذاری می‌شود که المنتور فعال باشد.
  *
  * @package Pixva
  * @since   1.2.0
@@ -13,6 +15,11 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+// محافظت در برابر خطای fatal: این پرونده فقط در حضور المنتور معنا دارد.
+if ( ! class_exists( '\Elementor\Widget_Base' ) && ! did_action( 'elementor/loaded' ) ) {
+	return;
 }
 
 /**
@@ -503,57 +510,3 @@ function pixva_elementor_editor_assets() {
 	wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array(), PIXVA_VERSION );
 }
 add_action( 'elementor/editor/before_enqueue_scripts', 'pixva_elementor_editor_assets' );
-
-/**
- * شورت‌کد جایگزین برای فراخوانی هر یک از ۶۰ ابزار.
- *
- * نمونه: [pixva_tool id="5"] یا [pixva_tool id="12" layout="inline"]
- *
- * @param array $atts مشخصه‌های شورت‌کد.
- * @return string
- */
-function pixva_tool_shortcode( $atts ) {
-	$atts = shortcode_atts(
-		array(
-			'id'     => 1,
-			'layout' => 'section',
-		),
-		$atts,
-		'pixva_tool'
-	);
-
-	$id = (int) $atts['id'];
-	if ( $id < 1 || $id > 60 ) {
-		return '';
-	}
-
-	return pixva_render_tool_by_id( $id, 'inline' === $atts['layout'] ? 'inline' : 'section' );
-}
-add_shortcode( 'pixva_tool', 'pixva_tool_shortcode' );
-
-/**
- * شورت‌کد نمایه یک هاب: [pixva_hub slug="ai-diagnostics"]
- *
- * @param array $atts مشخصه‌ها.
- * @return string
- */
-function pixva_hub_shortcode( $atts ) {
-	$atts = shortcode_atts(
-		array(
-			'slug'  => 'ai-diagnostics',
-			'title' => '',
-		),
-		$atts,
-		'pixva_hub'
-	);
-
-	$slug = sanitize_key( $atts['slug'] );
-	if ( ! isset( pixva_hubs()[ $slug ] ) ) {
-		return '';
-	}
-
-	ob_start();
-	pixva_render_hub_index( $slug, (string) $atts['title'] );
-	return (string) ob_get_clean();
-}
-add_shortcode( 'pixva_hub', 'pixva_hub_shortcode' );

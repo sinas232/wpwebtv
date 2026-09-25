@@ -4077,3 +4077,806 @@ html.is-offline .pixva-offline-bar {
 		background: var(--surface-soft);
 	}
 }
+
+/* ==========================================================================
+   ۲۵) هیرو v25.1 — بازطراحی کامل: پس‌زمینه روشن خوانا + سیمولاتور زنده عیب
+   --------------------------------------------------------------------------
+   سه تغییر اصلی این لایه:
+   ۱) کنتراست قطعی: پس‌زمینه #F8FAFC، عنوان #0F172A، متن #334155، بدون
+      text-shadow و بدون هاله‌های مزاحم (opacity هاله‌ها ۰٫۰۴ و pointer-events: none).
+   ۲) چیدمان دوستونی: ستون راست (در RTL) متن، بج گارانتی و دکمه نارنجی
+      استعلام قیمت؛ ستون چپ سیمولاتور تعاملی تشخیص عیب.
+   ۳) سیمولاتور: قاب OLED تیره (#020617 / حاشیه #1E293B / شعاع ۲۰px / هاله آبی)،
+      بج «سیمولاتور زنده تشخیص عیب» با نقطه سبز چشمک‌زن، سه دکمه شیشه‌ای علامت
+      خرابی، انیمیشن عیب روی صفحه و جعبه اطلاعات (علت / هزینه / زمان تحویل).
+   ماکت ایستای «تست نهایی کارگاه / الگوی RGB» از قالب حذف شد.
+   ========================================================================== */
+.pixva-hero.pixva-hero--light.pixva-hero--simulator {
+	--sim-frame: #020617;
+	--sim-frame-line: #1E293B;
+	--sim-ink: #E2E8F0;
+	--sim-ink-soft: #94A3B8;
+	--sim-orange: #F97316;
+	--sim-orange-strong: #EA580C;
+	--sim-glass: rgba(255, 255, 255, 0.72);
+
+	color: #334155;
+	background: #F8FAFC;
+	overflow: hidden;
+}
+
+/* --- ۱) هاله‌ها: تقریباً نامرئی و کاملاً نفوذپذیر برای کلیک ---------------- */
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__aurora {
+	pointer-events: none;
+	z-index: 0;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-aurora-blob {
+	opacity: 0.04 !important;
+	pointer-events: none;
+	filter: blur(110px);
+}
+
+/* --- ۲) تایپوگرافی: تیره، بزرگ، بدون سایه -------------------------------- */
+.pixva-hero.pixva-hero--light.pixva-hero--simulator h1,
+.pixva-hero.pixva-hero--light.pixva-hero--simulator h2,
+.pixva-hero.pixva-hero--light.pixva-hero--simulator h3 {
+	color: #0F172A;
+	opacity: 1;
+	text-shadow: none;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator h1 {
+	font-size: clamp(2.05rem, 4.3vw, 3.35rem);
+	font-weight: 900;
+	line-height: 1.32;
+	letter-spacing: -0.01em;
+	margin-block: 0.6rem 0.9rem;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator h1 em {
+	color: var(--primary);
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator p,
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__lead,
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__content span:not(.pixva-badge) {
+	color: #334155;
+	opacity: 1;
+	text-shadow: none;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__lead {
+	font-size: clamp(1rem, 1.5vw, 1.15rem);
+	font-weight: 500;
+	line-height: 2.05;
+	max-width: 40rem;
+}
+
+/* --- ۳) شبکه دوستونی: راست = متن (RTL)، چپ = سیمولاتور -------------------- */
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.03fr) minmax(0, 0.97fr);
+	align-items: center;
+	gap: clamp(1.75rem, 4vw, 3.4rem);
+	position: relative;
+	z-index: 1;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__content {
+	order: 1;
+	min-width: 0;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__visual {
+	order: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	gap: 0;
+	min-width: 0;
+	padding: 0;
+}
+
+/* --- ۴) دکمه نارنجی استعلام قیمت ----------------------------------------- */
+.pixva-btn--orange {
+	background: linear-gradient(135deg, #FB923C 0%, #F97316 52%, #EA580C 100%);
+	border: 1px solid rgba(234, 88, 12, 0.55);
+	color: #FFFFFF;
+	font-weight: 800;
+	box-shadow:
+		0 14px 30px -14px rgba(249, 115, 22, 0.75),
+		inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.pixva-btn--orange:hover {
+	background: linear-gradient(135deg, #FDBA74 0%, #FB923C 50%, #F97316 100%);
+	color: #FFFFFF;
+	transform: translateY(-2px);
+	box-shadow:
+		0 18px 36px -14px rgba(249, 115, 22, 0.85),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.pixva-btn--orange:focus-visible {
+	outline: 3px solid rgba(249, 115, 22, 0.4);
+	outline-offset: 3px;
+}
+
+/* بج‌های اعتماد به‌صورت ردیف ثابت زیر آمار (بدون شناوری و بدون سرریز) */
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__chips--inline {
+	position: static;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	width: 100%;
+	margin-top: 1.15rem;
+	pointer-events: auto;
+}
+
+.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__chip {
+	position: static;
+	inset: auto;
+	max-width: 100%;
+	animation: none;
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   ۵) سیمولاتور زنده تشخیص عیب
+   -------------------------------------------------------------------------- */
+.pixva-sim {
+	position: relative;
+	display: grid;
+	gap: 0.85rem;
+	width: 100%;
+	min-width: 0;
+}
+
+/* بج زنده بالای مانیتور */
+.pixva-sim__badge {
+	justify-self: center;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.35rem 0.9rem;
+	border-radius: 999px;
+	background: rgba(2, 6, 23, 0.94);
+	border: 1px solid rgba(148, 163, 184, 0.32);
+	color: var(--sim-ink);
+	font-size: 0.78rem;
+	font-weight: 800;
+	line-height: 1.7;
+	box-shadow: 0 12px 26px -18px rgba(2, 6, 23, 0.9);
+}
+
+.pixva-sim__dot {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: #22C55E;
+	box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
+	animation: pixva-sim-blink 1.7s ease-in-out infinite;
+}
+
+@keyframes pixva-sim-blink {
+	0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+	50%      { opacity: 0.35; box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+}
+
+/* بدنه مانیتور OLED */
+.pixva-sim__tv {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	padding: 10px 10px 20px;
+	border-radius: 20px;
+	background: var(--sim-frame);
+	border: 1px solid var(--sim-frame-line);
+	box-shadow:
+		0 0 0 1px rgba(59, 130, 246, 0.1),
+		0 0 64px -20px rgba(59, 130, 246, 0.45),
+		0 34px 70px -34px rgba(2, 6, 23, 0.9);
+	isolation: isolate;
+}
+
+/* هاله آبی نرم پشت قاب */
+.pixva-sim__glow {
+	position: absolute;
+	inset: -12%;
+	z-index: -1;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, rgba(59, 130, 246, 0.34), rgba(59, 130, 246, 0) 72%);
+	filter: blur(28px);
+	pointer-events: none;
+}
+
+/* چراغ پاور پایین قاب (در عیب «چشمک پاور» قرمز و چشمک‌زن می‌شود) */
+.pixva-sim__tv::after {
+	content: "";
+	position: absolute;
+	bottom: 7px;
+	inset-inline-start: 50%;
+	transform: translateX(-50%);
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #475569;
+	box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
+	transition: background 0.3s ease;
+}
+
+.pixva-sim[data-sim-active="blink"] .pixva-sim__tv::after {
+	background: #EF4444;
+	animation: pixva-sim-led 1.4s steps(1, end) infinite;
+}
+
+@keyframes pixva-sim-led {
+	0%, 45%   { opacity: 1; box-shadow: 0 0 12px rgba(239, 68, 68, 0.9); }
+	46%, 100% { opacity: 0.15; box-shadow: none; }
+}
+
+.pixva-sim__stand {
+	position: absolute;
+	bottom: -11px;
+	inset-inline-start: 50%;
+	transform: translateX(-50%);
+	width: 32%;
+	height: 11px;
+	border-radius: 0 0 12px 12px;
+	background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+	box-shadow: 0 16px 26px -20px rgba(2, 6, 23, 0.95);
+}
+
+.pixva-sim__bezel {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border-radius: 12px;
+	border: 1px solid rgba(30, 41, 59, 0.95);
+	background: var(--sim-frame);
+	overflow: hidden;
+}
+
+.pixva-sim__screen {
+	position: absolute;
+	inset: 0;
+	background: var(--sim-frame);
+	overflow: hidden;
+}
+
+/* پرده تیره بالای صفحه: خوانایی HUD بدون text-shadow */
+.pixva-sim__screen::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 48%;
+	z-index: 2;
+	background: linear-gradient(180deg, rgba(2, 6, 23, 0.82) 0%, rgba(2, 6, 23, 0) 100%);
+	pointer-events: none;
+}
+
+/* تصویر سالم (میله‌های رنگی کالیبراسیون) */
+.pixva-sim__picture {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	opacity: 1;
+	transition: opacity 0.45s ease;
+}
+
+.pixva-sim__picture i {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.pixva-sim__picture i:nth-child(1) { background: linear-gradient(180deg, #F8FAFC 0%, #CBD5E1 100%); }
+.pixva-sim__picture i:nth-child(2) { background: linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%); }
+.pixva-sim__picture i:nth-child(3) { background: linear-gradient(180deg, #67E8F9 0%, #0891B2 100%); }
+.pixva-sim__picture i:nth-child(4) { background: linear-gradient(180deg, #BEF264 0%, #4D7C0F 100%); }
+
+.pixva-sim__scan {
+	position: absolute;
+	inset-inline: 0;
+	top: 0;
+	height: 24%;
+	background: linear-gradient(180deg, rgba(148, 163, 184, 0) 0%, rgba(148, 163, 184, 0.16) 50%, rgba(148, 163, 184, 0) 100%);
+	animation: pixva-sim-scan 7.5s linear infinite;
+	pointer-events: none;
+}
+
+@keyframes pixva-sim-scan {
+	from { transform: translateY(-120%); }
+	to   { transform: translateY(430%); }
+}
+
+/* لایه‌های عیب */
+.pixva-sim__fault {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	transition: opacity 0.45s ease;
+	pointer-events: none;
+}
+
+/* عیب ۱: بک‌لایت — صفحه سیاه، صدا برقرار */
+.pixva-sim__fault--backlight {
+	background:
+		radial-gradient(130% 90% at 50% 118%, rgba(59, 130, 246, 0.2), rgba(2, 6, 23, 0.98) 58%),
+		linear-gradient(180deg, #020617 0%, #0B1220 100%);
+	animation: pixva-sim-blackout 7s ease-in-out infinite;
+}
+
+.pixva-sim__fault--backlight::after {
+	content: "";
+	position: absolute;
+	inset-inline-start: 12px;
+	bottom: 12px;
+	width: 62px;
+	height: 14px;
+	border-radius: 4px;
+	background:
+		repeating-linear-gradient(90deg, rgba(96, 165, 250, 0.85) 0 3px, rgba(96, 165, 250, 0) 3px 8px);
+	animation: pixva-sim-audio 1.1s ease-in-out infinite;
+	opacity: 0.85;
+}
+
+@keyframes pixva-sim-audio {
+	0%, 100% { transform: scaleY(0.55); opacity: 0.5; }
+	50%      { transform: scaleY(1); opacity: 0.95; }
+}
+
+@keyframes pixva-sim-blackout {
+	0%   { opacity: 0.55; }
+	8%   { opacity: 1; }
+	92%  { opacity: 1; }
+	100% { opacity: 0.72; }
+}
+
+/* عیب ۲: خطوط عمودی و رنگی (پنل / فلت / T-CON) */
+.pixva-sim__fault--lines {
+	background:
+		repeating-linear-gradient(90deg,
+			rgba(2, 6, 23, 0) 0 26px,
+			rgba(244, 63, 94, 0.5) 26px 29px,
+			rgba(2, 6, 23, 0) 29px 52px,
+			rgba(34, 211, 238, 0.42) 52px 55px,
+			rgba(2, 6, 23, 0) 55px 84px),
+		linear-gradient(180deg, rgba(2, 6, 23, 0.2) 0%, rgba(2, 6, 23, 0.55) 100%);
+	animation: pixva-sim-lines 3.4s steps(6, end) infinite;
+}
+
+.pixva-sim__fault--lines::after {
+	content: "";
+	position: absolute;
+	inset-inline-start: 38%;
+	top: 0;
+	bottom: 0;
+	width: 12%;
+	background: linear-gradient(90deg, rgba(163, 230, 53, 0) 0%, rgba(163, 230, 53, 0.55) 45%, rgba(244, 63, 94, 0.4) 100%);
+	filter: blur(1px);
+	animation: pixva-sim-jitter 2.2s ease-in-out infinite;
+}
+
+@keyframes pixva-sim-lines {
+	0%, 100% { transform: translateX(0); }
+	35%      { transform: translateX(-6px); }
+	70%      { transform: translateX(4px); }
+}
+
+@keyframes pixva-sim-jitter {
+	0%, 100% { transform: translateX(0) skewX(0deg); }
+	30%      { transform: translateX(-14px) skewX(-2deg); }
+	60%      { transform: translateX(10px) skewX(1.5deg); }
+}
+
+/* عیب ۳: چشمک‌زن چراغ پاور (برد تغذیه / مین‌برد) */
+.pixva-sim__fault--blink {
+	background: linear-gradient(180deg, rgba(2, 6, 23, 0.96) 0%, rgba(2, 6, 23, 0.99) 100%);
+	animation: pixva-sim-flicker 2.6s steps(1, end) infinite;
+}
+
+.pixva-sim__fault--blink::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: radial-gradient(80% 60% at 50% 45%, rgba(59, 130, 246, 0.28), rgba(2, 6, 23, 0) 70%);
+	animation: pixva-sim-flicker-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes pixva-sim-flicker {
+	0%, 18%   { opacity: 1; }
+	19%, 26%  { opacity: 0.35; }
+	27%, 55%  { opacity: 1; }
+	56%, 60%  { opacity: 0.2; }
+	61%, 100% { opacity: 1; }
+}
+
+@keyframes pixva-sim-flicker-glow {
+	0%, 100% { opacity: 0.25; }
+	50%      { opacity: 0.75; }
+}
+
+/* فعال‌سازی لایه عیب بر اساس علامت انتخاب‌شده */
+.pixva-sim__screen[data-sim-screen="no_picture"] .pixva-sim__fault--backlight,
+.pixva-sim__screen[data-sim-screen="lines"] .pixva-sim__fault--lines,
+.pixva-sim__screen[data-sim-screen="blink"] .pixva-sim__fault--blink {
+	opacity: 1;
+}
+
+.pixva-sim__screen[data-sim-screen="no_picture"] .pixva-sim__picture {
+	opacity: 0.05;
+}
+
+.pixva-sim__screen[data-sim-screen="no_picture"] .pixva-sim__scan,
+.pixva-sim__screen[data-sim-screen="blink"] .pixva-sim__scan {
+	opacity: 0.15;
+}
+
+.pixva-sim__screen[data-sim-screen="blink"] .pixva-sim__picture {
+	animation: pixva-sim-flicker 2.6s steps(1, end) infinite;
+}
+
+/* HUD روی صفحه */
+.pixva-sim__hud {
+	position: absolute;
+	top: 10px;
+	inset-inline-start: 12px;
+	display: grid;
+	gap: 4px;
+	justify-items: start;
+	z-index: 3;
+	max-width: calc(100% - 24px);
+}
+
+.pixva-sim__hud-tag {
+	padding: 0.14rem 0.55rem;
+	border-radius: 999px;
+	background: rgba(239, 68, 68, 0.18);
+	border: 1px solid rgba(239, 68, 68, 0.5);
+	color: #FCA5A5;
+	font-size: 0.66rem;
+	font-weight: 800;
+	line-height: 1.7;
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+}
+
+.pixva-sim__hud-title {
+	color: #F8FAFC;
+	font-size: clamp(0.8rem, 1.5vw, 0.96rem);
+	font-weight: 900;
+	line-height: 1.6;
+	text-shadow: none;
+}
+
+.pixva-sim__screen[data-sim-screen="lines"] .pixva-sim__hud-tag {
+	background: rgba(34, 197, 94, 0.18);
+	border-color: rgba(34, 197, 94, 0.55);
+	color: #86EFAC;
+}
+
+.pixva-sim__screen[data-sim-screen="blink"] .pixva-sim__hud-tag {
+	background: rgba(59, 130, 246, 0.2);
+	border-color: rgba(59, 130, 246, 0.6);
+	color: #93C5FD;
+}
+
+/* --- ۶) دکمه‌های شیشه‌ای علامت خرابی ------------------------------------- */
+.pixva-sim__symptoms {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.55rem;
+}
+
+.pixva-sim__symptom {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 54px;
+	padding: 0.55rem 0.7rem;
+	border-radius: 14px;
+	background: var(--sim-glass);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	box-shadow: 0 12px 26px -20px rgba(15, 23, 42, 0.55);
+	color: #334155;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+	transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.pixva-sim__symptom:hover {
+	transform: translateY(-2px);
+	border-color: rgba(249, 115, 22, 0.5);
+	box-shadow: 0 16px 30px -20px rgba(249, 115, 22, 0.5);
+}
+
+.pixva-sim__symptom:focus-visible {
+	outline: 3px solid rgba(249, 115, 22, 0.4);
+	outline-offset: 2px;
+}
+
+.pixva-sim__symptom.is-active {
+	background: linear-gradient(135deg, rgba(249, 115, 22, 0.16) 0%, rgba(255, 255, 255, 0.92) 100%);
+	border-color: rgba(249, 115, 22, 0.65);
+	box-shadow: 0 16px 32px -20px rgba(249, 115, 22, 0.65);
+}
+
+.pixva-sim__symptom-icon {
+	flex: 0 0 auto;
+	font-size: 0.95rem;
+	line-height: 1;
+}
+
+.pixva-sim__symptom-text {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+.pixva-sim__symptom-text strong {
+	color: #0F172A;
+	font-size: 0.79rem;
+	font-weight: 800;
+	line-height: 1.55;
+}
+
+.pixva-sim__symptom-text small {
+	color: #64748B;
+	font-size: 0.68rem;
+	font-weight: 700;
+	line-height: 1.5;
+}
+
+.pixva-sim__symptom.is-active .pixva-sim__symptom-text small {
+	color: var(--sim-orange-strong);
+}
+
+/* --- ۷) جعبه اطلاعات: علت / هزینه / زمان تحویل --------------------------- */
+.pixva-sim__info {
+	display: grid;
+	gap: 0.15rem;
+	padding: 0.8rem 0.95rem;
+	border-radius: 16px;
+	background: #FFFFFF;
+	border: 1px solid rgba(148, 163, 184, 0.32);
+	box-shadow: 0 18px 38px -28px rgba(15, 23, 42, 0.5);
+	transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.pixva-sim__info.is-updating {
+	opacity: 0.12;
+	transform: translateY(3px);
+}
+
+.pixva-sim__row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding-block: 0.34rem;
+	border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+}
+
+.pixva-sim__row:last-child {
+	border-bottom: 0;
+}
+
+.pixva-sim__row > span {
+	flex: 0 0 auto;
+	color: #64748B;
+	font-size: 0.76rem;
+	font-weight: 700;
+}
+
+.pixva-sim__row > strong {
+	min-width: 0;
+	color: #0F172A;
+	font-size: 0.85rem;
+	font-weight: 800;
+	line-height: 1.7;
+	text-align: end;
+	overflow-wrap: anywhere;
+}
+
+.pixva-sim__row [data-sim-cost] {
+	color: var(--sim-orange-strong);
+}
+
+/* --- ۸) دکمه اقدام سیمولاتور ---------------------------------------------- */
+.pixva-sim__cta {
+	display: grid;
+	gap: 0.45rem;
+	justify-items: stretch;
+}
+
+.pixva-sim__cta .pixva-btn {
+	width: 100%;
+	justify-content: center;
+	min-height: 50px;
+}
+
+.pixva-sim__wa {
+	width: 100%;
+	justify-content: center;
+	gap: 0.45rem;
+	min-height: 44px;
+	color: #0F172A;
+	background: #FFFFFF;
+	box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.35), 0 10px 22px -18px rgba(15, 23, 42, 0.4);
+}
+
+.pixva-sim__wa:hover {
+	color: #166534;
+	box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.75), 0 14px 26px -18px rgba(22, 101, 52, 0.45);
+}
+
+.pixva-sim__wa svg {
+	flex: 0 0 auto;
+	width: 17px;
+	height: 17px;
+	color: #16A34A;
+}
+
+.pixva-sim__cta-note {
+	margin: 0;
+	color: #64748B;
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.85;
+	text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   ۹) واکنش‌گرایی سیمولاتور
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__grid {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2rem;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__visual {
+		order: 2;
+		width: 100%;
+		max-width: 620px;
+		margin-inline: auto;
+	}
+
+	.pixva-sim__symptom-text strong {
+		font-size: 0.76rem;
+	}
+}
+
+@media (max-width: 768px) {
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator {
+		overflow-x: hidden;
+		padding-block: clamp(2.2rem, 8vw, 3.2rem);
+	}
+
+	/* تک‌ستونی: اول متن و دکمه قیمت، بعد سیمولاتور */
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__grid {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 1.75rem;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__content {
+		order: 1;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__visual {
+		order: 2;
+		max-width: 100%;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator h1 {
+		font-size: 1.75rem;
+		line-height: 1.5;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__lead {
+		font-size: 0.95rem;
+		line-height: 1.95;
+	}
+
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator .pixva-hero__actions .pixva-btn {
+		flex: 1 1 100%;
+		justify-content: center;
+		min-height: 50px;
+	}
+
+	/* دکمه‌های علامت خرابی: ردیف افقی لغزنده و لمسی */
+	.pixva-sim__symptoms {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 0.5rem;
+		overflow-x: auto;
+		padding-block: 0.15rem;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	.pixva-sim__symptoms::-webkit-scrollbar {
+		display: none;
+	}
+
+	.pixva-sim__symptom {
+		flex: 0 0 min(76%, 15rem);
+		min-height: 56px;
+		scroll-snap-align: start;
+	}
+
+	.pixva-sim__tv {
+		border-radius: 16px;
+		padding: 8px 8px 18px;
+	}
+
+	.pixva-sim__info {
+		padding: 0.7rem 0.8rem;
+	}
+
+	.pixva-sim__row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.1rem;
+	}
+
+	.pixva-sim__row > strong {
+		text-align: start;
+	}
+}
+
+@media (max-width: 420px) {
+	.pixva-hero.pixva-hero--light.pixva-hero--simulator h1 {
+		font-size: 1.55rem;
+	}
+
+	.pixva-sim__badge {
+		font-size: 0.72rem;
+		padding: 0.3rem 0.7rem;
+	}
+
+	.pixva-sim__hud-title {
+		font-size: 0.76rem;
+	}
+}
+
+/* --- ۱۰) حرکت کاهش‌یافته: عیب‌ها ثابت و خوانا می‌مانند -------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.pixva-sim__dot,
+	.pixva-sim__scan,
+	.pixva-sim__fault,
+	.pixva-sim__fault::after,
+	.pixva-sim__picture,
+	.pixva-sim__tv::after {
+		animation: none !important;
+	}
+
+	.pixva-sim__scan {
+		opacity: 0 !important;
+	}
+
+	.pixva-sim__fault--backlight,
+	.pixva-sim__fault--lines,
+	.pixva-sim__fault--blink {
+		opacity: 0;
+	}
+
+	.pixva-sim__screen[data-sim-screen="no_picture"] .pixva-sim__fault--backlight,
+	.pixva-sim__screen[data-sim-screen="lines"] .pixva-sim__fault--lines,
+	.pixva-sim__screen[data-sim-screen="blink"] .pixva-sim__fault--blink {
+		opacity: 1;
+	}
+
+	.pixva-sim__info {
+		transition: none;
+	}
+}

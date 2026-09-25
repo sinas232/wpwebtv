@@ -363,6 +363,130 @@
 	}
 
 	/* ==================================================================
+	   ۱٫۵) سیمولاتور زنده تشخیص عیب در هیرو صفحه اصلی
+	   علامت خرابی → انیمیشن صفحه + علت احتمالی + حدود هزینه + زمان تحویل
+	   (همه مقادیر از سمت سرور در data-attributeها رندر شده‌اند).
+	   ================================================================== */
+	function initHeroSimulator() {
+		qsa('[data-pixva-simulator]').forEach(function (root) {
+			if (root.dataset.simBound === '1') {
+				return;
+			}
+			root.dataset.simBound = '1';
+
+			var screen = root.querySelector('[data-sim-screen]');
+			var info = root.querySelector('[data-sim-info]');
+			var tag = root.querySelector('.pixva-sim__hud-tag');
+			var title = root.querySelector('.pixva-sim__hud-title');
+			var orderLink = root.querySelector('[data-sim-order]');
+			var waLink = root.querySelector('[data-sim-wa]');
+			var buttons = qsa('[data-sim-symptom]', root);
+			var outCause = info ? info.querySelector('[data-sim-cause]') : null;
+			var outCost = info ? info.querySelector('[data-sim-cost]') : null;
+			var outTime = info ? info.querySelector('[data-sim-time]') : null;
+			var current = screen ? screen.getAttribute('data-sim-screen') : '';
+
+			function select(button) {
+				if (!button) {
+					return;
+				}
+				var key = button.getAttribute('data-sim-symptom');
+				current = key;
+
+				buttons.forEach(function (peer) {
+					var active = peer === button;
+					peer.classList.toggle('is-active', active);
+					peer.setAttribute('aria-pressed', active ? 'true' : 'false');
+				});
+
+				if (screen) {
+					screen.setAttribute('data-sim-screen', key);
+				}
+				if (tag) {
+					tag.textContent = button.getAttribute('data-sim-tag') || '';
+				}
+				if (title) {
+					title.textContent = button.getAttribute('data-sim-label') || '';
+				}
+
+				// محو نرم جعبه اطلاعات و جایگزینی مقادیر.
+				if (info) {
+					info.classList.add('is-updating');
+					window.setTimeout(function () {
+						if (outCause) { outCause.textContent = button.getAttribute('data-sim-cause') || ''; }
+						if (outCost) { outCost.textContent = button.getAttribute('data-sim-cost') || ''; }
+						if (outTime) { outTime.textContent = button.getAttribute('data-sim-days') || ''; }
+						info.classList.remove('is-updating');
+					}, 180);
+				}
+
+				root.setAttribute('data-sim-active', key);
+
+				// لینک واتساپ با علامت انتخابی و حدود هزینه به‌روز می‌شود.
+				var waNumber = root.dataset.waNumber || '';
+				if (waLink && waNumber) {
+					var waText = 'سلام، تلویزیون من علامت «' + (button.getAttribute('data-sim-label') || '') + '» دارد ('
+						+ (button.getAttribute('data-sim-tag') || '') + '). حدود هزینه: '
+						+ (button.getAttribute('data-sim-cost') || '') + '. برای اعزام کارشناس راهنمایی می‌خواهم.';
+					waLink.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waText);
+				}
+			}
+
+			buttons.forEach(function (button) {
+				button.addEventListener('click', function () {
+					select(button);
+				});
+			});
+
+			// دکمه ثبت درخواست: جادوگر محاسبه‌گر را با همان ایراد پیش‌تنظیم می‌کند.
+			function driveCalculator() {
+				if (!current) {
+					return false;
+				}
+				var host = document.querySelector(root.dataset.calcTarget || '#quick-calc');
+				var form = host ? host.querySelector('[data-pixva-calc]') : null;
+				if (!form || !form.pixvaCalc) {
+					return false;
+				}
+				form.pixvaCalc.setValues({
+					brand: root.dataset.simBrand || '',
+					tech: root.dataset.simTech || '',
+					size: root.dataset.simSize || '',
+					problem: current
+				});
+				form.pixvaCalc.goTo(3);
+				form.pixvaCalc.estimate();
+
+				// اسکن نرم تا جادوگر؛ اگر مرورگری پشتیبانی نکرد، پرش ساده انجام می‌شود.
+				try {
+					if ('function' === typeof form.scrollIntoView) {
+						form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					} else if (form.id) {
+						window.location.hash = form.id;
+					}
+				} catch (error) {
+					// پیش‌تنظیم و محاسبه انجام شده است؛ اسکن شکست‌خورده جریان را متوقف نمی‌کند.
+				}
+				return true;
+			}
+
+			if (orderLink) {
+				orderLink.addEventListener('click', function (event) {
+					if (!driveCalculator()) {
+						return; // در نبود محاسبه‌گر، پیوند صفحه ثبت سفارش کار می‌کند.
+					}
+					event.preventDefault();
+				});
+			}
+
+			// حالت پیش‌فرض: اولین علامت (بک‌لایت) فعال است.
+			if (!current && buttons.length) {
+				select(buttons[0]);
+			}
+		});
+	}
+
+	/* ==================================================================
 	   ۲) شبیه‌ساز لمسی تلویزیون (ابزار ۵)
 	   ================================================================== */
 	function initTVSimulator() {
@@ -2083,6 +2207,7 @@
 	function boot() {
 		initAIStudio();
 		initAIFloating();
+		initHeroSimulator();
 		initTVSimulator();
 		initRGBTester();
 		initBlinkTester();

@@ -14,6 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// محافظت در برابر خطای fatal: بدون المنتور یا بدون کلاس پایه، هیچ کلاسی ثبت نمی‌شود.
+if ( ! class_exists( '\Elementor\Widget_Base' ) && ! did_action( 'elementor/loaded' ) ) {
+	return;
+}
+
+if ( ! class_exists( 'Pixva_Tool_Widget_Base' ) ) {
+	return;
+}
+
 /**
  * ویجت المنتور ابزار شماره 1.
  */

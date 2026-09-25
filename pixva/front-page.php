@@ -27,8 +27,11 @@ get_header();
 get_footer();
 
 /**
- * هیروی صفحه اصلی (v25.0): هاله‌های نورانی آرام، ماکت تلویزیون با اسکن‌لاین
- * و شمارنده‌های متحرک آمار کارگاه.
+ * هیروی صفحه اصلی (v25.1): پس‌زمینه روشن و خوانا + سیمولاتور زنده تشخیص عیب.
+ *
+ * ماکت ایستای «تست نهایی کارگاه / الگوی RGB» حذف و با سیمولاتور تعاملی جایگزین شد:
+ * سه علامت خرابی پرکاربرد (بک‌لایت، پنل/فلت، برد پاور) که تصویر مانیتور، علت
+ * احتمالی، حدود هزینه و زمان تحویل را بر پایه فرمول نرخ‌نامه سمت سرور نشان می‌دهد.
  *
  * @return void
  */
@@ -40,8 +43,102 @@ function pixva_home_hero() {
 	);
 	$eta   = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
 	$hours = isset( $eta['hub_eta_hours'] ) ? $eta['hub_eta_hours'] : '۲ ساعت';
+
+	// سیمولاتور زنده تشخیص عیب: سه علامت پرکاربرد با داده‌های واقعی نرخ‌نامه.
+	$sim_args = apply_filters(
+		'pixva_hero_simulator_args',
+		array(
+			'brand' => 'samsung',
+			'tech'  => 'led',
+			'size'  => '55',
+		)
+	);
+
+	$sim_symptoms = array(
+		array(
+			'key'   => 'no_picture',
+			'dot'   => 'red',
+			'icon'  => '🔴',
+			'label' => __( 'تصویر سیاه / صدا دارد', 'pixva' ),
+			'tag'   => __( 'بک‌لایت', 'pixva' ),
+			'cause' => __( 'سوختن ریسه‌های LED بک‌لایت یا خرابی درایور بک‌لایت؛ گاهی برد T-CON', 'pixva' ),
+		),
+		array(
+			'key'   => 'lines',
+			'dot'   => 'green',
+			'icon'  => '🟢',
+			'label' => __( 'خطوط عمودی و رنگی', 'pixva' ),
+			'tag'   => __( 'پنل / فلت', 'pixva' ),
+			'cause' => __( 'آسیب COF و فلت‌کبل پنل یا خرابی T-CON؛ نیازمند بندینگ صنعتی', 'pixva' ),
+		),
+		array(
+			'key'   => 'blink',
+			'dot'   => 'blue',
+			'icon'  => '🔵',
+			'label' => __( 'چراغ پاور چشمک می‌زند', 'pixva' ),
+			'tag'   => __( 'برد تغذیه / مین‌برد', 'pixva' ),
+			'cause' => __( 'نوسان یا قطعی برد پاور، خازن‌های بادکرده یا خطای محافظت مین‌برد', 'pixva' ),
+		),
+	);
+
+	$sim_labels  = function_exists( 'pixva_calculator_labels' ) ? pixva_calculator_labels() : array();
+	$sim_pick    = function ( $group, $key ) use ( $sim_labels ) {
+		return isset( $sim_labels[ $group ][ $key ] ) ? $sim_labels[ $group ][ $key ] : $key;
+	};
+	$sim_items   = array();
+
+	foreach ( $sim_symptoms as $symptom ) {
+		$estimate = pixva_calculate_estimate( $sim_args['brand'], $sim_args['tech'], $sim_args['size'], $symptom['key'] );
+
+		if ( ! is_array( $estimate ) ) {
+			continue;
+		}
+
+		if ( ! empty( $estimate['panel_replacement'] ) ) {
+			$cost = __( 'پس از بازدید کارشناس', 'pixva' );
+			$days = __( 'پس از عیب‌یابی', 'pixva' );
+		} else {
+			$cost = sprintf(
+				/* translators: 1: minimum price, 2: maximum price. */
+				__( '%1$s تا %2$s تومان', 'pixva' ),
+				pixva_price( $estimate['min'] ),
+				pixva_price( $estimate['max'] )
+			);
+			$days = '' !== $estimate['days'] ? pixva_fa_num( (string) $estimate['days'] ) : __( '۲ تا ۴ روز کاری', 'pixva' );
+		}
+
+		$sim_items[] = array(
+			'key'   => $symptom['key'],
+			'dot'   => $symptom['dot'],
+			'icon'  => $symptom['icon'],
+			'label' => $symptom['label'],
+			'tag'   => $symptom['tag'],
+			'cause' => $symptom['cause'],
+			'cost'  => $cost,
+			'days'  => $days,
+		);
+	}
+
+	$sim_sample = sprintf(
+		/* translators: 1: brand label, 2: technology label, 3: screen size label. */
+		__( 'نمونه محاسبه: %1$s %2$s %3$s', 'pixva' ),
+		$sim_pick( 'brand', $sim_args['brand'] ),
+		$sim_pick( 'tech', $sim_args['tech'] ),
+		$sim_pick( 'size', $sim_args['size'] )
+	);
+
+	// مسیر ثبت درخواست: جادوگر همین صفحه (با JS) و برگه محاسبه‌گر (بدون JS).
+	$order_url = pixva_page_url( 'calculator' );
+	$wa_number = preg_replace( '/[^0-9]/', '', (string) pixva_option( 'pixva_whatsapp_number', '989120000000' ) );
+	$first     = isset( $sim_items[0] ) ? $sim_items[0] : array();
+	$wa_text   = sprintf(
+		/* translators: 1: fault symptom, 2: probable cause. */
+		__( 'سلام، تلویزیون من علامت «%1$s» دارد (%2$s). برای اعزام کارشناس و برآورد هزینه راهنمایی می‌خواهم.', 'pixva' ),
+		isset( $first['label'] ) ? $first['label'] : '',
+		isset( $first['tag'] ) ? $first['tag'] : ''
+	);
 	?>
-	<section class="pixva-hero pixva-hero--light">
+	<section class="pixva-hero pixva-hero--light pixva-hero--simulator" id="hero">
 		<div class="pixva-hero__aurora" aria-hidden="true">
 			<span class="pixva-aurora-blob pixva-aurora-blob--a"></span>
 			<span class="pixva-aurora-blob pixva-aurora-blob--b"></span>
@@ -60,7 +157,7 @@ function pixva_home_hero() {
 				<p class="pixva-hero__lead"><?php echo esc_html( $lead ); ?></p>
 
 				<div class="pixva-hero__actions">
-					<a class="pixva-btn pixva-btn--cta pixva-btn--shimmer" href="#quick-calc"><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--orange pixva-btn--shimmer" href="#quick-calc"><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></a>
 					<a class="pixva-btn pixva-btn--ghost-dark" href="<?php echo esc_url( pixva_hub_url( 'ai-diagnostics' ) ); ?>"><?php esc_html_e( 'عیب‌یابی با هوش مصنوعی', 'pixva' ); ?></a>
 				</div>
 
@@ -82,40 +179,8 @@ function pixva_home_hero() {
 						<span><?php esc_html_e( 'ابزار تخصصی آنلاین', 'pixva' ); ?></span>
 					</div>
 				</div>
-			</div>
 
-			<div class="pixva-hero__visual">
-				<figure class="pixva-tv-mockup" role="img" aria-label="<?php esc_attr_e( 'ماکت تلویزیون در حال اجرای آزمون نهایی کارگاه: الگوی RGB، شیب خاکستری و سنجش یکنواختی بک‌لایت', 'pixva' ); ?>">
-					<span class="pixva-tv-mockup__glow" aria-hidden="true"></span>
-
-					<div class="pixva-tv-mockup__bezel">
-						<div class="pixva-tv-mockup__screen">
-							<span class="pixva-scanline" aria-hidden="true"></span>
-							<span class="pixva-tv-mockup__grid" aria-hidden="true"></span>
-
-							<div class="pixva-tv-mockup__ui">
-								<span class="pixva-tv-mockup__tag"><?php esc_html_e( 'مرحله ۵ از ۵ — کنترل کیفیت', 'pixva' ); ?></span>
-								<strong class="pixva-tv-mockup__title"><?php esc_html_e( 'تست نهایی کارگاه', 'pixva' ); ?></strong>
-								<span class="pixva-tv-mockup__sub"><?php esc_html_e( 'الگوی RGB · شیب خاکستری · یکنواختی بک‌لایت', 'pixva' ); ?></span>
-
-								<div class="pixva-tv-mockup__bars" aria-hidden="true">
-									<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-								</div>
-
-								<div class="pixva-tv-mockup__signal" aria-hidden="true">
-									<span class="pixva-tv-mockup__led"></span>
-									<span class="pixva-tv-mockup__signal-text">RGB 1080p · 60Hz · HDR10 · ΔE &lt; 2</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<span class="pixva-tv-mockup__stand" aria-hidden="true"></span>
-				</figure>
-
-				<p class="pixva-tv-mockup__caption"><?php esc_html_e( 'هر دستگاه پیش از تحویل، روی میز تست الگوی رنگ، شیب خاکستری و یکنواختی بک‌لایت بررسی می‌شود.', 'pixva' ); ?></p>
-
-				<div class="pixva-hero__chips">
+				<div class="pixva-hero__chips pixva-hero__chips--inline">
 					<span class="pixva-hero__chip pixva-hero__chip--top">
 						<?php echo pixva_icon( 'truck' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<span><?php echo esc_html( sprintf( __( 'اعزام اورژانسی زیر %s', 'pixva' ), $hours ) ); ?></span>
@@ -124,6 +189,90 @@ function pixva_home_hero() {
 						<?php echo pixva_icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<span><?php esc_html_e( 'فاکتور رسمی و رسید کتبی', 'pixva' ); ?></span>
 					</span>
+				</div>
+			</div>
+
+			<div class="pixva-hero__visual">
+				<div class="pixva-sim"
+					data-pixva-simulator
+					data-calc-target="#quick-calc"
+					data-order-url="<?php echo esc_url( $order_url ); ?>"
+					data-sim-brand="<?php echo esc_attr( $sim_args['brand'] ); ?>"
+					data-sim-tech="<?php echo esc_attr( $sim_args['tech'] ); ?>"
+					data-sim-size="<?php echo esc_attr( $sim_args['size'] ); ?>"
+					data-wa-number="<?php echo esc_attr( $wa_number ); ?>">
+					<div class="pixva-sim__badge">
+						<span class="pixva-sim__dot" aria-hidden="true"></span>
+						<span><?php esc_html_e( 'سیمولاتور زنده تشخیص عیب', 'pixva' ); ?></span>
+					</div>
+
+					<div class="pixva-sim__tv">
+						<span class="pixva-sim__glow" aria-hidden="true"></span>
+						<div class="pixva-sim__bezel">
+							<div class="pixva-sim__screen" data-sim-screen="<?php echo esc_attr( isset( $first['key'] ) ? $first['key'] : 'no_picture' ); ?>">
+								<span class="pixva-sim__picture" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+								<span class="pixva-sim__scan" aria-hidden="true"></span>
+								<span class="pixva-sim__fault pixva-sim__fault--backlight" data-sim-fault="no_picture" aria-hidden="true"></span>
+								<span class="pixva-sim__fault pixva-sim__fault--lines" data-sim-fault="lines" aria-hidden="true"></span>
+								<span class="pixva-sim__fault pixva-sim__fault--blink" data-sim-fault="blink" aria-hidden="true"></span>
+
+								<div class="pixva-sim__hud">
+									<span class="pixva-sim__hud-tag"><?php echo esc_html( isset( $first['tag'] ) ? $first['tag'] : '' ); ?></span>
+									<strong class="pixva-sim__hud-title"><?php echo esc_html( isset( $first['label'] ) ? $first['label'] : '' ); ?></strong>
+								</div>
+							</div>
+						</div>
+						<span class="pixva-sim__stand" aria-hidden="true"></span>
+					</div>
+
+					<div class="pixva-sim__symptoms" role="group" aria-label="<?php esc_attr_e( 'علامت خرابی تلویزیون را انتخاب کنید', 'pixva' ); ?>">
+						<?php foreach ( $sim_items as $index => $item ) : ?>
+							<button type="button"
+								class="pixva-sim__symptom pixva-sim__symptom--<?php echo esc_attr( $item['dot'] ); ?><?php echo 0 === $index ? ' is-active' : ''; ?>"
+								data-sim-symptom="<?php echo esc_attr( $item['key'] ); ?>"
+								data-sim-tag="<?php echo esc_attr( $item['tag'] ); ?>"
+								data-sim-label="<?php echo esc_attr( $item['label'] ); ?>"
+								data-sim-cause="<?php echo esc_attr( $item['cause'] ); ?>"
+								data-sim-cost="<?php echo esc_attr( $item['cost'] ); ?>"
+								data-sim-days="<?php echo esc_attr( $item['days'] ); ?>"
+								aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>">
+								<span class="pixva-sim__symptom-icon" aria-hidden="true"><?php echo esc_html( $item['icon'] ); ?></span>
+								<span class="pixva-sim__symptom-text">
+									<strong><?php echo esc_html( $item['label'] ); ?></strong>
+									<small><?php echo esc_html( $item['tag'] ); ?></small>
+								</span>
+							</button>
+						<?php endforeach; ?>
+					</div>
+
+					<div class="pixva-sim__info" data-sim-info>
+						<div class="pixva-sim__row">
+							<span><?php esc_html_e( 'علت احتمالی', 'pixva' ); ?></span>
+							<strong data-sim-cause><?php echo esc_html( isset( $first['cause'] ) ? $first['cause'] : '' ); ?></strong>
+						</div>
+						<div class="pixva-sim__row">
+							<span><?php esc_html_e( 'حدود هزینه', 'pixva' ); ?></span>
+							<strong data-sim-cost><?php echo esc_html( isset( $first['cost'] ) ? $first['cost'] : '' ); ?></strong>
+						</div>
+						<div class="pixva-sim__row">
+							<span><?php esc_html_e( 'زمان تحویل', 'pixva' ); ?></span>
+							<strong data-sim-time><?php echo esc_html( isset( $first['days'] ) ? $first['days'] : '' ); ?></strong>
+						</div>
+					</div>
+
+					<div class="pixva-sim__cta">
+						<a class="pixva-btn pixva-btn--orange" href="<?php echo esc_url( $order_url ); ?>" data-sim-order>
+							<?php esc_html_e( 'ثبت درخواست تعمیر این ایراد', 'pixva' ); ?>
+						</a>
+						<a class="pixva-btn pixva-btn--ghost-dark pixva-sim__wa" href="<?php echo esc_url( pixva_whatsapp_url( $wa_text ) ); ?>" data-sim-wa target="_blank" rel="noopener noreferrer">
+							<?php echo pixva_icon( 'whatsapp' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<span><?php esc_html_e( 'مشاوره فوری در واتساپ', 'pixva' ); ?></span>
+						</a>
+						<p class="pixva-sim__cta-note">
+							<?php echo esc_html( $sim_sample ); ?> —
+							<?php esc_html_e( 'قیمت نهایی پس از عیب‌یابی رایگان تأیید شما می‌رسد.', 'pixva' ); ?>
+						</p>
+					</div>
 				</div>
 			</div>
 		</div>
