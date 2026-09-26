@@ -69,12 +69,13 @@
 - **کتابخانه‌ها:** `pixva_cdn_gsap`، `pixva_cdn_scrolltrigger`، `pixva_cdn_leaflet`، `pixva_cdn_leaflet_css`، `pixva_cdn_spline` (خالی = موتور داخلی/فایل vendor).
 - **هوش مصنوعی:** `pixva_ai_agent_url`، `pixva_ai_agent_token`، `pixva_ai_max_size` (مگابایت).
 - **نقشه:** `pixva_map_origin_lat/lng/label`، `pixva_map_zones` (JSON منطقه‌ها)، `pixva_map_dest_label`، `pixva_map_average_speed`، `pixva_map_refresh`، `pixva_map_provider` (`auto|internal|leaflet`)، `pixva_map_tiles`، `pixva_map_attribution`.
+- **نقشه در صفحه پیگیری:** `pixva_map_on_tracking` (روشن/خاموش) به‌همراه `pixva_map_badge`، `pixva_map_title` و `pixva_map_subtitle`.
 
 همه کلیدها با `pixva_option()` خوانده می‌شوند و با فیلترهای `pixva_cinematic_libs`، `pixva_ai_diagnose_result`، `pixva_map_route`، `pixva_map_origin`، `pixva_dispatch_live_payload` و `pixva_cinematic_default_layers` از کد قابل بازنویسی‌اند.
 
 ### اتصال به فرم پیگیری
 
-`assets/js/tracker.js` و `assets/js/interactive-tools.js` پس از استعلام موفق، رویداد `pixva:track-result` را با کد پرونده و شماره همراه منتشر می‌کنند؛ ویجت نقشه در همان صفحه بدون رفرش پر می‌شود (بدون شماره همراه، راهنمای لازم بودن شماره نمایش داده می‌شود).
+`assets/js/tracker.js` و `assets/js/interactive-tools.js` پس از استعلام موفق، رویداد `pixva:track-result` را با کد پرونده و شماره همراه منتشر می‌کنند؛ ویجت نقشه در همان صفحه بدون رفرش پر می‌شود (بدون شماره همراه، راهنمای لازم بودن شماره نمایش داده می‌شود). قالب `page-templates/page-tracking.php` به‌صورت پیش‌فرض همین نقشه را زیر فرم استعلام رندر می‌کند (بدون فرم دوم، با `lookup => false`) و با گزینه `pixva_map_on_tracking` قابل خاموش‌کردن است؛ در آن صورت اسکریپت نقشه هم برای صفحه پیگیری صف نمی‌شود.
 
 ## لندینگ مینیمال، مگامنوی چهارگروهی و موتور حرکت (۱٫۵٫۰)
 
@@ -229,7 +230,7 @@
 
 - `python3 tools/php_check.py pixva` — توازن بلوک‌ها و سلامت ساختار ۸۳ پرونده PHP.
 - `python3 tools/php_lint.py pixva` — lint سبکی و بررسی تابع تکراری (اکنون بدون تابع تکراری).
-- `node tools/domtest.js` — ۳۴۰ آزمون رگرسیون: چک‌های ایستای قرارداد فایل‌ها (لایه ۲۷ تا ۲۹ CSS، موتور CRM، لایه ۱٫۵٫۰ و ۱٫۶٫۰، حذف ابزار ۵، بارگذاری شرایطی اسکریپت‌ها) به‌همراه آزمون رفتاری jsdom روی سه هارنس داخل مخزن: `tools/fixtures/crm-preview.html`، `tools/fixtures/v6-preview.html` و `tools/fixtures/v7-preview.html`.
+- `node tools/domtest.js` — ۳۴۷ آزمون رگرسیون: چک‌های ایستای قرارداد فایل‌ها (لایه ۲۷ تا ۲۹ CSS، موتور CRM، لایه ۱٫۵٫۰ و ۱٫۶٫۰، حذف ابزار ۵، بارگذاری شرایطی اسکریپت‌ها) به‌همراه آزمون رفتاری jsdom روی سه هارنس داخل مخزن: `tools/fixtures/crm-preview.html`، `tools/fixtures/v6-preview.html` و `tools/fixtures/v7-preview.html`.
   - هارنس CRM: جریان کامل جادوگر (انتخاب چیپ، اعتبارسنجی موبایل، برآورد سمت سرور، ثبت و کد پیگیری، شروع دوباره)، فیلتر و گزارش فنی پنل تعمیرکار (جمع زنده، افزودن/حذف قطعه، انتقال وضعیت، صدور گارانتی)، هولوگرام (متغیرهای `--holo-*`)، چاپ فاکتور، استعلام اصالت گارانتی، جست‌وجوی کد خطا، برآورد سریع و کپی سریال.
   - اجرای آزمون‌ها نیاز به `npm install jsdom` در پوشه والد دارد (خارج از گیت): `NODE_PATH=../node_modules node tools/domtest.js`.
   - هارنس V6 (`tools/fixtures/v6-preview.html`): ساختار چهارگروهی مگامنو و عنوان/پیوند هر گروه، رفتار آبشاری (کلیک، Escape، ArrowDown)، دروئر موبایل با همان گروه‌ها، صفحه اصلی مینیمال (چهار سکشن، سه مزیت، گالری نمونه‌کار)، موتور حرکت (کلاس `pixva-motion-js`، `.pixva-fx`/`is-in`، تأخیر پله‌ای، متغیرهای نور OLED، موج نوری کلیک، اسکرول نرم لنگر) و نوار داشبورد تعمیرکار.

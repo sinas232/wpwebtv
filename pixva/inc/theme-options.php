@@ -626,12 +626,19 @@ function pixva_customize_register( $wp_customize ) {
 		) ),
 		'pixva_map_tiles'          => array( __( 'نقشه: آدرس کاشی‌ها', 'pixva' ), 'text', 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', __( 'الگوی Leaflet با جای‌گیرهای {s} {z} {x} {y}.', 'pixva' ) ),
 		'pixva_map_attribution'    => array( __( 'نقشه: متن منبع (Attribution)', 'pixva' ), 'text', '© OpenStreetMap contributors © CARTO', '' ),
+		'pixva_map_on_tracking'    => array( __( 'نقشه زنده در صفحه پیگیری سفارش', 'pixva' ), 'checkbox', true, __( 'ویجت نقشه زیر فرم استعلام قرار می‌گیرد و با همان کد پیگیری پر می‌شود.', 'pixva' ) ),
+		'pixva_map_badge'          => array( __( 'نقشه صفحه پیگیری: برچسب', 'pixva' ), 'text', __( 'ردیابی زنده', 'pixva' ), '' ),
+		'pixva_map_title'          => array( __( 'نقشه صفحه پیگیری: تیتر', 'pixva' ), 'text', __( 'تعمیرکار کجاست؟', 'pixva' ), '' ),
+		'pixva_map_subtitle'       => array( __( 'نقشه صفحه پیگیری: توضیح', 'pixva' ), 'textarea', __( 'پس از استعلام کد پیگیری، موقعیت تعمیرکار و زمان تقریبی رسیدن به‌صورت زنده روی نقشه روشن می‌شود.', 'pixva' ), '' ),
 	);
 
 	foreach ( $pixva_v7_fields as $pixva_key => $pixva_field ) {
 		$pixva_type = $pixva_field[1];
 
-		if ( 'number' === $pixva_type ) {
+		if ( 'checkbox' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_checkbox';
+			$pixva_control  = 'checkbox';
+		} elseif ( 'number' === $pixva_type ) {
 			$pixva_sanitize = 'absint';
 			$pixva_control  = 'number';
 		} elseif ( 'textarea' === $pixva_type ) {

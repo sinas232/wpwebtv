@@ -32,6 +32,23 @@ $statuses = pixva_order_statuses();
 		</form>
 		<div data-track-result></div>
 
+		<?php
+		/*
+		 * نقشه زنده تعمیرکار (لایه ۱٫۶٫۰): فرم بالا پس از استعلام رویداد
+		 * pixva:track-result را منتشر می‌کند و همین بخش بدون رفرش پر می‌شود.
+		 */
+		if ( pixva_option( 'pixva_map_on_tracking', true ) && function_exists( 'pixva_render_technician_tracker' ) ) {
+			pixva_render_technician_tracker(
+				array(
+					'badge'    => (string) pixva_option( 'pixva_map_badge', __( 'ردیابی زنده', 'pixva' ) ),
+					'title'    => (string) pixva_option( 'pixva_map_title', __( 'تعمیرکار کجاست؟', 'pixva' ) ),
+					'subtitle' => (string) pixva_option( 'pixva_map_subtitle', __( 'پس از استعلام کد پیگیری، موقعیت تعمیرکار و زمان تقریبی رسیدن به‌صورت زنده روی نقشه روشن می‌شود.', 'pixva' ) ),
+					'lookup'   => false,
+				)
+			);
+		}
+		?>
+
 		<section style="margin-top:2rem">
 			<h2><?php esc_html_e( 'مراحل کارگاه', 'pixva' ); ?></h2>
 			<ol class="pixva-timeline">

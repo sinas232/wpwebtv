@@ -252,12 +252,12 @@ if ( ! function_exists( 'pixva_needs_tracker_map_js' ) ) {
 			return false;
 		}
 
-		$needed = is_page_template(
+		$needed = ( pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(
 			array(
 				'page-templates/page-tracking.php',
 				'page-templates/page-hub-tracking.php',
 			)
-		) || pixva_cinematic_has_marker(
+		) ) || pixva_cinematic_has_marker(
 			array(
 				'pixva_tech_tracker',
 				'pixva_technician_tracker',

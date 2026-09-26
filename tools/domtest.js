@@ -707,10 +707,17 @@ function v7StaticChecks() {
 	['pixva_cdn_gsap', 'pixva_cdn_scrolltrigger', 'pixva_cdn_leaflet', 'pixva_cdn_leaflet_css', 'pixva_cdn_spline',
 		'pixva_ai_agent_url', 'pixva_ai_agent_token', 'pixva_ai_max_size',
 		'pixva_map_origin_lat', 'pixva_map_origin_lng', 'pixva_map_origin_label', 'pixva_map_zones', 'pixva_map_dest_label',
-		'pixva_map_average_speed', 'pixva_map_refresh', 'pixva_map_provider', 'pixva_map_tiles', 'pixva_map_attribution'].forEach((key) => {
+		'pixva_map_average_speed', 'pixva_map_refresh', 'pixva_map_provider', 'pixva_map_tiles', 'pixva_map_attribution',
+		'pixva_map_on_tracking', 'pixva_map_badge', 'pixva_map_title', 'pixva_map_subtitle'].forEach((key) => {
 		check('v7: گزینه سفارشی‌ساز ' + key, options.indexOf("'" + key + "'") > -1);
 	});
 	check('v7: پاک‌سازی مختصات و موتور نقشه', options.indexOf('function pixva_sanitize_coord(') > -1 && options.indexOf('function pixva_sanitize_map_provider(') > -1);
+
+	/* --- نقشه زنده داخل صفحه پیگیری سفارش --- */
+	const tracking = read('page-templates/page-tracking.php');
+	check('v7: نقشه زنده در صفحه پیگیری رندر می‌شود', tracking.indexOf('pixva_render_technician_tracker(') > -1 && tracking.indexOf("pixva_option( 'pixva_map_on_tracking'") > -1);
+	check('v7: متن‌های نقشه پیگیری از گزینه‌ها می‌آیند', ['pixva_map_badge', 'pixva_map_title', 'pixva_map_subtitle'].every((k) => tracking.indexOf(k) > -1));
+	check('v7: صف نقشه به گزینه صفحه پیگیری شرط شده', cinematic.indexOf("pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(") > -1);
 
 	/* --- موتور GSAP سبک --- */
 	check('v7: موتور سبک gsap + ScrollTrigger', gsapLite.indexOf('window.gsap') > -1 && gsapLite.indexOf('window.ScrollTrigger') > -1 && gsapLite.indexOf('__pixvaLite') > -1);
