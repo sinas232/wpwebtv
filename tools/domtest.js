@@ -481,6 +481,7 @@ function v6StaticChecks() {
 	check('v6: ذخیره از مسیر API موتور CRM', ['pixva_crm_assign(', 'pixva_crm_set_status(', 'pixva_crm_save_report(', 'pixva_crm_issue_warranty('].every((fn) => metaboxes.indexOf(fn) > -1));
 	check('v6: شورت‌کد داشبورد تعمیرکار', shortcodes.indexOf("add_shortcode( 'pixva_technician_panel'") > -1);
 	check('v6: برگه /technician-dashboard در نصب ساخته می‌شود', activation.indexOf("'technician-dashboard'") > -1);
+	check('v6: ارتقای نصب‌های قدیمی به چیدمان مینیمال', activation.indexOf("version_compare( $stored_version, '1.5.0', '<' )") > -1 && activation.indexOf('pixva_reset_home_sections_on_upgrade') > -1);
 
 	check('v6: CSS لایه حرکت (reveal/ripple/magnetic)', ['.pixva-fx', '.pixva-ripple', '.pixva-magnetic'].every((c) => css.indexOf(c) > -1));
 	check('v6: CSS کارت‌های مزیت و نمونه‌کار', ['.pixva-advantage', '.pixva-work-item', '.pixva-mega__groups', '.pixva-tech-dash__bar'].every((c) => css.indexOf(c) > -1));

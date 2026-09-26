@@ -428,8 +428,24 @@ function pixva_maybe_upgrade() {
 	}
 
 	/*
+	 * ارتقا به ۱٫۵٫۰: چیدمان مینیمال صفحه اصلی اعمال می‌شود (هیرو ← سه مزیت ←
+	 * نمونه‌کار تصویری ← نظرات). تنظیمات سکشن‌های قدیمی یک‌بار پاک می‌شود تا
+	 * پیش‌فرض تازه اثر کند؛ مدیر می‌تواند هر سکشن را از سفارشی‌ساز برگرداند.
+	 * با فیلتر pixva_reset_home_sections_on_upgrade قابل غیرفعال‌سازی است.
+	 */
+	if ( '' !== $stored_version && version_compare( $stored_version, '1.5.0', '<' )
+		&& (bool) apply_filters( 'pixva_reset_home_sections_on_upgrade', true ) ) {
+		remove_theme_mod( 'pixva_sections_order' );
+		if ( function_exists( 'pixva_home_sections' ) ) {
+			foreach ( array_keys( pixva_home_sections() ) as $pixva_section_key ) {
+				remove_theme_mod( 'pixva_section_' . $pixva_section_key );
+			}
+		}
+	}
+
+	/*
 	 * اگر ترتیب سکشن‌های خانه از نسخه قدیمی مانده باشد، بازنشانی می‌شود تا ترتیب
-	 * جدید (هیرو ← ویجت قیمت ← خدمات ← مسیر تعمیر ← قبل/بعد ← نظرات) اعمال گردد.
+	 * جدید اعمال گردد.
 	 */
 	if ( '' !== $stored_spec && $stored_spec !== $spec ) {
 		$order = (string) get_theme_mod( 'pixva_sections_order', '' );
