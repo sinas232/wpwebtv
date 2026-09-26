@@ -454,3 +454,305 @@ if ( ! function_exists( 'pixva_sidebar_hubs_list' ) ) {
 		<?php
 	}
 }
+
+if ( ! function_exists( 'pixva_mega_service_url' ) ) {
+	/**
+	 * آدرس یک خدمت تعمیراتی برای منوی مگا.
+	 *
+	 * اگر خدمت هم‌نام در نوع محتوای «خدمات» ساخته شده باشد آدرس همان نوشته
+	 * برمی‌گردد؛ در غیر این صورت به محاسبه‌گر با پارامتر problem می‌رود تا
+	 * کاربر برآورد قیمت همان خدمت را ببیند.
+	 *
+	 * @param string $key کلید خدمت (backlight|mainboard|panel|...).
+	 * @return string
+	 */
+	function pixva_mega_service_url( $key ) {
+		if ( post_type_exists( 'tv_services' ) ) {
+			$post = get_page_by_path( $key, OBJECT, 'tv_services' );
+			if ( $post instanceof WP_Post ) {
+				return (string) get_permalink( $post );
+			}
+		}
+
+		return add_query_arg( 'problem', $key, pixva_page_url( 'calculator' ) );
+	}
+}
+
+if ( ! function_exists( 'pixva_mega_service_title' ) ) {
+	/**
+	 * عنوان یک خدمت برای منوی مگا.
+	 *
+	 * اگر نوشته‌ای هم‌نام در نوع محتوای «خدمات» ساخته شده باشد عنوان همان
+	 * نوشته استفاده می‌شود؛ در غیر این صورت برچسب پیش‌فرض.
+	 *
+	 * @param string $key     کلید خدمت.
+	 * @param string $default برچسب پیش‌فرض.
+	 * @return string
+	 */
+	function pixva_mega_service_title( $key, $default ) {
+		if ( post_type_exists( 'tv_services' ) ) {
+			$post = get_page_by_path( $key, OBJECT, 'tv_services' );
+			if ( $post instanceof WP_Post ) {
+				$title = trim( (string) get_the_title( $post ) );
+				if ( '' !== $title ) {
+					return $title;
+				}
+			}
+		}
+
+		return $default;
+	}
+}
+
+if ( ! function_exists( 'pixva_mega_groups' ) ) {
+	/**
+	 * چهار گروه منوی مگا طبق Master Prompt v6.
+	 *
+	 * گروه‌ها: خدمات تعمیرات، کدهای خطا و عیب‌یابی، استعلام و گارانتی و ورود
+	 * تعمیرکاران. عنوان و آدرس‌ها از داده‌های واقعی سایت (کاتالوگ برندها،
+	 * برگه‌های قالب، نوع محتوای خدمات) ساخته می‌شود و با فیلتر
+	 * pixva_mega_groups یا گزینه‌های پیکسوا قابل بازنویسی است.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_mega_groups() {
+		$brands   = function_exists( 'pixva_brand_catalog' ) ? pixva_brand_catalog() : array();
+		$fallback = function_exists( 'pixva_service_fallbacks' ) ? pixva_service_fallbacks() : array();
+		$errors   = pixva_page_url( 'error-codes' );
+		$days     = function_exists( 'pixva_warranty_days' ) ? (int) pixva_warranty_days() : 180;
+
+		$service_map = array();
+		foreach ( $fallback as $item ) {
+			if ( isset( $item['key'] ) ) {
+				$service_map[ $item['key'] ] = $item;
+			}
+		}
+
+		/**
+		 * عنوان و توضیح هر خدمت کلیدی منو (طبق Master Prompt v6).
+		 *
+		 * @var array<string, array{title:string, text:string, icon:string}>
+		 */
+		$services = array(
+			'backlight' => array(
+				'title' => pixva_mega_service_title( 'backlight', __( 'تعمیر بک‌لایت', 'pixva' ) ),
+				'text'  => __( 'رفع تاریکی موضعی و هاله نور با نوار LED اصلی', 'pixva' ),
+				'icon'  => isset( $service_map['backlight']['icon'] ) ? $service_map['backlight']['icon'] : 'sun',
+			),
+			'mainboard' => array(
+				'title' => pixva_mega_service_title( 'mainboard', __( 'تعمیر برد اصلی', 'pixva' ) ),
+				'text'  => __( 'عیب‌یابی مین‌برد، HDMI و بخش پردازش تصویر', 'pixva' ),
+				'icon'  => isset( $service_map['mainboard']['icon'] ) ? $service_map['mainboard']['icon'] : 'cpu',
+			),
+			'panel'     => array(
+				'title' => pixva_mega_service_title( 'panel', __( 'تعمیر پنل OLED/LED', 'pixva' ) ),
+				'text'  => __( 'بندینگ COF و ترمیم خطوط بدون تعویض شیشه', 'pixva' ),
+				'icon'  => isset( $service_map['panel']['icon'] ) ? $service_map['panel']['icon'] : 'panel',
+			),
+		);
+
+		$service_items = array();
+		foreach ( $services as $key => $item ) {
+			$service_items[] = array(
+				'title' => (string) pixva_option( 'pixva_mega_service_' . $key, $item['title'] ),
+				'text'  => $item['text'],
+				'icon'  => $item['icon'],
+				'url'   => pixva_mega_service_url( $key ),
+			);
+		}
+
+		$error_items = array();
+		foreach ( array( 'sony', 'samsung', 'lg' ) as $brand_key ) {
+			$name = isset( $brands[ $brand_key ]['fa'] ) ? $brands[ $brand_key ]['fa'] : strtoupper( $brand_key );
+			/* translators: %s: نام برند */
+			$error_items[] = array(
+				'title' => sprintf( __( 'راهنمای کدهای خطای %s', 'pixva' ), $name ),
+				'text'  => __( 'جدول کد خطا، شمارش چشمک و راه‌حل خانگی', 'pixva' ),
+				'icon'  => 'doc',
+				'url'   => add_query_arg( 'brand', $brand_key, $errors ),
+			);
+		}
+
+		$warranty_items = array(
+			array(
+				'title' => (string) pixva_option( 'pixva_mega_parts_title', __( 'استعلام اصالت قطعه', 'pixva' ) ),
+				'text'  => __( 'موجودی انبار و سریال قطعه فابریک', 'pixva' ),
+				'icon'  => 'box',
+				'url'   => pixva_page_url( 'parts-stock' ),
+			),
+			array(
+				'title' => (string) pixva_option( 'pixva_mega_tracking_title', __( 'پیگیری سفارش', 'pixva' ) ),
+				'text'  => __( 'وضعیت زنده پرونده با کد رهگیری یا شماره تماس', 'pixva' ),
+				'icon'  => 'route',
+				'url'   => pixva_page_url( 'tracking' ),
+			),
+			array(
+				'title' => (string) pixva_option( 'pixva_mega_warranty_title', __( 'مشاهده کارت گارانتی', 'pixva' ) ),
+				/* translators: %s: روز گارانتی */
+				'text'  => sprintf( __( 'کارت دیجیتال با هولوگرام و گارانتی %s روزه', 'pixva' ), function_exists( 'pixva_fa_num' ) ? pixva_fa_num( (string) $days ) : $days ),
+				'icon'  => 'cert',
+				'url'   => pixva_page_url( 'client-hub' ),
+			),
+		);
+
+		$tech_page = get_page_by_path( 'technician-dashboard' );
+		if ( ! $tech_page instanceof WP_Post ) {
+			$tech_page = get_page_by_path( 'technician' );
+		}
+		$tech_url = $tech_page instanceof WP_Post ? (string) get_permalink( $tech_page ) : home_url( '/technician-dashboard/' );
+
+		$groups = array(
+			array(
+				'id'     => 'services',
+				'title'  => (string) pixva_option( 'pixva_mega_group_services', __( 'خدمات تعمیرات', 'pixva' ) ),
+				'text'   => __( 'تعمیر تخصصی پنل، بک‌لایت و برد اصلی با قطعه فابریک و گزارش فنی کتبی.', 'pixva' ),
+				'icon'   => 'tool',
+				'url'    => '',
+				'items'  => $service_items,
+				'cta'    => array(
+					'title' => __( 'برآورد هزینه تعمیر', 'pixva' ),
+					'url'   => pixva_page_url( 'calculator' ),
+					'icon'  => 'calculator',
+				),
+				'note'   => array(
+					'title' => __( 'همه خدمات کارگاه', 'pixva' ),
+					'url'   => post_type_exists( 'tv_services' ) ? (string) get_post_type_archive_link( 'tv_services' ) : pixva_page_url( 'rates' ),
+				),
+			),
+			array(
+				'id'     => 'errors',
+				'title'  => (string) pixva_option( 'pixva_mega_group_errors', __( 'کدهای خطا و عیب‌یابی', 'pixva' ) ),
+				'text'   => __( 'کد خطا یا شمارش چشمک چراغ پاور را پیدا کنید؛ راه‌حل خانگی پیش از اعزام کارشناس.', 'pixva' ),
+				'icon'   => 'search',
+				'url'    => '',
+				'items'  => $error_items,
+				'cta'    => array(
+					'title' => __( 'پایگاه کامل کدهای خطا', 'pixva' ),
+					'url'   => $errors,
+					'icon'  => 'search',
+				),
+				'note'   => array(
+					'title' => __( 'عیب‌یابی هوشمند با هوش مصنوعی', 'pixva' ),
+					'url'   => function_exists( 'pixva_hub_url' ) ? pixva_hub_url( 'ai-diagnostics' ) : pixva_page_url( 'ai-diagnostics' ),
+				),
+			),
+			array(
+				'id'     => 'warranty',
+				'title'  => (string) pixva_option( 'pixva_mega_group_warranty', __( 'استعلام و گارانتی', 'pixva' ) ),
+				'text'   => __( 'استعلام اصالت قطعه، وضعیت لحظه‌ای پرونده و کارت گارانتی دیجیتال با هولوگرام.', 'pixva' ),
+				'icon'   => 'shield',
+				'url'    => '',
+				'items'  => $warranty_items,
+				'cta'    => array(
+					'title' => __( 'ثبت سفارش تعمیر', 'pixva' ),
+					'url'   => pixva_page_url( 'contact' ),
+					'icon'  => 'send',
+				),
+				'note'   => array(
+					'title' => __( 'نرخ‌نامه مصوب ۱۴۰۵', 'pixva' ),
+					'url'   => pixva_page_url( 'rates' ),
+				),
+			),
+			array(
+				'id'     => 'technician',
+				'title'  => (string) pixva_option( 'pixva_mega_group_technician', __( 'ورود تعمیرکاران', 'pixva' ) ),
+				'icon'   => 'user',
+				'url'    => $tech_url,
+				'items'  => array(),
+				'cta'    => array(),
+				'note'   => array(),
+			),
+		);
+
+		/**
+		 * فیلتر گروه‌های منوی مگا.
+		 *
+		 * @param array $groups گروه‌ها.
+		 */
+		return apply_filters( 'pixva_mega_groups', $groups );
+	}
+}
+
+if ( ! function_exists( 'pixva_render_mega_group_links' ) ) {
+	/**
+	 * چاپ فهرست پیوندهای یک گروه مگا.
+	 *
+	 * @param array<string, mixed> $group گروه.
+	 * @return void
+	 */
+	function pixva_render_mega_group_links( $group ) {
+		if ( empty( $group['items'] ) || ! is_array( $group['items'] ) ) {
+			return;
+		}
+		?>
+		<div class="pixva-mega__col pixva-mega__col--links">
+			<h4><?php echo esc_html( isset( $group['title'] ) ? $group['title'] : '' ); ?></h4>
+			<ul class="pixva-mega__links">
+				<?php foreach ( $group['items'] as $item ) : ?>
+					<li>
+						<a href="<?php echo esc_url( isset( $item['url'] ) ? $item['url'] : home_url( '/' ) ); ?>" data-ripple>
+							<?php echo pixva_icon( isset( $item['icon'] ) ? $item['icon'] : 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<span>
+								<strong><?php echo esc_html( isset( $item['title'] ) ? $item['title'] : '' ); ?></strong>
+								<?php if ( ! empty( $item['text'] ) ) : ?>
+									<small><?php echo esc_html( $item['text'] ); ?></small>
+								<?php endif; ?>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php
+	}
+}
+
+if ( ! function_exists( 'pixva_render_drawer_groups' ) ) {
+	/**
+	 * منوی آکاردئونی دروئر موبایل بر پایه همان چهار گروه مگا.
+	 *
+	 * @param string $id_prefix پیشوند شناسه پنل‌ها.
+	 * @return void
+	 */
+	function pixva_render_drawer_groups( $id_prefix = 'drawer-group' ) {
+		$groups = function_exists( 'pixva_mega_groups' ) ? pixva_mega_groups() : array();
+		if ( empty( $groups ) ) {
+			return;
+		}
+
+		echo '<ul class="pixva-nav__list pixva-drawer-hubs pixva-drawer-groups">';
+		$index = 0;
+		foreach ( $groups as $group ) {
+			$index++;
+			$title = isset( $group['title'] ) ? (string) $group['title'] : '';
+			$url   = isset( $group['url'] ) ? (string) $group['url'] : '';
+
+			if ( empty( $group['items'] ) ) {
+				echo '<li class="pixva-drawer-hub pixva-drawer-hub--direct">';
+				echo '<a class="pixva-drawer-hub__title" href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a>';
+				echo '</li>';
+				continue;
+			}
+
+			$panel_id = $id_prefix . '-' . $index;
+			echo '<li class="pixva-drawer-hub" data-pixva-accordion-item>';
+			if ( '' !== $url ) {
+				echo '<a class="pixva-drawer-hub__title" href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a>';
+			} else {
+				echo '<span class="pixva-drawer-hub__title">' . esc_html( $title ) . '</span>';
+			}
+			echo '<button type="button" class="pixva-drawer-hub__toggle" data-pixva-accordion aria-expanded="false" aria-controls="' . esc_attr( $panel_id ) . '" aria-label="' . esc_attr( sprintf( __( 'زیرمنوی %s', 'pixva' ), $title ) ) . '">';
+			echo pixva_icon( 'chevron' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '</button>';
+			echo '<div id="' . esc_attr( $panel_id ) . '" class="pixva-drawer-hub__panel" hidden><ul>';
+			foreach ( $group['items'] as $item ) {
+				echo '<li><a href="' . esc_url( isset( $item['url'] ) ? $item['url'] : home_url( '/' ) ) . '">' . esc_html( isset( $item['title'] ) ? $item['title'] : '' ) . '</a></li>';
+			}
+			if ( ! empty( $group['cta']['url'] ) ) {
+				echo '<li class="pixva-drawer-hub__cta"><a href="' . esc_url( (string) $group['cta']['url'] ) . '">' . esc_html( isset( $group['cta']['title'] ) ? (string) $group['cta']['title'] : '' ) . '</a></li>';
+			}
+			echo '</ul></div></li>';
+		}
+		echo '</ul>';
+	}
+}

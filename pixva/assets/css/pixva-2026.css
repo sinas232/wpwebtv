@@ -8748,3 +8748,746 @@ body.pixva-crm-admin {
 		display: block !important;
 	}
 }
+
+/* =====================================================================
+   ۲۸) لایه حرکت و مینیمالیسم (نسخه ۱٫۵٫۰)
+       اسکرول نرم، ظهور قطعات، موج نوری کلیک، هاور مغناطیسی و
+       صفحه اصلی خلوت با مگامنوی گروهی
+
+   قرارداد: هیچ عنصری بدون JS پنهان نمی‌ماند — همه قواعد ظهور با
+   .pixva-motion-js (که توسط assets/js/motion.js روی <html> می‌نشیند) شرط شده‌اند.
+   ===================================================================== */
+
+/* --- ۲۸-A: اسکرول نرم --- */
+html {
+	scroll-behavior: smooth;
+	scroll-padding-top: 6.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+		scroll-padding-top: 5rem;
+	}
+}
+
+/* --- ۲۸-B: ظهور قطعات هنگام اسکرول --- */
+.pixva-motion-js .pixva-fx {
+	opacity: 0;
+	transform: translate3d(0, 26px, 0);
+	transition:
+		opacity 0.62s cubic-bezier(0.22, 0.68, 0.24, 1) var(--fx-delay, 0ms),
+		transform 0.62s cubic-bezier(0.22, 0.68, 0.24, 1) var(--fx-delay, 0ms);
+	will-change: transform, opacity;
+	backface-visibility: hidden;
+}
+
+.pixva-motion-js .pixva-fx.is-in {
+	opacity: 1;
+	transform: translate3d(0, 0, 0);
+	will-change: auto;
+}
+
+.pixva-motion-js .pixva-fx[data-fx="scale"] {
+	transform: translate3d(0, 20px, 0) scale(0.965);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="scale"].is-in {
+	transform: translate3d(0, 0, 0) scale(1);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="start"] {
+	transform: translate3d(-28px, 0, 0);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="start"].is-in {
+	transform: translate3d(0, 0, 0);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="end"] {
+	transform: translate3d(28px, 0, 0);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="end"].is-in {
+	transform: translate3d(0, 0, 0);
+}
+
+.pixva-motion-js .pixva-fx[data-fx="fade"] {
+	transform: none;
+}
+
+/* --- ۲۸-C: موج نوری کلیک --- */
+.pixva-ripple-host {
+	position: relative;
+	overflow: hidden;
+	-webkit-tap-highlight-color: transparent;
+	isolation: isolate;
+}
+
+.pixva-ripple {
+	position: absolute;
+	z-index: 4;
+	border-radius: 50%;
+	pointer-events: none;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.24) 42%, rgba(255, 255, 255, 0) 70%);
+	transform: translate3d(0, 0, 0) scale(0.18);
+	opacity: 0.9;
+	animation: pixva-ripple 0.62s cubic-bezier(0.22, 0.68, 0.24, 1) forwards;
+	will-change: transform, opacity;
+}
+
+@keyframes pixva-ripple {
+	to {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0;
+	}
+}
+
+/* روی سطوح روشن، موج سرد و ملایم می‌نشیند */
+.pixva-card .pixva-ripple,
+.pixva-advantage .pixva-ripple,
+.pixva-work-item .pixva-ripple,
+.pixva-widget .pixva-ripple,
+.pixva-btn--ghost .pixva-ripple,
+.pixva-btn--ghost-dark .pixva-ripple,
+.pixva-crm__chip .pixva-ripple,
+.pixva-choice .pixva-ripple {
+	background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(34, 211, 238, 0.16) 45%, rgba(99, 102, 241, 0) 72%);
+}
+
+/* --- ۲۸-D: هاور مغناطیسی و نور محیطی OLED --- */
+.pixva-magnetic {
+	--mx: 50%;
+	--my: 50%;
+	--pull-x: 0px;
+	--pull-y: 0px;
+	--edge-angle: 0deg;
+	position: relative;
+	transform: translate3d(0, 0, 0);
+	transition: transform 0.34s cubic-bezier(0.22, 0.68, 0.24, 1), box-shadow 0.34s ease;
+}
+
+.pixva-magnetic.is-magnetic {
+	transform: translate3d(var(--pull-x), var(--pull-y), 0);
+}
+
+.pixva-card.pixva-magnetic.is-magnetic {
+	transform: translate3d(var(--pull-x), calc(-6px + var(--pull-y)), 0);
+	box-shadow: var(--shadow-lg, 0 26px 50px -28px rgba(15, 23, 42, 0.45)), 0 0 0 1px rgba(99, 102, 241, 0.16);
+}
+
+/* بازتاب نور محیطی داخل کارت */
+.pixva-magnetic::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	border-radius: inherit;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.35s ease;
+	background: radial-gradient(20rem 20rem at var(--mx) var(--my), rgba(255, 255, 255, 0.42), rgba(165, 243, 252, 0.12) 38%, rgba(255, 255, 255, 0) 62%);
+	mix-blend-mode: soft-light;
+}
+
+.pixva-magnetic.is-magnetic::after {
+	opacity: 1;
+}
+
+/* لبه نورانی چرخان */
+.pixva-magnetic::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	border-radius: inherit;
+	padding: 1px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.35s ease;
+	background: conic-gradient(from var(--edge-angle), rgba(99, 102, 241, 0) 0deg, rgba(99, 102, 241, 0.7) 60deg, rgba(34, 211, 238, 0.7) 130deg, rgba(99, 102, 241, 0) 220deg);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+}
+
+.pixva-magnetic.is-magnetic::before {
+	opacity: 1;
+}
+
+/* --- ۲۸-E: صفحه اصلی مینیمال --- */
+.pixva-home--minimal .pixva-section {
+	padding-block: clamp(3.2rem, 8vw, 6.4rem);
+}
+
+.pixva-home--minimal .pixva-section-head {
+	max-width: 46rem;
+	margin-inline: auto;
+	text-align: center;
+}
+
+.pixva-home--minimal .pixva-section-head p {
+	margin-inline: auto;
+}
+
+/* سه مزیت کلیدی */
+.pixva-advantages {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+	gap: clamp(0.9rem, 2.2vw, 1.5rem);
+}
+
+.pixva-advantage {
+	position: relative;
+	display: grid;
+	gap: 0.6rem;
+	justify-items: start;
+	padding: clamp(1.2rem, 2.8vw, 1.9rem);
+	border-radius: clamp(1.1rem, 2.4vw, 1.6rem);
+	background: rgba(255, 255, 255, 0.74);
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	backdrop-filter: blur(16px) saturate(140%);
+	-webkit-backdrop-filter: blur(16px) saturate(140%);
+	box-shadow: 0 22px 48px -34px rgba(15, 23, 42, 0.4);
+	overflow: hidden;
+}
+
+.pixva-advantage__icon {
+	display: grid;
+	place-items: center;
+	width: 3.1rem;
+	height: 3.1rem;
+	border-radius: 1rem;
+	background: linear-gradient(140deg, rgba(99, 102, 241, 0.16), rgba(34, 211, 238, 0.18));
+	border: 1px solid rgba(99, 102, 241, 0.24);
+	color: #4338CA;
+}
+
+.pixva-advantage__icon svg {
+	width: 1.5rem;
+	height: 1.5rem;
+	stroke-width: 1.8;
+}
+
+.pixva-advantage h3 {
+	margin: 0;
+	font-size: 1.05rem;
+	color: #0F172A;
+}
+
+.pixva-advantage p {
+	margin: 0;
+	font-size: 0.88rem;
+	line-height: 2;
+	color: #475569;
+}
+
+.pixva-advantage__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	font-size: 0.84rem;
+	font-weight: 800;
+	color: #0E7490;
+	text-decoration: none;
+}
+
+.pixva-advantage__link svg {
+	width: 0.9rem;
+	height: 0.9rem;
+	transition: transform 0.24s ease;
+}
+
+.pixva-advantage__link:hover svg {
+	transform: translate3d(-3px, 0, 0);
+}
+
+.pixva-advantage__no {
+	position: absolute;
+	inset-block-start: 0.6rem;
+	inset-inline-end: 1rem;
+	font-size: 2.6rem;
+	font-weight: 800;
+	line-height: 1;
+	color: rgba(99, 102, 241, 0.08);
+	pointer-events: none;
+}
+
+/* نمونه‌کارهای تصویری */
+.pixva-work {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+	gap: clamp(0.8rem, 2vw, 1.3rem);
+}
+
+.pixva-work-item {
+	position: relative;
+	display: block;
+	border-radius: clamp(1rem, 2.2vw, 1.4rem);
+	overflow: hidden;
+	background: #0F172A;
+	text-decoration: none;
+	box-shadow: 0 24px 50px -34px rgba(15, 23, 42, 0.55);
+	aspect-ratio: 4 / 3;
+}
+
+.pixva-work-item img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.6s cubic-bezier(0.22, 0.68, 0.24, 1), opacity 0.4s ease;
+	will-change: transform;
+}
+
+.pixva-work-item:hover img {
+	transform: scale(1.07);
+}
+
+.pixva-work-item__body {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0;
+	z-index: 3;
+	display: grid;
+	gap: 0.2rem;
+	padding: clamp(0.9rem, 2.4vw, 1.3rem);
+	background: linear-gradient(0deg, rgba(2, 6, 23, 0.88) 0%, rgba(2, 6, 23, 0.42) 55%, rgba(2, 6, 23, 0) 100%);
+	color: #F8FAFC;
+	transform: translate3d(0, 0, 0);
+	transition: transform 0.4s cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+
+.pixva-work-item__body strong {
+	font-size: 0.98rem;
+	font-weight: 800;
+}
+
+.pixva-work-item__body span {
+	font-size: 0.78rem;
+	color: #A5F3FC;
+}
+
+.pixva-work-item__badge {
+	position: absolute;
+	inset-block-start: 0.8rem;
+	inset-inline-start: 0.8rem;
+	z-index: 3;
+	padding: 0.2rem 0.65rem;
+	border-radius: 999px;
+	background: rgba(2, 6, 23, 0.62);
+	border: 1px solid rgba(165, 243, 252, 0.34);
+	color: #E0F2FE;
+	font-size: 0.72rem;
+	font-weight: 800;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+}
+
+.pixva-work-item__placeholder {
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+	color: rgba(165, 243, 252, 0.6);
+	background: linear-gradient(140deg, #111C33, #0B1220);
+}
+
+.pixva-work-item__placeholder svg {
+	width: 3rem;
+	height: 3rem;
+	stroke-width: 1.4;
+}
+
+/* نظرات مشتریان در حالت مینیمال */
+.pixva-home--minimal .pixva-reviews__grid,
+.pixva-home--minimal .pixva-testimonials {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+/* --- ۲۸-F: مگامنوی گروهی --- */
+.pixva-mega__panel--group {
+	padding-block: clamp(1rem, 2.4vw, 1.6rem);
+}
+
+.pixva-mega__groups {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+	gap: clamp(1rem, 2.4vw, 2rem);
+	align-items: start;
+}
+
+.pixva-mega__col--links h4 {
+	margin: 0 0 0.6rem;
+	font-size: 0.78rem;
+	letter-spacing: 0.04em;
+	color: #64748B;
+	font-weight: 800;
+}
+
+.pixva-mega__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.2rem;
+}
+
+.pixva-mega__links a {
+	display: grid;
+	grid-template-columns: 2.1rem minmax(0, 1fr);
+	gap: 0.6rem;
+	align-items: center;
+	padding: 0.5rem 0.6rem;
+	border-radius: 0.85rem;
+	color: #0F172A;
+	text-decoration: none;
+	transition: background-color 0.22s ease, transform 0.22s ease, color 0.22s ease;
+}
+
+.pixva-mega__links a:hover {
+	background: rgba(99, 102, 241, 0.09);
+	transform: translate3d(-3px, 0, 0);
+	color: #3730A3;
+}
+
+.pixva-mega__links svg {
+	width: 1.35rem;
+	height: 1.35rem;
+	padding: 0.28rem;
+	box-sizing: content-box;
+	border-radius: 0.6rem;
+	background: rgba(99, 102, 241, 0.1);
+	color: #4F46E5;
+	stroke-width: 1.8;
+}
+
+.pixva-mega__links strong {
+	display: block;
+	font-size: 0.88rem;
+	font-weight: 700;
+	line-height: 1.7;
+}
+
+.pixva-mega__links small {
+	display: block;
+	font-size: 0.74rem;
+	line-height: 1.7;
+	color: #64748B;
+}
+
+.pixva-mega__foot {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: clamp(0.9rem, 2vw, 1.3rem);
+	padding-top: 0.8rem;
+	border-top: 1px dashed rgba(148, 163, 184, 0.34);
+}
+
+.pixva-mega__cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.55rem 1rem;
+	border-radius: 999px;
+	background: linear-gradient(135deg, #4F46E5, #06B6D4);
+	color: #FFFFFF;
+	font-size: 0.86rem;
+	font-weight: 800;
+	text-decoration: none;
+	box-shadow: 0 16px 30px -18px rgba(6, 182, 212, 0.9);
+	transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.pixva-mega__cta:hover {
+	color: #FFFFFF;
+	transform: translate3d(0, -2px, 0);
+	box-shadow: 0 22px 38px -18px rgba(79, 70, 229, 0.95);
+}
+
+.pixva-mega__cta svg {
+	width: 1rem;
+	height: 1rem;
+	stroke-width: 2.2;
+}
+
+.pixva-mega__note {
+	margin: 0;
+	font-size: 0.78rem;
+	color: #64748B;
+}
+
+/* --- ۲۸-G: داشبورد تعمیرکار --- */
+.pixva-tech-dash {
+	display: grid;
+	gap: clamp(1rem, 2.4vw, 1.6rem);
+}
+
+.pixva-tech-dash__bar {
+	position: sticky;
+	top: 5.2rem;
+	z-index: 5;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.7rem 0.9rem;
+	border-radius: 1rem;
+	background: rgba(255, 255, 255, 0.86);
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-shadow: 0 18px 36px -30px rgba(15, 23, 42, 0.5);
+}
+
+.pixva-tech-dash__bar .pixva-crm__filters {
+	gap: 0.35rem;
+}
+
+/* --- ۲۸-H: ریسپانسیو و حرکت کم --- */
+@media (max-width: 900px) {
+	.pixva-mega__groups {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+	}
+
+	.pixva-tech-dash__bar {
+		position: static;
+	}
+}
+
+@media (max-width: 640px) {
+	.pixva-work {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.pixva-advantage__no {
+		display: none;
+	}
+
+	.pixva-magnetic.is-magnetic {
+		transform: none;
+	}
+}
+
+@media (hover: none) {
+	.pixva-magnetic::before,
+	.pixva-magnetic::after {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-motion-js .pixva-fx {
+		opacity: 1 !important;
+		transform: none !important;
+		transition: none !important;
+	}
+
+	.pixva-ripple {
+		animation: none !important;
+		opacity: 0 !important;
+	}
+
+	.pixva-magnetic,
+	.pixva-card.pixva-magnetic.is-magnetic,
+	.pixva-work-item img {
+		transition: none !important;
+		transform: none !important;
+	}
+}
+
+@media print {
+	.pixva-ripple,
+	.pixva-magnetic::before,
+	.pixva-magnetic::after {
+		display: none !important;
+	}
+
+	.pixva-motion-js .pixva-fx {
+		opacity: 1 !important;
+		transform: none !important;
+	}
+}
+
+/* --- ۲۸-F2: کارت ویژگی و پیوند مستقیم مگامنوی گروهی --- */
+.pixva-mega__feature--group {
+	display: grid;
+	gap: 0.55rem;
+	align-content: start;
+	padding: clamp(0.9rem, 2vw, 1.4rem);
+	border-radius: 1.1rem;
+	background: linear-gradient(150deg, rgba(79, 70, 229, 0.1), rgba(6, 182, 212, 0.07));
+	border: 1px solid rgba(79, 70, 229, 0.14);
+}
+
+.pixva-mega__feature-icon {
+	display: grid;
+	place-items: center;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 0.85rem;
+	background: rgba(255, 255, 255, 0.82);
+	color: #4F46E5;
+	box-shadow: 0 10px 22px -16px rgba(15, 23, 42, 0.6);
+}
+
+.pixva-mega__feature-icon svg {
+	width: 1.3rem;
+	height: 1.3rem;
+	stroke-width: 1.8;
+}
+
+.pixva-mega__feature--group h3 {
+	margin: 0;
+	font-size: 1rem;
+	color: #0F172A;
+}
+
+.pixva-mega__feature--group p {
+	margin: 0;
+	font-size: 0.84rem;
+	line-height: 1.9;
+	color: #475569;
+}
+
+.pixva-mega__feature--group .pixva-mega__cta {
+	justify-self: start;
+	margin-top: 0.2rem;
+}
+
+.pixva-mega__link--tech {
+	color: #3730A3;
+	background: rgba(79, 70, 229, 0.08);
+}
+
+.pixva-mega__link--tech svg {
+	width: 1rem;
+	height: 1rem;
+	stroke-width: 1.9;
+	color: #4F46E5;
+}
+
+.pixva-mega__link--tech:hover {
+	background: rgba(79, 70, 229, 0.14);
+	color: #312E81;
+}
+
+.pixva-mega__foot {
+	justify-content: flex-start;
+}
+
+.pixva-mega__note {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.pixva-mega__note svg {
+	width: 0.95rem;
+	height: 0.95rem;
+	stroke-width: 1.9;
+	color: #94A3B8;
+}
+
+.pixva-mega__note a {
+	color: #334155;
+	font-weight: 700;
+	text-decoration: none;
+	border-bottom: 1px dashed rgba(100, 116, 139, 0.5);
+	transition: color 0.22s ease, border-color 0.22s ease;
+}
+
+.pixva-mega__note a:hover {
+	color: #4F46E5;
+	border-color: rgba(79, 70, 229, 0.6);
+}
+
+/* گروه‌های دروئر موبایل */
+.pixva-drawer-groups span.pixva-drawer-hub__title {
+	color: var(--primary-dark);
+}
+
+.pixva-drawer-hub--direct .pixva-drawer-hub__title {
+	padding-block: 0.85rem;
+	border-block-end: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.pixva-drawer-hub__cta a {
+	color: #4F46E5;
+	font-weight: 800;
+}
+
+@media (max-width: 900px) {
+	.pixva-mega__feature--group {
+		padding: 0.9rem;
+	}
+
+	.pixva-mega__foot {
+		margin-top: 0.7rem;
+	}
+}
+
+/* --- ۲۸-G2: نوار چسبان داشبورد تعمیرکار --- */
+.pixva-tech-dash__who {
+	display: flex;
+	align-items: center;
+	gap: 0.55rem;
+	margin: 0;
+}
+
+.pixva-tech-dash__who svg {
+	width: 1.5rem;
+	height: 1.5rem;
+	padding: 0.3rem;
+	box-sizing: content-box;
+	border-radius: 0.7rem;
+	background: rgba(79, 70, 229, 0.1);
+	color: #4F46E5;
+	stroke-width: 1.8;
+}
+
+.pixva-tech-dash__who strong {
+	display: block;
+	font-size: 0.92rem;
+	font-weight: 800;
+	color: #0F172A;
+	line-height: 1.7;
+}
+
+.pixva-tech-dash__who small {
+	display: block;
+	font-size: 0.74rem;
+	color: #64748B;
+	line-height: 1.7;
+}
+
+.pixva-tech-dash__quick {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+}
+
+.pixva-tech-dash__quick .pixva-btn svg {
+	width: 0.95rem;
+	height: 0.95rem;
+	stroke-width: 2;
+}
+
+@media (max-width: 640px) {
+	.pixva-tech-dash__who small {
+		display: none;
+	}
+
+	.pixva-tech-dash__quick .pixva-btn span {
+		display: none;
+	}
+
+	.pixva-tech-dash__quick .pixva-btn {
+		padding-inline: 0.7rem;
+	}
+}

@@ -18,13 +18,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string, string>
  */
 function pixva_home_sections() {
+	/*
+	 * ترتیب کلیدها همان ترتیب پیش‌فرض صفحه است (لایه ۱٫۵٫۰):
+	 * چیدمان مینیمال = هیرو ← سه مزیت ← نمونه‌کار تصویری ← نظرات مشتریان.
+	 * بقیه سکشن‌ها خاموش‌اند ولی از منوی مگا و هاب‌ها در دسترس می‌مانند.
+	 */
 	return array(
-		'hero'          => esc_html__( 'هیرو با هاله نورانی و آمار کارگاه', 'pixva' ),
+		'hero'          => esc_html__( 'هیرو با عنوان و دکمه استعلام سریع قیمت', 'pixva' ),
+		'advantages'    => esc_html__( 'سه مزیت کلیدی کارگاه (گارانتی، اعزام، قطعه فابریک)', 'pixva' ),
+		'work'          => esc_html__( 'نمونه‌کار تصویری گالری تعمیرات', 'pixva' ),
+		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
 		'quote'         => esc_html__( 'ویجت استعلام سریع قیمت (نرخ‌نامه ۱۴۰۵)', 'pixva' ),
 		'services'      => esc_html__( 'چهار کارت خدمت تخصصی', 'pixva' ),
 		'journey'       => esc_html__( 'مسیر پنج‌مرحله‌ای تعمیر با نقطه نورانی', 'pixva' ),
 		'before_after'  => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
-		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
 		'dispatch_hub'  => esc_html__( 'هاب اعزام اورژانسی و پیگیری پرونده (ابزار ۱۷ و ۱۹)', 'pixva' ),
 		'order_wizard'  => esc_html__( 'جادوگر ثبت سفارش تعمیر — موتور CRM (ابزار ۵)', 'pixva' ),
 		'screen_tester' => esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
@@ -39,14 +46,34 @@ function pixva_home_sections() {
 /**
  * وضعیت پیش‌فرض نمایش هر سکشن.
  *
- * ترتیب و انتخاب پیش‌فرض بر اساس Master Specification v25.0 است:
- * هیرو، ویجت قیمت، چهار کارت خدمت، مسیر تعمیر، قبل/بعد و نظرات مشتریان.
+ * چیدمان پیش‌فرض مینیمال (Master Prompt v6): هیرو، سه مزیت کلیدی،
+ * نمونه‌کار تصویری و نظرات مشتریان؛ بقیه سکشن‌ها خاموش‌اند.
  *
  * @return array<string, bool>
  */
 function pixva_home_section_defaults() {
+	/*
+	 * صفحه اصلی مینیمال (Master Prompt v6): فقط چهار سکشن روشن است و تمام
+	 * ابزارها به منوی مگا و صفحات اختصاصی منتقل شده‌اند. کاربر می‌تواند از
+	 * بخش «پیکسوا: سکشن‌های صفحه اصلی» هرکدام را دوباره فعال کند.
+	 */
 	$defaults = array(
-		'process' => false, // با سکشن «مسیر پنج‌مرحله‌ای تعمیر» جایگزین شده است.
+		'hero'          => true,
+		'advantages'    => true,
+		'work'          => true,
+		'testimonials'  => true,
+		'quote'         => false,
+		'services'      => false,
+		'journey'       => false,
+		'before_after'  => false,
+		'dispatch_hub'  => false,
+		'order_wizard'  => false,
+		'screen_tester' => false,
+		'errors'        => false,
+		'brands'        => false,
+		'faq'           => false,
+		'blog'          => false,
+		'process'       => false,
 	);
 
 	foreach ( array_keys( pixva_home_sections() ) as $key ) {
@@ -65,8 +92,8 @@ function pixva_home_section_defaults() {
  */
 function pixva_default_section_order() {
 	/*
-	 * ترتیب فرود طبق مستر اسپک v25.0: هیرو ← ویجت قیمت ← چهار خدمت ← مسیر تعمیر
-	 * ← قبل/بعد ← نظرات مشتریان، سپس بلوک‌های تکمیلی و در پایان مسیر قدیمی.
+	 * ترتیب فرود طبق Master Prompt v6: هیرو ← سه مزیت ← نمونه‌کار تصویری ←
+	 * نظرات مشتریان، سپس سایر سکشن‌ها با همان ترتیب فهرست بالا.
 	 */
 	return implode( ',', array_keys( pixva_home_sections() ) );
 }
@@ -500,6 +527,66 @@ function pixva_customize_register( $wp_customize ) {
 			'type'    => 'textarea',
 		)
 	);
+
+	/* ------- متن‌های چیدمان مینیمال و منوی مگا (لایه ۱٫۵٫۰) ------- */
+	$wp_customize->add_section(
+		'pixva_homepage_content',
+		array(
+			'title'       => esc_html__( 'پیکسوا: متن‌های صفحه اصلی و منوی مگا', 'pixva' ),
+			'description' => esc_html__( 'عنوان و زیرعنوان سکشن نمونه‌کار و برچسب چهار گروه منوی مگا. خالی بگذارید تا مقدار پیش‌فرض داده‌محور استفاده شود.', 'pixva' ),
+			'priority'    => 33,
+		)
+	);
+
+	/**
+	 * فیلدهای متنی لایه ۱٫۵٫۰: کلید => [برچسب, نوع, پیش‌فرض].
+	 *
+	 * @var array<string, array{0:string, 1:string, 2:mixed}>
+	 */
+	$pixva_v6_fields = array(
+		'pixva_work_title'                => array( __( 'عنوان سکشن نمونه‌کار', 'pixva' ), 'text', __( 'نمونه‌کارهای کارگاه', 'pixva' ) ),
+		'pixva_work_subtitle'             => array( __( 'زیرعنوان سکشن نمونه‌کار', 'pixva' ), 'textarea', __( 'نتیجه واقعی تعمیر پنل، بک‌لایت و برد؛ پیش از آنکه دستگاه را تحویل بگیرید تست نهایی ثبت می‌شود.', 'pixva' ) ),
+		'pixva_work_count'                => array( __( 'تعداد نمونه‌کار در صفحه اصلی', 'pixva' ), 'number', 6 ),
+		'pixva_mega_group_services'       => array( __( 'منو: عنوان گروه خدمات تعمیرات', 'pixva' ), 'text', __( 'خدمات تعمیرات', 'pixva' ) ),
+		'pixva_mega_group_errors'         => array( __( 'منو: عنوان گروه کدهای خطا', 'pixva' ), 'text', __( 'کدهای خطا و عیب‌یابی', 'pixva' ) ),
+		'pixva_mega_group_warranty'       => array( __( 'منو: عنوان گروه استعلام و گارانتی', 'pixva' ), 'text', __( 'استعلام و گارانتی', 'pixva' ) ),
+		'pixva_mega_group_technician'     => array( __( 'منو: برچسب ورود تعمیرکاران', 'pixva' ), 'text', __( 'ورود تعمیرکاران', 'pixva' ) ),
+		'pixva_mega_service_backlight'    => array( __( 'منو: برچسب تعمیر بک‌لایت', 'pixva' ), 'text', '' ),
+		'pixva_mega_service_mainboard'    => array( __( 'منو: برچسب تعمیر برد اصلی', 'pixva' ), 'text', '' ),
+		'pixva_mega_service_panel'        => array( __( 'منو: برچسب تعمیر پنل OLED/LED', 'pixva' ), 'text', '' ),
+		'pixva_mega_parts_title'          => array( __( 'منو: برچسب استعلام اصالت قطعه', 'pixva' ), 'text', '' ),
+		'pixva_mega_tracking_title'       => array( __( 'منو: برچسب پیگیری سفارش', 'pixva' ), 'text', '' ),
+		'pixva_mega_warranty_title'       => array( __( 'منو: برچسب مشاهده کارت گارانتی', 'pixva' ), 'text', '' ),
+		'pixva_technician_title'          => array( __( 'عنوان داشبورد تعمیرکار', 'pixva' ), 'text', __( 'داشبورد تعمیرکار', 'pixva' ) ),
+		'pixva_technician_subtitle'       => array( __( 'زیرعنوان داشبورد تعمیرکار', 'pixva' ), 'textarea', __( 'دستگاه‌های تخصیص‌یافته به شما، گزارش فنی قطعات، قیمت نهایی و صدور کارت گارانتی در یک محیط کاری تمیز.', 'pixva' ) ),
+	);
+
+	foreach ( $pixva_v6_fields as $pixva_key => $pixva_field ) {
+		$pixva_type = $pixva_field[1];
+		if ( 'number' === $pixva_type ) {
+			$pixva_sanitize = 'absint';
+		} elseif ( 'textarea' === $pixva_type ) {
+			$pixva_sanitize = 'sanitize_textarea_field';
+		} else {
+			$pixva_sanitize = 'sanitize_text_field';
+		}
+
+		$wp_customize->add_setting(
+			$pixva_key,
+			array(
+				'default'           => $pixva_field[2],
+				'sanitize_callback' => $pixva_sanitize,
+			)
+		);
+		$wp_customize->add_control(
+			$pixva_key,
+			array(
+				'label'   => $pixva_field[0],
+				'section' => 'pixva_homepage_content',
+				'type'    => $pixva_type,
+			)
+		);
+	}
 }
 add_action( 'customize_register', 'pixva_customize_register' );
 
@@ -534,6 +621,14 @@ function pixva_active_home_sections() {
 	$order = array_map( 'trim', explode( ',', (string) pixva_option( 'pixva_sections_order', pixva_default_section_order() ) ) );
 	$order = pixva_sanitize_section_order( implode( ',', $order ) );
 	$keys  = array_map( 'trim', explode( ',', $order ) );
+
+	// سکشن‌های تازه‌افزوده‌شده (advantages/work) در ترتیب ذخیره‌شده نصب‌های قدیمی نیستند.
+	$default_keys = array_map( 'trim', explode( ',', pixva_default_section_order() ) );
+	$missing      = array_values( array_diff( $default_keys, $keys ) );
+	if ( ! empty( $missing ) ) {
+		$keys = array_merge( $keys, $missing );
+	}
+
 	$defaults = pixva_home_section_defaults();
 	$keys     = array_filter(
 		$keys,

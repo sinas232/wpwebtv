@@ -87,7 +87,14 @@ $pixva_hours    = sprintf(
 		</button>
 	</div>
 
-	<?php pixva_render_hub_accordions( 'drawer-hub' ); ?>
+	<?php
+	// چهار گروه منوی مگا به‌صورت آکاردئون در منوی کشویی موبایل (Master Prompt v6).
+	if ( function_exists( 'pixva_render_drawer_groups' ) ) {
+		pixva_render_drawer_groups( 'drawer-group' );
+	} else {
+		pixva_render_hub_accordions( 'drawer-hub' );
+	}
+	?>
 
 	<nav class="pixva-drawer__extra" aria-label="<?php esc_attr_e( 'منوی اصلی', 'pixva' ); ?>">
 		<?php pixva_render_drawer_nav( pixva_menu_tree( 'primary' ), 'drawer-nav' ); ?>

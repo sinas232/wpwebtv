@@ -480,7 +480,7 @@ add_action( 'init', 'pixva_register_meta' );
  */
 function pixva_add_meta_boxes() {
 	add_meta_box( 'pixva_case_meta', esc_html__( 'مشخصات نمونه‌کار', 'pixva' ), 'pixva_render_case_meta_box', 'repair_cases', 'normal', 'high' );
-	add_meta_box( 'pixva_order_meta', esc_html__( 'وضعیت پرونده تعمیر', 'pixva' ), 'pixva_render_order_meta_box', 'pixva_orders', 'normal', 'high' );
+	// متاباکس‌های پرونده تعمیر در inc/meta-boxes.php ثبت می‌شوند (لایه ۱٫۵٫۰).
 	add_meta_box( 'pixva_post_meta', esc_html__( 'مشخصات عیب‌یابی و سوالات متداول', 'pixva' ), 'pixva_render_post_meta_box', 'post', 'normal', 'high' );
 	add_meta_box( 'pixva_inbox_meta', esc_html__( 'متن پیام', 'pixva' ), 'pixva_render_inbox_meta_box', 'pixva_inbox', 'normal', 'high' );
 	add_meta_box( 'pixva_review_meta', esc_html__( 'مشخصات نظر مشتری', 'pixva' ), 'pixva_render_review_meta_box', 'pixva_review', 'normal', 'high' );
@@ -611,62 +611,6 @@ function pixva_order_statuses() {
 	return apply_filters( 'pixva_order_statuses', $statuses );
 }
 
-/**
- * متاباکس پرونده تعمیر.
- *
- * @param WP_Post $post پرونده جاری.
- * @return void
- */
-function pixva_render_order_meta_box( $post ) {
-	wp_nonce_field( 'pixva_order_meta', 'pixva_order_nonce' );
-	$statuses = pixva_order_statuses();
-	$status   = (string) get_post_meta( $post->ID, '_pixva_order_status', true );
-	$phone    = (string) get_post_meta( $post->ID, '_pixva_order_phone', true );
-	$code     = (string) get_post_meta( $post->ID, '_pixva_order_code', true );
-	$brand    = (string) get_post_meta( $post->ID, '_pixva_order_brand', true );
-	$model    = (string) get_post_meta( $post->ID, '_pixva_order_model', true );
-	$problem  = (string) get_post_meta( $post->ID, '_pixva_order_problem', true );
-	$estimate = (string) get_post_meta( $post->ID, '_pixva_order_estimate', true );
-	$notes    = (string) get_post_meta( $post->ID, '_pixva_order_notes', true );
-	?>
-	<p>
-		<label for="pixva_order_code"><?php esc_html_e( 'کد پیگیری:', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_code" name="pixva_order_code" value="<?php echo esc_attr( $code ); ?>" class="regular-text" readonly>
-	</p>
-	<p>
-		<label for="pixva_order_phone"><?php esc_html_e( 'شماره همراه مشتری:', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_phone" name="pixva_order_phone" value="<?php echo esc_attr( $phone ); ?>" class="regular-text">
-	</p>
-	<p>
-		<label for="pixva_order_status"><?php esc_html_e( 'وضعیت فعلی:', 'pixva' ); ?></label>
-		<select id="pixva_order_status" name="pixva_order_status">
-			<?php foreach ( $statuses as $key => $label ) : ?>
-				<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $status, $key ); ?>><?php echo esc_html( $label ); ?></option>
-			<?php endforeach; ?>
-		</select>
-	</p>
-	<p>
-		<label for="pixva_order_brand"><?php esc_html_e( 'برند:', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_brand" name="pixva_order_brand" value="<?php echo esc_attr( $brand ); ?>" class="regular-text">
-	</p>
-	<p>
-		<label for="pixva_order_model"><?php esc_html_e( 'مدل:', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_model" name="pixva_order_model" value="<?php echo esc_attr( $model ); ?>" class="regular-text">
-	</p>
-	<p>
-		<label for="pixva_order_problem"><?php esc_html_e( 'شرح مشکل:', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_problem" name="pixva_order_problem" value="<?php echo esc_attr( $problem ); ?>" class="widefat">
-	</p>
-	<p>
-		<label for="pixva_order_estimate"><?php esc_html_e( 'تخمین هزینه (تومان):', 'pixva' ); ?></label>
-		<input type="text" id="pixva_order_estimate" name="pixva_order_estimate" value="<?php echo esc_attr( $estimate ); ?>" class="regular-text">
-	</p>
-	<p>
-		<label for="pixva_order_notes"><?php esc_html_e( 'یادداشت داخلی:', 'pixva' ); ?></label>
-		<textarea id="pixva_order_notes" name="pixva_order_notes" rows="3" class="widefat"><?php echo esc_textarea( $notes ); ?></textarea>
-	</p>
-	<?php
-}
 
 /**
  * متاباکس مقاله.
@@ -751,57 +695,6 @@ function pixva_save_case_meta( $post_id ) {
 }
 add_action( 'save_post_repair_cases', 'pixva_save_case_meta' );
 
-/**
- * ذخیره متافیلدهای پرونده تعمیر + ثبت زمان تغییر وضعیت.
- *
- * @param int $post_id شناسه پرونده.
- * @return void
- */
-function pixva_save_order_meta( $post_id ) {
-	if ( ! isset( $_POST['pixva_order_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['pixva_order_nonce'] ) ), 'pixva_order_meta' ) ) {
-		return;
-	}
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-	if ( ! current_user_can( 'edit_post', $post_id ) ) {
-		return;
-	}
-
-	$statuses = array_keys( pixva_order_statuses() );
-	$status   = isset( $_POST['pixva_order_status'] ) ? sanitize_key( wp_unslash( $_POST['pixva_order_status'] ) ) : 'received';
-	if ( ! in_array( $status, $statuses, true ) ) {
-		$status = 'received';
-	}
-
-	$old_status = (string) get_post_meta( $post_id, '_pixva_order_status', true );
-	update_post_meta( $post_id, '_pixva_order_status', $status );
-
-	// ثبت یا به‌روزرسانی زمان مرحله در تاریخچه.
-	$steps = json_decode( (string) get_post_meta( $post_id, '_pixva_order_steps', true ), true );
-	if ( ! is_array( $steps ) ) {
-		$steps = array();
-	}
-	if ( $old_status !== $status || ! isset( $steps[ $status ] ) ) {
-		$steps[ $status ] = time();
-		update_post_meta( $post_id, '_pixva_order_steps', wp_json_encode( $steps ) );
-	}
-
-	$simple = array(
-		'pixva_order_phone'    => '_pixva_order_phone',
-		'pixva_order_brand'    => '_pixva_order_brand',
-		'pixva_order_model'    => '_pixva_order_model',
-		'pixva_order_problem'  => '_pixva_order_problem',
-		'pixva_order_estimate' => '_pixva_order_estimate',
-		'pixva_order_notes'    => '_pixva_order_notes',
-	);
-	foreach ( $simple as $field => $meta_key ) {
-		if ( isset( $_POST[ $field ] ) ) {
-			update_post_meta( $post_id, $meta_key, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
-		}
-	}
-}
-add_action( 'save_post_pixva_orders', 'pixva_save_order_meta' );
 
 /**
  * ذخیره متافیلدهای مقاله.

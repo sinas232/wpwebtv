@@ -381,3 +381,52 @@ if ( ! function_exists( 'pixva_crm_next_statuses' ) ) {
 		return $allowable;
 	}
 }
+
+if ( ! function_exists( 'pixva_technician_dashboard_bar' ) ) {
+	/**
+	 * نوار چسبان دسترسی سریع داشبورد تعمیرکار (لایه ۱٫۵٫۰).
+	 *
+	 * @return void
+	 */
+	function pixva_technician_dashboard_bar() {
+		$user_id = get_current_user_id();
+		$label   = function_exists( 'pixva_crm_user_label' ) ? pixva_crm_user_label( $user_id ) : '';
+		$warranty_page = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'client-hub' ) : '';
+		$rates_page    = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'rates' ) : '';
+		?>
+		<div class="pixva-tech-dash__bar" data-fx="up">
+			<p class="pixva-tech-dash__who">
+				<?php echo pixva_icon( 'user' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<span>
+					<strong><?php echo esc_html( $label ); ?></strong>
+					<small><?php esc_html_e( 'دستگاه‌های تخصیص‌یافته به شما', 'pixva' ); ?></small>
+				</span>
+			</p>
+			<nav class="pixva-tech-dash__quick" aria-label="<?php esc_attr_e( 'دسترسی سریع داشبورد تعمیرکار', 'pixva' ); ?>">
+				<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( add_query_arg( array( 'crm_refresh' => '1' ) ) ); ?>">
+					<?php echo pixva_icon( 'route' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<span><?php esc_html_e( 'به‌روزرسانی پرونده‌ها', 'pixva' ); ?></span>
+				</a>
+				<?php if ( '' !== $rates_page ) : ?>
+					<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( $rates_page ); ?>">
+						<?php echo pixva_icon( 'calculator' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'نرخ‌نامه', 'pixva' ); ?></span>
+					</a>
+				<?php endif; ?>
+				<?php if ( '' !== $warranty_page ) : ?>
+					<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( $warranty_page ); ?>">
+						<?php echo pixva_icon( 'cert' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'کارت گارانتی', 'pixva' ); ?></span>
+					</a>
+				<?php endif; ?>
+				<?php if ( $user_id ) : ?>
+					<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">
+						<?php echo pixva_icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'خروج', 'pixva' ); ?></span>
+					</a>
+				<?php endif; ?>
+			</nav>
+		</div>
+		<?php
+	}
+}

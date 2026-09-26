@@ -19,6 +19,7 @@ const repo = path.join(__dirname, '..');
 const theme = path.join(repo, 'pixva');
 const harness = path.join(repo, 'preview', 'hero-preview.html');
 const crmHarness = path.join(repo, 'tools', 'fixtures', 'crm-preview.html');
+const v6Harness = path.join(repo, 'tools', 'fixtures', 'v6-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -104,7 +105,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۴٫۰', /Version:\s*1\.4\.0/.test(style));
+	check('style.css: نسخه ۱٫۵٫۰', /Version:\s*1\.5\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.5.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -441,6 +443,163 @@ async function crmChecks(window) {
 	check('copy: بازخورد کپی نمایش داده شد', $('[data-crm-toast]') !== null && $('[data-copy]', holo).classList.contains('is-copied'));
 }
 
+/* ------------------------------------------------------------------ *
+ * بخش ۳ — لایه ۱٫۵٫۰ (Master Prompt v6): مگامنوی چهارگروهی، صفحه اصلی
+ * مینیمال، موتور حرکت و داشبورد تعمیرکار
+ * ------------------------------------------------------------------ */
+function v6StaticChecks() {
+	const navMenu = fs.readFileSync(path.join(theme, 'inc/nav-menu.php'), 'utf8');
+	const hubs = fs.readFileSync(path.join(theme, 'inc/hubs.php'), 'utf8');
+	const options = fs.readFileSync(path.join(theme, 'inc/theme-options.php'), 'utf8');
+	const front = fs.readFileSync(path.join(theme, 'front-page.php'), 'utf8');
+	const funcs = fs.readFileSync(path.join(theme, 'functions.php'), 'utf8');
+	const metaboxes = fs.readFileSync(path.join(theme, 'inc/meta-boxes.php'), 'utf8');
+	const shortcodes = fs.readFileSync(path.join(theme, 'inc/shortcodes.php'), 'utf8');
+	const activation = fs.readFileSync(path.join(theme, 'inc/activation.php'), 'utf8');
+	const motionJs = fs.readFileSync(path.join(theme, 'assets/js/motion.js'), 'utf8');
+	const css = fs.readFileSync(path.join(theme, 'assets/css/pixva-2026.css'), 'utf8');
+
+	check('v6: گروه‌های مگا فیلترپذیرند', navMenu.indexOf("function pixva_mega_groups()") > -1 && navMenu.indexOf("apply_filters( 'pixva_mega_groups'") > -1);
+	check('v6: چهار گروه منو (خدمات/خطا/گارانتی/تعمیرکار)', ['خدمات تعمیرات', 'کدهای خطا و عیب‌یابی', 'استعلام و گارانتی', 'ورود تعمیرکاران'].every((t) => navMenu.indexOf(t) > -1));
+	check('v6: سه برند راهنمای کد خطا از کاتالوگ برندها', navMenu.indexOf("'sony', 'samsung', 'lg'") > -1 && navMenu.indexOf('pixva_brand_catalog') > -1);
+	check('v6: هدر هیچ متن سخت‌کد بدون i18n ندارد', navMenu.indexOf("__( 'راهنمای کدهای خطای %s', 'pixva' )") > -1);
+	check('v6: رندر مگا از گروه‌ها ساخته می‌شود', hubs.indexOf('pixva_mega_groups()') > -1 && hubs.indexOf('pixva-mega__panel--group') > -1);
+	check('v6: دروئر موبایل همان گروه‌ها را دارد', navMenu.indexOf('function pixva_render_drawer_groups') > -1);
+
+	check('v6: پیش‌فرض صفحه اصلی مینیمال است', /'quote'\s+=> false/.test(options) && /'advantages'\s+=> true/.test(options) && /'work'\s+=> true/.test(options));
+	check('v6: ترتیب پیش‌فرض با هیرو و مزیت‌ها شروع می‌شود', options.indexOf("'hero'          => esc_html__") > -1 && options.indexOf("'advantages'    => esc_html__") > -1);
+	check('v6: سکشن‌های تازه به ترتیب نصب‌های قدیمی اضافه می‌شوند', options.indexOf('$missing') > -1);
+	check('v6: رندرهای مزیت و نمونه‌کار موجودند', front.indexOf('function pixva_home_advantages()') > -1 && front.indexOf('function pixva_home_work()') > -1);
+	check('v6: مزیت‌ها از داده واقعی (گارانتی/اعزام/انبار) ساخته می‌شوند', front.indexOf('pixva_warranty_days') > -1 && front.indexOf('hub_eta_hours') > -1 && front.indexOf('pixva_parts') > -1);
+	check('v6: کلاس مینیمال روی main', front.indexOf('pixva-home--minimal') > -1);
+
+	check('v6: موتور حرکت enqueue شده (defer + footer)', funcs.indexOf('pixva-motion') > -1 && funcs.indexOf('motion.js') > -1);
+	check('v6: فایل متاباکس‌های بومی بارگذاری می‌شود', funcs.indexOf('inc/meta-boxes.php') > -1);
+	check('v6: متاباکس‌ها بومی‌اند (بدون ACF)', metaboxes.indexOf('add_meta_box(') > -1 && metaboxes.indexOf('update_post_meta(') > -1
+		&& ['acf_add_local_field_group', 'get_field(', 'have_rows(', 'the_field('].every((fn) => metaboxes.indexOf(fn) === -1));
+	check('v6: متاباکس روی نوع محتوای سفارش‌ها', metaboxes.indexOf('save_post_pixva_orders') > -1);
+	check('v6: ذخیره از مسیر API موتور CRM', ['pixva_crm_assign(', 'pixva_crm_set_status(', 'pixva_crm_save_report(', 'pixva_crm_issue_warranty('].every((fn) => metaboxes.indexOf(fn) > -1));
+	check('v6: شورت‌کد داشبورد تعمیرکار', shortcodes.indexOf("add_shortcode( 'pixva_technician_panel'") > -1);
+	check('v6: برگه /technician-dashboard در نصب ساخته می‌شود', activation.indexOf("'technician-dashboard'") > -1);
+
+	check('v6: CSS لایه حرکت (reveal/ripple/magnetic)', ['.pixva-fx', '.pixva-ripple', '.pixva-magnetic'].every((c) => css.indexOf(c) > -1));
+	check('v6: CSS کارت‌های مزیت و نمونه‌کار', ['.pixva-advantage', '.pixva-work-item', '.pixva-mega__groups', '.pixva-tech-dash__bar'].every((c) => css.indexOf(c) > -1));
+	check('v6: حرکت فقط GPU (will-change + translate3d)', css.indexOf('will-change: transform, opacity') > -1 && motionJs.indexOf('translate3d') >= -1);
+	check('v6: احترام به prefers-reduced-motion در موتور حرکت', motionJs.indexOf('prefers-reduced-motion') > -1);
+	check('v6: اسکن پویا برای محتوای جدید', motionJs.indexOf('pixvaMotionScan') > -1);
+}
+
+async function v6Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+	const fire = (el, type, opts) => el.dispatchEvent(new window.MouseEvent(type, Object.assign({ bubbles: true, cancelable: true, view: window, button: 0 }, opts || {})));
+	const press = (el, k) => el.dispatchEvent(new window.KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: k }));
+	const texts = (sel, root) => $$(sel, root).map((n) => n.textContent.trim());
+
+	/* --- ۱) ساختار مگامنوی چهارگروهی --- */
+	const nav = $('[data-pixva-mega]');
+	check('v6: مگامنو در هدر رندر شده', !!nav);
+	const items = $$('[data-mega-item]', nav);
+	check('v6: سه گروه آبشاری + یک پیوند مستقیم', items.length === 3 && $$('.pixva-mega__item--direct', nav).length === 1);
+
+	const labels = texts('.pixva-mega__trigger > span', nav);
+	check('v6: عنوان گروه‌ها طبق اسپک (' + labels.join(' | ') + ')',
+		labels[0] === 'خدمات تعمیرات' && labels[1] === 'کدهای خطا و عیب‌یابی' && labels[2] === 'استعلام و گارانتی');
+
+	const direct = $('.pixva-mega__link--tech', nav);
+	check('v6: ورود تعمیرکاران پیوند مستقیم به داشبورد', !!direct && (direct.getAttribute('href') || '').indexOf('technician-dashboard') > -1);
+
+	const g1 = texts('#mega-g1 .pixva-mega__links strong');
+	const g2 = texts('#mega-g2 .pixva-mega__links strong');
+	const g3 = texts('#mega-g3 .pixva-mega__links strong');
+	check('v6: سه خدمت گروه اول', g1.length === 3 && g1[1] === 'تعمیر برد اصلی' && g1[2] === 'تعمیر پنل OLED/LED');
+	check('v6: سه راهنمای برند گروه دوم', g2.length === 3 && g2[0] === 'راهنمای کدهای خطای سونی' && g2[2] === 'راهنمای کدهای خطای ال‌جی');
+	check('v6: سه استعلام گروه سوم', g3.length === 3 && g3[0] === 'استعلام اصالت قطعه' && g3[1] === 'پیگیری سفارش' && g3[2] === 'مشاهده کارت گارانتی');
+	check('v6: لینک برندها با پارامتر brand', ($$('#mega-g2 .pixva-mega__links a').every((a) => (a.getAttribute('href') || '').indexOf('brand=') > -1)));
+	check('v6: هر گروه کارت ویژگی و CTA دارد', $$('.pixva-mega__feature--group', nav).length === 3 && $$('.pixva-mega__cta', nav).length === 3);
+
+	/* --- ۲) رفتار آبشاری --- */
+	const t0 = $('[data-mega-trigger]', items[0]);
+	const t1 = $('[data-mega-trigger]', items[1]);
+	fire(t0, 'click');
+	check('v6: کلیک، پنل گروه را باز می‌کند', items[0].classList.contains('is-open') && t0.getAttribute('aria-expanded') === 'true');
+	fire(t1, 'click');
+	check('v6: گروه دوم باز و گروه اول بسته می‌شود (آبشاری)', items[1].classList.contains('is-open') && !items[0].classList.contains('is-open'));
+	press(items[1], 'Escape');
+	check('v6: کلید Escape پنل را می‌بندد', !items[1].classList.contains('is-open') && t1.getAttribute('aria-expanded') === 'false');
+	press(t0, 'ArrowDown');
+	check('v6: ArrowDown پنل را باز و اولین پیوند را فوکوس می‌کند', items[0].classList.contains('is-open') && document.activeElement === $('#mega-g1 .pixva-mega__links a'));
+
+	/* --- ۳) دروئر موبایل با همان گروه‌ها --- */
+	const drawer = $('[data-pixva-drawer]');
+	$('[data-pixva-burger]').click();
+	await wait(30);
+	check('v6: برگر، دروئر را باز می‌کند', drawer.classList.contains('is-open') && drawer.getAttribute('aria-hidden') === 'false');
+	check('v6: دروئر چهار گروه دارد', $$('.pixva-drawer-groups .pixva-drawer-hub').length === 4);
+	const acc = $('.pixva-drawer-groups [data-pixva-accordion]');
+	acc.click();
+	check('v6: آکاردئون گروه اول باز می‌شود', acc.getAttribute('aria-expanded') === 'true' && $('#drawer-group-1').hidden === false);
+	check('v6: زیرمنوی گروه اول سه خدمت دارد', $$('#drawer-group-1 li a').length >= 3);
+	check('v6: ورود تعمیرکاران در دروئر مستقیم است', !!$('.pixva-drawer-hub--direct a[href*="technician-dashboard"]'));
+	$('[data-pixva-drawer-close]').click();
+	await wait(30);
+	check('v6: دکمه بستن، دروئر را می‌بندد', !drawer.classList.contains('is-open') && drawer.getAttribute('aria-hidden') === 'true');
+
+	/* --- ۴) صفحه اصلی مینیمال --- */
+	const home = $('#content');
+	check('v6: کلاس مینیمال روی main', home.classList.contains('pixva-home--minimal'));
+	const sections = $$(':scope > section', home);
+	check('v6: فقط چهار سکشن روی خانه (' + sections.length + ')', sections.length === 4);
+	check('v6: هیرو + مزیت‌ها + نمونه‌کار + نظرات', ['hero', 'advantages', 'work', 'reviews'].every((id) => !!home.querySelector('#' + id + ', .pixva-section--' + id)));
+	check('v6: دکمه استعلام سریع قیمت لنگر مرده ندارد', ($('.pixva-hero__actions .pixva-btn').getAttribute('href') || '').indexOf('#') !== 0);
+	check('v6: سه کارت مزیت', $$('.pixva-advantage').length === 3);
+	check('v6: گالری نمونه‌کار با تصویر و پلیس‌هولدر', $$('.pixva-work-item').length === 2 && !!$('.pixva-work-item img') && !!$('.pixva-work-item__placeholder'));
+
+	/* --- ۵) موتور حرکت --- */
+	check('v6: کلاس pixva-motion-js روی html', document.documentElement.classList.contains('pixva-motion-js'));
+	check('v6: API اسکن پویا در دسترس است', typeof window.pixvaMotionScan === 'function');
+
+	const adv = $$('.pixva-advantage');
+	check('v6: کارت‌های مزیت reveal گرفتند', adv.every((n) => n.classList.contains('pixva-fx')));
+	check('v6: کارت‌ها پس از دیده‌شدن نمایان می‌شوند (is-in)', adv.every((n) => n.classList.contains('is-in')));
+	check('v6: تأخیر پله‌ای برای ترتیب ظهور', adv[1].style.getPropertyValue('--fx-delay') !== '' && adv[0].style.getPropertyValue('--fx-delay') !== adv[2].style.getPropertyValue('--fx-delay'));
+	check('v6: هاور مغناطیسی روی کارت‌ها فعال است', adv.every((n) => n.classList.contains('pixva-magnetic')) && $$('.pixva-work-item.pixva-magnetic').length === 2);
+
+	fire(adv[0], 'pointermove', { clientX: 240, clientY: 150 });
+	await wait(80);
+	check('v6: متغیرهای نور OLED لبه کارت تنظیم شد', adv[0].classList.contains('is-magnetic') && adv[0].style.getPropertyValue('--mx') !== '' && adv[0].style.getPropertyValue('--edge-angle') !== '');
+	fire(adv[0], 'pointerleave');
+	check('v6: خروج نشانگر، حالت مغناطیسی را پاک می‌کند', !adv[0].classList.contains('is-magnetic'));
+
+	/* موج نوری کلیک */
+	const cta = $('.pixva-hero__actions .pixva-btn');
+	fire(cta, 'pointerdown', { clientX: 60, clientY: 40 });
+	await wait(20);
+	check('v6: موج نوری در نقطه کلیک ساخته شد', !!$('.pixva-ripple', cta) && cta.classList.contains('pixva-ripple-host'));
+	check('v6: موج نوری از نظر دسترس‌پذیری مخفی است', $('.pixva-ripple', cta).getAttribute('aria-hidden') === 'true');
+	fire($('.pixva-mega__trigger', items[0]), 'pointerdown', { clientX: 20, clientY: 20 });
+	await wait(20);
+	check('v6: تریگر مگا هم موج می‌گیرد', !!$('.pixva-ripple', $('[data-mega-trigger]', items[0])));
+
+	/* اسکرول نرم لنگرها */
+	const anchorLink = $('[data-fx-anchor]');
+	let scrollCalls = 0;
+	window.scrollTo = () => { scrollCalls += 1; };
+	window.HTMLElement.prototype.scrollIntoView = function () { this.dataset.scrolled = '1'; };
+	const anchorEvent = new window.MouseEvent('click', { bubbles: true, cancelable: true, view: window, button: 0 });
+	anchorLink.dispatchEvent(anchorEvent);
+	await wait(120);
+	check('v6: لنگر داخلی به‌جای پرش ناگهانی، نرم اسکرول می‌شود', anchorEvent.defaultPrevented && scrollCalls > 0);
+	check('v6: مقصد اسکرول، فوکوس دسترس‌پذیر می‌گیرد', $('#reviews').getAttribute('tabindex') === '-1');
+
+	/* --- ۶) نوار داشبورد تعمیرکار --- */
+	const bar = $('.pixva-tech-dash__bar');
+	check('v6: نوار چسبان داشبورد تعمیرکار رندر شد', !!bar);
+	check('v6: دسترسی سریع داشبورد (نرخ‌نامه/گارانتی/خروج)', $$('.pixva-tech-dash__quick a').length === 4);
+	check('v6: نوار هم reveal می‌گیرد', bar.classList.contains('pixva-fx'));
+}
+
 /* ------------------------------------------------------------------ */
 (async function main() {
 	staticChecks();
@@ -473,6 +632,37 @@ async function crmChecks(window) {
 			crmErrors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
 		}
 		crmDom.window.close();
+	}
+
+	// هارنس لایه ۱٫۵٫۰ (مگامنو، خانه مینیمال، موتور حرکت، داشبورد تعمیرکار).
+	v6StaticChecks();
+	if (!fs.existsSync(v6Harness)) {
+		failures.push('هارنس tools/fixtures/v6-preview.html پیدا نشد');
+		failed += 1;
+	} else {
+		const v6Errors = [];
+		const v6Console = new VirtualConsole();
+		v6Console.on('jsdomError', (error) => v6Errors.push(error.message));
+		v6Console.on('error', (message) => v6Errors.push(String(message)));
+
+		const v6Dom = await JSDOM.fromFile(v6Harness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: v6Console,
+		});
+		if (v6Dom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => v6Dom.window.addEventListener('load', resolve));
+		}
+		await wait(200);
+
+		await v6Checks(v6Dom.window);
+
+		check('v6: بدون خطای jsdom در کنسول (' + v6Errors.length + ')', v6Errors.length === 0);
+		if (v6Errors.length) {
+			v6Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		v6Dom.window.close();
 	}
 
 	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.

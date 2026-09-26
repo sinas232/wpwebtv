@@ -172,76 +172,82 @@ if ( ! function_exists( 'pixva_hub_tools' ) ) {
 
 if ( ! function_exists( 'pixva_render_mega_menu' ) ) {
 	/**
-	 * رندر مگامنوی شیشه‌ای هدر: ۵ هاب + منوی اصلی وردپرس با آبشاری چندسطحی.
+	 * رندر مگامنوی شیشه‌ای آبشاری (Master Prompt v6).
+	 *
+	 * چهار گروه ثابت: خدمات تعمیرات، کدهای خطا و عیب‌یابی، استعلام و گارانتی
+	 * و ورود تعمیرکاران (پیوند مستقیم). در پایان، آیتم‌های منوی اصلی وردپرس
+	 * (اگر مدیری منویی ساخته باشد) بدون تغییر سطح اضافه می‌شوند.
 	 *
 	 * @param string $id_prefix پیشوند شناسه پنل‌ها (برای دروئر موبایل).
 	 * @return void
 	 */
 	function pixva_render_mega_menu( $id_prefix = 'mega' ) {
-		$hubs  = pixva_hubs();
-		$index = 0;
+		$groups = function_exists( 'pixva_mega_groups' ) ? pixva_mega_groups() : array();
+		$index  = 0;
 		?>
-		<nav class="pixva-mega" data-pixva-mega aria-label="<?php esc_attr_e( 'هاب‌های تخصصی پیکسوا', 'pixva' ); ?>">
+		<nav class="pixva-mega pixva-mega--groups" data-pixva-mega aria-label="<?php esc_attr_e( 'منوی اصلی پیکسوا', 'pixva' ); ?>">
 			<ul class="pixva-mega__list">
 				<li class="pixva-mega__item">
 					<a class="pixva-mega__link" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'خانه', 'pixva' ); ?></a>
 				</li>
-				<?php foreach ( $hubs as $hub ) : ?>
+
+				<?php foreach ( $groups as $group ) : ?>
 					<?php
+					$g_title = isset( $group['title'] ) ? (string) $group['title'] : '';
+					$g_url   = isset( $group['url'] ) ? (string) $group['url'] : '';
+					$g_icon  = isset( $group['icon'] ) ? (string) $group['icon'] : 'arrow';
+					$g_items = isset( $group['items'] ) && is_array( $group['items'] ) ? $group['items'] : array();
+
+					// گروه بدون زیرمنو = پیوند مستقیم (ورود تعمیرکاران).
+					if ( empty( $g_items ) ) :
+						?>
+						<li class="pixva-mega__item pixva-mega__item--direct">
+							<a class="pixva-mega__link pixva-mega__link--tech" href="<?php echo esc_url( $g_url ); ?>">
+								<?php echo pixva_icon( $g_icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<span><?php echo esc_html( $g_title ); ?></span>
+							</a>
+						</li>
+						<?php
+						continue;
+					endif;
+
 					++$index;
-					$panel_id = $id_prefix . '-' . $index;
-					$tools    = pixva_hub_tools( $hub['slug'] );
-					$preview  = array_slice( $tools, 0, 6, true );
+					$panel_id = $id_prefix . '-g' . $index;
 					?>
 					<li class="pixva-mega__item" data-mega-item>
 						<button type="button" class="pixva-mega__trigger" data-mega-trigger aria-expanded="false" aria-controls="<?php echo esc_attr( $panel_id ); ?>">
-							<span><?php echo esc_html( $hub['short'] ); ?></span>
+							<span><?php echo esc_html( $g_title ); ?></span>
 							<svg class="pixva-mega__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
 						</button>
-						<div class="pixva-mega__panel" id="<?php echo esc_attr( $panel_id ); ?>" data-mega-panel>
-							<div class="pixva-container pixva-mega__grid">
-								<div class="pixva-mega__col">
-									<h4><?php echo esc_html( sprintf( __( 'ابزارهای %d تا %d', 'pixva' ), (int) $hub['from'], min( (int) $hub['from'] + 4, (int) $hub['to'] ) ) ); ?></h4>
-									<ul class="pixva-mega__tools">
-										<?php foreach ( array_slice( $preview, 0, 3, true ) as $tool_id => $tool ) : ?>
-											<li>
-												<a href="<?php echo esc_url( pixva_tool_permalink( $tool_id ) ); ?>">
-													<span class="pixva-tool-no"><?php echo esc_html( pixva_fa_num( (string) $tool_id ) ); ?></span>
-													<span><?php echo esc_html( $tool['title'] ); ?></span>
-												</a>
-											</li>
-										<?php endforeach; ?>
-									</ul>
+
+						<div class="pixva-mega__panel pixva-mega__panel--group" id="<?php echo esc_attr( $panel_id ); ?>" data-mega-panel>
+							<div class="pixva-container">
+								<div class="pixva-mega__groups">
+									<?php pixva_render_mega_group_links( $group ); ?>
+
+									<aside class="pixva-mega__feature pixva-mega__feature--group">
+										<span class="pixva-mega__feature-icon"><?php echo pixva_icon( $g_icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+										<h3><?php echo esc_html( $g_title ); ?></h3>
+										<?php if ( ! empty( $group['text'] ) ) : ?>
+											<p><?php echo esc_html( (string) $group['text'] ); ?></p>
+										<?php endif; ?>
+										<?php if ( ! empty( $group['cta']['url'] ) ) : ?>
+											<a class="pixva-mega__cta" href="<?php echo esc_url( (string) $group['cta']['url'] ); ?>" data-ripple>
+												<?php echo pixva_icon( isset( $group['cta']['icon'] ) ? (string) $group['cta']['icon'] : 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+												<span><?php echo esc_html( isset( $group['cta']['title'] ) ? (string) $group['cta']['title'] : '' ); ?></span>
+											</a>
+										<?php endif; ?>
+									</aside>
 								</div>
-								<div class="pixva-mega__col">
-									<h4><?php echo esc_html( sprintf( __( 'ابزارهای %d تا %d', 'pixva' ), min( (int) $hub['from'] + 3, (int) $hub['to'] ), (int) $hub['to'] ) ); ?></h4>
-									<ul class="pixva-mega__tools">
-										<?php foreach ( array_slice( $preview, 3, 3, true ) as $tool_id => $tool ) : ?>
-											<li>
-												<a href="<?php echo esc_url( pixva_tool_permalink( $tool_id ) ); ?>">
-													<span class="pixva-tool-no"><?php echo esc_html( pixva_fa_num( (string) $tool_id ) ); ?></span>
-													<span><?php echo esc_html( $tool['title'] ); ?></span>
-												</a>
-											</li>
-										<?php endforeach; ?>
-									</ul>
-								</div>
-								<div class="pixva-mega__col">
-									<h4><?php esc_html_e( 'دسترسی سریع', 'pixva' ); ?></h4>
-									<ul class="pixva-mega__tools">
-										<li><a href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><span><?php esc_html_e( 'محاسبه هزینه تعمیر', 'pixva' ); ?></span></a></li>
-										<li><a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><span><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></span></a></li>
-										<li><a href="<?php echo esc_url( pixva_page_url( 'rates' ) ); ?>"><span><?php esc_html_e( 'نرخ‌نامه ۱۴۰۵', 'pixva' ); ?></span></a></li>
-										<li><a href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><span><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></span></a></li>
-									</ul>
-								</div>
-								<aside class="pixva-mega__feature">
-									<span class="pixva-badge pixva-badge--brand"><?php echo esc_html( sprintf( __( 'هاب %d از ۵', 'pixva' ), (int) $hub['no'] ) ); ?></span>
-									<h3><?php echo esc_html( $hub['title'] ); ?></h3>
-									<p><?php echo esc_html( $hub['description'] ); ?></p>
-									<a class="pixva-btn pixva-btn--primary pixva-btn--sm" href="<?php echo esc_url( pixva_hub_url( $hub['slug'] ) ); ?>"><?php esc_html_e( 'ورود به هاب', 'pixva' ); ?></a>
-									<span class="pixva-mega__more"><?php echo esc_html( sprintf( __( '%d ابزار تخصصی', 'pixva' ), count( $tools ) ) ); ?></span>
-								</aside>
+
+								<?php if ( ! empty( $group['note']['url'] ) ) : ?>
+									<div class="pixva-mega__foot">
+										<p class="pixva-mega__note">
+											<?php echo pixva_icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+											<a href="<?php echo esc_url( (string) $group['note']['url'] ); ?>"><?php echo esc_html( isset( $group['note']['title'] ) ? (string) $group['note']['title'] : '' ); ?></a>
+										</p>
+									</div>
+								<?php endif; ?>
 							</div>
 						</div>
 					</li>
