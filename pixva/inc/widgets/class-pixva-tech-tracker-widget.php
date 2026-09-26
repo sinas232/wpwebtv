@@ -195,25 +195,25 @@ if ( ! class_exists( 'Pixva_Technician_Tracker_Widget' ) ) {
 				)
 			);
 
-			$this->add_responsive_control(
+			// ارتفاع درون‌خطی با متغیر --map-h روی خود بخش نوشته می‌شود، بنابراین
+			// این کنترل selectors ندارد (قالب CSS روی استایل درون‌خطی اثر نمی‌کند).
+			$this->add_control(
 				'height',
 				array(
-					'label'      => esc_html__( 'ارتفاع نقشه (rem)', 'pixva' ),
-					'type'       => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => array( 'rem' ),
-					'range'      => array(
+					'label'       => esc_html__( 'ارتفاع نقشه (rem)', 'pixva' ),
+					'type'        => \Elementor\Controls_Manager::SLIDER,
+					'size_units'  => array( 'rem' ),
+					'range'       => array(
 						'rem' => array(
 							'min' => 14,
 							'max' => 60,
 						),
 					),
-					'default'    => array(
+					'default'     => array(
 						'unit' => 'rem',
 						'size' => 26,
 					),
-					'selectors'  => array(
-						'{{WRAPPER}} .pixva-map' => '--map-h: {{SIZE}}{{UNIT}};',
-					),
+					'description' => esc_html__( 'برای ارتفاع متفاوت در موبایل، متغیر --map-h را با CSS دلخواه بازنویسی کنید.', 'pixva' ),
 				)
 			);
 

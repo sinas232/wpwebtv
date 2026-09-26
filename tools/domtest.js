@@ -719,6 +719,13 @@ function v7StaticChecks() {
 	check('v7: متن‌های نقشه پیگیری از گزینه‌ها می‌آیند', ['pixva_map_badge', 'pixva_map_title', 'pixva_map_subtitle'].every((k) => tracking.indexOf(k) > -1));
 	check('v7: صف نقشه به گزینه صفحه پیگیری شرط شده', cinematic.indexOf("pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(") > -1);
 
+	/* --- تداخل کنترل المنتور با استایل درون‌خطی رندر --- */
+	const techWidget = read('inc/widgets/class-pixva-tech-tracker-widget.php');
+	check('v7: کنترل ارتفاع نقشه با --map-h درون‌خطی تداخل ندارد', !/add_responsive_control\(\s*'height'/.test(techWidget) && techWidget.indexOf('--map-h: {{SIZE}}') === -1);
+	check('v7: کنترل‌های سبکی ویجت‌ها به متغیرهای CSS رندر وصل‌اند', read('inc/widgets/class-pixva-ai-diagnose-widget.php').indexOf('.pixva-ai__orb') > -1
+		&& read('inc/widgets/class-pixva-spline-widget.php').indexOf('.pixva-3d__hot-dot') > -1
+		&& read('inc/widgets/class-pixva-cinematic-widget.php').indexOf('.pixva-cine__scene') > -1);
+
 	/* --- موتور GSAP سبک --- */
 	check('v7: موتور سبک gsap + ScrollTrigger', gsapLite.indexOf('window.gsap') > -1 && gsapLite.indexOf('window.ScrollTrigger') > -1 && gsapLite.indexOf('__pixvaLite') > -1);
 	check('v7: موتور سبک در برابر GSAP رسمی کنار می‌رود', gsapLite.indexOf('window.gsap && !window.gsap.__pixvaLite') > -1 || gsapLite.indexOf('if (window.gsap)') > -1);
