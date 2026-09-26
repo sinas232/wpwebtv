@@ -1159,6 +1159,9 @@
 						list.hidden = false;
 						list.innerHTML = timelineHTML(data);
 					}
+					document.dispatchEvent(new CustomEvent('pixva:track-result', {
+						detail: Object.assign({}, data, { phone: (form.querySelector('[name="phone"]') || {}).value || '' })
+					}));
 				}).catch(function (error) {
 					setBusy(button, false);
 					setOutput(form, error.message, true);
@@ -1222,6 +1225,9 @@
 					var list = qs('[data-report-timeline]', report);
 					if (list) { list.innerHTML = timelineHTML(data); }
 					setOutput(form, '<strong>گزارش کارشناسی ساخته شد.</strong> برای ذخیره PDF از گزینه چاپ مرورگر استفاده کنید.');
+					document.dispatchEvent(new CustomEvent('pixva:track-result', {
+						detail: Object.assign({}, data, { phone: (form.querySelector('[name="phone"]') || {}).value || '' })
+					}));
 				}).catch(function (error) {
 					setBusy(button, false);
 					setOutput(form, error.message, true);

@@ -587,6 +587,96 @@ function pixva_customize_register( $wp_customize ) {
 			)
 		);
 	}
+
+	/* ------- سینمایی، سه‌بعدی، هوش مصنوعی و نقشه زنده (لایه ۱٫۶٫۰) ------- */
+	$wp_customize->add_section(
+		'pixva_cinematic',
+		array(
+			'title'       => esc_html__( 'پیکسوا: سینمایی، سه‌بعدی، هوش مصنوعی و نقشه', 'pixva' ),
+			'description' => esc_html__( 'منبع کتابخانه‌های انیمیشن/نقشه، اتصال عامل هوش مصنوعی و داده‌های مبدأ مسیر. همه این گزینه‌ها اختیاری‌اند؛ خالی بودن یعنی رفتار پیش‌فرض داده‌محور.', 'pixva' ),
+			'priority'    => 34,
+		)
+	);
+
+	/**
+	 * فیلدهای لایه ۱٫۶٫۰: کلید => [برچسب, نوع, پیش‌فرض, توضیح, گزینه‌ها].
+	 *
+	 * @var array<string, array{0:string, 1:string, 2:mixed, 3:string, 4?:array<string, string>}>
+	 */
+	$pixva_v7_fields = array(
+		'pixva_cdn_gsap'           => array( __( 'آدرس CDN کتابخانه GSAP', 'pixva' ), 'text', '', __( 'خالی = موتور سبک داخلی پیکسوا. اگر فایل assets/js/vendor/gsap.min.js وجود داشته باشد، اولویت با آن است.', 'pixva' ) ),
+		'pixva_cdn_scrolltrigger'  => array( __( 'آدرس CDN افزونه ScrollTrigger', 'pixva' ), 'text', '', __( 'فایل محلی: assets/js/vendor/ScrollTrigger.min.js — بدون آن، موتور داخلی Pin/Scrub را انجام می‌دهد.', 'pixva' ) ),
+		'pixva_cdn_leaflet'        => array( __( 'آدرس CDN کتابخانه Leaflet', 'pixva' ), 'text', '', __( 'فایل محلی: assets/js/vendor/leaflet.js — خالی = نقشه داخلی SVG پیکسوا (بدون درخواست بیرونی).', 'pixva' ) ),
+		'pixva_cdn_leaflet_css'    => array( __( 'آدرس CDN سبک Leaflet', 'pixva' ), 'text', '', __( 'فایل محلی: assets/css/vendor/leaflet.css', 'pixva' ) ),
+		'pixva_cdn_spline'         => array( __( 'آدرس ماژول Spline Viewer', 'pixva' ), 'text', 'https://unpkg.com/@splinetool/viewer@1.9.48/build/spline-viewer.js', __( 'به‌صورت تنبل و فقط در صفحه‌های دارای ویجت سه‌بعدی بارگذاری می‌شود.', 'pixva' ) ),
+		'pixva_ai_agent_url'       => array( __( 'آدرس عامل هوش مصنوعی (AI Agent)', 'pixva' ), 'text', '', __( 'مثلاً سرویس پایتون شما. اگر پر شود، رسانه و شرح خرابی به آن فرستاده می‌شود و پاسخ JSON (کلیدهای verdict/analysis/part) به کاربر نمایش می‌رسد.', 'pixva' ) ),
+		'pixva_ai_agent_token'     => array( __( 'توکن عامل هوش مصنوعی (Bearer)', 'pixva' ), 'text', '', __( 'فقط سمت سرور استفاده می‌شود و هرگز به مرورگر فرستاده نمی‌شود.', 'pixva' ) ),
+		'pixva_ai_max_size'        => array( __( 'سقف حجم فایل رسانه (مگابایت)', 'pixva' ), 'number', 64, __( 'بزرگ‌تر از سقف upload_max_filesize سرور اثر نمی‌کند.', 'pixva' ) ),
+		'pixva_map_origin_lat'     => array( __( 'نقشه: عرض جغرافیایی مبدأ (کارگاه)', 'pixva' ), 'coord', 35.6892, __( 'مبدأ مسیر زمانی که موقعیت تعمیرکار ثبت نشده باشد.', 'pixva' ) ),
+		'pixva_map_origin_lng'     => array( __( 'نقشه: طول جغرافیایی مبدأ (کارگاه)', 'pixva' ), 'coord', 51.3890, '' ),
+		'pixva_map_origin_label'   => array( __( 'نقشه: برچسب مبدأ', 'pixva' ), 'text', __( 'کارگاه مرکزی پیکسوا', 'pixva' ), '' ),
+		'pixva_map_zones'          => array( __( 'نقشه: منطقه‌ها (JSON)', 'pixva' ), 'textarea', '', __( 'نمونه: [{"zone":"شمال تهران","lat":35.7810,"lng":51.4100}] — برای ساخت مقصد از منطقه مشتری.', 'pixva' ) ),
+		'pixva_map_dest_label'     => array( __( 'نقشه: برچسب مقصد', 'pixva' ), 'text', __( 'محل مشتری', 'pixva' ), '' ),
+		'pixva_map_average_speed'  => array( __( 'نقشه: سرعت میانگین (کیلومتر/ساعت)', 'pixva' ), 'number', 22, __( 'برای محاسبه زمان تقریبی رسیدن (ETA).', 'pixva' ) ),
+		'pixva_map_refresh'        => array( __( 'نقشه: بازه نوسازی (ثانیه)', 'pixva' ), 'number', 20, __( 'ویجت المنتور می‌تواند این مقدار را برای هر نمونه تغییر دهد.', 'pixva' ) ),
+		'pixva_map_provider'       => array( __( 'نقشه: موتور رندر', 'pixva' ), 'select', 'auto', '', array(
+			'auto'     => __( 'خودکار (Leaflet اگر موجود باشد)', 'pixva' ),
+			'internal' => __( 'همیشه نقشه داخلی پیکسوا', 'pixva' ),
+			'leaflet'  => __( 'همیشه Leaflet', 'pixva' ),
+		) ),
+		'pixva_map_tiles'          => array( __( 'نقشه: آدرس کاشی‌ها', 'pixva' ), 'text', 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', __( 'الگوی Leaflet با جای‌گیرهای {s} {z} {x} {y}.', 'pixva' ) ),
+		'pixva_map_attribution'    => array( __( 'نقشه: متن منبع (Attribution)', 'pixva' ), 'text', '© OpenStreetMap contributors © CARTO', '' ),
+	);
+
+	foreach ( $pixva_v7_fields as $pixva_key => $pixva_field ) {
+		$pixva_type = $pixva_field[1];
+
+		if ( 'number' === $pixva_type ) {
+			$pixva_sanitize = 'absint';
+			$pixva_control  = 'number';
+		} elseif ( 'textarea' === $pixva_type ) {
+			$pixva_sanitize = 'sanitize_textarea_field';
+			$pixva_control  = 'textarea';
+		} elseif ( 'coord' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_coord';
+			$pixva_control  = 'text';
+		} elseif ( 'select' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_map_provider';
+			$pixva_control  = 'select';
+		} else {
+			$pixva_sanitize = 'sanitize_text_field';
+			$pixva_control  = 'text';
+		}
+
+		$wp_customize->add_setting(
+			$pixva_key,
+			array(
+				'default'           => $pixva_field[2],
+				'sanitize_callback' => $pixva_sanitize,
+			)
+		);
+
+		$pixva_control_args = array(
+			'label'       => $pixva_field[0],
+			'section'     => 'pixva_cinematic',
+			'type'        => $pixva_control,
+		);
+
+		if ( '' !== $pixva_field[3] ) {
+			$pixva_control_args['description'] = $pixva_field[3];
+		}
+		if ( ! empty( $pixva_field[4] ) ) {
+			$pixva_control_args['choices'] = $pixva_field[4];
+		}
+		if ( 'number' === $pixva_type ) {
+			$pixva_control_args['input_attrs'] = array(
+				'min'  => 1,
+				'step' => 1,
+			);
+		}
+
+		$wp_customize->add_control( $pixva_key, $pixva_control_args );
+	}
 }
 add_action( 'customize_register', 'pixva_customize_register' );
 
@@ -598,6 +688,38 @@ add_action( 'customize_register', 'pixva_customize_register' );
  */
 function pixva_sanitize_checkbox( $value ) {
 	return (bool) $value;
+}
+
+/**
+ * پاک‌سازی مختصات جغرافیایی (عدد اعشاری بین -90 تا 180).
+ *
+ * @param mixed $value ورودی.
+ * @return string
+ */
+function pixva_sanitize_coord( $value ) {
+	$value = str_replace( array( ',', '،' ), '.', trim( (string) $value ) );
+
+	if ( '' === $value || ! is_numeric( $value ) ) {
+		return '';
+	}
+
+	$number = (float) $value;
+	if ( $number < -180 || $number > 180 ) {
+		return '';
+	}
+
+	return (string) $number;
+}
+
+/**
+ * پاک‌سازی انتخاب موتور نقشه.
+ *
+ * @param mixed $value ورودی.
+ * @return string
+ */
+function pixva_sanitize_map_provider( $value ) {
+	$value = sanitize_key( (string) $value );
+	return in_array( $value, array( 'auto', 'internal', 'leaflet' ), true ) ? $value : 'auto';
 }
 
 /**

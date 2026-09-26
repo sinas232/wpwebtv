@@ -9491,3 +9491,1747 @@ html {
 		padding-inline: 0.7rem;
 	}
 }
+
+/* =====================================================================
+   ۲۹) لایه سینمایی، سه‌بعدی، عیب‌یاب هوشمند و نقشه زنده (نسخه ۱٫۶٫۰)
+       چهار بخش: اسکرول سینمایی GSAP، مدل Spline/WebGL با هات‌اسپیت،
+       گوی نوری عیب‌یاب هوشمند و نقشه حالت‌تاریک تعمیرکار.
+
+   قرارداد: پوسته همه بخش‌ها تیره است و رنگ‌های نئونی از متغیرهای
+   --cine-neon/--spline-hot/--ai-neon/--map-neon (تنظیم ویجت المنتور)
+   خوانده می‌شوند. هیچ محتوایی بدون JS پنهان نمی‌ماند: قواعد وابسته به
+   انیمیشن با کلاس‌های html.pixva-cine-js / pixva-3d-js / pixva-ai-js /
+   pixva-map-js شرط شده‌اند.
+   ===================================================================== */
+
+/* --- ۲۹-A: پوسته مشترک و فضای قفل اسکرول --- */
+.pixva-pin-spacer {
+	position: relative;
+	width: 100%;
+}
+
+.pixva-cine,
+.pixva-3d,
+.pixva-ai,
+.pixva-map {
+	--px-ink: rgb(226, 232, 240);
+	--px-dim: rgba(203, 213, 225, 0.82);
+	--px-faint: rgba(148, 163, 184, 0.66);
+	--px-line: rgba(148, 163, 184, 0.22);
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	margin-block: clamp(1.4rem, 3.4vw, 3rem);
+	padding: clamp(1.4rem, 3.6vw, 3.2rem) clamp(1rem, 3vw, 2.2rem);
+	border: 1px solid var(--px-line);
+	border-radius: clamp(20px, 3vw, 34px);
+	color: var(--px-ink);
+	color-scheme: dark;
+	background:
+		radial-gradient(115% 85% at 86% -12%, rgba(34, 211, 238, 0.17) 0%, rgba(34, 211, 238, 0) 58%),
+		radial-gradient(95% 75% at 6% 112%, rgba(168, 85, 247, 0.19) 0%, rgba(168, 85, 247, 0) 60%),
+		linear-gradient(158deg, rgb(8, 12, 24) 0%, rgb(12, 18, 34) 54%, rgb(7, 11, 22) 100%);
+	box-shadow: 0 44px 96px -64px rgba(2, 6, 23, 0.92);
+}
+
+.pixva-cine h2,
+.pixva-3d h2,
+.pixva-ai h2,
+.pixva-map h2 {
+	margin: 0.45rem 0 0.5rem;
+	font-size: clamp(1.3rem, 3vw, 2.2rem);
+	font-weight: 800;
+	line-height: 1.5;
+	letter-spacing: -0.01em;
+	color: rgb(241, 245, 249);
+}
+
+.pixva-cine__head,
+.pixva-3d__head,
+.pixva-ai__head,
+.pixva-map__head {
+	display: grid;
+	justify-items: center;
+	gap: 0.1rem;
+	margin-bottom: clamp(1rem, 2.4vw, 1.8rem);
+	text-align: center;
+}
+
+.pixva-cine .pixva-muted,
+.pixva-3d .pixva-muted,
+.pixva-ai .pixva-muted,
+.pixva-map .pixva-muted {
+	max-width: 64ch;
+	margin: 0;
+	font-size: clamp(0.86rem, 1.5vw, 0.98rem);
+	line-height: 2;
+	color: var(--px-dim);
+}
+
+.pixva-cine .pixva-badge,
+.pixva-3d .pixva-badge,
+.pixva-ai .pixva-badge,
+.pixva-map .pixva-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.32rem 0.85rem;
+	border: 1px solid rgba(34, 211, 238, 0.34);
+	border-radius: 999px;
+	background: rgba(34, 211, 238, 0.12);
+	font-size: 0.76rem;
+	font-weight: 700;
+	color: rgb(165, 243, 252);
+	backdrop-filter: blur(6px);
+}
+
+.pixva-ai .pixva-badge--accent {
+	border-color: rgba(168, 85, 247, 0.4);
+	background: rgba(168, 85, 247, 0.14);
+	color: rgb(233, 213, 255);
+}
+
+.pixva-3d .pixva-badge--success,
+.pixva-ai .pixva-badge--success {
+	border-color: rgba(52, 211, 153, 0.4);
+	background: rgba(16, 185, 129, 0.14);
+	color: rgb(167, 243, 208);
+}
+
+.pixva-cine .pixva-btn--ghost-dark,
+.pixva-3d .pixva-btn--ghost-dark,
+.pixva-ai .pixva-btn--ghost-dark,
+.pixva-map .pixva-btn--ghost-dark {
+	color: rgb(226, 232, 240);
+	background: rgba(148, 163, 184, 0.12);
+	box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.28);
+}
+
+.pixva-cine .pixva-btn--ghost-dark:hover,
+.pixva-3d .pixva-btn--ghost-dark:hover,
+.pixva-ai .pixva-btn--ghost-dark:hover,
+.pixva-map .pixva-btn--ghost-dark:hover {
+	color: rgb(240, 249, 255);
+	background: rgba(34, 211, 238, 0.16);
+	box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.42);
+}
+
+.pixva-3d .pixva-card,
+.pixva-ai .pixva-card {
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	background: rgba(11, 17, 32, 0.86);
+	color: var(--px-ink);
+	box-shadow: 0 34px 74px -52px rgba(2, 6, 23, 0.96);
+	backdrop-filter: blur(14px);
+}
+
+.pixva-3d .pixva-card:hover,
+.pixva-ai .pixva-card:hover {
+	border-color: rgba(148, 163, 184, 0.28);
+	box-shadow: 0 34px 74px -52px rgba(2, 6, 23, 0.96);
+}
+
+.pixva-cine .pixva-notice,
+.pixva-3d .pixva-notice,
+.pixva-ai .pixva-notice,
+.pixva-map .pixva-notice {
+	border-color: rgba(248, 113, 113, 0.4);
+	background: rgba(239, 68, 68, 0.14);
+	color: rgb(254, 205, 211);
+}
+
+.pixva-3d__meta,
+.pixva-ai__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 1.5rem;
+	margin: 0.35rem 0 0;
+}
+
+.pixva-3d__meta div,
+.pixva-ai__meta div {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+}
+
+.pixva-3d__meta dt,
+.pixva-ai__meta dt {
+	font-size: 0.72rem;
+	color: var(--px-faint);
+}
+
+.pixva-3d__meta dd,
+.pixva-ai__meta dd {
+	margin: 0;
+	font-size: 0.88rem;
+	font-weight: 700;
+	color: rgb(226, 232, 240);
+}
+
+@keyframes pixvaPanelIn {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 14px, 0) scale(0.985);
+	}
+
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+}
+
+@keyframes pixvaHotPulse {
+	0% {
+		opacity: 0.62;
+		transform: scale(0.82);
+	}
+
+	70% {
+		opacity: 0;
+		transform: scale(1.65);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.65);
+	}
+}
+
+@keyframes pixvaSpin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* --- ۲۹-B: اسکرول سینمایی (Cinematic TV Unboxing) --- */
+.pixva-cine {
+	--cine-neon: rgb(34, 211, 238);
+	--cine-neon2: rgb(168, 85, 247);
+	--cine-length: 320vh;
+}
+
+.pixva-cine__track {
+	position: relative;
+}
+
+.pixva-cine__stage {
+	display: grid;
+	grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
+	grid-template-areas:
+		"head head"
+		"scene notes"
+		"foot foot";
+	gap: clamp(0.9rem, 2.4vw, 2.2rem);
+	align-items: center;
+	min-height: min(78vh, 620px);
+	padding: clamp(0.5rem, 1.6vw, 1.1rem);
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	border-radius: clamp(18px, 2.6vw, 28px);
+	background: linear-gradient(180deg, rgba(15, 23, 42, 0.44) 0%, rgba(8, 12, 24, 0.14) 100%);
+	transition: box-shadow 0.5s ease, border-color 0.5s ease;
+}
+
+.pixva-cine.is-live .pixva-cine__stage {
+	border-color: rgba(34, 211, 238, 0.3);
+	box-shadow: inset 0 0 60px -30px var(--cine-neon);
+}
+
+.pixva-cine__head {
+	grid-area: head;
+	margin-bottom: 0;
+}
+
+.pixva-cine__scene {
+	grid-area: scene;
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(0.8rem, 2vw, 1.5rem);
+	min-height: clamp(230px, 40vh, 400px);
+	perspective: 1200px;
+	transform-style: preserve-3d;
+}
+
+html.pixva-cine-js .pixva-cine__scene {
+	flex-wrap: nowrap;
+	gap: 0;
+}
+
+.pixva-cine__glow {
+	position: absolute;
+	inset: 10% 6%;
+	z-index: 0;
+	border-radius: 50%;
+	pointer-events: none;
+	background:
+		radial-gradient(closest-side, var(--cine-neon), rgba(34, 211, 238, 0)),
+		radial-gradient(closest-side, var(--cine-neon2), rgba(168, 85, 247, 0));
+	opacity: 0.22;
+	filter: blur(30px);
+	animation: pixvaCineGlow 7.5s ease-in-out infinite alternate;
+}
+
+@keyframes pixvaCineGlow {
+	from {
+		opacity: 0.16;
+	}
+
+	to {
+		opacity: 0.3;
+	}
+}
+
+.pixva-cine__layer {
+	position: relative;
+	z-index: 1;
+	width: clamp(150px, 34%, 290px);
+	aspect-ratio: 16 / 10;
+	margin: 0;
+	overflow: hidden;
+	border: 1px solid rgba(148, 163, 184, 0.24);
+	border-radius: 18px;
+	background: linear-gradient(160deg, rgba(30, 41, 59, 0.92), rgba(9, 14, 26, 0.94));
+	box-shadow: 0 26px 60px -36px rgba(2, 6, 23, 0.96);
+	transform-style: preserve-3d;
+	backface-visibility: hidden;
+}
+
+html.pixva-cine-js .pixva-cine__layer {
+	position: absolute;
+	inset: 0;
+	width: min(62%, 330px);
+	height: min(58%, 250px);
+	aspect-ratio: auto;
+	margin: auto;
+	will-change: transform;
+}
+
+.pixva-cine__layer img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pixva-cine__layer::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	box-shadow: inset 0 0 26px -10px var(--cine-neon), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.pixva-cine__plate {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: rgba(148, 163, 184, 0.55);
+}
+
+.pixva-cine__plate svg {
+	width: 44%;
+	height: auto;
+	opacity: 0.6;
+}
+
+.pixva-cine__layer figcaption {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0;
+	padding: 1rem 0.8rem 0.65rem;
+	background: linear-gradient(0deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0) 100%);
+	font-size: 0.8rem;
+	font-weight: 700;
+	line-height: 1.7;
+	color: rgb(226, 232, 240);
+}
+
+.pixva-cine__notes {
+	grid-area: notes;
+	display: grid;
+	gap: clamp(0.5rem, 1.4vw, 0.9rem);
+	align-content: center;
+	max-height: min(62vh, 470px);
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	list-style: none;
+}
+
+.pixva-cine.is-static .pixva-cine__notes {
+	max-height: none;
+	overflow: visible;
+}
+
+.pixva-cine__note {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	column-gap: 0.75rem;
+	row-gap: 0.2rem;
+	align-items: start;
+	padding: 0.85rem 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	border-radius: 16px;
+	background: rgba(11, 17, 32, 0.5);
+	opacity: 0.42;
+	transition: opacity 0.45s ease, border-color 0.45s ease, background 0.45s ease, box-shadow 0.45s ease;
+}
+
+html.pixva-cine-js .pixva-cine__note {
+	will-change: transform, opacity;
+}
+
+.pixva-cine__note.is-active,
+.pixva-cine.is-static .pixva-cine__note {
+	opacity: 1;
+	border-color: rgba(34, 211, 238, 0.42);
+	background: linear-gradient(140deg, rgba(14, 24, 44, 0.94), rgba(11, 17, 32, 0.72));
+	box-shadow: 0 20px 46px -32px var(--cine-neon);
+}
+
+.pixva-cine__note-no {
+	grid-column: 1;
+	grid-row: 1 / span 3;
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 999px;
+	background: linear-gradient(135deg, var(--cine-neon), var(--cine-neon2));
+	font-size: 0.78rem;
+	font-weight: 800;
+	color: rgb(4, 10, 20);
+	box-shadow: 0 10px 22px -12px var(--cine-neon);
+}
+
+.pixva-cine__note h3 {
+	grid-column: 2;
+	grid-row: 1;
+	margin: 0;
+	font-size: 0.98rem;
+	font-weight: 800;
+	color: rgb(241, 245, 249);
+}
+
+.pixva-cine__note p {
+	grid-column: 2;
+	grid-row: 2;
+	margin: 0;
+	font-size: 0.84rem;
+	line-height: 1.95;
+	color: var(--px-dim);
+}
+
+.pixva-cine__cta {
+	grid-column: 2;
+	grid-row: 3;
+	justify-self: start;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-top: 0.45rem;
+	padding: 0.38rem 0.85rem;
+	border-radius: 999px;
+	background: rgba(34, 211, 238, 0.12);
+	box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
+	font-size: 0.76rem;
+	font-weight: 700;
+	text-decoration: none;
+	color: rgb(165, 243, 252);
+	transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pixva-cine__cta:hover,
+.pixva-cine__cta:focus-visible {
+	background: rgba(34, 211, 238, 0.2);
+	box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.5);
+	transform: translate3d(0, -1px, 0);
+}
+
+.pixva-cine__cta svg {
+	width: 0.85rem;
+	height: 0.85rem;
+}
+
+.pixva-cine__foot {
+	grid-area: foot;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem;
+	padding-top: 0.3rem;
+}
+
+.pixva-cine__hint {
+	font-size: 0.76rem;
+	color: var(--px-faint);
+}
+
+.pixva-cine__bar {
+	position: relative;
+	display: block;
+	width: clamp(120px, 26vw, 260px);
+	height: 4px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: rgba(148, 163, 184, 0.22);
+}
+
+.pixva-cine__bar i {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, var(--cine-neon), var(--cine-neon2));
+	transform: scaleX(1);
+	transform-origin: left center;
+}
+
+html[dir="rtl"] .pixva-cine__bar i {
+	transform-origin: right center;
+}
+
+html.pixva-cine-js .pixva-cine__bar i {
+	transform: scaleX(0);
+	will-change: transform;
+}
+
+.pixva-cine__step {
+	font-size: 0.78rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: rgb(165, 243, 252);
+}
+
+/* --- ۲۹-C: مدل سه‌بعدی تعاملی (Spline / WebGL) --- */
+.pixva-3d {
+	--spline-h: 34rem;
+	--spline-hot: rgb(248, 113, 113);
+	--spline-accent: rgb(34, 211, 238);
+	display: grid;
+	gap: clamp(0.9rem, 2vw, 1.4rem);
+}
+
+.pixva-3d__stage {
+	position: relative;
+	height: var(--spline-h);
+	min-height: 20rem;
+	overflow: hidden;
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	border-radius: clamp(18px, 2.6vw, 28px);
+	perspective: 1100px;
+	background:
+		radial-gradient(78% 68% at 50% 6%, rgba(34, 211, 238, 0.14) 0%, rgba(34, 211, 238, 0) 62%),
+		linear-gradient(180deg, rgba(10, 15, 28, 0.94) 0%, rgba(6, 10, 20, 0.97) 100%);
+	box-shadow: inset 0 0 90px -50px var(--spline-accent);
+}
+
+.pixva-3d__model {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+}
+
+.pixva-3d__viewer {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.pixva-3d__empty {
+	max-width: 44ch;
+	margin: 0;
+	padding: 1rem;
+	font-size: 0.84rem;
+	line-height: 2;
+	text-align: center;
+	color: var(--px-faint);
+}
+
+.pixva-3d.is-3d .pixva-3d__empty {
+	display: none;
+}
+
+.pixva-3d__fallback {
+	position: absolute;
+	inset: 0;
+	display: none;
+	place-items: center;
+	touch-action: none;
+	cursor: grab;
+}
+
+.pixva-3d.is-fallback .pixva-3d__fallback,
+.pixva-3d:not(.is-3d) .pixva-3d__fallback {
+	display: grid;
+}
+
+.pixva-3d.is-3d .pixva-3d__fallback {
+	display: none;
+}
+
+.pixva-3d__fallback.is-dragging {
+	cursor: grabbing;
+}
+
+.pixva-3d__tv {
+	position: relative;
+	width: clamp(210px, 54%, 460px);
+	aspect-ratio: 16 / 10;
+	transform-style: preserve-3d;
+	transform: rotateX(var(--rot-x, -8deg)) rotateY(var(--rot-y, 22deg));
+	transition: transform 0.2s ease-out;
+}
+
+.pixva-3d__screen {
+	position: absolute;
+	inset: 0;
+	border-radius: 14px;
+	background: linear-gradient(150deg, rgba(30, 41, 59, 0.96), rgba(9, 14, 26, 0.98));
+	box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.22), 0 0 70px -20px var(--spline-accent);
+	transform: translateZ(26px);
+}
+
+.pixva-3d__backlight {
+	position: absolute;
+	inset: 9% 7%;
+	border-radius: 12px;
+	background: radial-gradient(closest-side, var(--spline-accent), rgba(34, 211, 238, 0));
+	opacity: 0.34;
+	filter: blur(14px);
+	transform: translateZ(8px);
+	animation: pixvaBacklight 4.8s ease-in-out infinite alternate;
+}
+
+@keyframes pixvaBacklight {
+	from {
+		opacity: 0.22;
+	}
+
+	to {
+		opacity: 0.46;
+	}
+}
+
+.pixva-3d__board {
+	position: absolute;
+	inset-block-start: 22%;
+	inset-inline-start: 16%;
+	width: 42%;
+	height: 48%;
+	border-radius: 8px;
+	background:
+		repeating-linear-gradient(90deg, rgba(52, 211, 153, 0.48) 0 2px, rgba(52, 211, 153, 0) 2px 9px),
+		linear-gradient(140deg, rgba(6, 78, 59, 0.92), rgba(4, 20, 16, 0.96));
+	box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.34);
+	transform: translateZ(-28px);
+}
+
+.pixva-3d__stand {
+	position: absolute;
+	inset-inline-start: 50%;
+	inset-block-end: -9%;
+	width: 26%;
+	height: 9%;
+	margin-inline-start: -13%;
+	border-radius: 0 0 10px 10px;
+	background: linear-gradient(180deg, rgba(100, 116, 139, 0.88), rgba(51, 65, 85, 0.92));
+}
+
+.pixva-3d__hots {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+}
+
+.pixva-3d__hot {
+	position: absolute;
+	left: var(--hx, 50%);
+	top: var(--hy, 50%);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-family: inherit;
+	cursor: pointer;
+	transform: translate(-50%, -50%);
+}
+
+.pixva-3d__hot-dot {
+	position: relative;
+	display: block;
+	flex: 0 0 auto;
+	width: 18px;
+	height: 18px;
+	border-radius: 999px;
+	background: var(--spline-hot);
+	box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.16), 0 0 24px -2px var(--spline-hot);
+}
+
+.pixva-3d__hot-dot::after {
+	content: "";
+	position: absolute;
+	inset: -6px;
+	border: 1px solid var(--spline-hot);
+	border-radius: 999px;
+	opacity: 0.55;
+	animation: pixvaHotPulse 2.4s ease-out infinite;
+}
+
+.pixva-3d__hot-label {
+	max-width: 0;
+	overflow: hidden;
+	padding: 0;
+	border-radius: 999px;
+	background: rgba(11, 17, 32, 0.88);
+	box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.32);
+	font-size: 0.76rem;
+	font-weight: 700;
+	white-space: nowrap;
+	color: rgb(254, 226, 226);
+	opacity: 0;
+	transition: max-width 0.35s ease, opacity 0.3s ease, padding 0.35s ease;
+}
+
+.pixva-3d__hot:hover .pixva-3d__hot-label,
+.pixva-3d__hot:focus-visible .pixva-3d__hot-label,
+.pixva-3d__hot.is-active .pixva-3d__hot-label {
+	max-width: 24ch;
+	padding: 0.3rem 0.75rem;
+	opacity: 1;
+}
+
+.pixva-3d__status {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0.85rem;
+	z-index: 3;
+	width: max-content;
+	max-width: 92%;
+	margin: 0 auto;
+	padding: 0.4rem 0.95rem;
+	border-radius: 999px;
+	background: rgba(11, 17, 32, 0.88);
+	box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+	font-size: 0.76rem;
+	text-align: center;
+	color: var(--px-dim);
+}
+
+.pixva-3d__status[hidden] {
+	display: none;
+}
+
+.pixva-3d__status.is-loading {
+	color: rgb(165, 243, 252);
+	box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.4);
+}
+
+.pixva-3d__status.is-error {
+	color: rgb(254, 205, 211);
+	box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.42);
+}
+
+.pixva-3d__panel {
+	position: relative;
+	display: grid;
+	gap: 0.5rem;
+	padding: clamp(1rem, 2.4vw, 1.6rem);
+	border-radius: 20px;
+}
+
+.pixva-3d__panel[hidden] {
+	display: none;
+}
+
+.pixva-3d__panel.is-open {
+	animation: pixvaPanelIn 0.42s cubic-bezier(0.22, 0.68, 0.24, 1) both;
+}
+
+.pixva-3d__panel h3 {
+	margin: 0;
+	padding-inline-end: 2.4rem;
+	font-size: 1.02rem;
+	font-weight: 800;
+	color: rgb(241, 245, 249);
+}
+
+.pixva-3d__panel p {
+	margin: 0;
+	font-size: 0.86rem;
+	line-height: 2;
+	color: var(--px-dim);
+}
+
+.pixva-3d__panel .pixva-btn {
+	justify-self: start;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.pixva-3d__panel .pixva-btn svg {
+	width: 1.05rem;
+	height: 1.05rem;
+}
+
+.pixva-3d__close {
+	position: absolute;
+	inset-inline-end: 0.7rem;
+	inset-block-start: 0.7rem;
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border: 1px solid rgba(148, 163, 184, 0.26);
+	border-radius: 999px;
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--px-ink);
+	cursor: pointer;
+	transition: background 0.25s ease, color 0.25s ease;
+}
+
+.pixva-3d__close:hover {
+	background: rgba(248, 113, 113, 0.2);
+	color: rgb(254, 226, 226);
+}
+
+.pixva-3d__close svg {
+	width: 0.95rem;
+	height: 0.95rem;
+}
+
+/* --- ۲۹-D: عیب‌یاب هوشمند (گوی نوری + رسانه + تحلیل) --- */
+.pixva-ai {
+	--ai-neon: rgb(56, 189, 248);
+	--ai-neon2: rgb(168, 85, 247);
+	--ai-pulse: 2.4s;
+	display: grid;
+	justify-items: center;
+	gap: clamp(0.8rem, 2vw, 1.3rem);
+	text-align: center;
+}
+
+.pixva-ai__orb {
+	--orb-x: 50%;
+	--orb-y: 50%;
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 168px;
+	height: 168px;
+}
+
+.pixva-ai__ring {
+	position: absolute;
+	inset: 0;
+	border: 1px solid rgba(56, 189, 248, 0.34);
+	border-color: color-mix(in srgb, var(--ai-neon) 34%, transparent);
+	border-radius: 50%;
+	animation: pixvaAiRing var(--ai-pulse) ease-out infinite;
+}
+
+.pixva-ai__ring--2 {
+	inset: 11%;
+	border-color: rgba(168, 85, 247, 0.32);
+	border-color: color-mix(in srgb, var(--ai-neon2) 32%, transparent);
+	animation-delay: calc(var(--ai-pulse) / 3);
+}
+
+.pixva-ai__ring--3 {
+	inset: 22%;
+	animation-delay: calc(var(--ai-pulse) * 0.66);
+}
+
+@keyframes pixvaAiRing {
+	0% {
+		opacity: 0.75;
+		transform: scale(0.86);
+	}
+
+	70% {
+		opacity: 0;
+		transform: scale(1.18);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.18);
+	}
+}
+
+.pixva-ai__core {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 58%;
+	height: 58%;
+	border-radius: 50%;
+	color: rgb(240, 249, 255);
+	background:
+		radial-gradient(circle at var(--orb-x) var(--orb-y), rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 46%),
+		radial-gradient(circle at 32% 28%, var(--ai-neon) 0%, rgba(56, 189, 248, 0.2) 44%, rgba(9, 14, 26, 0.94) 80%);
+	box-shadow: 0 0 48px -6px var(--ai-neon), inset 0 0 28px rgba(255, 255, 255, 0.16);
+	animation: pixvaAiCore var(--ai-pulse) ease-in-out infinite;
+}
+
+@keyframes pixvaAiCore {
+	0%,
+	100% {
+		transform: scale(1);
+		filter: brightness(1);
+	}
+
+	50% {
+		transform: scale(1.05);
+		filter: brightness(1.16);
+	}
+}
+
+.pixva-ai__core svg {
+	width: 46%;
+	height: 46%;
+}
+
+.pixva-ai[data-ai-state="analyzing"] .pixva-ai__core {
+	animation-duration: calc(var(--ai-pulse) / 2.4);
+}
+
+.pixva-ai[data-ai-state="analyzing"] .pixva-ai__ring {
+	animation-duration: calc(var(--ai-pulse) / 2);
+}
+
+.pixva-ai[data-ai-state="done"] .pixva-ai__core {
+	background:
+		radial-gradient(circle at var(--orb-x) var(--orb-y), rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 46%),
+		radial-gradient(circle at 32% 28%, rgb(52, 211, 153) 0%, rgba(16, 185, 129, 0.22) 46%, rgba(9, 14, 26, 0.94) 82%);
+	box-shadow: 0 0 48px -6px rgb(52, 211, 153), inset 0 0 28px rgba(255, 255, 255, 0.14);
+	animation: none;
+}
+
+.pixva-ai[data-ai-state="error"] .pixva-ai__core {
+	background:
+		radial-gradient(circle at var(--orb-x) var(--orb-y), rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 46%),
+		radial-gradient(circle at 32% 28%, rgb(248, 113, 113) 0%, rgba(239, 68, 68, 0.22) 46%, rgba(9, 14, 26, 0.94) 82%);
+	box-shadow: 0 0 48px -6px rgb(248, 113, 113), inset 0 0 28px rgba(255, 255, 255, 0.12);
+	animation: none;
+}
+
+.pixva-ai__form {
+	display: grid;
+	gap: 0.85rem;
+	width: min(760px, 100%);
+	transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+.pixva-ai[data-ai-state="analyzing"] .pixva-ai__form {
+	opacity: 0.32;
+	filter: blur(1px);
+	pointer-events: none;
+}
+
+.pixva-ai__fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 0.7rem;
+	text-align: start;
+}
+
+.pixva-ai__field {
+	display: grid;
+	gap: 0.3rem;
+}
+
+.pixva-ai__field--wide {
+	grid-column: 1 / -1;
+}
+
+.pixva-ai__field > span {
+	font-size: 0.76rem;
+	font-weight: 700;
+	color: var(--px-faint);
+}
+
+.pixva-ai__field input,
+.pixva-ai__field select,
+.pixva-ai__field textarea {
+	width: 100%;
+	padding: 0.62rem 0.85rem;
+	border: 1px solid rgba(148, 163, 184, 0.24);
+	border-radius: 14px;
+	background: rgba(9, 14, 26, 0.74);
+	font-family: inherit;
+	font-size: 0.86rem;
+	color: rgb(226, 232, 240);
+	transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pixva-ai__field textarea {
+	min-height: 3.6rem;
+	resize: vertical;
+}
+
+.pixva-ai__field select option {
+	color: rgb(15, 23, 42);
+}
+
+.pixva-ai__field input:focus-visible,
+.pixva-ai__field select:focus-visible,
+.pixva-ai__field textarea:focus-visible {
+	border-color: var(--ai-neon);
+	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--ai-neon) 22%, transparent);
+	outline: none;
+}
+
+.pixva-ai__media {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.7rem;
+	padding: 0.65rem 0.8rem;
+	border: 1px solid rgba(34, 211, 238, 0.28);
+	border-radius: 16px;
+	background: rgba(11, 17, 32, 0.74);
+	text-align: start;
+}
+
+.pixva-ai__media[hidden] {
+	display: none;
+}
+
+.pixva-ai__media-icon {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 12px;
+	background: rgba(56, 189, 248, 0.14);
+	color: rgb(186, 230, 253);
+}
+
+.pixva-ai__media-icon[data-ai-kind="audio"] {
+	background: rgba(168, 85, 247, 0.16);
+	color: rgb(233, 213, 255);
+}
+
+.pixva-ai__media-icon svg {
+	width: 1.15rem;
+	height: 1.15rem;
+}
+
+.pixva-ai__media-body {
+	display: grid;
+	flex: 1 1 auto;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.pixva-ai__media-body strong {
+	overflow: hidden;
+	font-size: 0.84rem;
+	color: rgb(226, 232, 240);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pixva-ai__media-body small {
+	font-size: 0.72rem;
+	color: var(--px-faint);
+}
+
+.pixva-ai__preview {
+	flex: 1 1 100%;
+	width: 100%;
+	max-height: 13rem;
+	border-radius: 12px;
+	background: rgb(2, 6, 23);
+}
+
+.pixva-ai__media-remove {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 1.9rem;
+	height: 1.9rem;
+	border: 1px solid rgba(148, 163, 184, 0.26);
+	border-radius: 999px;
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--px-ink);
+	cursor: pointer;
+	transition: background 0.25s ease, color 0.25s ease;
+}
+
+.pixva-ai__media-remove:hover {
+	background: rgba(248, 113, 113, 0.22);
+	color: rgb(254, 226, 226);
+}
+
+.pixva-ai__media-remove svg {
+	width: 0.9rem;
+	height: 0.9rem;
+}
+
+.pixva-ai__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.6rem;
+}
+
+.pixva-ai__actions .pixva-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.pixva-ai__actions svg {
+	width: 1.05rem;
+	height: 1.05rem;
+}
+
+.pixva-ai__pick {
+	cursor: pointer;
+}
+
+.pixva-ai__mic.is-recording {
+	background: rgba(239, 68, 68, 0.2);
+	box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.52);
+	color: rgb(254, 226, 226);
+	animation: pixvaAiRec 1.4s ease-in-out infinite;
+}
+
+@keyframes pixvaAiRec {
+	0%,
+	100% {
+		transform: translate3d(0, 0, 0);
+	}
+
+	50% {
+		transform: translate3d(0, -2px, 0);
+	}
+}
+
+.pixva-ai__loading {
+	display: grid;
+	justify-items: center;
+	gap: 0.65rem;
+	width: min(760px, 100%);
+	padding: 1.1rem;
+	border: 1px solid rgba(34, 211, 238, 0.26);
+	border-radius: 20px;
+	background: rgba(6, 10, 20, 0.88);
+	box-shadow: inset 0 0 60px -34px var(--ai-neon);
+}
+
+.pixva-ai__loading[hidden] {
+	display: none;
+}
+
+.pixva-ai__scan {
+	display: flex;
+	align-items: flex-end;
+	gap: 4px;
+	height: 44px;
+}
+
+.pixva-ai__scan i {
+	display: block;
+	width: 5px;
+	border-radius: 3px;
+	background: linear-gradient(180deg, var(--ai-neon), var(--ai-neon2));
+	animation: pixvaAiBars 1.05s ease-in-out infinite;
+}
+
+.pixva-ai__scan i:nth-child(2) { animation-delay: 0.09s; }
+.pixva-ai__scan i:nth-child(3) { animation-delay: 0.18s; }
+.pixva-ai__scan i:nth-child(4) { animation-delay: 0.27s; }
+.pixva-ai__scan i:nth-child(5) { animation-delay: 0.36s; }
+.pixva-ai__scan i:nth-child(6) { animation-delay: 0.45s; }
+
+@keyframes pixvaAiBars {
+	0%,
+	100% {
+		height: 12%;
+		opacity: 0.55;
+	}
+
+	50% {
+		height: 100%;
+		opacity: 1;
+	}
+}
+
+.pixva-ai__log {
+	direction: ltr;
+	font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+	font-size: 0.82rem;
+	text-align: center;
+	color: rgb(125, 211, 252);
+}
+
+.pixva-ai__pct {
+	font-size: 1.6rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+	color: rgb(226, 232, 240);
+}
+
+.pixva-ai__result {
+	display: grid;
+	gap: 0.5rem;
+	width: min(760px, 100%);
+	padding: clamp(1rem, 2.4vw, 1.5rem);
+	border-radius: 20px;
+	text-align: start;
+}
+
+.pixva-ai__result[hidden] {
+	display: none;
+}
+
+.pixva-ai__result.is-open {
+	animation: pixvaPanelIn 0.45s cubic-bezier(0.22, 0.68, 0.24, 1) both;
+}
+
+.pixva-ai__result h3 {
+	margin: 0;
+	font-size: 1.04rem;
+	font-weight: 800;
+	color: rgb(241, 245, 249);
+}
+
+.pixva-ai__result p {
+	margin: 0;
+	font-size: 0.86rem;
+	line-height: 2;
+	color: var(--px-dim);
+}
+
+.pixva-ai__result .pixva-badge {
+	justify-self: start;
+}
+
+.pixva-ai__result-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-top: 0.3rem;
+}
+
+.pixva-ai__result-actions .pixva-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.pixva-ai__note,
+.pixva-ai__privacy {
+	max-width: 64ch;
+	margin: 0;
+	font-size: 0.75rem;
+	line-height: 1.95;
+	color: var(--px-faint);
+}
+
+/* --- ۲۹-E: نقشه زنده تعمیرکار (Leaflet / نقشه داخلی SVG) --- */
+.pixva-map {
+	--map-h: 26rem;
+	--map-neon: rgb(34, 211, 238);
+	--map-car: rgb(248, 113, 113);
+	display: grid;
+	gap: clamp(0.8rem, 2vw, 1.2rem);
+}
+
+.pixva-map__lookup {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: center;
+	gap: 0.65rem;
+}
+
+.pixva-map__field {
+	display: grid;
+	flex: 1 1 190px;
+	gap: 0.3rem;
+	max-width: 260px;
+	text-align: start;
+}
+
+.pixva-map__field > span {
+	font-size: 0.74rem;
+	font-weight: 700;
+	color: var(--px-faint);
+}
+
+.pixva-map__field input {
+	width: 100%;
+	padding: 0.62rem 0.85rem;
+	border: 1px solid rgba(148, 163, 184, 0.24);
+	border-radius: 14px;
+	background: rgba(9, 14, 26, 0.74);
+	font-family: inherit;
+	font-size: 0.86rem;
+	color: rgb(226, 232, 240);
+	transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pixva-map__field input:focus-visible {
+	border-color: var(--map-neon);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--map-neon) 22%, transparent);
+	outline: none;
+}
+
+.pixva-map__lookup .pixva-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.pixva-map__lookup .pixva-btn svg {
+	width: 1.05rem;
+	height: 1.05rem;
+}
+
+.pixva-map__canvas {
+	position: relative;
+	height: var(--map-h);
+	min-height: 18rem;
+	overflow: hidden;
+	border: 1px solid rgba(148, 163, 184, 0.22);
+	border-radius: clamp(18px, 2.6vw, 26px);
+	background:
+		radial-gradient(68% 58% at 22% 18%, rgba(34, 211, 238, 0.12) 0%, rgba(34, 211, 238, 0) 60%),
+		radial-gradient(60% 50% at 84% 88%, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 62%),
+		linear-gradient(180deg, rgb(8, 12, 24) 0%, rgb(5, 9, 18) 100%);
+	box-shadow: inset 0 0 90px -56px var(--map-neon);
+}
+
+.pixva-map[data-map-loading="1"] .pixva-map__canvas::before {
+	content: "";
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: 50%;
+	z-index: 6;
+	width: 34px;
+	height: 34px;
+	margin: -17px 0 0 -17px;
+	border: 2px solid rgba(148, 163, 184, 0.3);
+	border-top-color: var(--map-neon);
+	border-radius: 999px;
+	animation: pixvaSpin 0.8s linear infinite;
+}
+
+.pixva-map[data-map-loading="1"] .pixva-map__canvas::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	background: rgba(5, 9, 18, 0.52);
+	backdrop-filter: blur(2px);
+}
+
+.pixva-map__svg {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.pixva-map__grid line {
+	stroke: rgba(148, 163, 184, 0.14);
+	stroke-width: 0.22;
+}
+
+.pixva-map__halo {
+	fill: var(--map-neon);
+	opacity: 0.12;
+	animation: pixvaMapHalo 3.2s ease-in-out infinite;
+}
+
+@keyframes pixvaMapHalo {
+	0%,
+	100% {
+		opacity: 0.08;
+	}
+
+	50% {
+		opacity: 0.2;
+	}
+}
+
+.pixva-map__route {
+	stroke: rgba(148, 163, 184, 0.55);
+	stroke-width: 0.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-dasharray: 2.4 1.6;
+}
+
+.pixva-map__route--done {
+	stroke: var(--map-neon);
+	stroke-width: 1.1;
+	stroke-dasharray: none;
+	filter: drop-shadow(0 0 2px var(--map-neon));
+}
+
+.pixva-map__point--origin circle {
+	fill: rgba(226, 232, 240, 0.94);
+	stroke: rgba(15, 23, 42, 0.6);
+	stroke-width: 0.4;
+}
+
+.pixva-map__point--dest > circle:first-child {
+	fill: var(--map-neon);
+	stroke: rgba(2, 6, 23, 0.6);
+	stroke-width: 0.4;
+}
+
+.pixva-map__ring {
+	fill: none;
+	stroke: var(--map-neon);
+	stroke-width: 0.45;
+	opacity: 0.7;
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: pixvaMapRing 2.6s ease-out infinite;
+}
+
+@keyframes pixvaMapRing {
+	0% {
+		opacity: 0.72;
+		transform: scale(0.7);
+	}
+
+	70% {
+		opacity: 0;
+		transform: scale(1.6);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.6);
+	}
+}
+
+.pixva-map__car-pulse {
+	fill: var(--map-car);
+	opacity: 0.3;
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: pixvaMapPulse 1.8s ease-out infinite;
+}
+
+@keyframes pixvaMapPulse {
+	0% {
+		opacity: 0.42;
+		transform: scale(0.7);
+	}
+
+	70% {
+		opacity: 0;
+		transform: scale(1.7);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.7);
+	}
+}
+
+.pixva-map__car-body {
+	fill: var(--map-car);
+	stroke: rgb(255, 255, 255);
+	stroke-width: 0.45;
+	filter: drop-shadow(0 0 3px var(--map-car));
+}
+
+.pixva-map__car-glyph {
+	fill: none;
+	stroke: rgb(8, 12, 24);
+	stroke-width: 1.2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.pixva-map__icon {
+	display: grid;
+	place-items: center;
+}
+
+.pixva-map__icon-dot {
+	display: block;
+	width: 14px;
+	height: 14px;
+	border-radius: 999px;
+	background: rgb(226, 232, 240);
+	box-shadow: 0 0 0 3px rgba(2, 6, 23, 0.6);
+}
+
+.pixva-map__icon.is-dest .pixva-map__icon-dot {
+	background: var(--map-neon);
+}
+
+.pixva-map__icon.is-car .pixva-map__icon-dot {
+	width: 18px;
+	height: 18px;
+	background: var(--map-car);
+	animation: pixvaMapPulse 1.8s ease-out infinite;
+}
+
+.pixva-map__canvas .leaflet-container {
+	background: rgb(6, 10, 20);
+	font-family: inherit;
+}
+
+.pixva-map__canvas .leaflet-control-attribution {
+	background: rgba(6, 10, 20, 0.74);
+	color: rgba(203, 213, 225, 0.72);
+	font-size: 0.62rem;
+}
+
+.pixva-map__canvas .leaflet-control-attribution a {
+	color: rgb(125, 211, 252);
+}
+
+.pixva-map__status {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.7rem;
+	padding: 0.72rem 0.95rem;
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	border-radius: 18px;
+	background: rgba(11, 17, 32, 0.8);
+	text-align: start;
+	backdrop-filter: blur(10px);
+}
+
+.pixva-map__status[hidden] {
+	display: none;
+}
+
+.pixva-map__pulse {
+	position: relative;
+	flex: 0 0 auto;
+	width: 12px;
+	height: 12px;
+	border-radius: 999px;
+	background: var(--map-car);
+	box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.16);
+}
+
+.pixva-map[data-map-moving="1"] .pixva-map__pulse::after {
+	content: "";
+	position: absolute;
+	inset: -6px;
+	border: 1px solid var(--map-car);
+	border-radius: 999px;
+	animation: pixvaHotPulse 1.8s ease-out infinite;
+}
+
+.pixva-map[data-map-arrived="1"] .pixva-map__pulse {
+	background: rgb(52, 211, 153);
+	box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18);
+}
+
+.pixva-map[data-map-arrived="1"] .pixva-map__pulse::after {
+	content: none;
+}
+
+.pixva-map__status-body {
+	display: grid;
+	flex: 1 1 auto;
+	gap: 0.12rem;
+	min-width: 0;
+}
+
+.pixva-map__status-body strong {
+	font-size: 0.92rem;
+	font-weight: 800;
+	color: rgb(241, 245, 249);
+}
+
+.pixva-map__status-body small {
+	font-size: 0.76rem;
+	color: var(--px-faint);
+}
+
+.pixva-map__badge {
+	margin-inline-start: auto;
+	padding: 0.28rem 0.75rem;
+	border-radius: 999px;
+	background: rgba(34, 211, 238, 0.12);
+	box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.3);
+	font-size: 0.72rem;
+	font-weight: 700;
+	white-space: nowrap;
+	color: rgb(165, 243, 252);
+}
+
+.pixva-map__badge:empty {
+	display: none;
+}
+
+.pixva-map[data-map-simulated="1"] .pixva-map__badge {
+	background: rgba(245, 158, 11, 0.14);
+	box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.34);
+	color: rgb(253, 230, 138);
+}
+
+.pixva-map__attr {
+	margin: 0;
+	direction: ltr;
+	font-size: 0.68rem;
+	text-align: center;
+	color: var(--px-faint);
+}
+
+.pixva-map__attr:empty {
+	display: none;
+}
+
+/* --- ۲۹-F: واکنش‌گرایی، حرکت کاهسته و چاپ --- */
+@media (max-width: 980px) {
+	.pixva-cine__stage {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			"head"
+			"scene"
+			"notes"
+			"foot";
+		min-height: 0;
+	}
+
+	.pixva-cine__notes {
+		max-height: none;
+		overflow: visible;
+	}
+
+	.pixva-cine__scene {
+		min-height: clamp(200px, 34vh, 320px);
+	}
+
+	.pixva-3d__stage {
+		height: auto;
+		min-height: clamp(18rem, 52vh, 26rem);
+		aspect-ratio: 4 / 3;
+	}
+}
+
+@media (max-width: 640px) {
+	.pixva-cine,
+	.pixva-3d,
+	.pixva-ai,
+	.pixva-map {
+		padding: 1.15rem 0.9rem;
+		border-radius: 20px;
+	}
+
+	html.pixva-cine-js .pixva-cine__layer {
+		width: min(78%, 260px);
+		height: min(48%, 190px);
+	}
+
+	.pixva-cine__note {
+		padding: 0.75rem 0.85rem;
+	}
+
+	.pixva-ai__orb {
+		width: 132px;
+		height: 132px;
+	}
+
+	.pixva-ai__fields {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.pixva-ai__actions .pixva-btn {
+		flex: 1 1 100%;
+		justify-content: center;
+	}
+
+	.pixva-map__field {
+		flex: 1 1 100%;
+		max-width: none;
+	}
+
+	.pixva-map__canvas {
+		height: auto;
+		min-height: 16rem;
+		aspect-ratio: 4 / 3;
+	}
+
+	.pixva-map__badge {
+		margin-inline-start: 0;
+	}
+
+	.pixva-3d__hot-label {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-cine__glow,
+	.pixva-3d__backlight,
+	.pixva-3d__hot-dot::after,
+	.pixva-ai__ring,
+	.pixva-ai__core,
+	.pixva-ai__scan i,
+	.pixva-ai__mic.is-recording,
+	.pixva-map__halo,
+	.pixva-map__ring,
+	.pixva-map__car-pulse,
+	.pixva-map__icon.is-car .pixva-map__icon-dot,
+	.pixva-map[data-map-moving="1"] .pixva-map__pulse::after,
+	.pixva-map[data-map-loading="1"] .pixva-map__canvas::before {
+		animation: none !important;
+	}
+
+	.pixva-cine__note,
+	.pixva-cine__cta,
+	.pixva-3d__tv,
+	.pixva-3d__panel.is-open,
+	.pixva-ai__result.is-open {
+		transition: none !important;
+		animation: none !important;
+	}
+
+	.pixva-cine__note,
+	.pixva-cine__layer {
+		opacity: 1 !important;
+	}
+}
+
+@media print {
+	.pixva-cine,
+	.pixva-3d,
+	.pixva-ai,
+	.pixva-map {
+		margin: 0;
+		border: 0;
+		background: none;
+		box-shadow: none;
+		color: rgb(15, 23, 42);
+	}
+
+	.pixva-map__canvas,
+	.pixva-ai__orb,
+	.pixva-ai__loading,
+	.pixva-3d__stage {
+		display: none;
+	}
+}

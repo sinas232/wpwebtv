@@ -178,3 +178,281 @@ if ( ! function_exists( 'pixva_technician_panel_shortcode' ) ) {
 	}
 	add_shortcode( 'pixva_technician_panel', 'pixva_technician_panel_shortcode' );
 }
+
+
+/*
+ * ---------------------------------------------------------------------------
+ * شورت‌کدهای لایه ۱٫۶٫۰ (سینمایی، سه‌بعدی، عیب‌یاب هوشمند، نقشه زنده)
+ *
+ * همان خروجی ویجت‌های المنتور را بدون المنتور می‌سازند؛ اسکریپت هر بخش فقط
+ * وقتی همان شورت‌کد در صفحه باشد صف می‌شود (بارگذاری شرطی).
+ * ---------------------------------------------------------------------------
+ */
+
+if ( ! function_exists( 'pixva_cinematic_shortcode' ) ) {
+	/**
+	 * شورت‌کد اسکرول سینمایی: [pixva_cinematic_unboxing height="320" speed="1"].
+	 *
+	 * @param array|string $atts ویژگی‌های شورت‌کد.
+	 * @return string
+	 */
+	function pixva_cinematic_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'badge'    => '',
+				'title'    => '',
+				'subtitle' => '',
+				'cta'      => '',
+				'note'     => '',
+				'height'   => 320,
+				'speed'    => 1,
+				'spread'   => 120,
+				'rotate'   => 16,
+				'pin'      => 'yes',
+				'scrub'    => 'yes',
+				'neon'     => '',
+				'neon2'    => '',
+				'layers'   => '',
+				'id'       => '',
+			),
+			$atts,
+			'pixva_cinematic_unboxing'
+		);
+
+		if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
+			return '';
+		}
+
+		pixva_enqueue_cinematic_assets( array( 'cinematic' ) );
+
+		$settings = array(
+			'height'     => max( 100, (int) $atts['height'] ),
+			'speed'      => max( 0.2, (float) $atts['speed'] ),
+			'spread'     => max( 20, (int) $atts['spread'] ),
+			'rotate'     => max( 0, (int) $atts['rotate'] ),
+			'pin'        => ! in_array( strtolower( (string) $atts['pin'] ), array( 'no', 'false', '0' ), true ),
+			'scrub'      => ! in_array( strtolower( (string) $atts['scrub'] ), array( 'no', 'false', '0' ), true ),
+			'element_id' => sanitize_html_class( (string) $atts['id'] ),
+		);
+
+		foreach ( array(
+			'badge'    => 'badge',
+			'title'    => 'title',
+			'subtitle' => 'subtitle',
+			'cta'      => 'cta_text',
+			'note'     => 'note',
+			'neon'     => 'neon',
+			'neon2'    => 'neon2',
+		) as $from => $to ) {
+			if ( '' !== trim( (string) $atts[ $from ] ) ) {
+				$settings[ $to ] = (string) $atts[ $from ];
+			}
+		}
+
+		$layers = pixva_shortcode_json( (string) $atts['layers'] );
+		if ( ! empty( $layers ) ) {
+			$settings['layers'] = $layers;
+		}
+
+		ob_start();
+		pixva_render_cinematic_unboxing( $settings );
+		return (string) ob_get_clean();
+	}
+	add_shortcode( 'pixva_cinematic_unboxing', 'pixva_cinematic_shortcode' );
+}
+
+if ( ! function_exists( 'pixva_3d_shortcode' ) ) {
+	/**
+	 * شورت‌کد مدل سه‌بعدی: [pixva_3d_repair url="https://prod.spline.design/..."].
+	 *
+	 * @param array|string $atts ویژگی‌های شورت‌کد.
+	 * @return string
+	 */
+	function pixva_3d_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'url'      => '',
+				'badge'    => '',
+				'title'    => '',
+				'subtitle' => '',
+				'height'   => 34,
+				'lazy'     => 'yes',
+				'fallback' => 'yes',
+				'hotspots' => '',
+				'neon'     => '',
+				'accent'   => '',
+				'id'       => '',
+			),
+			$atts,
+			'pixva_3d_repair'
+		);
+
+		if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
+			return '';
+		}
+
+		pixva_enqueue_cinematic_assets( array( 'spline' ) );
+
+		$settings = array(
+			'url'        => '' !== trim( (string) $atts['url'] ) ? esc_url_raw( (string) $atts['url'] ) : '',
+			'height'     => max( 12, (int) $atts['height'] ),
+			'lazy'       => ! in_array( strtolower( (string) $atts['lazy'] ), array( 'no', 'false', '0' ), true ),
+			'fallback'   => ! in_array( strtolower( (string) $atts['fallback'] ), array( 'no', 'false', '0' ), true ),
+			'element_id' => sanitize_html_class( (string) $atts['id'] ),
+		);
+
+		foreach ( array(
+			'badge'    => 'badge',
+			'title'    => 'title',
+			'subtitle' => 'subtitle',
+			'neon'     => 'neon',
+			'accent'   => 'accent',
+		) as $from => $to ) {
+			if ( '' !== trim( (string) $atts[ $from ] ) ) {
+				$settings[ $to ] = (string) $atts[ $from ];
+			}
+		}
+
+		$hotspots = pixva_shortcode_json( (string) $atts['hotspots'] );
+		if ( ! empty( $hotspots ) ) {
+			$settings['hotspots'] = $hotspots;
+		}
+
+		ob_start();
+		pixva_render_spline_3d( $settings );
+		return (string) ob_get_clean();
+	}
+	add_shortcode( 'pixva_3d_repair', 'pixva_3d_shortcode' );
+}
+
+if ( ! function_exists( 'pixva_ai_shortcode' ) ) {
+	/**
+	 * شورت‌کد عیب‌یاب هوشمند: [pixva_ai_diagnose pulse="2.4"].
+	 *
+	 * @param array|string $atts ویژگی‌های شورت‌کد.
+	 * @return string
+	 */
+	function pixva_ai_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'badge'     => '',
+				'title'     => '',
+				'subtitle'  => '',
+				'video'     => '',
+				'mic'       => '',
+				'submit'    => '',
+				'privacy'   => '',
+				'max_note'  => '',
+				'accept'    => '',
+				'phone'     => 'yes',
+				'pulse'     => 2.4,
+				'neon'      => '',
+				'neon2'     => '',
+				'id'        => '',
+			),
+			$atts,
+			'pixva_ai_diagnose'
+		);
+
+		if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
+			return '';
+		}
+
+		pixva_enqueue_cinematic_assets( array( 'ai' ) );
+
+		$settings = array(
+			'show_phone' => ! in_array( strtolower( (string) $atts['phone'] ), array( 'no', 'false', '0' ), true ),
+			'pulse'      => max( 0.8, (float) $atts['pulse'] ),
+			'element_id' => sanitize_html_class( (string) $atts['id'] ),
+		);
+
+		if ( '' !== trim( (string) $atts['accept'] ) ) {
+			$settings['accept'] = (string) $atts['accept'];
+		}
+
+		foreach ( array(
+			'badge'    => 'badge',
+			'title'    => 'title',
+			'subtitle' => 'subtitle',
+			'video'    => 'video_label',
+			'mic'      => 'mic_label',
+			'submit'   => 'submit',
+			'privacy'  => 'privacy',
+			'max_note' => 'max_note',
+			'neon'     => 'neon',
+			'neon2'    => 'neon2',
+		) as $from => $to ) {
+			if ( '' !== trim( (string) $atts[ $from ] ) ) {
+				$settings[ $to ] = (string) $atts[ $from ];
+			}
+		}
+
+		ob_start();
+		pixva_render_ai_diagnose( $settings );
+		return (string) ob_get_clean();
+	}
+	add_shortcode( 'pixva_ai_diagnose', 'pixva_ai_shortcode' );
+}
+
+if ( ! function_exists( 'pixva_tracker_shortcode' ) ) {
+	/**
+	 * شورت‌کد نقشه زنده تعمیرکار: [pixva_technician_tracker code="PXV-..."].
+	 *
+	 * @param array|string $atts ویژگی‌های شورت‌کد.
+	 * @return string
+	 */
+	function pixva_tracker_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'badge'    => '',
+				'title'    => '',
+				'subtitle' => '',
+				'code'     => '',
+				'phone'    => '',
+				'height'   => 26,
+				'zoom'     => 14,
+				'refresh'  => 20,
+				'lookup'   => 'yes',
+				'neon'     => '',
+				'car'      => '',
+				'id'       => '',
+			),
+			$atts,
+			'pixva_technician_tracker'
+		);
+
+		if ( ! function_exists( 'pixva_render_technician_tracker' ) ) {
+			return '';
+		}
+
+		pixva_enqueue_cinematic_assets( array( 'tracker' ) );
+
+		$settings = array(
+			'code'       => sanitize_text_field( (string) $atts['code'] ),
+			'phone'      => sanitize_text_field( (string) $atts['phone'] ),
+			'height'     => max( 14, (int) $atts['height'] ),
+			'zoom'       => max( 3, min( 18, (int) $atts['zoom'] ) ),
+			'refresh'    => max( 5, (int) $atts['refresh'] ),
+			'lookup'     => ! in_array( strtolower( (string) $atts['lookup'] ), array( 'no', 'false', '0' ), true ),
+			'element_id' => sanitize_html_class( (string) $atts['id'] ),
+		);
+
+		foreach ( array(
+			'badge'    => 'badge',
+			'title'    => 'title',
+			'subtitle' => 'subtitle',
+			'neon'     => 'neon',
+			'car'      => 'car',
+		) as $from => $to ) {
+			if ( '' !== trim( (string) $atts[ $from ] ) ) {
+				$settings[ $to ] = (string) $atts[ $from ];
+			}
+		}
+
+		ob_start();
+		pixva_render_technician_tracker( $settings );
+		return (string) ob_get_clean();
+	}
+	add_shortcode( 'pixva_technician_tracker', 'pixva_tracker_shortcode' );
+	add_shortcode( 'pixva_tech_tracker', 'pixva_tracker_shortcode' );
+}

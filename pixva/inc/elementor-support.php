@@ -460,6 +460,10 @@ function pixva_section_widget_classes() {
 		'Pixva_Gallery_Widget',
 		'Pixva_Services_Widget',
 		'Pixva_Consult_Widget',
+		'Pixva_Cinematic_Unboxing_Widget',
+		'Pixva_3d_Repair_Widget',
+		'Pixva_Ai_Diagnose_Widget',
+		'Pixva_Technician_Tracker_Widget',
 	);
 }
 

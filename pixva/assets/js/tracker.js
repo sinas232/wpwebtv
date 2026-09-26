@@ -84,14 +84,20 @@
 				window.pixvaSetBusy(button, true);
 			}
 			try {
+				const codeValue = form.querySelector('[name="code"]').value.trim();
+				const phoneValue = form.querySelector('[name="phone"]').value.trim();
 				const data = await window.pixvaPostAjax('pixva_track_device', cfg.nonce.tracking, {
-					code: form.querySelector('[name="code"]').value.trim(),
-					phone: form.querySelector('[name="phone"]').value.trim(),
+					code: codeValue,
+					phone: phoneValue,
 					pixva_hp: form.querySelector('[name="pixva_hp"]') ? form.querySelector('[name="pixva_hp"]').value : '',
 				});
 				if (result) {
 					render(result, data);
 				}
+				// ماژول نقشه زنده تعمیرکار (لایه ۱٫۶٫۰) با این رویداد پر می‌شود.
+				document.dispatchEvent(new CustomEvent('pixva:track-result', {
+					detail: Object.assign({}, data, { phone: phoneValue, submittedCode: codeValue }),
+				}));
 			} catch (error) {
 				if (msg) {
 					msg.hidden = false;

@@ -68,6 +68,15 @@ if ( ! function_exists( 'pixva_mb_register' ) ) {
 			'side',
 			'high'
 		);
+
+		add_meta_box(
+			'pixva_mb_map',
+			esc_html__( 'موقعیت زنده روی نقشه', 'pixva' ),
+			'pixva_mb_render_map',
+			'pixva_orders',
+			'normal',
+			'default'
+		);
 	}
 }
 add_action( 'add_meta_boxes', 'pixva_mb_register' );
@@ -87,6 +96,12 @@ if ( ! function_exists( 'pixva_mb_field_map' ) ) {
 			'pixva_mb_problem'  => array( '_pixva_order_problem', 'text' ),
 			'pixva_mb_estimate' => array( '_pixva_order_estimate', 'text' ),
 			'pixva_mb_notes'    => array( '_pixva_order_notes', 'textarea' ),
+			'pixva_mb_map_lat'  => array( '_pixva_order_map_lat', 'text' ),
+			'pixva_mb_map_lng'  => array( '_pixva_order_map_lng', 'text' ),
+			'pixva_mb_tech_lat' => array( '_pixva_order_tech_lat', 'text' ),
+			'pixva_mb_tech_lng' => array( '_pixva_order_tech_lng', 'text' ),
+			'pixva_mb_eta'      => array( '_pixva_order_eta', 'text' ),
+			'pixva_mb_progress' => array( '_pixva_order_progress', 'text' ),
 		);
 	}
 }
@@ -111,6 +126,12 @@ if ( ! function_exists( 'pixva_mb_register_meta' ) ) {
 			'_pixva_order_technician',
 			'_pixva_order_warranty_serial',
 			'_pixva_order_source',
+			'_pixva_order_map_lat',
+			'_pixva_order_map_lng',
+			'_pixva_order_tech_lat',
+			'_pixva_order_tech_lng',
+			'_pixva_order_eta',
+			'_pixva_order_progress',
 		);
 
 		foreach ( $text_keys as $key ) {
@@ -592,6 +613,43 @@ if ( ! function_exists( 'pixva_mb_render_dispatch' ) ) {
 
 			<p class="pixva-mb__hint">
 				<?php esc_html_e( 'ذخیره این پرونده، تخصیص و وضعیت را از طریق موتور CRM اعمال می‌کند و در صورت نیاز پیامک اطلاع‌رسانی می‌فرستد.', 'pixva' ); ?>
+			</p>
+		</div>
+		<?php
+	}
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * ۶-ب) متاباکس موقعیت زنده (نقشه تعمیرکار)
+ * ---------------------------------------------------------------------------
+ */
+
+if ( ! function_exists( 'pixva_mb_render_map' ) ) {
+	/**
+	 * رندر فیلدهای موقعیت مشتری، تعمیرکار، ETA و درصد پیشرفت مسیر.
+	 *
+	 * این مقدارها خوراک `wp-json/pixva/v1/dispatch-live` هستند؛ اگر خالی بمانند
+	 * ماژول نقشه از مبدأ/منطقه تنظیم‌شده در سفارشی‌سازی پوسته مسیر را می‌سازد.
+	 *
+	 * @param WP_Post $post پرونده جاری.
+	 * @return void
+	 */
+	function pixva_mb_render_map( $post ) {
+		?>
+		<div class="pixva-mb">
+			<div class="pixva-mb__grid">
+				<?php
+				pixva_mb_field( 'pixva_mb_map_lat', __( 'عرض جغرافیایی مقصد (مشتری)', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_map_lat', true ), array( 'dir' => 'ltr', 'hint' => __( 'مثلاً 35.7216 — خالی بماند از منطقه مشتری محاسبه می‌شود.', 'pixva' ) ) );
+				pixva_mb_field( 'pixva_mb_map_lng', __( 'طول جغرافیایی مقصد (مشتری)', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_map_lng', true ), array( 'dir' => 'ltr', 'hint' => __( 'مثلاً 51.4162', 'pixva' ) ) );
+				pixva_mb_field( 'pixva_mb_tech_lat', __( 'عرض جغرافیایی لحظه‌ای تعمیرکار', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_tech_lat', true ), array( 'dir' => 'ltr', 'hint' => __( 'از اپ/GPS تعمیرکار یا دستی؛ خالی بماند از مبدأ کارگاه شبیه‌سازی می‌شود.', 'pixva' ) ) );
+				pixva_mb_field( 'pixva_mb_tech_lng', __( 'طول جغرافیایی لحظه‌ای تعمیرکار', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_tech_lng', true ), array( 'dir' => 'ltr' ) );
+				pixva_mb_field( 'pixva_mb_eta', __( 'زمان تقریبی رسیدن (دقیقه)', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_eta', true ), array( 'dir' => 'ltr', 'hint' => __( 'عدد لاتین وارد کنید؛ در نقشه به فارسی نمایش داده می‌شود.', 'pixva' ) ) );
+				pixva_mb_field( 'pixva_mb_progress', __( 'پیشرفت مسیر (٪)', 'pixva' ), (string) get_post_meta( $post->ID, '_pixva_order_progress', true ), array( 'dir' => 'ltr', 'hint' => __( 'بین 0 تا 100 — موقعیت مارکر ون تعمیر روی مسیر.', 'pixva' ) ) );
+				?>
+			</div>
+			<p class="pixva-mb__hint">
+				<?php esc_html_e( 'نقشه زنده در صفحه پیگیری و ویجت «نقشه زنده تعمیرکار» از همین مقدارها استفاده می‌کند.', 'pixva' ); ?>
 			</p>
 		</div>
 		<?php

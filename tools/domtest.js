@@ -20,6 +20,7 @@ const theme = path.join(repo, 'pixva');
 const harness = path.join(repo, 'preview', 'hero-preview.html');
 const crmHarness = path.join(repo, 'tools', 'fixtures', 'crm-preview.html');
 const v6Harness = path.join(repo, 'tools', 'fixtures', 'v6-preview.html');
+const v7Harness = path.join(repo, 'tools', 'fixtures', 'v7-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -105,8 +106,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۵٫۰', /Version:\s*1\.5\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.5.0' )") > -1);
+	check('style.css: نسخه ۱٫۶٫۰', /Version:\s*1\.6\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.6.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -602,6 +603,328 @@ async function v6Checks(window) {
 }
 
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ * بخش ۴ — لایه ۱٫۶٫۰ (Master Prompt v7): اسکرول سینمایی GSAP، مدل سه‌بعدی
+ * Spline، عیب‌یاب هوشمند رسانه‌محور و نقشه زنده تعمیرکار
+ * ------------------------------------------------------------------ */
+function v7StaticChecks() {
+	const read = (rel) => fs.readFileSync(path.join(theme, rel), 'utf8');
+
+	const cinematic = read('inc/cinematic.php');
+	const aiPhp = read('inc/ai-diagnose.php');
+	const mapPhp = read('inc/tracker-map.php');
+	const funcs = read('functions.php');
+	const support = read('inc/elementor-support.php');
+	const shortcodes = read('inc/shortcodes.php');
+	const metaboxes = read('inc/meta-boxes.php');
+	const options = read('inc/theme-options.php');
+	const css = read('assets/css/pixva-2026.css');
+	const styleCss = read('style.css');
+	const gsapLite = read('assets/js/vendor/pixva-gsap-lite.js');
+	const cineJs = read('assets/js/cinematic.js');
+	const splineJs = read('assets/js/spline-3d.js');
+	const aiJs = read('assets/js/ai-diagnose.js');
+	const mapJs = read('assets/js/tracker-map.js');
+	const trackerJs = read('assets/js/tracker.js');
+	const toolsJs = read('assets/js/interactive-tools.js');
+
+	/* --- نسخه و بارگذاری ماژول‌ها --- */
+	check('v7: نسخه پوسته ۱٫۶٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.6.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.6.0' )") > -1);
+	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
+
+	/* --- رندر مشترک و بارگذاری شرایطی --- */
+	check('v7: چهار رندر مشترک ویجت‌ها', ['pixva_render_cinematic_unboxing', 'pixva_render_spline_3d', 'pixva_render_ai_diagnose', 'pixva_render_technician_tracker']
+		.every((fn) => cinematic.indexOf('function ' + fn + '(') > -1));
+	check('v7: ثبت همیشه + صف شرایطی (اولویت ۱۵/۲۰)', cinematic.indexOf("'pixva_cinematic_register_assets', 15") > -1 && cinematic.indexOf("'pixva_cinematic_assets', 20") > -1);
+	check('v7: چهار تابع تشخیص نیاز', ['pixva_needs_cinematic_js', 'pixva_needs_spline_js', 'pixva_needs_ai_diagnose_js', 'pixva_needs_tracker_map_js']
+		.every((fn) => cinematic.indexOf('function ' + fn + '(') > -1));
+	check('v7: مارکرهای تشخیص = نام ویجت/کلاس المنتور/شورت‌کد', ['pixva_cinematic_unboxing', 'pixva_3d_repair', 'pixva_ai_diagnose', 'pixva_tech_tracker', 'pixva_technician_tracker']
+		.every((m) => cinematic.indexOf("'" + m + "'") > -1));
+	check('v7: ترتیب منبع کتابخانه vendor → CDN → موتور داخلی', ['assets/js/vendor/gsap.min.js', 'assets/js/vendor/ScrollTrigger.min.js', 'assets/js/vendor/leaflet.js', 'pixva_cdn_gsap', 'pixva_cdn_scrolltrigger', 'pixva_cdn_leaflet', 'pixva-gsap-lite.js']
+		.every((k) => cinematic.indexOf(k) > -1));
+	check('v7: Spline به‌صورت ماژول ES از CDN و تنبل', cinematic.indexOf('pixva_cdn_spline') > -1 && splineJs.indexOf("script.type = 'module'") > -1);
+	check('v7: لوکالایز چهار ماژول', ['pixvaCine', 'pixvaSpline', 'pixvaAiDiagnose', 'pixvaTrackerMap'].every((k) => cinematic.indexOf("'" + k + "'") > -1));
+	check('v7: اسکریپت‌های تازه defer و در فوتر', (cinematic.match(/'strategy'/g) || []).length >= 5 && (cinematic.match(/'in_footer' => true/g) || []).length >= 5);
+	check('v7: کمکی صف مستقیم برای شورت‌کدها', cinematic.indexOf('function pixva_enqueue_cinematic_assets(') > -1 && shortcodes.indexOf('pixva_enqueue_cinematic_assets(') > -1);
+	check('v7: خواندن JSON مشخصه شورت‌کد', cinematic.indexOf('function pixva_shortcode_json(') > -1);
+
+	/* --- ویجت‌های المنتور --- */
+	const widgets = [
+		{ name: 'pixva_cinematic_unboxing', cls: 'Pixva_Cinematic_Unboxing_Widget', file: 'inc/widgets/class-pixva-cinematic-widget.php', render: 'pixva_render_cinematic_unboxing(' },
+		{ name: 'pixva_3d_repair', cls: 'Pixva_3d_Repair_Widget', file: 'inc/widgets/class-pixva-spline-widget.php', render: 'pixva_render_spline_3d(' },
+		{ name: 'pixva_ai_diagnose', cls: 'Pixva_Ai_Diagnose_Widget', file: 'inc/widgets/class-pixva-ai-diagnose-widget.php', render: 'pixva_render_ai_diagnose(' },
+		{ name: 'pixva_tech_tracker', cls: 'Pixva_Technician_Tracker_Widget', file: 'inc/widgets/class-pixva-tech-tracker-widget.php', render: 'pixva_render_technician_tracker(' }
+	];
+
+	widgets.forEach((w) => {
+		const src = read(w.file);
+		check('v7: ویجت ' + w.name + ' از پایه مشترک ارث می‌برد', src.indexOf('class ' + w.cls + ' extends Pixva_Section_Widget_Base') > -1);
+		check('v7: ویجت ' + w.name + ' کنترل کامل ثبت می‌کند', src.indexOf('protected function register_controls()') > -1
+			&& src.indexOf('Controls_Manager::TAB_CONTENT') > -1 && src.indexOf('Controls_Manager::TAB_STYLE') > -1);
+		check('v7: ویجت ' + w.name + ' رنگ/تصویر/زمان‌بندی قابل ویرایش دارد', src.indexOf('Controls_Manager::COLOR') > -1
+			&& (src.indexOf('Controls_Manager::SLIDER') > -1 || src.indexOf('Controls_Manager::MEDIA') > -1 || src.indexOf('Controls_Manager::NUMBER') > -1));
+		check('v7: ویجت ' + w.name + ' وابستگی اسکریپت و بارگذاری دارایی دارد', src.indexOf('get_script_depends') > -1 && src.indexOf('enqueue_front_assets') > -1);
+		check('v7: ویجت ' + w.name + ' به رندر مشترک وصل است', src.indexOf(w.render) > -1);
+		check('v7: کلاس ' + w.cls + ' در المنتور ثبت می‌شود', support.indexOf("'" + w.cls + "'") > -1);
+	});
+
+	check('v7: فایل ویجت‌ها خودکار include می‌شوند', funcs.indexOf("glob( $dir . '/class-*.php' )") > -1);
+	check('v7: گارد المنتور در سر ویجت‌ها', widgets.every((w) => read(w.file).indexOf("did_action( 'elementor/loaded' )") > -1));
+
+	/* --- شورت‌کدها --- */
+	['pixva_cinematic_unboxing', 'pixva_3d_repair', 'pixva_ai_diagnose', 'pixva_technician_tracker'].forEach((tag) => {
+		check('v7: شورت‌کد [' + tag + '] ثبت شده', shortcodes.indexOf("add_shortcode( '" + tag + "'") > -1);
+	});
+	check('v7: نام مستعار [pixva_tech_tracker]', shortcodes.indexOf("add_shortcode( 'pixva_tech_tracker'") > -1);
+
+	/* --- REST عیب‌یاب هوشمند --- */
+	check('v7: مسیر POST pixva/v1/ai-diagnose', aiPhp.indexOf("'pixva/v1'") > -1 && aiPhp.indexOf("'/ai-diagnose'") > -1 && aiPhp.indexOf("'methods'             => 'POST'") > -1);
+	check('v7: نانس اختصاصی و هانی‌پات', aiPhp.indexOf("wp_verify_nonce( $nonce, 'pixva_ai_diagnose' )") > -1 && aiPhp.indexOf('pixva_hp') > -1);
+	check('v7: محدودسازی نرخ ۶ درخواست در ساعت', aiPhp.indexOf('pixva_ai_diagnose_rate_max') > -1 && aiPhp.indexOf('HOUR_IN_SECONDS') > -1);
+	check('v7: سقف حجم و نوع رسانه از تنظیم/فیلتر', aiPhp.indexOf('pixva_ai_diagnose_max_size') > -1 && aiPhp.indexOf('pixva_ai_diagnose_allowed_types') > -1 && aiPhp.indexOf('MB_IN_BYTES') > -1);
+	check('v7: ذخیره رسانه به‌عنوان پرونده صندوق ورودی', aiPhp.indexOf('pixva_inbox') > -1 && aiPhp.indexOf('_pixva_ai_') > -1);
+	check('v7: آماده اتصال عامل پایتون (آدرس + توکن از گزینه‌ها)', aiPhp.indexOf("pixva_option( 'pixva_ai_agent_url'") > -1 && aiPhp.indexOf("pixva_option( 'pixva_ai_agent_token'") > -1);
+	check('v7: کد پیگیری PXV-AI', aiPhp.indexOf('PXV-AI') > -1);
+
+	/* --- REST نقشه زنده --- */
+	check('v7: مسیر GET pixva/v1/dispatch-live', mapPhp.indexOf("'/dispatch-live'") > -1 && mapPhp.indexOf("'methods'             => 'GET'") > -1);
+	check('v7: کد + شماره همراه هر دو لازم‌اند', mapPhp.indexOf('pixva_find_order( $code, $phone )') > -1);
+	check('v7: اعتبارسنجی موبایل ایرانی', mapPhp.indexOf('pixva_is_valid_iranian_mobile') > -1);
+	check('v7: محدودسازی نرخ نقشه', mapPhp.indexOf('pixva_map_rate_max') > -1);
+	check('v7: بار خروجی نقشه (ETA/پیشرفت/مسیر/مارکر)', ['eta', 'progress', 'route', 'marker', 'simulated', 'moving', 'arrived'].every((k) => mapPhp.indexOf("'" + k + "'") > -1));
+	check('v7: مبدأ/منطقه/مقصد از گزینه‌های پوسته', ['pixva_map_origin_lat', 'pixva_map_origin_lng', 'pixva_map_zones', 'pixva_map_dest_label'].every((k) => mapPhp.indexOf(k) > -1));
+	check('v7: سرعت و بازه نوسازی از گزینه‌ها', mapPhp.indexOf("pixva_option( 'pixva_map_average_speed'") > -1 && mapPhp.indexOf("pixva_option( 'pixva_map_refresh'") > -1);
+
+	/* --- متاباکس موقعیت --- */
+	['_pixva_order_map_lat', '_pixva_order_map_lng', '_pixva_order_tech_lat', '_pixva_order_tech_lng', '_pixva_order_eta', '_pixva_order_progress'].forEach((key) => {
+		check('v7: متای نقشه ثبت شده ' + key, metaboxes.indexOf("'" + key + "'") > -1);
+	});
+	check('v7: متاباکس موقعیت زنده رندر می‌شود', metaboxes.indexOf('function pixva_mb_render_map(') > -1 && metaboxes.indexOf("'pixva_mb_map'") > -1);
+	check('v7: فیلدهای نقشه در نگاشت ذخیره', ['pixva_mb_map_lat', 'pixva_mb_tech_lat', 'pixva_mb_eta', 'pixva_mb_progress'].every((f) => metaboxes.indexOf("'" + f + "'") > -1));
+
+	/* --- سفارشی‌ساز --- */
+	check('v7: بخش سفارشی‌ساز سینمایی/نقشه', options.indexOf("'pixva_cinematic'") > -1 && options.indexOf('pixva_v7_fields') > -1);
+	['pixva_cdn_gsap', 'pixva_cdn_scrolltrigger', 'pixva_cdn_leaflet', 'pixva_cdn_leaflet_css', 'pixva_cdn_spline',
+		'pixva_ai_agent_url', 'pixva_ai_agent_token', 'pixva_ai_max_size',
+		'pixva_map_origin_lat', 'pixva_map_origin_lng', 'pixva_map_origin_label', 'pixva_map_zones', 'pixva_map_dest_label',
+		'pixva_map_average_speed', 'pixva_map_refresh', 'pixva_map_provider', 'pixva_map_tiles', 'pixva_map_attribution'].forEach((key) => {
+		check('v7: گزینه سفارشی‌ساز ' + key, options.indexOf("'" + key + "'") > -1);
+	});
+	check('v7: پاک‌سازی مختصات و موتور نقشه', options.indexOf('function pixva_sanitize_coord(') > -1 && options.indexOf('function pixva_sanitize_map_provider(') > -1);
+
+	/* --- موتور GSAP سبک --- */
+	check('v7: موتور سبک gsap + ScrollTrigger', gsapLite.indexOf('window.gsap') > -1 && gsapLite.indexOf('window.ScrollTrigger') > -1 && gsapLite.indexOf('__pixvaLite') > -1);
+	check('v7: موتور سبک در برابر GSAP رسمی کنار می‌رود', gsapLite.indexOf('window.gsap && !window.gsap.__pixvaLite') > -1 || gsapLite.indexOf('if (window.gsap)') > -1);
+	check('v7: Pin با spacer و ارتفاع برابر طول اسکرول', gsapLite.indexOf('pixva-pin-spacer') > -1 && gsapLite.indexOf('syncPin') > -1);
+	check('v7: ScrollTrigger از end به پیکسل', gsapLite.indexOf("'+='") > -1);
+	check('v7: تایم‌لاین/توئین با scrub و progress', gsapLite.indexOf('Timeline') > -1 && gsapLite.indexOf('progress') > -1);
+
+	/* --- JS بخش‌ها --- */
+	check('v7: سینمایی — اسکن پویا + Pin/Scrub + احترام به reduced-motion', cineJs.indexOf('pixvaCinematicScan') > -1
+		&& cineJs.indexOf('ScrollTrigger.create') > -1 && cineJs.indexOf('prefers-reduced-motion') > -1 && cineJs.indexOf('revealAll') > -1);
+	check('v7: سینمایی — لایه‌ها با عمق سه‌بعدی باز می‌شوند', cineJs.indexOf('rotationY') > -1 && cineJs.indexOf('data-cine-depth') > -1 || cineJs.indexOf('cineDepth') > -1);
+	check('v7: سه‌بعدی — بارگذاری تنبل و نمای جایگزین', splineJs.indexOf('IntersectionObserver') > -1 && splineJs.indexOf('initFallback') > -1 && splineJs.indexOf('--rot-x') > -1);
+	check('v7: سه‌بعدی — هات‌اسپیت کارت استعلام قیمت', splineJs.indexOf('initHotspots') > -1 && splineJs.indexOf('data-spline-panel-cta') > -1);
+	check('v7: هوش مصنوعی — ارسال multipart با هدر نانس', aiJs.indexOf('FormData') > -1 && aiJs.indexOf("'X-Pixva-Nonce'") > -1 && aiJs.indexOf("'/ai-diagnose'") > -1);
+	check('v7: هوش مصنوعی — ضبط صدا با MediaRecorder', aiJs.indexOf('MediaRecorder') > -1 && aiJs.indexOf('getUserMedia') > -1);
+	check('v7: هوش مصنوعی — اعتبارسنجی نوع/حجم فایل', aiJs.indexOf('badType') > -1 && aiJs.indexOf('tooLarge') > -1);
+	check('v7: هوش مصنوعی — متن‌ها از لوکالایز (بدون هاردکد)', aiJs.indexOf('i18n.audioName') > -1 && aiJs.indexOf('i18n.smart') > -1 && aiJs.indexOf('cfg.logs') > -1);
+	check('v7: نقشه — دو موتور (Leaflet + داخلی SVG)', mapJs.indexOf('LeafletMap') > -1 && mapJs.indexOf('InternalMap') > -1 && mapJs.indexOf('pixva-map__svg') > -1);
+	check('v7: نقشه — مارکر متحرک و نوسازی دوره‌ای', mapJs.indexOf('animateTo') > -1 && mapJs.indexOf('setInterval') > -1);
+	check('v7: نقشه — پل رویداد فرم پیگیری', mapJs.indexOf("'pixva:track-result'") > -1 && trackerJs.indexOf("'pixva:track-result'") > -1 && toolsJs.indexOf("'pixva:track-result'") > -1);
+	check('v7: بدون jQuery در ماژول‌های تازه', [cineJs, splineJs, aiJs, mapJs, gsapLite].every((src) => src.indexOf('jQuery(') === -1 && src.indexOf('$(') === -1));
+
+	/* --- CSS لایه ۲۹ --- */
+	check('v7: CSS لایه ۲۹ وجود دارد', css.indexOf('۲۹) لایه سینمایی') > -1);
+	check('v7: CSS سینمایی (صحنه/لایه/نوار پیشرفت)', ['.pixva-cine__stage', '.pixva-cine__scene', '.pixva-cine__layer', '.pixva-cine__bar i', '.pixva-pin-spacer'].every((c) => css.indexOf(c) > -1));
+	check('v7: CSS سه‌بعدی (صحنه/هات‌اسپیت/کارت)', ['.pixva-3d__stage', '.pixva-3d__hot-dot', '.pixva-3d__panel', '.pixva-3d__tv'].every((c) => css.indexOf(c) > -1));
+	check('v7: CSS عیب‌یاب (گوی/حلقه/تحلیل/نتیجه)', ['.pixva-ai__orb', '.pixva-ai__ring', '.pixva-ai__scan', '.pixva-ai__result', '.pixva-ai__preview'].every((c) => css.indexOf(c) > -1));
+	check('v7: CSS نقشه (بوم/مسیر/ماشین/کارت وضعیت)', ['.pixva-map__canvas', '.pixva-map__route', '.pixva-map__car-body', '.pixva-map__status', '.pixva-map__icon-dot'].every((c) => css.indexOf(c) > -1));
+	check('v7: CSS حالت‌های داده‌محور', ['[data-ai-state="analyzing"]', '[data-map-loading="1"]', '[data-map-moving="1"]', '[data-map-simulated="1"]'].every((c) => css.indexOf(c) > -1));
+	check('v7: CSS واکنش‌گرا و reduced-motion در لایه ۲۹', css.indexOf('html.pixva-cine-js') > -1 && css.indexOf('@media (prefers-reduced-motion: reduce)') > -1);
+	check('v7: CSS رنگ‌ها از متغیر ویجت', ['var(--cine-neon)', 'var(--spline-hot)', 'var(--ai-neon)', 'var(--map-neon)'].every((v) => css.indexOf(v) > -1));
+}
+
+async function v7Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+	const click = (el) => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	/* --- ۱) اسکرول سینمایی: Pin + Scrub --- */
+	const cine = $('[data-pixva-cine]');
+	check('v7: کلاس JS سینمایی روی <html>', document.documentElement.classList.contains('pixva-cine-js'));
+	check('v7: ScrollTrigger برای بخش ساخته شد', typeof window.pixvaCinematicInstances === 'function' && window.pixvaCinematicInstances().length === 1);
+
+	const stage = $('[data-cine-stage]', cine);
+	const spacer = stage && stage.parentNode;
+	check('v7: صحنه داخل spacer قفل‌شده است', !!spacer && spacer.classList.contains('pixva-pin-spacer'));
+	check('v7: ارتفاع spacer = صحنه + طول اسکرول', !!spacer && parseFloat(spacer.style.height) >= 2000);
+
+	const bar = $('[data-cine-bar]', cine);
+	const stepEl = $('[data-cine-step]', cine);
+	const notes = $$('[data-cine-note]', cine);
+	const layers = $$('[data-cine-layer]', cine);
+
+	check('v7: در آغاز، نوار پیشرفت خالی است', bar.style.transform === '' || bar.style.transform.indexOf('scaleX(0') > -1);
+
+	// شبیه‌سازی اسکرول تا میانه تایم‌لاین.
+	Object.defineProperty(document.documentElement, 'scrollTop', { value: 1300, writable: true, configurable: true });
+	Object.defineProperty(window, 'pageYOffset', { value: 1300, writable: true, configurable: true });
+	window.dispatchEvent(new window.Event('scroll'));
+	await wait(120);
+
+	check('v7: با اسکرول، نوار پیشرفت پر شد (' + bar.style.transform + ')', bar.style.transform.indexOf('scaleX(0.') > -1 || bar.style.transform.indexOf('scaleX(1') > -1);
+	check('v7: شمارنده گام به‌روز شد (' + stepEl.textContent.trim() + ')', stepEl.textContent.indexOf('۰') === -1 && stepEl.textContent.indexOf('/') > -1);
+	check('v7: یادداشت گام فعال مشخص شد', notes.filter((n) => n.classList.contains('is-active')).length === 1);
+	check('v7: بخش در حالت زنده است', cine.classList.contains('is-live'));
+	check('v7: صحنه قفل (position: fixed) شد', stage.style.position === 'fixed' && stage.dataset.pixvaPinned === '1');
+	check('v7: لایه‌ها با ترنسفورم سه‌بعدی باز شدند', layers.some((l) => l.style.transform.indexOf('translate3d') > -1 && l.style.transform.indexOf('rotate') > -1));
+	check('v7: یادداشت‌ها با اسکرول ظاهر شدند', notes.some((n) => parseFloat(n.style.opacity || '0') > 0.5));
+
+	/* --- ۲) مدل سه‌بعدی: نمای جایگزین + هات‌اسپیت --- */
+	const three = $('[data-pixva-spline]');
+	check('v7: کلاس JS سه‌بعدی روی <html>', document.documentElement.classList.contains('pixva-3d-js'));
+	check('v7: بدون آدرس مدل، نمای جایگزین فعال است', three.classList.contains('is-fallback') && !three.classList.contains('is-3d'));
+
+	const tv = $('.pixva-3d__tv', three);
+	check('v7: متغیرهای چرخش نمای جایگزین تنظیم شد', tv.style.getPropertyValue('--rot-x').indexOf('deg') > -1 && tv.style.getPropertyValue('--rot-y').indexOf('deg') > -1);
+
+	const rotBefore = tv.style.getPropertyValue('--rot-y');
+	const view = $('[data-spline-fallback-view]', three);
+	view.dispatchEvent(new window.MouseEvent('pointerdown', { bubbles: true, clientX: 100, clientY: 100 }));
+	check('v7: حالت کشیدن فعال شد', view.classList.contains('is-dragging'));
+	view.dispatchEvent(new window.MouseEvent('pointermove', { bubbles: true, clientX: 160, clientY: 110 }));
+	view.dispatchEvent(new window.MouseEvent('pointerup', { bubbles: true, clientX: 160, clientY: 110 }));
+	check('v7: چرخش با کشیدن ماوس تغییر کرد', tv.style.getPropertyValue('--rot-y') !== rotBefore && !view.classList.contains('is-dragging'));
+
+	const hots = $$('[data-spline-hot]', three);
+	check('v7: سه نقطه قطعه معیوب رندر شده', hots.length === 3);
+
+	const panel = $('[data-spline-panel]', three);
+	check('v7: کارت استعلام در آغاز بسته است', panel.hidden === true);
+
+	click(hots[0]);
+	check('v7: با کلیک نقطه، کارت استعلام باز شد', panel.hidden === false && panel.classList.contains('is-open'));
+	check('v7: عنوان/شرح/قطعه در کارت نوشته شد', $('[data-spline-panel-title]', panel).textContent === 'بک‌لایت سوخته'
+		&& $('[data-spline-panel-text]', panel).textContent.indexOf('ریسه LED') > -1
+		&& $('[data-spline-panel-part]', panel).textContent === 'تعویض بک‌لایت');
+	check('v7: دکمه استعلام به محاسبه‌گر همان قطعه می‌رود', ($('[data-spline-panel-cta]', panel).getAttribute('href') || '').indexOf('problem=backlight') > -1);
+	check('v7: نقطه فعال aria-expanded گرفت', hots[0].getAttribute('aria-expanded') === 'true' && hots[0].classList.contains('is-active'));
+
+	click($('[data-spline-close]', three));
+	check('v7: دکمه بستن، کارت را می‌بندد', panel.hidden === true && hots.every((h) => h.getAttribute('aria-expanded') === 'false'));
+
+	/* --- ۳) عیب‌یاب هوشمند --- */
+	const ai = $('[data-pixva-ai-diagnose]');
+	check('v7: کلاس JS عیب‌یاب روی <html>', document.documentElement.classList.contains('pixva-ai-js'));
+	check('v7: وضعیت اولیه idle', ai.dataset.aiState === 'idle');
+
+	const orb = $('[data-ai-orb]', ai);
+	ai.dispatchEvent(new window.MouseEvent('pointermove', { bubbles: true, clientX: 400, clientY: 220 }));
+	check('v7: گوی به حرکت نشانگر واکنش می‌دهد', orb.style.getPropertyValue('--orb-x').indexOf('%') > -1 && orb.style.getPropertyValue('--orb-y').indexOf('%') > -1);
+
+	// ارسال بدون رسانه → خطای راهنما.
+	const form = $('[data-ai-form]', ai);
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(40);
+	const errorBox = $('[data-ai-error]', ai);
+	check('v7: بدون رسانه، خطای راهنما نمایش داده می‌شود', errorBox.hidden === false && errorBox.textContent.indexOf('ابتدا یک ویدیو') > -1);
+	check('v7: بدون رسانه درخواستی فرستاده نمی‌شود', window.__pixvaCalls.ai === 0 && ai.dataset.aiState === 'idle');
+
+	// فایل نامعتبر → خطای نوع.
+	const fileInput = $('[data-ai-file]', ai);
+	const badFile = new window.File(['x'], 'note.txt', { type: 'text/plain' });
+	Object.defineProperty(fileInput, 'files', { value: [badFile], configurable: true });
+	fileInput.dispatchEvent(new window.Event('change', { bubbles: true }));
+	check('v7: فایل غیرمجاز رد می‌شود', errorBox.textContent.indexOf('فقط فایل ویدیو یا صدا') > -1 && ai.dataset.aiHasMedia !== '1');
+
+	// فایل معتبر → پیش‌نمایش.
+	const goodFile = new window.File([new Uint8Array(2048)], 'fault-backlight.mp4', { type: 'video/mp4' });
+	Object.defineProperty(fileInput, 'files', { value: [goodFile], configurable: true });
+	fileInput.dispatchEvent(new window.Event('change', { bubbles: true }));
+	const mediaBox = $('[data-ai-media]', ai);
+	check('v7: فایل معتبر پذیرفته و کارت رسانه باز شد', mediaBox.hidden === false && ai.dataset.aiHasMedia === '1' && errorBox.hidden === true);
+	check('v7: نام و حجم فایل فارسی‌سازی شد', $('[data-ai-media-name]', mediaBox).textContent === 'fault-backlight.mp4'
+		&& $('[data-ai-media-meta]', mediaBox).textContent.indexOf('ویدیو') > -1);
+	check('v7: پیش‌نمایش ویدیو ساخته شد', !!$('[data-ai-preview]', mediaBox) && $('[data-ai-media-icon]', mediaBox).dataset.aiKind === 'video');
+
+	// ضبط صدا با MediaRecorder ساختگی.
+	const mic = $('[data-ai-mic]', ai);
+	check('v7: دکمه ضبط با MediaRecorder فعال است', mic.disabled === false);
+	click(mic);
+	await wait(30);
+	check('v7: ضبط صدا شروع شد', mic.classList.contains('is-recording') && ai.dataset.aiState === 'recording');
+	click(mic);
+	await wait(30);
+	check('v7: با توقف ضبط، فایل صدا جایگزین شد', !mic.classList.contains('is-recording') && $('[data-ai-media-icon]', mediaBox).dataset.aiKind === 'audio');
+
+	// ارسال موفق به REST.
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(20);
+	check('v7: حالت تحلیل سایبرپانک فعال شد', ai.dataset.aiState === 'analyzing' && $('[data-ai-loading]', ai).hidden === false
+		&& $('[data-ai-log]', ai).textContent.indexOf('>') === 0);
+	await wait(220);
+	check('v7: درخواست به ai-diagnose با نانس فرستاده شد', window.__pixvaCalls.ai === 1 && window.__pixvaAiHeaders['X-Pixva-Nonce'] === 'ai-nonce');
+	check('v7: فایل رسانه داخل FormData است', window.__pixvaAiBody && typeof window.__pixvaAiBody.get === 'function' && !!window.__pixvaAiBody.get('media'));
+
+	const result = $('[data-ai-result]', ai);
+	check('v7: کارت نتیجه باز شد', ai.dataset.aiState === 'done' && result.hidden === false && result.classList.contains('is-open'));
+	check('v7: رأی، کد پیگیری و تاریخ در نتیجه', $('[data-ai-result-title]', result).textContent.indexOf('بک‌لایت') > -1
+		&& $('[data-ai-result-code]', result).textContent === 'PXV-AI-482913'
+		&& $('[data-ai-result-date]', result).textContent.length > 0);
+	check('v7: CTA نتیجه به قطعه تشخیصی لینک شد', ($('[data-ai-result-cta]', result).getAttribute('href') || '').indexOf('problem=backlight') > -1);
+	check('v7: جعبه تحلیل بسته و رسانه پاک شد', $('[data-ai-loading]', ai).hidden === true && ai.dataset.aiHasMedia === '0');
+
+	/* --- ۴) نقشه زنده تعمیرکار --- */
+	const map = $('[data-pixva-tracker]');
+	check('v7: کلاس JS نقشه روی <html>', document.documentElement.classList.contains('pixva-map-js'));
+
+	const mapForm = $('[data-map-form]', map);
+	$('[name="code"]', mapForm).value = 'PXV-G-250926-A1B2C3';
+	$('[name="phone"]', mapForm).value = '09121111111';
+	mapForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(80);
+
+	check('v7: استعلام dispatch-live با کد و شماره فرستاده شد', window.__pixvaCalls.dispatch === 1
+		&& window.__pixvaCalls.dispatchCodes[0].indexOf('code=PXV-G-250926-A1B2C3') > -1
+		&& window.__pixvaCalls.dispatchCodes[0].indexOf('phone=09121111111') > -1);
+
+	const canvas = $('[data-map-canvas]', map);
+	const svg = $('.pixva-map__svg', canvas);
+	check('v7: نقشه داخلی SVG رندر شد', !!svg && !map.dataset.mapLoading);
+	check('v7: شبکه، مسیر، مبدأ/مقصد و ماشین ساخته شدند', !!$('.pixva-map__grid', svg) && !!$('.pixva-map__route', svg)
+		&& !!$('.pixva-map__route--done', svg) && !!$('.pixva-map__point--origin', svg) && !!$('.pixva-map__point--dest', svg) && !!$('.pixva-map__car', svg));
+	check('v7: مسیر نقاط واقعی دارد', ($('.pixva-map__route', svg).getAttribute('points') || '').split(' ').length === 4);
+	check('v7: مارکر ون روی مسیر قرار گرفت', ($('.pixva-map__car', svg).getAttribute('transform') || '').indexOf('translate(') === 0);
+
+	const status = $('[data-map-status]', map);
+	check('v7: کارت وضعیت با ETA فارسی نمایش داده شد', status.hidden === false
+		&& $('[data-map-eta]', status).textContent.indexOf('در حال حرکت به سمت شما') > -1
+		&& $('[data-map-eta]', status).textContent.indexOf('۱۵ دقیقه') > -1);
+	check('v7: نام و تخصص تعمیرکار نوشته شد', $('[data-map-tech]', status).textContent.indexOf('رضا کریمی') > -1);
+	check('v7: برچسب وضعیت + شبیه‌سازی مسیر', $('[data-map-state]', status).textContent.indexOf('شبیه‌سازی مسیر') > -1 && map.dataset.mapSimulated === '1' && map.dataset.mapMoving === '1');
+	check('v7: یادداشت نقشه داخلی در انتهای بخش', $('[data-map-attr]', map).textContent.indexOf('نقشه داخلی پیکسوا') > -1);
+
+	// پل رویداد فرم پیگیری (بدون شماره → راهنما).
+	$('[name="phone"]', mapForm).value = '';
+	document.dispatchEvent(new window.CustomEvent('pixva:track-result', {
+		detail: { code: 'PXV-G-250926-A1B2C3', status: 'assigned', statusLabel: 'تخصیص‌یافته' }
+	}));
+	await wait(40);
+	const mapError = $('[data-map-error]', map);
+	check('v7: بدون شماره همراه، راهنمای لازم بودن شماره نمایش داده می‌شود', mapError.hidden === false
+		&& mapError.textContent.indexOf('شماره همراه ثبت‌شده') > -1 && window.__pixvaCalls.dispatch === 1);
+
+	// با شماره → استعلام دوباره.
+	document.dispatchEvent(new window.CustomEvent('pixva:track-result', {
+		detail: { code: 'PXV-G-250926-A1B2C3', phone: '09121111111', status: 'assigned', statusLabel: 'تخصیص‌یافته' }
+	}));
+	await wait(60);
+	check('v7: رویداد پیگیری با شماره، نقشه را تازه می‌کند', window.__pixvaCalls.dispatch === 2);
+}
+
 (async function main() {
 	staticChecks();
 
@@ -664,6 +987,37 @@ async function v6Checks(window) {
 			v6Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
 		}
 		v6Dom.window.close();
+	}
+
+	// هارنس لایه ۱٫۶٫۰ (سینمایی GSAP، سه‌بعدی، عیب‌یاب هوشمند، نقشه زنده).
+	v7StaticChecks();
+	if (!fs.existsSync(v7Harness)) {
+		failures.push('هارنس tools/fixtures/v7-preview.html پیدا نشد');
+		failed += 1;
+	} else {
+		const v7Errors = [];
+		const v7Console = new VirtualConsole();
+		v7Console.on('jsdomError', (error) => v7Errors.push(error.message));
+		v7Console.on('error', (message) => v7Errors.push(String(message)));
+
+		const v7Dom = await JSDOM.fromFile(v7Harness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: v7Console,
+		});
+		if (v7Dom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => v7Dom.window.addEventListener('load', resolve));
+		}
+		await wait(260);
+
+		await v7Checks(v7Dom.window);
+
+		check('v7: بدون خطای jsdom در کنسول (' + v7Errors.length + ')', v7Errors.length === 0);
+		if (v7Errors.length) {
+			v7Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		v7Dom.window.close();
 	}
 
 	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.
