@@ -89,21 +89,9 @@ $pixva_hours    = sprintf(
 
 	<?php pixva_render_hub_accordions( 'drawer-hub' ); ?>
 
-	<div class="pixva-drawer__extra">
-		<?php
-		wp_nav_menu(
-			array(
-				'theme_location'  => 'primary',
-				'container'       => 'nav',
-				'container_class' => 'pixva-nav pixva-nav--drawer',
-				'menu_class'      => 'pixva-nav__list',
-				'fallback_cb'     => false,
-				'depth'           => 1,
-				'pixva_id_prefix' => 'drawer-',
-			)
-		);
-		?>
-	</div>
+	<nav class="pixva-drawer__extra" aria-label="<?php esc_attr_e( 'منوی اصلی', 'pixva' ); ?>">
+		<?php pixva_render_drawer_nav( pixva_menu_tree( 'primary' ), 'drawer-nav' ); ?>
+	</nav>
 
 	<div class="pixva-drawer__actions">
 		<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( $pixva_cta_url ); ?>"><?php echo esc_html( $pixva_cta_text ); ?></a>

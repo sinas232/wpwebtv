@@ -17,7 +17,8 @@ get_header();
 		the_post();
 		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
 		?>
-		<article <?php post_class( 'pixva-container pixva-content entry-content' ); ?>>
+		<div class="pixva-container pixva-content pixva-layout pixva-layout--page">
+		<article <?php post_class( 'pixva-entry entry-content' ); ?>>
 			<?php the_content(); ?>
 			<?php
 			wp_link_pages(
@@ -28,6 +29,8 @@ get_header();
 			);
 			?>
 		</article>
+		<?php get_sidebar(); ?>
+		</div>
 	<?php endwhile; ?>
 </main>
 <?php

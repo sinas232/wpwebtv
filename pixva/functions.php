@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.2.1' );
+define( 'PIXVA_VERSION', '1.3.0' );
 define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
@@ -38,12 +38,36 @@ require_once PIXVA_DIR . '/inc/interactive-tools.php';
 require_once PIXVA_DIR . '/inc/rest-api.php';
 require_once PIXVA_DIR . '/inc/roles-and-cron.php';
 require_once PIXVA_DIR . '/inc/shortcodes.php';
+require_once PIXVA_DIR . '/inc/nav-menu.php';
+require_once PIXVA_DIR . '/inc/fault-simulator.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/pwa.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
 require_once PIXVA_DIR . '/inc/activation.php';
+
+if ( ! function_exists( 'pixva_elementor_section_files' ) ) {
+	/**
+	 * فهرست پرونده‌های ویجت سکشن در inc/widgets (مرتب‌شده، بدون پرونده محافظ).
+	 *
+	 * @return array<int, string>
+	 */
+	function pixva_elementor_section_files() {
+		$dir = PIXVA_DIR . '/inc/widgets';
+		if ( ! is_dir( $dir ) ) {
+			return array();
+		}
+
+		$files = glob( $dir . '/class-*.php' );
+		if ( ! is_array( $files ) ) {
+			return array();
+		}
+
+		sort( $files );
+		return array_values( array_filter( $files, 'is_readable' ) );
+	}
+}
 
 /*
  * ماژول‌های المنتور فقط پس از بارگذاری کامل خود المنتور include می‌شوند تا در
@@ -70,6 +94,11 @@ if ( ! function_exists( 'pixva_load_elementor_modules' ) ) {
 			if ( is_readable( $path ) ) {
 				require_once $path;
 			}
+		}
+
+		// ویجت‌های سکشن (پوشه inc/widgets): هر پرونده یک کلاس ویجت المنتور است.
+		foreach ( pixva_elementor_section_files() as $file ) {
+			require_once $file;
 		}
 	}
 	add_action( 'elementor/loaded', 'pixva_load_elementor_modules', 5 );
@@ -629,17 +658,39 @@ if ( ! function_exists( 'pixva_widget_sidebars' ) ) {
 	 * @return void
 	 */
 	function pixva_widget_sidebars() {
-		register_sidebar(
-			array(
-				'name'          => esc_html__( 'سایدبار وبلاگ', 'pixva' ),
-				'id'            => 'blog-sidebar',
-				'description'   => esc_html__( 'ابزارک‌های نمایش‌داده‌شده در آرشیو و مقاله‌ها.', 'pixva' ),
-				'before_widget' => '<section id="%1$s" class="pixva-card pixva-widget %2$s">',
-				'after_widget'  => '</section>',
-				'before_title'  => '<h3 class="pixva-widget__title">',
-				'after_title'   => '</h3>',
-			)
+		$shell = array(
+			'before_widget' => '<section id="%1$s" class="pixva-card pixva-widget %2$s">',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h3 class="pixva-widget__title">',
+			'after_title'   => '</h3>',
 		);
+
+		$areas = array(
+			array(
+				'name'        => esc_html__( 'سایدبار وبلاگ و مقالات', 'pixva' ),
+				'id'          => 'blog-sidebar',
+				'description' => esc_html__( 'ابزارک‌های نمایش‌داده‌شده در آرشیو، دسته‌بندی، جستجو و مقاله‌ها.', 'pixva' ),
+			),
+			array(
+				'name'        => esc_html__( 'سایدبار خدمات تعمیرات', 'pixva' ),
+				'id'          => 'services-sidebar',
+				'description' => esc_html__( 'باکس مشاوره سریع و دسته‌بندی خدمات در برگه‌های خدمت، برند، نمونه‌کار و عیب.', 'pixva' ),
+			),
+			array(
+				'name'        => esc_html__( 'سایدبار برگه‌ها', 'pixva' ),
+				'id'          => 'page-sidebar',
+				'description' => esc_html__( 'ابزارک‌های برگه‌های معمولی و برگه‌های هاب.', 'pixva' ),
+			),
+			array(
+				'name'        => esc_html__( 'ناحیه ابزارک فوتر', 'pixva' ),
+				'id'          => 'footer-widgets',
+				'description' => esc_html__( 'ابزارک‌های اختیاری بالای ستون‌های فوتر.', 'pixva' ),
+			),
+		);
+
+		foreach ( $areas as $area ) {
+			register_sidebar( array_merge( $shell, $area ) );
+		}
 	}
 }
 add_action( 'widgets_init', 'pixva_widget_sidebars' );

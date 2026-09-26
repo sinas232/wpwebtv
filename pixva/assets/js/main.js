@@ -166,6 +166,63 @@
 		});
 	}
 
+	/**
+	 * آکاردئون آبشاری منوی اصلی داخل دروئر موبایل (چندسطحی).
+	 */
+	function initDrawerNav() {
+		const drawer = qs('[data-pixva-drawer]');
+		if (!drawer) {
+			return;
+		}
+
+		const closeItem = (item) => {
+			item.classList.remove('is-open');
+			const toggle = qs('[data-drawer-toggle]', item);
+			if (toggle) {
+				toggle.setAttribute('aria-expanded', 'false');
+			}
+		};
+
+		const closeAll = () => {
+			qsa('.pixva-drawer-nav__item.is-open', drawer).forEach(closeItem);
+		};
+
+		qsa('[data-drawer-toggle]', drawer).forEach((toggle) => {
+			toggle.addEventListener('click', () => {
+				const item = toggle.closest('.pixva-drawer-nav__item');
+				if (!item) {
+					return;
+				}
+				const open = !item.classList.contains('is-open');
+
+				// رفتار آکاردئونی: هم‌سطح‌های باز جمع می‌شوند.
+				const siblings = item.parentElement ? qsa(':scope > .pixva-drawer-nav__item.is-open', item.parentElement) : [];
+				siblings.forEach((sibling) => {
+					if (sibling !== item) {
+						closeItem(sibling);
+					}
+				});
+
+				item.classList.toggle('is-open', open);
+				toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			});
+		});
+
+		const closeBtn = qs('[data-pixva-drawer-close]', drawer);
+		const overlay = qs('[data-pixva-overlay]');
+		if (closeBtn) {
+			closeBtn.addEventListener('click', closeAll);
+		}
+		if (overlay) {
+			overlay.addEventListener('click', closeAll);
+		}
+		document.addEventListener('keydown', (event) => {
+			if ('Escape' === event.key) {
+				closeAll();
+			}
+		});
+	}
+
 	function initMegaMenu() {
 		const nav = qs('[data-pixva-mega]');
 		if (!nav) {
@@ -173,7 +230,7 @@
 		}
 		const items = qsa('[data-mega-item]', nav);
 		let hoverTimer = null;
-		const isTouch = window.matchMedia('(hover: none)').matches;
+		const isTouch = Boolean(window.matchMedia && window.matchMedia('(hover: none)').matches);
 
 		const closeAll = (except) => {
 			items.forEach((item) => {
@@ -337,6 +394,7 @@
 
 	document.addEventListener('DOMContentLoaded', () => {
 		initNav();
+		initDrawerNav();
 		initHeader();
 		initMegaMenu();
 		initReveal();

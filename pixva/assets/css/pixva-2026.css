@@ -4880,3 +4880,902 @@ html.is-offline .pixva-offline-bar {
 		transition: none;
 	}
 }
+
+/* ==========================================================================
+   ۲۶) لایه داینامیک CMS/Elementor: منوی آبشاری چندسطحی، سایدبارها،
+       ویجت‌های سکشن و سیمولاتور ویجتی
+   --------------------------------------------------------------------------
+   زبان طراحی: بلور شیشه‌ای (backdrop-filter)، سایه‌های نرم لایه‌ای، حاشیه‌های
+   ۱ پیکسلی ملایم، متن سرمه‌ای #0F172A روی زمینه #F8FAFC و گرادیان آبی-بنفش
+   برای دکمه‌های اصلی. همه اندازه‌ها با rem و clamp().
+   ========================================================================== */
+:root {
+	--pixva-accent-a: #6366F1;
+	--pixva-accent-b: #8B5CF6;
+	--pixva-gradient: linear-gradient(135deg, var(--pixva-accent-a) 0%, #3B82F6 48%, var(--pixva-accent-b) 100%);
+	--pixva-heading: #0F172A;
+	--pixva-body: #334155;
+	--pixva-muted: #64748B;
+	--pixva-line: rgba(148, 163, 184, 0.28);
+	--pixva-glass: rgba(255, 255, 255, 0.78);
+	--pixva-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05);
+	--pixva-shadow-2: 0 12px 28px -18px rgba(15, 23, 42, 0.35);
+	--pixva-shadow-3: 0 28px 60px -34px rgba(15, 23, 42, 0.45);
+	--sim-glow-strength: 0.45;
+	--sim-radius: 20px;
+}
+
+/* بدون اسکرول افقی در هیچ عرضی (clip چسبان‌بودن هدر را نمی‌شکند) */
+body {
+	overflow-x: hidden;
+}
+
+@supports (overflow-x: clip) {
+	body {
+		overflow-x: clip;
+	}
+}
+
+/* --- ۱) دکمه گرادیانی آبی-بنفش ----------------------------------------- */
+.pixva-btn--gradient {
+	background: var(--pixva-gradient);
+	border: 1px solid rgba(99, 102, 241, 0.45);
+	color: #FFFFFF;
+	font-weight: 800;
+	box-shadow:
+		0 16px 32px -16px rgba(99, 102, 241, 0.8),
+		inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.pixva-btn--gradient:hover {
+	color: #FFFFFF;
+	transform: translateY(-2px);
+	filter: brightness(1.05);
+	box-shadow:
+		0 22px 40px -16px rgba(139, 92, 246, 0.85),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.pixva-btn--gradient:focus-visible {
+	outline: 3px solid rgba(99, 102, 241, 0.4);
+	outline-offset: 3px;
+}
+
+.pixva-btn--gradient svg {
+	width: 18px;
+	height: 18px;
+}
+
+/* --- ۲) آبشاری چندسطحی منوی اصلی (شیشه‌ای + Fade-in) -------------------- */
+.pixva-mega__panel--menu {
+	inset-inline: auto;
+	inset-inline-start: 0;
+	width: max-content;
+	min-width: 16rem;
+	max-width: min(24rem, 88vw);
+	margin-top: 0.5rem;
+	border: 1px solid var(--pixva-line);
+	border-radius: 18px;
+	background: var(--pixva-glass);
+	backdrop-filter: saturate(150%) blur(18px);
+	-webkit-backdrop-filter: saturate(150%) blur(18px);
+	box-shadow: var(--pixva-shadow-3);
+	transform: translateY(-6px) scale(0.985);
+	animation: none;
+}
+
+.pixva-mega__item.is-open > .pixva-mega__panel--menu {
+	transform: translateY(0) scale(1);
+	animation: pixva-fade-down 0.24s ease-out both;
+}
+
+@keyframes pixva-fade-down {
+	from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+	to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pixva-dropdown {
+	padding: 0.6rem;
+}
+
+.pixva-dropdown__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.15rem;
+}
+
+.pixva-dropdown__item {
+	position: relative;
+}
+
+.pixva-dropdown__item > a {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.55rem 0.7rem;
+	border-radius: 12px;
+	color: var(--pixva-heading);
+	font-size: 0.88rem;
+	font-weight: 700;
+	line-height: 1.8;
+	text-decoration: none;
+	transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.pixva-dropdown__item > a small {
+	display: block;
+	color: var(--pixva-muted);
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.7;
+}
+
+.pixva-dropdown__item > a:hover,
+.pixva-dropdown__item > a:focus-visible {
+	background: rgba(99, 102, 241, 0.1);
+	color: var(--pixva-accent-a);
+	transform: translateX(-2px);
+}
+
+.pixva-dropdown__item.is-current > a {
+	background: rgba(99, 102, 241, 0.14);
+	color: var(--pixva-accent-a);
+}
+
+.pixva-dropdown__chevron {
+	flex: 0 0 auto;
+	width: 14px;
+	height: 14px;
+	margin-inline-start: auto;
+	color: var(--pixva-muted);
+	transform: scaleX(-1); /* RTL: فلش زیرمنو به سمت چپ */
+}
+
+/* سطح سوم و بالاتر: پرواز کنار آیتم */
+.pixva-dropdown__sub {
+	position: absolute;
+	inset-inline-start: calc(100% - 0.35rem);
+	top: -0.35rem;
+	min-width: 14rem;
+	max-width: min(20rem, 80vw);
+	padding: 0.5rem;
+	border-radius: 16px;
+	border: 1px solid var(--pixva-line);
+	background: rgba(255, 255, 255, 0.96);
+	backdrop-filter: saturate(150%) blur(18px);
+	-webkit-backdrop-filter: saturate(150%) blur(18px);
+	box-shadow: var(--pixva-shadow-3);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(-4px);
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+	z-index: 80;
+}
+
+.pixva-dropdown__item:hover > .pixva-dropdown__sub,
+.pixva-dropdown__item:focus-within > .pixva-dropdown__sub {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+}
+
+.pixva-dropdown__list--level-3 .pixva-dropdown__item > a,
+.pixva-dropdown__list--level-4 .pixva-dropdown__item > a {
+	font-size: 0.84rem;
+	font-weight: 600;
+}
+
+/* --- ۳) دروئر موبایل: آکاردئون آبشاری ---------------------------------- */
+.pixva-drawer-nav {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.15rem;
+}
+
+.pixva-drawer-nav__row {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pixva-drawer-nav__row > a {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 0.7rem 0.8rem;
+	color: #F8FAFC;
+	font-size: 0.92rem;
+	font-weight: 700;
+	line-height: 1.8;
+	text-decoration: none;
+	overflow-wrap: anywhere;
+}
+
+.pixva-drawer-nav__toggle {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 0;
+	border-radius: 10px;
+	background: transparent;
+	color: #CBD5E1;
+	cursor: pointer;
+	transition: background 0.18s ease, color 0.18s ease;
+}
+
+.pixva-drawer-nav__toggle:hover,
+.pixva-drawer-nav__toggle:focus-visible {
+	background: rgba(255, 255, 255, 0.12);
+	color: #FFFFFF;
+}
+
+.pixva-drawer-nav__toggle svg {
+	width: 18px;
+	height: 18px;
+	transition: transform 0.22s ease;
+}
+
+.pixva-drawer-nav__item.is-open > .pixva-drawer-nav__row .pixva-drawer-nav__toggle svg {
+	transform: rotate(180deg);
+}
+
+.pixva-drawer-nav__panel {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.28s ease;
+}
+
+.pixva-drawer-nav__item.is-open > .pixva-drawer-nav__panel {
+	grid-template-rows: 1fr;
+}
+
+.pixva-drawer-nav__inner {
+	overflow: hidden;
+	min-height: 0;
+}
+
+.pixva-drawer-nav--level-2,
+.pixva-drawer-nav--level-3 {
+	margin: 0.2rem 0 0.4rem;
+	padding-inline-start: 0.65rem;
+	border-inline-start: 2px solid rgba(85, 184, 200, 0.35);
+}
+
+.pixva-drawer-nav--level-2 .pixva-drawer-nav__row,
+.pixva-drawer-nav--level-3 .pixva-drawer-nav__row {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.pixva-drawer-nav--level-2 .pixva-drawer-nav__row > a,
+.pixva-drawer-nav--level-3 .pixva-drawer-nav__row > a {
+	font-size: 0.86rem;
+	font-weight: 600;
+	color: #E2E8F0;
+}
+
+.pixva-drawer-nav__item.is-current > .pixva-drawer-nav__row {
+	border-color: rgba(85, 184, 200, 0.55);
+	background: rgba(85, 184, 200, 0.14);
+}
+
+/* --- ۴) سایدبار داینامیک ------------------------------------------------ */
+.pixva-layout {
+	grid-template-columns: minmax(0, 1fr) clamp(260px, 26vw, 340px);
+	gap: clamp(1.1rem, 2.4vw, 2rem);
+	align-items: start;
+}
+
+.pixva-layout__main {
+	min-width: 0;
+}
+
+.pixva-layout--post,
+.pixva-layout--page,
+.pixva-layout--case {
+	align-items: start;
+}
+
+.pixva-sidebar {
+	min-width: 0;
+}
+
+.pixva-sidebar__inner {
+	position: sticky;
+	top: 6.5rem;
+	display: grid;
+	gap: 0.9rem;
+}
+
+.pixva-sidebar--inline {
+	position: static;
+	display: grid;
+	gap: 0.9rem;
+	margin-top: 0.9rem;
+}
+
+.pixva-widget {
+	padding: 1rem 1.05rem;
+	border: 1px solid var(--pixva-line);
+	border-radius: 18px;
+	background: var(--pixva-glass);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	box-shadow: var(--pixva-shadow-2);
+}
+
+.pixva-widget__title {
+	margin: 0 0 0.6rem;
+	color: var(--pixva-heading);
+	font-size: 0.95rem;
+	font-weight: 900;
+	line-height: 1.7;
+}
+
+.pixva-widget p {
+	margin: 0 0 0.7rem;
+	color: var(--pixva-body);
+	font-size: 0.85rem;
+	line-height: 1.95;
+}
+
+.pixva-widget .pixva-btn {
+	width: 100%;
+	justify-content: center;
+	margin-top: 0.4rem;
+}
+
+.pixva-widget__meta {
+	margin: 0.6rem 0 0;
+	color: var(--pixva-muted);
+	font-size: 0.76rem;
+	font-weight: 700;
+}
+
+.pixva-widget__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.1rem;
+}
+
+.pixva-widget__links a {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.5rem 0.55rem;
+	border-radius: 11px;
+	color: var(--pixva-heading);
+	font-size: 0.85rem;
+	font-weight: 700;
+	line-height: 1.8;
+	text-decoration: none;
+	transition: background 0.18s ease, color 0.18s ease;
+}
+
+.pixva-widget__links a:hover,
+.pixva-widget__links a:focus-visible {
+	background: rgba(99, 102, 241, 0.1);
+	color: var(--pixva-accent-a);
+}
+
+.pixva-widget__links svg {
+	flex: 0 0 auto;
+	width: 14px;
+	height: 14px;
+	margin-inline-start: auto;
+	color: var(--pixva-muted);
+	transform: scaleX(-1);
+}
+
+.pixva-widget__more {
+	display: inline-block;
+	margin-top: 0.5rem;
+	color: var(--pixva-accent-a);
+	font-size: 0.8rem;
+	font-weight: 800;
+}
+
+.pixva-split {
+	align-items: start;
+}
+
+.pixva-case-meta {
+	display: grid;
+	grid-template-columns: minmax(9rem, 10rem) minmax(0, 1fr);
+	gap: 0.4rem 0.8rem;
+	margin: 1.2rem 0;
+}
+
+.pixva-footer__widgets {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1rem;
+	padding-block: 1.5rem;
+}
+
+.pixva-footer__widgets .pixva-widget {
+	background: rgba(255, 255, 255, 0.07);
+	border-color: rgba(255, 255, 255, 0.14);
+	box-shadow: none;
+}
+
+.pixva-footer__widgets .pixva-widget__title,
+.pixva-footer__widgets .pixva-widget p,
+.pixva-footer__widgets .pixva-widget__links a {
+	color: #F1F5F9;
+}
+
+/* --- ۵) پوسته ویجت‌های سکشن المنتور ------------------------------------ */
+.pixva-block {
+	position: relative;
+	width: 100%;
+	padding: clamp(1.1rem, 2.6vw, 2rem);
+	border-radius: 24px;
+}
+
+.pixva-block--glass {
+	background: var(--pixva-glass);
+	border: 1px solid var(--pixva-line);
+	backdrop-filter: saturate(140%) blur(16px);
+	-webkit-backdrop-filter: saturate(140%) blur(16px);
+	box-shadow: var(--pixva-shadow-1), var(--pixva-shadow-2);
+}
+
+.pixva-block--solid {
+	background: #FFFFFF;
+	border: 1px solid var(--pixva-line);
+	box-shadow: var(--pixva-shadow-2);
+}
+
+.pixva-block--dark {
+	background: #0F172A;
+	border: 1px solid #1E293B;
+	box-shadow: var(--pixva-shadow-3);
+	color: #E2E8F0;
+}
+
+.pixva-block--dark h2,
+.pixva-block--dark h3,
+.pixva-block--dark strong {
+	color: #F8FAFC;
+}
+
+.pixva-block--dark p,
+.pixva-block--dark span,
+.pixva-block--dark li {
+	color: #CBD5E1;
+}
+
+.pixva-block--none {
+	padding: 0;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+.pixva-block .pixva-section-head {
+	margin-bottom: 1.1rem;
+}
+
+/* نظرات مشتریان */
+.pixva-tmn__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.pixva-tmn__item footer {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.pixva-tmn__item footer span {
+	display: grid;
+	gap: 1px;
+	min-width: 0;
+}
+
+.pixva-tmn__item footer small {
+	color: var(--pixva-muted);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.pixva-tmn__avatar {
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 1px solid var(--pixva-line);
+}
+
+/* گالری نمونه‌کار */
+.pixva-gallery__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.pixva-gallery__item {
+	overflow: hidden;
+	padding: 0;
+}
+
+.pixva-gallery__item .pixva-ba,
+.pixva-gallery__item > img {
+	width: 100%;
+	border-radius: 0;
+}
+
+.pixva-gallery__body {
+	padding: 0.85rem 0.95rem 1rem;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.pixva-gallery__body h3 {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 900;
+	line-height: 1.7;
+}
+
+.pixva-gallery__body h3 a {
+	color: var(--pixva-heading);
+	text-decoration: none;
+}
+
+.pixva-gallery__body h3 a:hover {
+	color: var(--pixva-accent-a);
+}
+
+.pixva-gallery__body p {
+	margin: 0;
+	color: var(--pixva-muted);
+	font-size: 0.78rem;
+	font-weight: 600;
+	line-height: 1.85;
+}
+
+/* خدمات */
+.pixva-services__grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.pixva-service-card__price {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 0.5rem;
+	padding: 0.3rem 0.6rem;
+	border-radius: 999px;
+	background: rgba(99, 102, 241, 0.12);
+	border: 1px solid rgba(99, 102, 241, 0.3);
+	color: var(--pixva-accent-a);
+	font-size: 0.76rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+
+/* مشاوره سریع */
+.pixva-consult__body {
+	display: grid;
+	gap: 0.7rem;
+}
+
+.pixva-consult__body h2 {
+	margin: 0;
+	font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+	font-weight: 900;
+	line-height: 1.6;
+}
+
+.pixva-consult__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.pixva-consult__meta {
+	list-style: none;
+	margin: 0.2rem 0 0;
+	padding: 0;
+	display: grid;
+	gap: 0.4rem;
+}
+
+.pixva-consult__meta li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.45rem;
+	color: var(--pixva-body);
+	font-size: 0.82rem;
+	font-weight: 600;
+	line-height: 1.9;
+}
+
+.pixva-consult__meta svg {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 16px;
+	margin-top: 0.2rem;
+	color: var(--pixva-accent-a);
+}
+
+/* --- ۶) سیمولاتور ویجتی: رسانه، هاله، اسلایدر لمسی --------------------- */
+.pixva-sim--widget {
+	max-width: 40rem;
+	margin-inline: auto;
+}
+
+.pixva-sim__head {
+	display: grid;
+	gap: 0.25rem;
+	justify-items: center;
+	text-align: center;
+}
+
+.pixva-sim__title {
+	margin: 0;
+	color: var(--pixva-heading);
+	font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+	font-weight: 900;
+	line-height: 1.6;
+}
+
+.pixva-sim__subtitle {
+	margin: 0;
+	max-width: 34rem;
+	color: var(--pixva-body);
+	font-size: 0.86rem;
+	font-weight: 500;
+	line-height: 1.95;
+}
+
+.pixva-sim__tv {
+	border-radius: var(--sim-radius);
+}
+
+.pixva-sim__glow {
+	background: radial-gradient(closest-side, var(--sim-glow, rgba(59, 130, 246, 1)) var(--sim-glow-strength, 0.45), rgba(59, 130, 246, 0) 72%);
+	opacity: calc(0.35 + var(--sim-glow-strength, 0.45));
+}
+
+.pixva-sim__frame-img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	border-radius: inherit;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.pixva-sim__shot {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+	transition: opacity 0.45s ease;
+	pointer-events: none;
+}
+
+.pixva-sim__screen[data-sim-mode="media"] .pixva-sim__shot {
+	opacity: 1;
+}
+
+.pixva-sim__screen[data-sim-mode="media"] .pixva-sim__picture,
+.pixva-sim__screen[data-sim-mode="media"] .pixva-sim__fault {
+	opacity: 0 !important;
+}
+
+.pixva-sim__screen.is-swapping .pixva-sim__shot {
+	opacity: 0;
+	transition: opacity 0.16s ease;
+}
+
+/* رنگ تأکیدی هر ایراد */
+.pixva-sim__symptom[style*="--sim-accent"] {
+	--sim-accent-ring: var(--sim-accent);
+}
+
+.pixva-sim__symptom.is-active {
+	border-color: var(--sim-accent, rgba(249, 115, 22, 0.65));
+	box-shadow: 0 16px 32px -20px var(--sim-accent, rgba(249, 115, 22, 0.65));
+}
+
+.pixva-sim__symptom.is-active .pixva-sim__symptom-text small {
+	color: var(--sim-accent, #EA580C);
+}
+
+.pixva-sim__symptom-icon--img {
+	width: 22px;
+	height: 22px;
+	object-fit: contain;
+	border-radius: 6px;
+}
+
+/* نقطه‌های اسلایدر لمسی */
+.pixva-sim__dots {
+	display: none;
+	justify-content: center;
+	gap: 0.35rem;
+}
+
+.pixva-sim__dots button {
+	width: 8px;
+	height: 8px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(148, 163, 184, 0.55);
+	cursor: pointer;
+	transition: transform 0.2s ease, background 0.2s ease, width 0.2s ease;
+}
+
+.pixva-sim__dots button.is-active {
+	width: 20px;
+	border-radius: 999px;
+	background: var(--pixva-accent-a);
+}
+
+.pixva-sim__symptoms.is-dragging {
+	scroll-snap-type: none;
+	cursor: grabbing;
+}
+
+.pixva-sim__symptoms {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	touch-action: pan-x;
+	overscroll-behavior-x: contain;
+}
+
+.pixva-sim__symptoms::-webkit-scrollbar {
+	display: none;
+}
+
+/* --- ۷) واکنش‌گرایی لایه ۲۶ -------------------------------------------- */
+@media (max-width: 1024px) {
+	.pixva-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.pixva-sidebar__inner {
+		position: static;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	}
+
+	.pixva-tmn__grid,
+	.pixva-gallery__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.pixva-services__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.pixva-mega__panel--menu {
+		min-width: 14rem;
+	}
+
+	.pixva-dropdown__sub {
+		position: static;
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		box-shadow: none;
+		border: 0;
+		background: transparent;
+		padding: 0.2rem 0 0.2rem 0.6rem;
+		max-width: 100%;
+		display: none;
+	}
+
+	.pixva-dropdown__item:hover > .pixva-dropdown__sub,
+	.pixva-dropdown__item:focus-within > .pixva-dropdown__sub {
+		display: block;
+	}
+}
+
+@media (max-width: 768px) {
+	.pixva-block {
+		padding: 1rem;
+		border-radius: 20px;
+	}
+
+	.pixva-tmn__grid,
+	.pixva-gallery__grid,
+	.pixva-services__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.pixva-consult__actions .pixva-btn {
+		flex: 1 1 100%;
+		justify-content: center;
+		min-height: 48px;
+	}
+
+	.pixva-case-meta {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.2rem;
+	}
+
+	/* سیمولاتور: اسلایدر لمسی افقی با نقطه‌ها */
+	.pixva-sim__symptoms {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 0.5rem;
+		overflow-x: auto;
+		padding-block: 0.2rem;
+		scroll-snap-type: x mandatory;
+	}
+
+	.pixva-sim__symptom {
+		flex: 0 0 min(78%, 15rem);
+		min-height: 56px;
+		scroll-snap-align: start;
+	}
+
+	.pixva-sim__dots {
+		display: flex;
+	}
+
+	.pixva-drawer-nav__row > a {
+		font-size: 0.95rem;
+		padding: 0.85rem 0.9rem;
+	}
+
+	.pixva-drawer-nav__toggle {
+		width: 44px;
+		height: 44px;
+	}
+}
+
+@media (max-width: 420px) {
+	.pixva-widget {
+		padding: 0.85rem 0.9rem;
+	}
+
+	.pixva-sim__symptom {
+		flex-basis: 84%;
+	}
+}
+
+/* --- ۸) حرکت کاهش‌یافته ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.pixva-mega__item.is-open > .pixva-mega__panel--menu {
+		animation: none;
+	}
+
+	.pixva-drawer-nav__panel {
+		transition: none;
+	}
+
+	.pixva-sim__shot,
+	.pixva-sim__glow {
+		transition: none;
+		animation: none;
+	}
+
+	.pixva-dropdown__sub {
+		transition: none;
+	}
+}

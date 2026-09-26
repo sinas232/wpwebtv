@@ -17,7 +17,8 @@ get_header();
 		the_post();
 		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
 		?>
-		<article <?php post_class( 'pixva-container pixva-content' ); ?>>
+		<div class="pixva-container pixva-content pixva-layout pixva-layout--post">
+		<article <?php post_class( 'pixva-entry' ); ?>>
 			<?php pixva_diagnostics_box( get_the_ID() ); ?>
 			<?php
 			$content = apply_filters( 'the_content', get_the_content() );
@@ -50,6 +51,8 @@ get_header();
 			}
 			?>
 		</article>
+		<?php get_sidebar(); ?>
+		</div>
 	<?php endwhile; ?>
 </main>
 <?php

@@ -447,6 +447,38 @@ if ( ! class_exists( 'Pixva_Hub_Index_Widget' ) ) {
 }
 
 /**
+ * فهرست کلاس‌های ویجت سکشن (پوشه inc/widgets).
+ *
+ * @return array<int, string>
+ */
+function pixva_section_widget_classes() {
+	return array(
+		'Pixva_Hero_Widget',
+		'Pixva_Fault_Simulator_Widget',
+		'Pixva_Stats_Widget',
+		'Pixva_Testimonials_Widget',
+		'Pixva_Gallery_Widget',
+		'Pixva_Services_Widget',
+		'Pixva_Consult_Widget',
+	);
+}
+
+/**
+ * بارگذاری پرونده‌های ویجت سکشن.
+ *
+ * @return void
+ */
+function pixva_load_section_widgets() {
+	if ( ! function_exists( 'pixva_elementor_section_files' ) ) {
+		return;
+	}
+
+	foreach ( pixva_elementor_section_files() as $file ) {
+		require_once $file;
+	}
+}
+
+/**
  * ثبت ویجت‌های المنتور (۶۰ ابزار + نمایه هاب + ویجت جامع).
  *
  * @param \Elementor\Widgets_Manager $widgets_manager مدیر ویجت‌ها.
@@ -470,6 +502,13 @@ function pixva_register_elementor_widgets( $widgets_manager ) {
 
 	if ( class_exists( 'Pixva_All_Tools_Widget' ) ) {
 		$widgets_manager->register( new Pixva_All_Tools_Widget() );
+	}
+
+	pixva_load_section_widgets();
+	foreach ( pixva_section_widget_classes() as $section_class ) {
+		if ( class_exists( $section_class ) ) {
+			$widgets_manager->register( new $section_class() );
+		}
 	}
 }
 add_action( 'elementor/widgets/register', 'pixva_register_elementor_widgets' );
@@ -495,6 +534,13 @@ function pixva_register_elementor_widgets_legacy() {
 	if ( class_exists( 'Pixva_Hub_Index_Widget' ) ) {
 		\Elementor\Plugin::$instance->widgets_manager->register_widget_type( new Pixva_Hub_Index_Widget() );
 	}
+
+	pixva_load_section_widgets();
+	foreach ( pixva_section_widget_classes() as $section_class ) {
+		if ( class_exists( $section_class ) ) {
+			\Elementor\Plugin::$instance->widgets_manager->register_widget_type( new $section_class() );
+		}
+	}
 }
 add_action( 'elementor/widgets/widgets_registered', 'pixva_register_elementor_widgets_legacy' );
 
@@ -508,5 +554,17 @@ function pixva_elementor_editor_assets() {
 		return;
 	}
 	wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array(), PIXVA_VERSION );
+	wp_enqueue_script( 'pixva-main', PIXVA_URI . '/assets/js/main.js', array(), PIXVA_VERSION, true );
+	wp_enqueue_script( 'pixva-tools', PIXVA_URI . '/assets/js/interactive-tools.js', array( 'pixva-main' ), PIXVA_VERSION, true );
+	wp_localize_script(
+		'pixva-tools',
+		'pixvaVars',
+		array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'restUrl' => esc_url_raw( rest_url( 'pixva/v1' ) ),
+			'homeUrl' => esc_url_raw( home_url( '/' ) ),
+			'nonce'   => wp_create_nonce( 'pixva_nonce' ),
+		)
+	);
 }
 add_action( 'elementor/editor/before_enqueue_scripts', 'pixva_elementor_editor_assets' );

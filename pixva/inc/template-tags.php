@@ -291,11 +291,127 @@ function pixva_default_faqs() {
 }
 
 /**
+ * آمار کارگاه برای هیرو و ویجت آمار (منبع: تنظیمات پوسته + داده‌های واقعی).
+ *
+ * @return array<int, array{value:int, suffix:string, label:string}>
+ */
+function pixva_hero_stats() {
+	$tools = function_exists( 'pixva_tools_registry' ) ? pixva_tools_registry() : array();
+
+	$stats = array(
+		array(
+			'value'  => (int) pixva_option( 'pixva_stat_years', 15 ),
+			'suffix' => '+',
+			'label'  => __( 'سال سابقه کارگاهی', 'pixva' ),
+		),
+		array(
+			'value'  => (int) pixva_option( 'pixva_stat_repairs', 8500 ),
+			'suffix' => '+',
+			'label'  => __( 'دستگاه تعمیرشده', 'pixva' ),
+		),
+		array(
+			'value'  => (int) pixva_warranty_days(),
+			'suffix' => '',
+			'label'  => __( 'روز گارانتی کتبی', 'pixva' ),
+		),
+		array(
+			'value'  => count( $tools ),
+			'suffix' => '',
+			'label'  => __( 'ابزار تخصصی آنلاین', 'pixva' ),
+		),
+	);
+
+	/**
+	 * فیلتر آمار نمایشی.
+	 *
+	 * @param array $stats آمار.
+	 */
+	return apply_filters( 'pixva_hero_stats', $stats );
+}
+
+/**
+ * خواندن نظرات مشتریان از نوع محتوای pixva_review (منبع داینامیک CMS).
+ *
+ * @param array $args گزینه‌ها: count, featured_only.
+ * @return array<int, array<string, mixed>>
+ */
+function pixva_testimonials_from_cms( $args = array() ) {
+	if ( ! post_type_exists( 'pixva_review' ) ) {
+		return array();
+	}
+
+	$args = wp_parse_args(
+		$args,
+		array(
+			'count'         => 6,
+			'featured_only' => false,
+		)
+	);
+
+	$query_args = array(
+		'post_type'      => 'pixva_review',
+		'post_status'    => 'publish',
+		'posts_per_page' => max( 1, (int) $args['count'] ),
+		'orderby'        => array(
+			'menu_order' => 'ASC',
+			'date'       => 'DESC',
+		),
+		'no_found_rows'  => true,
+	);
+
+	if ( ! empty( $args['featured_only'] ) ) {
+		$query_args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			array(
+				'key'   => '_pixva_review_featured',
+				'value' => '1',
+			),
+		);
+	}
+
+	$query = new WP_Query( apply_filters( 'pixva_testimonials_query', $query_args ) );
+	$items = array();
+
+	foreach ( $query->posts as $review ) {
+		$quote = trim( (string) $review->post_content );
+		if ( '' === $quote ) {
+			$quote = trim( (string) $review->post_excerpt );
+		}
+		if ( '' === $quote ) {
+			continue;
+		}
+
+		$role   = (string) get_post_meta( $review->ID, '_pixva_review_role', true );
+		$rating = (int) get_post_meta( $review->ID, '_pixva_review_rating', true );
+
+		$items[] = array(
+			'quote'  => wp_trim_words( wp_strip_all_tags( $quote ), 48, '…' ),
+			'name'   => (string) $review->post_title,
+			'role'   => '' !== $role ? $role : wp_strip_all_tags( (string) $review->post_excerpt ),
+			'rating' => $rating ? min( 5, max( 1, $rating ) ) : 5,
+			'avatar' => get_the_post_thumbnail_url( $review, 'thumbnail' ),
+			'id'     => (int) $review->ID,
+		);
+	}
+
+	return $items;
+}
+
+/**
  * روایت‌های نمونه کارگاه. اسکیما Review عمداً ساخته نمی‌شود تا نظر ساختگی به گوگل اعلام نشود.
  *
  * @return array<int, array<string, string>>
  */
-function pixva_testimonials() {
+function pixva_testimonials( $args = array() ) {
+	$from_cms = pixva_testimonials_from_cms( $args );
+	if ( ! empty( $from_cms ) ) {
+		/**
+		 * فیلتر نظرات مشتریان (منبع: نوع محتوای pixva_review).
+		 *
+		 * @param array $items نظرات.
+		 */
+		return apply_filters( 'pixva_testimonials', $from_cms );
+	}
+
 	$items = array(
 		array(
 			'quote' => __( 'خطوط عمودی ۵۵ اینچ سامسونگ را بدون تعویض پنل بستند. عصر همان روز تصویر یکدست شد و برگه گارانتی هم دادند.', 'pixva' ),

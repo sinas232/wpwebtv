@@ -19,7 +19,7 @@ get_header();
 		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
 		?>
 		<div class="pixva-container pixva-content">
-			<div class="pixva-grid pixva-grid--2" style="align-items:start">
+			<div class="pixva-grid pixva-grid--2 pixva-split">
 				<article <?php post_class( 'entry-content' ); ?>>
 					<?php
 					if ( has_post_thumbnail() ) {
@@ -28,7 +28,7 @@ get_header();
 					the_content();
 					?>
 				</article>
-				<aside>
+				<aside class="pixva-aside">
 					<?php
 					pixva_render_calculator(
 						array(
@@ -37,6 +37,9 @@ get_header();
 						)
 					);
 					?>
+					<div class="pixva-sidebar pixva-sidebar--inline">
+						<?php pixva_sidebar_widgets( 'services-sidebar' ); ?>
+					</div>
 				</aside>
 			</div>
 		</div>

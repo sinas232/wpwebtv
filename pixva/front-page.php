@@ -109,8 +109,7 @@ function pixva_home_hero() {
 
 		$sim_items[] = array(
 			'key'   => $symptom['key'],
-			'dot'   => $symptom['dot'],
-			'icon'  => $symptom['icon'],
+			'emoji' => $symptom['icon'],
 			'label' => $symptom['label'],
 			'tag'   => $symptom['tag'],
 			'cause' => $symptom['cause'],
@@ -162,22 +161,12 @@ function pixva_home_hero() {
 				</div>
 
 				<div class="pixva-stats">
-					<div class="pixva-stat">
-						<strong data-count-to="15" data-count-suffix="+">۰</strong>
-						<span><?php esc_html_e( 'سال سابقه کارگاهی', 'pixva' ); ?></span>
-					</div>
-					<div class="pixva-stat">
-						<strong data-count-to="8500" data-count-suffix="+">۰</strong>
-						<span><?php esc_html_e( 'دستگاه تعمیرشده', 'pixva' ); ?></span>
-					</div>
-					<div class="pixva-stat">
-						<strong data-count-to="<?php echo esc_attr( pixva_warranty_days() ); ?>">۰</strong>
-						<span><?php esc_html_e( 'روز گارانتی کتبی', 'pixva' ); ?></span>
-					</div>
-					<div class="pixva-stat">
-						<strong data-count-to="60">۰</strong>
-						<span><?php esc_html_e( 'ابزار تخصصی آنلاین', 'pixva' ); ?></span>
-					</div>
+					<?php foreach ( pixva_hero_stats() as $stat ) : ?>
+						<div class="pixva-stat">
+							<strong data-count-to="<?php echo esc_attr( (string) $stat['value'] ); ?>"<?php echo $stat['suffix'] ? ' data-count-suffix="' . esc_attr( $stat['suffix'] ) . '"' : ''; ?>>۰</strong>
+							<span><?php echo esc_html( $stat['label'] ); ?></span>
+						</div>
+					<?php endforeach; ?>
 				</div>
 
 				<div class="pixva-hero__chips pixva-hero__chips--inline">
@@ -193,87 +182,23 @@ function pixva_home_hero() {
 			</div>
 
 			<div class="pixva-hero__visual">
-				<div class="pixva-sim"
-					data-pixva-simulator
-					data-calc-target="#quick-calc"
-					data-order-url="<?php echo esc_url( $order_url ); ?>"
-					data-sim-brand="<?php echo esc_attr( $sim_args['brand'] ); ?>"
-					data-sim-tech="<?php echo esc_attr( $sim_args['tech'] ); ?>"
-					data-sim-size="<?php echo esc_attr( $sim_args['size'] ); ?>"
-					data-wa-number="<?php echo esc_attr( $wa_number ); ?>">
-					<div class="pixva-sim__badge">
-						<span class="pixva-sim__dot" aria-hidden="true"></span>
-						<span><?php esc_html_e( 'سیمولاتور زنده تشخیص عیب', 'pixva' ); ?></span>
-					</div>
-
-					<div class="pixva-sim__tv">
-						<span class="pixva-sim__glow" aria-hidden="true"></span>
-						<div class="pixva-sim__bezel">
-							<div class="pixva-sim__screen" data-sim-screen="<?php echo esc_attr( isset( $first['key'] ) ? $first['key'] : 'no_picture' ); ?>">
-								<span class="pixva-sim__picture" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-								<span class="pixva-sim__scan" aria-hidden="true"></span>
-								<span class="pixva-sim__fault pixva-sim__fault--backlight" data-sim-fault="no_picture" aria-hidden="true"></span>
-								<span class="pixva-sim__fault pixva-sim__fault--lines" data-sim-fault="lines" aria-hidden="true"></span>
-								<span class="pixva-sim__fault pixva-sim__fault--blink" data-sim-fault="blink" aria-hidden="true"></span>
-
-								<div class="pixva-sim__hud">
-									<span class="pixva-sim__hud-tag"><?php echo esc_html( isset( $first['tag'] ) ? $first['tag'] : '' ); ?></span>
-									<strong class="pixva-sim__hud-title"><?php echo esc_html( isset( $first['label'] ) ? $first['label'] : '' ); ?></strong>
-								</div>
-							</div>
-						</div>
-						<span class="pixva-sim__stand" aria-hidden="true"></span>
-					</div>
-
-					<div class="pixva-sim__symptoms" role="group" aria-label="<?php esc_attr_e( 'علامت خرابی تلویزیون را انتخاب کنید', 'pixva' ); ?>">
-						<?php foreach ( $sim_items as $index => $item ) : ?>
-							<button type="button"
-								class="pixva-sim__symptom pixva-sim__symptom--<?php echo esc_attr( $item['dot'] ); ?><?php echo 0 === $index ? ' is-active' : ''; ?>"
-								data-sim-symptom="<?php echo esc_attr( $item['key'] ); ?>"
-								data-sim-tag="<?php echo esc_attr( $item['tag'] ); ?>"
-								data-sim-label="<?php echo esc_attr( $item['label'] ); ?>"
-								data-sim-cause="<?php echo esc_attr( $item['cause'] ); ?>"
-								data-sim-cost="<?php echo esc_attr( $item['cost'] ); ?>"
-								data-sim-days="<?php echo esc_attr( $item['days'] ); ?>"
-								aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>">
-								<span class="pixva-sim__symptom-icon" aria-hidden="true"><?php echo esc_html( $item['icon'] ); ?></span>
-								<span class="pixva-sim__symptom-text">
-									<strong><?php echo esc_html( $item['label'] ); ?></strong>
-									<small><?php echo esc_html( $item['tag'] ); ?></small>
-								</span>
-							</button>
-						<?php endforeach; ?>
-					</div>
-
-					<div class="pixva-sim__info" data-sim-info>
-						<div class="pixva-sim__row">
-							<span><?php esc_html_e( 'علت احتمالی', 'pixva' ); ?></span>
-							<strong data-sim-cause><?php echo esc_html( isset( $first['cause'] ) ? $first['cause'] : '' ); ?></strong>
-						</div>
-						<div class="pixva-sim__row">
-							<span><?php esc_html_e( 'حدود هزینه', 'pixva' ); ?></span>
-							<strong data-sim-cost><?php echo esc_html( isset( $first['cost'] ) ? $first['cost'] : '' ); ?></strong>
-						</div>
-						<div class="pixva-sim__row">
-							<span><?php esc_html_e( 'زمان تحویل', 'pixva' ); ?></span>
-							<strong data-sim-time><?php echo esc_html( isset( $first['days'] ) ? $first['days'] : '' ); ?></strong>
-						</div>
-					</div>
-
-					<div class="pixva-sim__cta">
-						<a class="pixva-btn pixva-btn--orange" href="<?php echo esc_url( $order_url ); ?>" data-sim-order>
-							<?php esc_html_e( 'ثبت درخواست تعمیر این ایراد', 'pixva' ); ?>
-						</a>
-						<a class="pixva-btn pixva-btn--ghost-dark pixva-sim__wa" href="<?php echo esc_url( pixva_whatsapp_url( $wa_text ) ); ?>" data-sim-wa target="_blank" rel="noopener noreferrer">
-							<?php echo pixva_icon( 'whatsapp' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							<span><?php esc_html_e( 'مشاوره فوری در واتساپ', 'pixva' ); ?></span>
-						</a>
-						<p class="pixva-sim__cta-note">
-							<?php echo esc_html( $sim_sample ); ?> —
-							<?php esc_html_e( 'قیمت نهایی پس از عیب‌یابی رایگان تأیید شما می‌رسد.', 'pixva' ); ?>
-						</p>
-					</div>
-				</div>
+				<?php
+				pixva_render_fault_simulator(
+					array(
+						'id'          => 'pixva-hero-simulator',
+						'variant'     => 'hero',
+						'items'       => $sim_items,
+						'pricing'     => $sim_args,
+						'badge'       => (string) pixva_option( 'pixva_simulator_badge', __( 'سیمولاتور زنده تشخیص عیب', 'pixva' ) ),
+						'cta_text'    => (string) pixva_option( 'pixva_simulator_cta_text', __( 'ثبت درخواست تعمیر این ایراد', 'pixva' ) ),
+						'cta_url'     => $order_url,
+						'calc_target' => '#quick-calc',
+						'wa_enabled'  => true,
+						'wa_text'     => $wa_text,
+						'note'        => $sim_sample . ' — ' . __( 'قیمت نهایی پس از عیب‌یابی رایگان تأیید شما می‌رسد.', 'pixva' ),
+					)
+				);
+				?>
 			</div>
 		</div>
 	</section>

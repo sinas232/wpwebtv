@@ -20,6 +20,8 @@ $pixva_term = get_queried_object();
 	);
 	?>
 	<div class="pixva-container pixva-content">
+		<div class="pixva-layout">
+		<div class="pixva-layout__main">
 		<?php if ( have_posts() ) : ?>
 			<div class="pixva-grid pixva-grid--3">
 				<?php
@@ -33,6 +35,9 @@ $pixva_term = get_queried_object();
 		<?php else : ?>
 			<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'در این دسته هنوز مقاله‌ای نیست.', 'pixva' ); ?></p>
 		<?php endif; ?>
+		</div>
+		<?php get_sidebar(); ?>
+		</div>
 	</div>
 </main>
 <?php

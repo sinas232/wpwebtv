@@ -17,6 +17,8 @@ $desc       = $pixva_term instanceof WP_Term && $pixva_term->description ? $pixv
 <main id="content">
 	<?php pixva_page_hero( $name, $desc ); ?>
 	<div class="pixva-container pixva-content">
+		<div class="pixva-layout">
+		<div class="pixva-layout__main">
 		<div class="pixva-cta-box">
 			<div>
 				<h2><?php echo esc_html( sprintf( /* translators: %s: نام خرابی */ __( 'هزینه تعمیر «%s» را برآورد کنید', 'pixva' ), $name ) ); ?></h2>
@@ -37,6 +39,9 @@ $desc       = $pixva_term instanceof WP_Term && $pixva_term->description ? $pixv
 		<?php else : ?>
 			<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'برای این خرابی هنوز محتوایی ثبت نشده است.', 'pixva' ); ?></p>
 		<?php endif; ?>
+		</div>
+		<?php get_sidebar(); ?>
+		</div>
 	</div>
 </main>
 <?php

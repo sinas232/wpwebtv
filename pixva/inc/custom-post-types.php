@@ -236,6 +236,28 @@ function pixva_register_content_types() {
 		)
 	);
 
+	// نظرات مشتریان (pixva_review) — منبع داینامیک بخش «نظرات» و ویجت المنتور.
+	register_post_type(
+		'pixva_review',
+		array(
+			'labels'        => array(
+				'name'          => esc_html__( 'نظرات مشتریان', 'pixva' ),
+				'singular_name' => esc_html__( 'نظر مشتری', 'pixva' ),
+				'add_new_item'  => esc_html__( 'افزودن نظر مشتری', 'pixva' ),
+				'edit_item'     => esc_html__( 'ویرایش نظر', 'pixva' ),
+				'all_items'     => esc_html__( 'همه نظرات', 'pixva' ),
+				'menu_name'     => esc_html__( 'نظرات مشتریان', 'pixva' ),
+			),
+			'description'   => esc_html__( 'روایت واقعی مشتریان: عنوان = نام مشتری، محتوا = متن نظر، خلاصه = خدمت/شهر.', 'pixva' ),
+			'public'        => false,
+			'show_ui'       => true,
+			'menu_icon'     => 'dashicons-star-filled',
+			'menu_position' => 30,
+			'supports'      => array( 'title', 'editor', 'excerpt', 'thumbnail', 'page-attributes' ),
+			'show_in_rest'  => true,
+		)
+	);
+
 	// تاکسونومی نوع خرابی.
 	register_taxonomy(
 		'tv_problem',
@@ -315,6 +337,36 @@ function pixva_register_meta() {
 			'label' => esc_html__( 'زمان صرف‌شده', 'pixva' ),
 		),
 	);
+	$review_meta = array(
+		'_pixva_review_role'     => array(
+			'type'  => 'string',
+			'label' => esc_html__( 'خدمت یا شهر', 'pixva' ),
+		),
+		'_pixva_review_rating'   => array(
+			'type'  => 'integer',
+			'label' => esc_html__( 'امتیاز از ۵', 'pixva' ),
+		),
+		'_pixva_review_featured' => array(
+			'type'  => 'integer',
+			'label' => esc_html__( 'نمایش در صفحه اصلی', 'pixva' ),
+		),
+	);
+	foreach ( $review_meta as $key => $args ) {
+		register_post_meta(
+			'pixva_review',
+			$key,
+			array(
+				'type'              => $args['type'],
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'integer' === $args['type'] ? 'absint' : 'sanitize_text_field',
+				'auth_callback'     => static function () {
+					return current_user_can( 'edit_posts' );
+				},
+			)
+		);
+	}
+
 	foreach ( $case_meta as $key => $args ) {
 		register_post_meta(
 			'repair_cases',
@@ -431,6 +483,7 @@ function pixva_add_meta_boxes() {
 	add_meta_box( 'pixva_order_meta', esc_html__( 'وضعیت پرونده تعمیر', 'pixva' ), 'pixva_render_order_meta_box', 'pixva_orders', 'normal', 'high' );
 	add_meta_box( 'pixva_post_meta', esc_html__( 'مشخصات عیب‌یابی و سوالات متداول', 'pixva' ), 'pixva_render_post_meta_box', 'post', 'normal', 'high' );
 	add_meta_box( 'pixva_inbox_meta', esc_html__( 'متن پیام', 'pixva' ), 'pixva_render_inbox_meta_box', 'pixva_inbox', 'normal', 'high' );
+	add_meta_box( 'pixva_review_meta', esc_html__( 'مشخصات نظر مشتری', 'pixva' ), 'pixva_render_review_meta_box', 'pixva_review', 'normal', 'high' );
 }
 add_action( 'add_meta_boxes', 'pixva_add_meta_boxes' );
 
@@ -470,6 +523,70 @@ function pixva_render_case_meta_box( $post ) {
 	</p>
 	<?php
 }
+
+/**
+ * متاباکس نظر مشتری.
+ *
+ * @param WP_Post $post پرونده جاری.
+ * @return void
+ */
+function pixva_render_review_meta_box( $post ) {
+	wp_nonce_field( 'pixva_review_meta', 'pixva_review_nonce' );
+	$role     = (string) get_post_meta( $post->ID, '_pixva_review_role', true );
+	$rating   = (int) get_post_meta( $post->ID, '_pixva_review_rating', true );
+	$featured = (int) get_post_meta( $post->ID, '_pixva_review_featured', true );
+	?>
+	<p>
+		<label for="pixva_review_role"><?php esc_html_e( 'خدمت یا شهر (زیر نام مشتری):', 'pixva' ); ?></label>
+		<input type="text" id="pixva_review_role" name="pixva_review_role" value="<?php echo esc_attr( $role ); ?>" class="widefat">
+	</p>
+	<p>
+		<label for="pixva_review_rating"><?php esc_html_e( 'امتیاز (۱ تا ۵):', 'pixva' ); ?></label>
+		<input type="number" min="1" max="5" step="1" id="pixva_review_rating" name="pixva_review_rating" value="<?php echo esc_attr( $rating ? $rating : 5 ); ?>" class="small-text">
+	</p>
+	<p>
+		<label for="pixva_review_featured">
+			<input type="checkbox" id="pixva_review_featured" name="pixva_review_featured" value="1" <?php checked( 1, $featured ); ?>>
+			<?php esc_html_e( 'در صفحه اصلی نمایش داده شود', 'pixva' ); ?>
+		</label>
+	</p>
+	<?php
+}
+
+/**
+ * ذخیره متافیلدهای نظر مشتری.
+ *
+ * @param int $post_id شناسه پرونده.
+ * @return void
+ */
+function pixva_save_review_meta( $post_id ) {
+	if ( ! isset( $_POST['pixva_review_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['pixva_review_nonce'] ) ), 'pixva_review_meta' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	update_post_meta(
+		$post_id,
+		'_pixva_review_role',
+		isset( $_POST['pixva_review_role'] ) ? sanitize_text_field( wp_unslash( $_POST['pixva_review_role'] ) ) : ''
+	);
+	update_post_meta(
+		$post_id,
+		'_pixva_review_rating',
+		isset( $_POST['pixva_review_rating'] ) ? min( 5, max( 1, absint( wp_unslash( $_POST['pixva_review_rating'] ) ) ) ) : 5
+	);
+	update_post_meta(
+		$post_id,
+		'_pixva_review_featured',
+		empty( $_POST['pixva_review_featured'] ) ? 0 : 1
+	);
+}
+add_action( 'save_post_pixva_review', 'pixva_save_review_meta' );
 
 /**
  * گزینه‌های وضعیت پرونده تعمیر (تایم‌لاین شش‌مرحله‌ای).

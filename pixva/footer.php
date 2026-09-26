@@ -21,6 +21,12 @@ $pixva_eta     = isset( $pixva_control['hub_eta_hours'] ) ? $pixva_control['hub_
 $pixva_qr_url  = (string) pixva_option( 'pixva_footer_qr_url', pixva_page_url( 'tracking' ) );
 ?>
 <footer class="pixva-footer">
+	<?php if ( is_active_sidebar( 'footer-widgets' ) ) : ?>
+		<div class="pixva-container pixva-footer__widgets">
+			<?php dynamic_sidebar( 'footer-widgets' ); ?>
+		</div>
+	<?php endif; ?>
+
 	<div class="pixva-container pixva-footer__grid">
 
 		<section class="pixva-footer__col">

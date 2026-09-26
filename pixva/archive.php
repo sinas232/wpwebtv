@@ -27,6 +27,8 @@ if ( is_post_type_archive( 'tv_services' ) ) {
 <main id="content">
 	<?php pixva_page_hero( $archive_title, $archive_desc ); ?>
 	<div class="pixva-container pixva-content">
+		<div class="pixva-layout">
+		<div class="pixva-layout__main">
 		<?php if ( have_posts() ) : ?>
 			<div class="pixva-grid pixva-grid--3">
 				<?php
@@ -41,6 +43,9 @@ if ( is_post_type_archive( 'tv_services' ) ) {
 			<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'موردی برای نمایش نیست. از پیشخوان یک مورد اضافه کنید یا به محاسبه‌گر برگردید.', 'pixva' ); ?></p>
 			<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه هزینه', 'pixva' ); ?></a>
 		<?php endif; ?>
+		</div>
+		<?php get_sidebar(); ?>
+		</div>
 	</div>
 </main>
 <?php

@@ -367,6 +367,12 @@
 	   علامت خرابی → انیمیشن صفحه + علت احتمالی + حدود هزینه + زمان تحویل
 	   (همه مقادیر از سمت سرور در data-attributeها رندر شده‌اند).
 	   ================================================================== */
+	/* ==================================================================
+	   ۱٫۵) سیمولاتور زنده تشخیص عیب (هیرو + ویجت المنتور)
+	   علامت خرابی → انیمیشن/تصویر مانیتور + علت + حدود هزینه + زمان تحویل.
+	   همه مقادیر از data-attributeهای سمت سرور خوانده می‌شوند (بدون hardcode).
+	   در موبایل ردیف دکمه‌ها اسلایدر لمسی (swipe/drag) با نقطه‌های راهنماست.
+	   ================================================================== */
 	function initHeroSimulator() {
 		qsa('[data-pixva-simulator]').forEach(function (root) {
 			if (root.dataset.simBound === '1') {
@@ -378,19 +384,99 @@
 			var info = root.querySelector('[data-sim-info]');
 			var tag = root.querySelector('.pixva-sim__hud-tag');
 			var title = root.querySelector('.pixva-sim__hud-title');
+			var shot = root.querySelector('[data-sim-shot]');
 			var orderLink = root.querySelector('[data-sim-order]');
 			var waLink = root.querySelector('[data-sim-wa]');
+			var track = root.querySelector('[data-sim-track]') || root.querySelector('.pixva-sim__symptoms');
+			var dotsHost = root.querySelector('[data-sim-dots]');
 			var buttons = qsa('[data-sim-symptom]', root);
 			var outCause = info ? info.querySelector('[data-sim-cause]') : null;
 			var outCost = info ? info.querySelector('[data-sim-cost]') : null;
 			var outTime = info ? info.querySelector('[data-sim-time]') : null;
 			var current = screen ? screen.getAttribute('data-sim-screen') : '';
+			var swapTimer = null;
+
+			/* تصویر مانیتور با محو نرم عوض می‌شود. */
+			function setShot(url) {
+				if (!shot) {
+					return;
+				}
+				if (!url) {
+					shot.removeAttribute('src');
+					shot.setAttribute('alt', '');
+					return;
+				}
+				if (shot.getAttribute('src') === url) {
+					return;
+				}
+				if (screen) {
+					screen.classList.add('is-swapping');
+				}
+				window.clearTimeout(swapTimer);
+				swapTimer = window.setTimeout(function () {
+					shot.setAttribute('src', url);
+					shot.setAttribute('alt', title ? title.textContent : '');
+					if (screen) {
+						screen.classList.remove('is-swapping');
+					}
+				}, 160);
+			}
+
+			function setMode(button) {
+				if (!screen) {
+					return;
+				}
+				screen.setAttribute('data-sim-mode', button.getAttribute('data-sim-media') ? 'media' : 'fault');
+			}
+
+			function buildDots() {
+				if (!dotsHost || root.dataset.simDots === '0' || buttons.length < 2) {
+					return;
+				}
+				dotsHost.textContent = '';
+				buttons.forEach(function (button, index) {
+					var dot = document.createElement('button');
+					dot.type = 'button';
+					dot.setAttribute('aria-label', button.getAttribute('data-sim-label') || String(index + 1));
+					dot.addEventListener('click', function () {
+						select(button);
+						scrollToButton(button);
+					});
+					dotsHost.appendChild(dot);
+				});
+				syncDots(0);
+			}
+
+			function syncDots(index) {
+				if (!dotsHost) {
+					return;
+				}
+				qsa('button', dotsHost).forEach(function (dot, dotIndex) {
+					dot.classList.toggle('is-active', dotIndex === index);
+				});
+			}
+
+			function scrollToButton(button) {
+				if (!track || !button) {
+					return;
+				}
+				if ('function' === typeof button.scrollIntoView) {
+					try {
+						button.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+						return;
+					} catch (error) {
+						// در مرورگرهای قدیمی از جابه‌جایی دستی استفاده می‌شود.
+					}
+				}
+				track.scrollLeft = button.offsetLeft - (track.clientWidth - button.clientWidth) / 2;
+			}
 
 			function select(button) {
 				if (!button) {
 					return;
 				}
 				var key = button.getAttribute('data-sim-symptom');
+				var index = buttons.indexOf(button);
 				current = key;
 
 				buttons.forEach(function (peer) {
@@ -401,7 +487,11 @@
 
 				if (screen) {
 					screen.setAttribute('data-sim-screen', key);
+					screen.setAttribute('aria-label', button.getAttribute('data-sim-label') || key);
 				}
+				setMode(button);
+				setShot(button.getAttribute('data-sim-media') || '');
+
 				if (tag) {
 					tag.textContent = button.getAttribute('data-sim-tag') || '';
 				}
@@ -409,7 +499,6 @@
 					title.textContent = button.getAttribute('data-sim-label') || '';
 				}
 
-				// محو نرم جعبه اطلاعات و جایگزینی مقادیر.
 				if (info) {
 					info.classList.add('is-updating');
 					window.setTimeout(function () {
@@ -420,9 +509,18 @@
 					}, 180);
 				}
 
-				root.setAttribute('data-sim-active', key);
+				// لینک اقدام: CTA اختصاصی همان ایراد بر محاسبه‌گر اولویت دارد.
+				var itemCta = button.getAttribute('data-sim-cta');
+				if (orderLink) {
+					orderLink.setAttribute('data-sim-cta-active', itemCta ? '1' : '0');
+					if (itemCta) {
+						orderLink.href = itemCta;
+					} else if (root.dataset.orderUrl) {
+						orderLink.href = root.dataset.orderUrl;
+					}
+				}
 
-				// لینک واتساپ با علامت انتخابی و حدود هزینه به‌روز می‌شود.
+				// لینک واتساپ با علامت انتخابی و حدود هزینه بازنویسی می‌شود.
 				var waNumber = root.dataset.waNumber || '';
 				if (waLink && waNumber) {
 					var waText = 'سلام، تلویزیون من علامت «' + (button.getAttribute('data-sim-label') || '') + '» دارد ('
@@ -430,6 +528,9 @@
 						+ (button.getAttribute('data-sim-cost') || '') + '. برای اعزام کارشناس راهنمایی می‌خواهم.';
 					waLink.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waText);
 				}
+
+				root.setAttribute('data-sim-active', key);
+				syncDots(index);
 			}
 
 			buttons.forEach(function (button) {
@@ -438,7 +539,7 @@
 				});
 			});
 
-			// دکمه ثبت درخواست: جادوگر محاسبه‌گر را با همان ایراد پیش‌تنظیم می‌کند.
+			/* جادوگر محاسبه‌گر همان صفحه با ایراد انتخابی پیش‌تنظیم می‌شود. */
 			function driveCalculator() {
 				if (!current) {
 					return false;
@@ -448,41 +549,122 @@
 				if (!form || !form.pixvaCalc) {
 					return false;
 				}
+				var active = root.querySelector('[data-sim-symptom].is-active');
+				var problem = active ? (active.getAttribute('data-sim-problem') || current) : current;
+
 				form.pixvaCalc.setValues({
 					brand: root.dataset.simBrand || '',
 					tech: root.dataset.simTech || '',
 					size: root.dataset.simSize || '',
-					problem: current
+					problem: problem
 				});
 				form.pixvaCalc.goTo(3);
 				form.pixvaCalc.estimate();
 
-				// اسکن نرم تا جادوگر؛ اگر مرورگری پشتیبانی نکرد، پرش ساده انجام می‌شود.
 				try {
 					if ('function' === typeof form.scrollIntoView) {
 						form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-					} else if (form.id) {
-						window.location.hash = form.id;
 					}
 				} catch (error) {
-					// پیش‌تنظیم و محاسبه انجام شده است؛ اسکن شکست‌خورده جریان را متوقف نمی‌کند.
+					// پیش‌تنظیم و محاسبه انجام شده است.
 				}
 				return true;
 			}
 
 			if (orderLink) {
 				orderLink.addEventListener('click', function (event) {
+					if ('1' === orderLink.getAttribute('data-sim-cta-active')) {
+						return; // لینک اختصاصی همان ایراد دنبال می‌شود.
+					}
 					if (!driveCalculator()) {
-						return; // در نبود محاسبه‌گر، پیوند صفحه ثبت سفارش کار می‌کند.
+						return;
 					}
 					event.preventDefault();
 				});
 			}
 
-			// حالت پیش‌فرض: اولین علامت (بک‌لایت) فعال است.
-			if (!current && buttons.length) {
-				select(buttons[0]);
+			/* اسلایدر لمسی: کشیدن با انگشت/ماوس روی ردیف دکمه‌ها. */
+			function initSwipe() {
+				if (!track || '1' !== root.dataset.simSwipe) {
+					return;
+				}
+				var down = false;
+				var startX = 0;
+				var startScroll = 0;
+				var moved = 0;
+
+				track.addEventListener('pointerdown', function (event) {
+					if (event.pointerType === 'mouse' && event.button !== 0) {
+						return;
+					}
+					down = true;
+					moved = 0;
+					startX = event.clientX;
+					startScroll = track.scrollLeft;
+					track.classList.add('is-dragging');
+				});
+
+				track.addEventListener('pointermove', function (event) {
+					if (!down) {
+						return;
+					}
+					var delta = event.clientX - startX;
+					moved = Math.max(moved, Math.abs(delta));
+					track.scrollLeft = startScroll - delta;
+				});
+
+				var release = function () {
+					if (!down) {
+						return;
+					}
+					down = false;
+					track.classList.remove('is-dragging');
+					if (moved < 8) {
+						return;
+					}
+					// چسباندن به نزدیک‌ترین دکمه پس از رهاکردن.
+					var nearest = buttons[0];
+					var best = Infinity;
+					var center = track.scrollLeft + track.clientWidth / 2;
+					buttons.forEach(function (button) {
+						var distance = Math.abs(button.offsetLeft + button.offsetWidth / 2 - center);
+						if (distance < best) {
+							best = distance;
+							nearest = button;
+						}
+					});
+					select(nearest);
+					scrollToButton(nearest);
+				};
+
+				track.addEventListener('pointerup', release);
+				track.addEventListener('pointercancel', release);
+				track.addEventListener('pointerleave', release);
+
+				track.addEventListener('scroll', function () {
+					if (down || !dotsHost) {
+						return;
+					}
+					var center = track.scrollLeft + track.clientWidth / 2;
+					var nearestIndex = 0;
+					var best = Infinity;
+					buttons.forEach(function (button, index) {
+						var distance = Math.abs(button.offsetLeft + button.offsetWidth / 2 - center);
+						if (distance < best) {
+							best = distance;
+							nearestIndex = index;
+						}
+					});
+					syncDots(nearestIndex);
+				}, { passive: true });
 			}
+
+			buildDots();
+			initSwipe();
+
+			// حالت پیش‌فرض: اولین علامت فعال است (یا همان که سرور فعال کرده).
+			var initial = buttons.filter(function (button) { return button.classList.contains('is-active'); })[0];
+			select(initial || buttons[0]);
 		});
 	}
 
@@ -2032,7 +2214,7 @@
 					return;
 				}
 				if (hint) {
-					hint.textContent = window.matchMedia('(display-mode: standalone)').matches
+					hint.textContent = Boolean(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
 						? 'وب‌اپ در حال حاضر نصب و فعال است.'
 						: 'در iOS: دکمه Share و سپس Add to Home Screen. در اندروید/کروم: منوی سه‌نقطه و Install app.';
 				}

@@ -28,12 +28,14 @@ $query = get_search_query();
 	);
 	?>
 	<div class="pixva-container pixva-content">
+		<div class="pixva-layout">
+		<div class="pixva-layout__main">
 		<div class="pixva-search" style="margin-bottom:1.2rem"><?php get_search_form(); ?></div>
 		<?php if ( have_posts() ) : ?>
 			<?php
 			while ( have_posts() ) :
 				the_post();
-				$pixva_type_obj = get_post_type_object( get_post_type() );
+				$pixva_type_obj = get_post_type_object( (string) get_post_type() );
 				?>
 				<article <?php post_class( 'pixva-card pixva-result' ); ?>>
 					<a href="<?php the_permalink(); ?>">
@@ -46,7 +48,7 @@ $query = get_search_query();
 						?>
 					</a>
 					<div>
-						<span class="pixva-kicker"><?php echo esc_html( $post_type_object ? $post_type_object->labels->singular_name : '' ); ?></span>
+						<span class="pixva-kicker"><?php echo esc_html( $pixva_type_obj instanceof WP_Post_Type ? $pixva_type_obj->labels->singular_name : '' ); ?></span>
 						<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 						<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
 					</div>
@@ -59,6 +61,9 @@ $query = get_search_query();
 			</div>
 			<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'error-codes' ) ); ?>"><?php esc_html_e( 'جستجو در کدهای خطا', 'pixva' ); ?></a>
 		<?php endif; ?>
+		</div>
+		<?php get_sidebar(); ?>
+		</div>
 	</div>
 </main>
 <?php

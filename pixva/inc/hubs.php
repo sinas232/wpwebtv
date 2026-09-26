@@ -172,15 +172,14 @@ if ( ! function_exists( 'pixva_hub_tools' ) ) {
 
 if ( ! function_exists( 'pixva_render_mega_menu' ) ) {
 	/**
-	 * رندر مگامنوی شیشه‌ای هدر: ۵ هاب + آیتم‌های منوی اصلی وردپرس.
+	 * رندر مگامنوی شیشه‌ای هدر: ۵ هاب + منوی اصلی وردپرس با آبشاری چندسطحی.
 	 *
 	 * @param string $id_prefix پیشوند شناسه پنل‌ها (برای دروئر موبایل).
 	 * @return void
 	 */
 	function pixva_render_mega_menu( $id_prefix = 'mega' ) {
-		$hubs       = pixva_hubs();
-		$menu_items = pixva_primary_menu_items();
-		$index      = 0;
+		$hubs  = pixva_hubs();
+		$index = 0;
 		?>
 		<nav class="pixva-mega" data-pixva-mega aria-label="<?php esc_attr_e( 'هاب‌های تخصصی پیکسوا', 'pixva' ); ?>">
 			<ul class="pixva-mega__list">
@@ -248,11 +247,10 @@ if ( ! function_exists( 'pixva_render_mega_menu' ) ) {
 					</li>
 				<?php endforeach; ?>
 
-				<?php foreach ( $menu_items as $item ) : ?>
-					<li class="pixva-mega__item">
-						<a class="pixva-mega__link" href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['title'] ); ?></a>
-					</li>
-				<?php endforeach; ?>
+				<?php
+				// منوی اصلی وردپرس با آبشاری شیشه‌ای چندسطحی (بدون محدودیت عمق).
+				pixva_render_nav_items( pixva_menu_tree( 'primary' ), $id_prefix . '-nav' );
+				?>
 			</ul>
 		</nav>
 		<?php
