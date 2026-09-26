@@ -29,7 +29,7 @@ if ( ! function_exists( 'pixva_hubs' ) ) {
 				'slug'        => 'ai-diagnostics',
 				'title'       => __( 'هوش مصنوعی و عیب‌یابی', 'pixva' ),
 				'short'       => __( 'عیب‌یابی هوشمند', 'pixva' ),
-				'description' => __( 'دستیار هوشمند Gemini با آنالیز متن، تصویر و صدا؛ شبیه‌ساز لمسی تلویزیون، تستر پیکسل‌سوختگی و اسلایدر قبل/بعد.', 'pixva' ),
+				'description' => __( 'دستیار هوشمند Gemini با آنالیز متن، تصویر و صدا؛ جادوگر ثبت سفارش تعمیر، تستر پیکسل‌سوختگی و اسلایدر قبل/بعد.', 'pixva' ),
 				'template'    => 'page-templates/page-hub-ai.php',
 				'icon'        => 'ai',
 				'from'        => 1,

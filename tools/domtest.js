@@ -18,6 +18,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const repo = path.join(__dirname, '..');
 const theme = path.join(repo, 'pixva');
 const harness = path.join(repo, 'preview', 'hero-preview.html');
+const crmHarness = path.join(repo, 'tools', 'fixtures', 'crm-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -66,6 +67,44 @@ function staticChecks() {
 
 	const widgets = fs.readdirSync(path.join(theme, 'inc/widgets')).filter((f) => f.indexOf('.php') > -1);
 	check('widgets: ۸ فایل ویجت موجود است (' + widgets.length + ')', widgets.length >= 8);
+
+	// --- نسخه ۱٫۴٫۰: موتور CRM و حذف جعبه‌های غیرکاربردی ---
+	const crmJs = fs.readFileSync(path.join(theme, 'assets/js/crm-engine.js'), 'utf8');
+	const phpFiles = ['crm-engine', 'crm-wizard', 'crm-warranty', 'crm-technician', 'crm-dispatcher', 'blog-ecosystem']
+		.map((f) => fs.readFileSync(path.join(theme, 'inc', f + '.php'), 'utf8'));
+	const allPhp = phpFiles.join('\n');
+	const themeFiles = ['functions.php', 'front-page.php', 'inc/interactive-tools.php', 'inc/tools-registry.php', 'inc/tool-renderers.php', 'inc/theme-options.php']
+		.map((f) => fs.readFileSync(path.join(theme, f), 'utf8')).join('\n');
+
+	check('crm.js: جادوگر، پنل تعمیرکار، دیسپچ و هولوگرام', ['initWizard', 'initTechnicianPanel', 'initDispatcher', 'initHologram'].every((fn) => crmJs.indexOf(fn) > -1));
+	check('crm.js: چاپ فاکتور، استعلام گارانتی، جست‌وجوی خطا، برآورد سریع', ['initPrint', 'initWarrantyCheck', 'initErrorSearch', 'initQuickQuote'].every((fn) => crmJs.indexOf(fn) > -1));
+	check('crm.js: بدون jQuery', crmJs.indexOf('jQuery') === -1 && crmJs.indexOf('$(') === -1);
+	check('crm.php: نقش‌ها و قابلیت‌های اختصاصی', allPhp.indexOf('pixva_technician') > -1 && allPhp.indexOf('pixva_manager') > -1 && allPhp.indexOf('pixva_issue_order_warranty') > -1);
+	check('crm.php: وضعیت‌های شش‌گانه', ['pending', 'assigned', 'repairing', 'qc', 'ready', 'delivered'].every((k) => allPhp.indexOf("'" + k + "'") > -1));
+	check('crm.php: سریال گارانتی و اثرانگشت', allPhp.indexOf('PXV-G-') > -1 && allPhp.indexOf('pixva_warranty_hash') > -1);
+	check('crm.php: قلاب پیامک', allPhp.indexOf('pixva_send_sms') > -1);
+	check('crm.php: اندپوینت استعلام گارانتی', allPhp.indexOf('/crm/warranty/(?P<serial>') > -1);
+
+	check('حذف ابزار ۵: هیچ ارجاعی به سیمولاتور لمسی نمانده', ['tv_simulator', 'initTVSimulator', 'pixva_simulator_part_data', 'data-tv-simulator'].every((needle) => themeFiles.indexOf(needle) === -1 && toolsJs.indexOf(needle) === -1));
+	check('ابزار ۵ با جادوگر ثبت سفارش جایگزین شده', themeFiles.indexOf('order_wizard') > -1 && themeFiles.indexOf('pixva_render_order_wizard') > -1);
+	check('کادر ایستای پیک جمع‌آوری حذف و با استعلام اصالت جایگزین شده', themeFiles.indexOf('data-pixva-warranty-check') > -1);
+
+	check('css: لایه ۲۷ (هولوگرام و CRM)', css.indexOf('.pixva-holo__foil') > -1 && css.indexOf('.pixva-warranty__serial') > -1 && css.indexOf('.pixva-crm-order__status--qc') > -1);
+	check('css: انیمیشن هولوگرام با transform', css.indexOf('@keyframes pixva-holo-spin') > -1 && css.indexOf('--holo-tilt-x') > -1);
+	check('css: چاپ فاکتور', css.indexOf('@media print') > -1 && css.indexOf('body.pixva-printing') > -1);
+	check('css: پیشرفت مطالعه با scroll-driven animation', css.indexOf('animation-timeline: scroll(root block)') > -1);
+	check('css: نور محیطی OLED هیرو', css.indexOf('pixva-oled-breathe') > -1 && css.indexOf('pixva-cta-pulse') > -1);
+	check('css: رندر تنبل بخش‌های ابزار', css.indexOf('.pixva-tool-section') > -1 && css.indexOf('content-visibility: auto') > -1);
+	check('css: انیمیشن سنگین box-shadow حذف شده', css.indexOf('box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }') === -1);
+	check('css: خط اسکن با translate3d', css.indexOf('@keyframes pixva-scan') > -1 && /@keyframes pixva-scan \{[^}]*translate3d/s.test(css));
+	check('css: کارت شیشه‌ای وبلاگ و ابزارک‌ها', css.indexOf('.pixva-post-card__reading') > -1 && css.indexOf('.pixva-widget__result') > -1);
+
+	const functions = fs.readFileSync(path.join(theme, 'functions.php'), 'utf8');
+	check('سرعت: بارگذاری شرایطی اسکریپت ابزارها', functions.indexOf('pixva_needs_tools_js') > -1 && functions.indexOf('pixva_needs_crm_js') > -1);
+	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
+
+	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
+	check('style.css: نسخه ۱٫۴٫۰', /Version:\s*1\.4\.0/.test(style));
 }
 
 /* ------------------------------------------------------------------ *
@@ -210,13 +249,235 @@ async function runtimeChecks(window) {
 	check('hero: دکمه گرادیانی اصلی', !!$('.pixva-hero__actions .pixva-btn--gradient'));
 }
 
+/* ------------------------------------------------------------------ *
+ * بخش ۳ — موتور اتوماسیون CRM (هارنس tools/fixtures/crm-preview.html)
+ * ------------------------------------------------------------------ */
+async function crmChecks(window) {
+	const document = window.document;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+	const fire = (el, type, Ctor) => el.dispatchEvent(new (Ctor || window.Event)(type, { bubbles: true, cancelable: true }));
+	const setValue = (el, value) => {
+		el.value = value;
+		fire(el, 'input');
+		fire(el, 'change');
+	};
+
+	check('crm: موتور پس از DOMContentLoaded راه‌اندازی شد', document.documentElement.classList.contains('pixva-crm-ready'));
+
+	/* --- جادوگر ثبت سفارش --- */
+	const wizard = $('#pixva-order-wizard');
+	const steps = $$('[data-wz-step]', wizard).filter((step) => step.getAttribute('data-wz-step') !== 'done');
+	const doneStep = $('[data-wz-step="done"]', wizard);
+	const rail = $('[data-wz-rail]', wizard);
+	const dots = $$('[data-wz-dot]', wizard);
+
+	check('wizard: ساختار پنج گامی رندر شده', steps.length === 4 && !!doneStep && dots.length === 5);
+	check('wizard: در ابتدا فقط گام دستگاه دیده می‌شود', steps[0].hidden === false && steps.slice(1).every((step) => step.hidden === true) && doneStep.hidden === true);
+	check('wizard: گام بعد تا تکمیل اجباری‌ها غیرفعال است', $('[data-wz-next]', steps[0]).disabled === true);
+
+	$('[data-wz-group="brand"][data-wz-value="samsung"]', wizard).click();
+	const brandChip = $('[data-wz-group="brand"][data-wz-value="samsung"]', wizard);
+	check('wizard: چیپ برند فعال شد', brandChip.classList.contains('is-active') && brandChip.getAttribute('aria-checked') === 'true');
+	check('wizard: فیلد پنهان brand همگام شد', $('input[name="brand"]', wizard).value === 'samsung');
+
+	$('[data-wz-group="brand"][data-wz-value="lg"]', wizard).click();
+	check('wizard: انتخاب جایگزین، چیپ قبلی را غیرفعال می‌کند', $('input[name="brand"]', wizard).value === 'lg' && !brandChip.classList.contains('is-active'));
+	$('[data-wz-group="brand"][data-wz-value="samsung"]', wizard).click();
+
+	$('[data-wz-group="tech"][data-wz-value="oled"]', wizard).click();
+	$('[data-wz-group="size"][data-wz-value="65"]', wizard).click();
+	check('wizard: سه انتخاب اجباری → دکمه فعال', $('[data-wz-next]', steps[0]).disabled === false);
+
+	$('[data-wz-next]', steps[0]).click();
+	check('wizard: گام خرابی باز شد', steps[1].hidden === false && steps[0].hidden === true);
+	check('wizard: ریل همگام شد', dots[1].classList.contains('is-current') && dots[0].classList.contains('is-done'));
+
+	$('[data-wz-group="problem"][data-wz-value="lines"]', wizard).click();
+	check('wizard: فیلد پنهان problem پر شد', $('input[name="problem"]', wizard).value === 'lines');
+	$('[data-wz-next]', steps[1]).click();
+	check('wizard: گام تماس باز شد', steps[2].hidden === false);
+
+	const quoteBtn = $('[data-wz-quote]', wizard);
+	check('wizard: اعتبارسنجی موبایل، دکمه برآورد را قفل می‌کند', quoteBtn.disabled === true);
+	setValue($('#wz-name', wizard), 'س');
+	setValue($('#wz-phone', wizard), '0912123');
+	check('wizard: نام کوتاه و شماره نامعتبر همچنان قفل است', quoteBtn.disabled === true);
+	setValue($('#wz-name', wizard), 'سینا کریمی');
+	setValue($('#wz-phone', wizard), '09129876543');
+	check('wizard: داده معتبر → دکمه برآورد فعال', quoteBtn.disabled === false);
+
+	quoteBtn.click();
+	await wait(60);
+	check('wizard: برآورد فقط از سرور گرفته شد', window.__estimateCalls.length === 1 && window.__estimateCalls[0].action === 'pixva_get_estimate');
+	check('wizard: ورودی برآورد از انتخاب‌ها ساخته شد', window.__estimateCalls[0].fields.brand === 'samsung' && window.__estimateCalls[0].fields.size === '65' && window.__estimateCalls[0].fields.problem === 'lines');
+	check('wizard: گام بازبینی با قیمت سمت سرور', steps[3].hidden === false && $('[data-wz-price]', wizard).textContent.indexOf('۱٬۵۵۰٬۰۰۰') > -1);
+	check('wizard: زمان تحویل نمایش داده شد', $('[data-wz-days]', wizard).textContent.indexOf('۲ تا ۴ روز کاری') > -1);
+	check('wizard: خلاصه پرونده پر شد', $('[data-wz-sum="name"]', wizard).textContent === 'سینا کریمی' && $('[data-wz-sum="phone"]', wizard).textContent === '۰۹۱۲۹۸۷۶۵۴۳');
+	check('wizard: دکمه ثبت پس از برآورد فعال شد', $('[data-wz-submit]', wizard).disabled === false);
+
+	fire($('[data-pixva-wizard]', wizard), 'submit');
+	await wait(80);
+	check('wizard: گام موفقیت نمایش داده شد', doneStep.hidden === false && steps.every((step) => step.hidden === true));
+	check('wizard: کد پیگیری اختصاصی صادر شد', $('[data-wz-code]', wizard).textContent === 'PXV-1404-000501');
+	check('wizard: وضعیت پرونده اعلام شد', $('[data-wz-status]', wizard).textContent === 'در انتظار بررسی');
+	check('wizard: لینک پیگیری کد را حمل می‌کند', $('a[data-wz-track]', wizard).getAttribute('href').indexOf('code=PXV-1404-000501') > -1);
+	check('wizard: ریل کامل شد', rail.classList.contains('is-complete') && dots.every((dot) => dot.classList.contains('is-done')));
+
+	$('[data-wz-restart]', wizard).click();
+	check('wizard: شروع دوباره فرم را خالی می‌کند', steps[0].hidden === false && doneStep.hidden === true && $('input[name="brand"]', wizard).value === '' && $('[data-wz-code]', wizard).textContent === '—');
+
+	/* --- ایستگاه کاری تعمیرکار --- */
+	const panel = $('[data-crm-panel]');
+	const chips = $$('[data-crm-filter]', panel);
+	const card101 = $('[data-crm-order="101"]', panel);
+	const card102 = $('[data-crm-order="102"]', panel);
+	const panelMessage = $('[data-crm-message]', panel);
+
+	check('panel: نمای تعمیرکار (نه دیسپچ) متصل شد', panel.getAttribute('data-crm-view') === 'technician' && panel.dataset.crmBound === '1');
+	check('panel: فیلترها و پرونده‌ها رندر شده‌اند', chips.length === 3 && !!card101 && !!card102);
+
+	chips[2].click();
+	check('panel: فیلتر کلاینت‌ساید پرونده ناهمخوان را پنهان می‌کند', card101.hidden === true && card102.hidden === false && chips[2].classList.contains('is-active'));
+	chips[0].click();
+	check('panel: فیلتر «همه» کارت‌ها را برمی‌گرداند', card101.hidden === false && card102.hidden === false);
+
+	const reportForm = $('#report-101', panel);
+	const toggleBtn = $('[data-crm-toggle="report-101"]', panel);
+	check('panel: فرم گزارش در ابتدا بسته است', reportForm.hidden === true && toggleBtn.getAttribute('aria-expanded') === 'false');
+	toggleBtn.click();
+	check('panel: فرم گزارش باز شد', reportForm.hidden === false && reportForm.classList.contains('is-open') && toggleBtn.getAttribute('aria-expanded') === 'true');
+
+	const totalBox = $('[data-crm-total]', reportForm);
+	check('panel: جمع اولیه = دستمزد + قطعات', totalBox.textContent === '۸۰۰٬۰۰۰ تومان');
+	setValue($('[data-crm-part="price"]', reportForm), '1500000');
+	setValue($('[data-crm-part="qty"]', reportForm), '2');
+	check('panel: جمع زنده با قطعه و تعداد به‌روز شد', totalBox.textContent === '۳٬۸۰۰٬۰۰۰ تومان');
+
+	$('[data-crm-add-part]', reportForm).click();
+	check('panel: افزودن ردیف قطعه', $$('[data-crm-part-row]', reportForm).length === 2);
+	check('panel: نام فیلدهای ردیف جدید بازهم ایندکس می‌شود', $('[data-crm-part="name"]', $$('[data-crm-part-row]', reportForm)[1]).name === 'parts[1][name]');
+	$('[data-crm-remove-part]', $$('[data-crm-part-row]', reportForm)[1]).click();
+	check('panel: حذف ردیف قطعه', $$('[data-crm-part-row]', reportForm).length === 1);
+
+	setValue($('[data-crm-part="name"]', reportForm), 'بک‌لایت');
+	setValue($('[data-crm-part="spec"]', reportForm), '۵۵ اینچ Samsung');
+	fire(reportForm, 'submit');
+	await wait(80);
+	check('panel: گزارش فنی ذخیره شد', panelMessage.hidden === false && panelMessage.textContent.indexOf('گزارش فنی ذخیره شد') > -1);
+	check('panel: وضعیت پرونده به تست کیفیت رفت', card101.getAttribute('data-crm-status') === 'qc' && $('.pixva-crm-order__status', card101).classList.contains('pixva-crm-order__status--qc'));
+	check('panel: برچسب وضعیت فارسی از پیکربندی آمد', $('.pixva-crm-order__status', card101).textContent === 'تست کیفیت');
+
+	const readyBtn = $('[data-crm-action="status"][data-status="ready"]', card101);
+	readyBtn.click();
+	await wait(80);
+	check('panel: انتقال وضعیت به آماده تحویل', card101.getAttribute('data-crm-status') === 'ready' && readyBtn.disabled === true);
+
+	const warrantyBtn = $('[data-crm-action="warranty"]', card101);
+	check('panel: دکمه تایید نهایی و صدور گارانتی وجود دارد', !!warrantyBtn);
+	warrantyBtn.click();
+	await wait(80);
+	check('panel: کارت گارانتی‌دار شد', card101.classList.contains('is-warrantied'));
+	check('panel: سریال گارانتی به سربرگ اضافه شد', !!$('.pixva-crm-order__serial', card101) && $('.pixva-crm-order__serial', card101).textContent.indexOf('PXV-G-250926-A1B2C3') > -1);
+	check('panel: دکمه صدور گارانتی حذف شد', !$('[data-crm-action="warranty"]', card101));
+
+	/* --- هولوگرام زنده --- */
+	const holo = $('[data-pixva-warranty]');
+	check('holo: لایه‌های مهر هولوگرافیک رندر شده‌اند', ['.pixva-holo__foil', '.pixva-holo__sheen', '.pixva-holo__grid', '.pixva-holo__ring', '.pixva-holo__core'].every((sel) => !!$(sel, holo)));
+	check('holo: سریال روی کارت است', holo.getAttribute('data-warranty-serial') === 'PXV-G-250926-A1B2C3');
+	holo.dispatchEvent(new window.MouseEvent('pointermove', { bubbles: true, clientX: 150, clientY: 100 }));
+	await wait(60);
+	check('holo: حرکت نشانگر نور را جابه‌جا کرد', holo.style.getPropertyValue('--holo-x') === '25.00%' && holo.style.getPropertyValue('--holo-y') === '25.00%');
+	check('holo: شیب سه‌بعدی کارت تنظیم شد', holo.style.getPropertyValue('--holo-tilt-y') === '-3.13deg' && holo.classList.contains('is-live'));
+	holo.dispatchEvent(new window.MouseEvent('pointerleave', { bubbles: true }));
+	check('holo: با خروج نشانگر به حالت مرکز برمی‌گردد', holo.style.getPropertyValue('--holo-x') === '50%' && !holo.classList.contains('is-live'));
+
+	/* --- چاپ فاکتور رسمی --- */
+	const invoice = $('#invoice-102');
+	check('invoice: ساختار فاکتور رسمی کامل است', ['.pixva-invoice__head', '.pixva-invoice__parties', '.pixva-invoice__table', '.pixva-invoice__sign', '.pixva-invoice__verify'].every((sel) => !!$(sel, invoice)));
+	check('invoice: مهر دیجیتال و اثرانگشت اصالت دارد', !!$('.pixva-invoice__stamp', invoice) && $('.pixva-invoice__verify code', invoice).textContent.length >= 16);
+	$('[data-pixva-print][data-print-area="invoice-102"]', invoice).click();
+	check('print: بدنه در حالت چاپ و فقط فاکتور دیده می‌شود', document.body.classList.contains('pixva-printing') && invoice.classList.contains('is-print-source'));
+	await wait(90);
+	check('print: گفت‌وگوی چاپ فراخوانی شد', window.__printed === 1);
+	window.dispatchEvent(new window.Event('afterprint'));
+	check('print: پس از چاپ حالت‌ها پاک شد', !document.body.classList.contains('pixva-printing') && !invoice.classList.contains('is-print-source'));
+
+	/* --- استعلام اصالت گارانتی --- */
+	const checkCard = $('[data-pixva-warranty-check]');
+	setValue($('[data-warranty-serial]', checkCard), 'pxv-g-250926-a1b2c3');
+	fire($('[data-warranty-form]', checkCard), 'submit');
+	await wait(80);
+	check('check: نتیجه استعلام نمایش داده شد', $('[data-warranty-result]', checkCard).hidden === false);
+	check('check: اعتبار و تعمیرکار از REST آمد', $('[data-warranty-state]', checkCard).textContent === 'گارانتی معتبر است.' && $('[data-warranty-tech]', checkCard).textContent === 'رضا محمدی');
+	check('check: پوشش‌ها به فارسی جدا شدند', $('[data-warranty-covers]', checkCard).textContent === 'بک‌لایت ۵۵ اینچ، برد پاور');
+	check('check: سریال پیش از ارسال بزرگ شد', window.__fetchLog.some((url) => url.indexOf('/crm/warranty/PXV-G-250926-A1B2C3') > -1));
+
+	setValue($('[data-warranty-serial]', checkCard), 'PXV-G-000000-NOPE00');
+	fire($('[data-warranty-form]', checkCard), 'submit');
+	await wait(80);
+	check('check: سریال نامعتبر پیام خطا می‌دهد', $('[data-warranty-error]', checkCard).hidden === false && $('[data-warranty-result]', checkCard).hidden === true);
+
+	/* --- ابزارک جست‌وجوی کد خطا --- */
+	const errorWidget = $('[data-pixva-error-search]');
+	setValue($('[data-error-input]', errorWidget), 'E10');
+	await wait(450);
+	check('errors: نتیجه از REST رندر شد', $$('.pixva-widget__result', errorWidget).length === 1);
+	check('errors: کد، علت و راه‌حل نمایش داده شد', $('.pixva-widget__result strong', errorWidget).textContent === 'E101' && $('.pixva-widget__result small', errorWidget).textContent.indexOf('بک‌لایت') > -1);
+	setValue($('[data-error-input]', errorWidget), 'x');
+	await wait(450);
+	check('errors: عبارت کوتاه‌تر از ۲ نویسه درخواست نمی‌فرستد', $$('.pixva-widget__result', errorWidget).length === 0);
+
+	/* --- ابزارک برآورد سریع --- */
+	const quoteWidget = $('[data-pixva-quick-quote]');
+	fire($('[data-quote-form]', quoteWidget), 'submit');
+	await wait(60);
+	check('quote: نتیجه برآورد سریع نمایش داده شد', $('[data-quote-result]', quoteWidget).hidden === false);
+	check('quote: بازه قیمت سمت سرور است', $('[data-quote-price]', quoteWidget).textContent.indexOf('۱٬۵۵۰٬۰۰۰ تا ۲٬۵۸۰٬۰۰۰') > -1);
+
+	/* --- کپی سریال --- */
+	$('[data-copy]', holo).click();
+	await wait(30);
+	check('copy: بازخورد کپی نمایش داده شد', $('[data-crm-toast]') !== null && $('[data-copy]', holo).classList.contains('is-copied'));
+}
+
 /* ------------------------------------------------------------------ */
 (async function main() {
 	staticChecks();
 
-	if (!fs.existsSync(harness)) {
-		failures.push('هارنس preview/hero-preview.html پیدا نشد');
+	// هارنس موتور CRM (داخل مخزن نگه‌داری می‌شود).
+	if (!fs.existsSync(crmHarness)) {
+		failures.push('هارنس tools/fixtures/crm-preview.html پیدا نشد');
 		failed += 1;
+	} else {
+		const crmErrors = [];
+		const crmConsole = new VirtualConsole();
+		crmConsole.on('jsdomError', (error) => crmErrors.push(error.message));
+		crmConsole.on('error', (message) => crmErrors.push(String(message)));
+
+		const crmDom = await JSDOM.fromFile(crmHarness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: crmConsole,
+		});
+		if (crmDom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => crmDom.window.addEventListener('load', resolve));
+		}
+		await wait(150);
+
+		await crmChecks(crmDom.window);
+
+		check('crm: بدون خطای jsdom در کنسول (' + crmErrors.length + ')', crmErrors.length === 0);
+		if (crmErrors.length) {
+			crmErrors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		crmDom.window.close();
+	}
+
+	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.
+	if (!fs.existsSync(harness)) {
+		console.log('\n(هارنس preview/hero-preview.html موجود نیست — بخش هیرو رد شد)');
 	} else {
 		const errors = [];
 		const virtualConsole = new VirtualConsole();

@@ -3,7 +3,7 @@
  * رندر اجزای تعاملی سنگین پیکسوا (inc/interactive-tools.php)
  *
  * این پرونده فقط «اجزای بصری/تعاملی» مشترک را رندر می‌کند:
- * - شبیه‌ساز لمسی خرابی روی تلویزیون مجازی (ابزار ۵)
+ * - هاب پیگیری پرونده و استعلام اصالت گارانتی دیجیتال (ابزار ۱۷ و ۱۹)
  * - تستر زنده پیکسل‌سوختگی RGB و چرخه احیای OLED (ابزار ۶ و ۷)
  * - هاب اعزام اورژانسی و پیگیری آنلاین (ابزار ۱۷ و ۱۹)
  *
@@ -16,104 +16,6 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-}
-
-if ( ! function_exists( 'pixva_simulator_part_data' ) ) {
-	/**
-	 * داده واقعی هر بخش تلویزیون برای شبیه‌ساز لمسی (از موتور نرخ‌نامه).
-	 *
-	 * @return array<string, array<string, mixed>>
-	 */
-	function pixva_simulator_part_data() {
-		$parts = array(
-			'backlight'  => array(
-				'title'   => __( 'دست بک‌لایت LED', 'pixva' ),
-				'desc'    => __( 'سوختگی یا نیم‌سوز شدن شاخه‌های LED؛ نشانه رایج آن «صدا دارد ولی تصویر سیاه است» و دیده شدن تصویر کمرنگ با نور چراغ‌قوه است.', 'pixva' ),
-				'service' => 'backlight',
-			),
-			'water'      => array(
-				'title'   => __( 'فلت COF و برد T-Con', 'pixva' ),
-				'desc'    => __( 'نفوذ رطوبت به فلت‌های بندینگ باعث خطوط عمودی، تصویر منفی یا سیاه شدن نیمی از صفحه می‌شود؛ ترمیم با دستگاه بندینگ صنعتی انجام می‌گیرد.', 'pixva' ),
-				'service' => 'water',
-			),
-			'mainboard'  => array(
-				'title'   => __( 'برد اصلی و پردازنده', 'pixva' ),
-				'desc'    => __( 'ماندن روی لوگو، ریستارت مکرر، کار نکردن وای‌فای و خرابی پورت HDMI از نشانه‌های خرابی مین‌برد یا حافظه eMMC است.', 'pixva' ),
-				'service' => 'mainboard',
-			),
-			'powerboard' => array(
-				'title'   => __( 'برد تغذیه (Power)', 'pixva' ),
-				'desc'    => __( 'خاموشی کامل، بوی سوختگی، چشمک زدن چراغ استندبای و روشن نشدن مجدد؛ خازن‌ها و ماس‌فت‌های طبقه سوئیچینگ درگیر می‌شوند.', 'pixva' ),
-				'service' => 'powerboard',
-			),
-		);
-
-		foreach ( $parts as $key => $part ) {
-			$estimate = pixva_calculate_estimate( 'samsung', 'led', '55', $part['service'] );
-			$parts[ $key ]['floor'] = is_array( $estimate ) ? (int) $estimate['min'] : 0;
-			$parts[ $key ]['max']   = is_array( $estimate ) ? (int) $estimate['max'] : 0;
-			$parts[ $key ]['days']  = is_array( $estimate ) ? (string) $estimate['days'] : '';
-		}
-
-		return $parts;
-	}
-}
-
-if ( ! function_exists( 'pixva_render_tv_canvas_simulator' ) ) {
-	/**
-	 * ابزار ۵: شبیه‌ساز لمسی خرابی روی تلویزیون مجازی.
-	 *
-	 * @param array $args گزینه‌ها: wrap (پوشش سکشن) و size (سایز مرجع برآورد).
-	 * @return void
-	 */
-	function pixva_render_tv_canvas_simulator( $args = array() ) {
-		$args  = wp_parse_args( $args, array( 'wrap' => true, 'size' => '55' ) );
-		$parts = pixva_simulator_part_data();
-		$size  = sanitize_key( (string) $args['size'] );
-		?>
-		<?php if ( $args['wrap'] ) : ?>
-		<section class="pixva-section" id="tv-simulator">
-			<div class="pixva-container">
-				<div class="pixva-section-head">
-					<span class="pixva-badge pixva-badge--brand"><?php esc_html_e( 'شبیه‌ساز تعاملی', 'pixva' ); ?></span>
-					<h2><?php esc_html_e( 'شبیه‌ساز لمسی عیب‌یابی تلویزیون مجازی', 'pixva' ); ?></h2>
-					<p><?php esc_html_e( 'روی هر بخش از تلویزیون لمس یا کلیک کنید تا عیب، قطعه معیوب و برآورد نرخ‌نامه ۱۴۰۵ نمایش داده شود.', 'pixva' ); ?></p>
-				</div>
-		<?php endif; ?>
-
-				<div class="pixva-card pixva-simulator-card" data-tv-simulator data-simulator-data="<?php echo esc_attr( wp_json_encode( $parts ) ); ?>" data-simulator-size="<?php echo esc_attr( $size ); ?>">
-					<div class="pixva-sim-tv">
-						<div class="pixva-sim-screen">
-							<?php foreach ( $parts as $key => $part ) : ?>
-								<button type="button" class="pixva-sim-hotspot" data-part="<?php echo esc_attr( $key ); ?>" aria-label="<?php echo esc_attr( $part['title'] ); ?>">
-									<span><?php echo esc_html( $part['title'] ); ?></span>
-								</button>
-							<?php endforeach; ?>
-							<div class="pixva-sim-display-msg" data-sim-screen-msg>
-								<p><?php esc_html_e( 'یکی از بخش‌های تلویزیون را انتخاب کنید', 'pixva' ); ?></p>
-							</div>
-						</div>
-					</div>
-
-					<div class="pixva-sim-info" data-sim-info>
-						<span class="pixva-badge pixva-badge--brand" data-sim-tag><?php esc_html_e( 'آماده بررسی', 'pixva' ); ?></span>
-						<h3 data-sim-title><?php esc_html_e( 'بخش موردنظر را روی تلویزیون انتخاب کنید', 'pixva' ); ?></h3>
-						<p data-sim-desc><?php esc_html_e( 'با انتخاب هر بخش، علت رایج خرابی، قطعه درگیر و برآورد واقعی آن خدمت از موتور نرخ‌نامه نمایش داده می‌شود.', 'pixva' ); ?></p>
-						<div class="pixva-sim-price-box" data-sim-price-box hidden>
-							<span class="pixva-muted"><?php esc_html_e( 'برآورد نرخ‌نامه ۱۴۰۵ (سامسونگ، LED، ۵۵ اینچ):', 'pixva' ); ?></span>
-							<strong data-sim-price></strong>
-							<span class="pixva-muted" data-sim-days></span>
-						</div>
-						<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>" data-sim-quote hidden><?php esc_html_e( 'محاسبه دقیق برای برند و سایز من', 'pixva' ); ?></a>
-					</div>
-				</div>
-
-		<?php if ( $args['wrap'] ) : ?>
-			</div>
-		</section>
-		<?php endif; ?>
-		<?php
-	}
 }
 
 if ( ! function_exists( 'pixva_render_screen_rgb_tester' ) ) {
@@ -171,7 +73,7 @@ if ( ! function_exists( 'pixva_render_screen_rgb_tester' ) ) {
 
 if ( ! function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
 	/**
-	 * ابزار ۱۷ و ۱۹: هاب پیگیری زنده و اعزام فوری.
+	 * ابزار ۱۷ و ۱۹: هاب پیگیری زنده پرونده، استعلام اصالت گارانتی و ثبت سفارش (CRM).
 	 *
 	 * @param array $args گزینه‌ها: wrap.
 	 * @return void
@@ -179,7 +81,6 @@ if ( ! function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
 	function pixva_render_dispatch_and_warranty_hub( $args = array() ) {
 		$args  = wp_parse_args( $args, array( 'wrap' => true ) );
 		$phone = pixva_support_phone();
-		$zones = pixva_zone_catalog();
 		?>
 		<?php if ( $args['wrap'] ) : ?>
 		<section class="pixva-section" id="dispatch-hub">
@@ -197,23 +98,44 @@ if ( ! function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
 						</form>
 					</div>
 
-					<div class="pixva-card">
-						<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'اعزام فوری', 'pixva' ); ?></span>
-						<h3><?php esc_html_e( 'پیک جمع‌آوری ضدضربه و تکنسین سیار', 'pixva' ); ?></h3>
-						<p class="pixva-muted"><?php esc_html_e( 'حمل تلویزیون‌های ۵۵ تا ۸۵ اینچ با جعبه پددار استاندارد انجام می‌شود و رسید کتبی با مهر کارگاه علاءالدین تقدیم می‌گردد.', 'pixva' ); ?></p>
-						<form class="pixva-tool-row" data-request-form="dispatch" novalidate>
-							<?php
-							pixva_tool_field( 'dh-phone', __( 'شماره همراه', 'pixva' ), 'tel', array( 'name' => 'phone', 'inputmode' => 'numeric', 'placeholder' => '0912xxxxxxx', 'required' => true ) );
-							pixva_tool_field( 'dh-zone', __( 'منطقه', 'pixva' ), 'select', array( 'name' => 'zone', 'options' => wp_list_pluck( $zones, 'label' ) ) );
-							?>
-							<button type="submit" class="pixva-btn pixva-btn--cta"><?php esc_html_e( 'ثبت درخواست اعزام', 'pixva' ); ?></button>
+					<div class="pixva-card pixva-warranty-check" data-pixva-warranty-check>
+						<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'گارانتی دیجیتال', 'pixva' ); ?></span>
+						<h3><?php esc_html_e( 'استعلام اصالت گارانتی با سریال', 'pixva' ); ?></h3>
+						<p class="pixva-muted"><?php esc_html_e( 'سریال کارت گارانتی (PXV-G-…) را وارد کنید تا اعتبار، تعمیرکار مسئول، قطعات تحت پوشش و تاریخ انقضا از سامانه استعلام شود.', 'pixva' ); ?></p>
+						<form class="pixva-tool-row" data-warranty-form novalidate>
+							<input type="text" name="serial" class="pixva-input" dir="ltr" placeholder="PXV-G-000000-XXXXXX" aria-label="<?php esc_attr_e( 'سریال گارانتی', 'pixva' ); ?>" data-warranty-serial required>
+							<button type="submit" class="pixva-btn pixva-btn--cta" data-warranty-submit><?php esc_html_e( 'استعلام اصالت', 'pixva' ); ?></button>
 						</form>
+						<div class="pixva-warranty-check__result" data-warranty-result hidden>
+							<p class="pixva-warranty-check__state" data-warranty-state></p>
+							<dl>
+								<div><dt><?php esc_html_e( 'تعمیرکار', 'pixva' ); ?></dt><dd data-warranty-tech>—</dd></div>
+								<div><dt><?php esc_html_e( 'صدور', 'pixva' ); ?></dt><dd data-warranty-issued>—</dd></div>
+								<div><dt><?php esc_html_e( 'انقضا', 'pixva' ); ?></dt><dd data-warranty-expires>—</dd></div>
+								<div><dt><?php esc_html_e( 'پوشش', 'pixva' ); ?></dt><dd data-warranty-covers>—</dd></div>
+							</dl>
+						</div>
+						<p class="pixva-notice pixva-notice--error" data-warranty-error hidden></p>
 						<div class="pixva-tool-row">
 							<a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>" class="pixva-btn pixva-btn--ghost-dark"><?php echo pixva_icon( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html( pixva_fa_num( $phone ) ); ?></a>
-							<a href="<?php echo esc_url( pixva_whatsapp_url( __( 'سلام، درخواست اعزام پیک برای تعمیر تلویزیون دارم.', 'pixva' ) ) ); ?>" target="_blank" rel="noopener noreferrer" class="pixva-btn pixva-btn--ghost-dark"><?php esc_html_e( 'واتساپ کارگاه', 'pixva' ); ?></a>
+							<a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" class="pixva-btn pixva-btn--ghost-dark"><?php esc_html_e( 'پیگیری پرونده تعمیر', 'pixva' ); ?></a>
 						</div>
 					</div>
 				</div>
+
+				<?php
+				// جریان واقعی ثبت سفارش (جایگزین کادر ایستای پیک جمع‌آوری).
+				if ( function_exists( 'pixva_render_order_wizard' ) ) {
+					pixva_render_order_wizard(
+						array(
+							'id'      => 'pixva-wizard-dispatch',
+							'wrap'    => false,
+							'compact' => false,
+							'source'  => 'dispatch-hub',
+						)
+					);
+				}
+				?>
 		<?php if ( $args['wrap'] ) : ?>
 			</div>
 		</section>

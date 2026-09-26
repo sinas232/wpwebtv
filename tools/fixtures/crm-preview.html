@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>هارنس آزمون موتور CRM پیکسوا</title>
+<!-- سبک‌های واقعی قالب: هم برای آزمون و هم پیش‌نمایش بصری -->
+<link rel="stylesheet" href="../../pixva/style.css">
+<link rel="stylesheet" href="../../pixva/assets/css/main.css">
+<link rel="stylesheet" href="../../pixva/assets/css/pixva-2026.css">
+<!--
+	آینه خروجی PHP برای آزمون jsdom موتور اتوماسیون (بدون نیاز به وردپرس):
+	inc/crm-wizard.php  → جادوگر ثبت سفارش
+	inc/crm-technician.php → ایستگاه کاری تعمیرکار
+	inc/crm-warranty.php → کارت گارانتی هولوگرافیک + فاکتور رسمی
+	inc/interactive-tools.php → استعلام اصالت گارانتی
+	inc/blog-ecosystem.php → جست‌وجوی کد خطا و برآورد سریع
+
+	پاسخ‌های AJAX/REST همان کلیدهایی هستند که سمت سرور برمی‌گردانند
+	(inc/crm-engine.php و inc/rest-api.php).
+-->
+<script>
+	window.pixvaTheme = {
+		ajaxUrl: '/wp-admin/admin-ajax.php',
+		restUrl: '/wp-json/pixva/v1/',
+		nonce: { calculator: 'calc-nonce', order: 'order-nonce' },
+		i18n: { loading: 'در حال پردازش…', toman: 'تومان', error: 'خطایی رخ داد' }
+	};
+
+	window.pixvaCrm = {
+		ajaxUrl: '/wp-admin/admin-ajax.php',
+		restUrl: '/wp-json/pixva/v1/',
+		nonce: 'crm-nonce',
+		panelUrl: '/technician',
+		homeUrl: '/',
+		canDispatch: true,
+		statuses: {
+			pending: 'در انتظار بررسی',
+			assigned: 'تخصیص به تعمیرکار',
+			repairing: 'در حال تعمیر',
+			qc: 'تست کیفیت',
+			ready: 'آماده تحویل',
+			delivered: 'تحویل شده'
+		},
+		i18n: {
+			sending: 'در حال ارسال…',
+			saved: 'ذخیره شد.',
+			error: 'خطایی رخ داد؛ دوباره تلاش کنید.',
+			confirmWarranty: 'گارانتی دیجیتال صادر و وضعیت پرونده «آماده تحویل» شود؟',
+			copied: 'کپی شد.'
+		}
+	};
+
+	// برآورد هزینه: همان کلیدهایی که pixva_ajax_get_estimate برمی‌گرداند.
+	window.__estimateCalls = [];
+	window.pixvaPostAjax = function (action, nonce, fields) {
+		window.__estimateCalls.push({ action: action, nonce: nonce, fields: fields });
+		if (action === 'pixva_get_estimate') {
+			return Promise.resolve({
+				min: 1550000,
+				max: 2580000,
+				minFormatted: '۱٬۵۵۰٬۰۰۰',
+				maxFormatted: '۲٬۵۸۰٬۰۰۰',
+				days: '۲ تا ۴ روز کاری',
+				panelReplacement: false,
+				warning: ''
+			});
+		}
+		return Promise.resolve(null);
+	};
+
+	// پاسخ‌های admin-ajax و REST پیکسوا.
+	window.__fetchLog = [];
+	window.fetch = function (url, init) {
+		const target = String(url);
+		window.__fetchLog.push(target);
+
+		let payload = { success: false, data: { message: 'unknown action' } };
+		let ok = true;
+
+		if (init && init.body && typeof FormData !== 'undefined' && init.body instanceof FormData) {
+			const action = init.body.get('action');
+			if (action === 'pixva_crm_create_order') {
+				payload = {
+					success: true,
+					data: {
+						id: 501,
+						code: 'PXV-1404-000501',
+						message: 'سفارش شما ثبت شد؛ کد پیگیری پیامک می‌شود.',
+						status: 'در انتظار بررسی',
+						trackUrl: '/tracking'
+					}
+				};
+			} else if (action === 'pixva_crm_status') {
+				payload = { success: true, data: { message: 'وضعیت پرونده به‌روزرسانی شد.', order: { status: init.body.get('status') } } };
+			} else if (action === 'pixva_crm_report') {
+				payload = { success: true, data: { message: 'گزارش فنی ذخیره شد.', order: { status: 'qc' } } };
+			} else if (action === 'pixva_crm_warranty') {
+				payload = {
+					success: true,
+					data: {
+						message: 'گارانتی دیجیتال صادر شد.',
+						order: { status: 'ready' },
+						warranty: { serial: 'PXV-G-250926-A1B2C3', days: 180 }
+					}
+				};
+			} else if (action === 'pixva_crm_assign') {
+				payload = { success: true, data: { message: 'پرونده تخصیص یافت.', order: { status: 'assigned' } } };
+			}
+		} else if (target.indexOf('/crm/warranty/') > -1) {
+			const serial = target.split('/crm/warranty/')[1].split('?')[0].toUpperCase();
+			if (serial === 'PXV-G-250926-A1B2C3') {
+				payload = {
+					serial: serial,
+					valid: true,
+					days: 180,
+					issuedAt: '۱۴۰۴/۰۷/۰۴',
+					expiresAt: '۱۴۰۵/۰۱/۰۴',
+					technician: 'رضا محمدی',
+					covers: ['بک‌لایت ۵۵ اینچ', 'برد پاور'],
+					fingerprint: '9F2AC11B',
+					state: 'گارانتی معتبر است.'
+				};
+			} else {
+				ok = false;
+				payload = { code: 'pixva_crm_warranty_missing', message: 'گارانتی‌ای با این سریال پیدا نشد.' };
+			}
+		} else if (target.indexOf('/errors') > -1) {
+			payload = {
+				success: true,
+				count: 1,
+				errors: [{
+					code: 'E101',
+					title: 'سه چشمک چراغ پاور',
+					cause: 'خطای محافظت برد پاور یا خرابی بک‌لایت',
+					fix: 'تعویض دست کامل بک‌لایت و تست ریسه‌ها',
+					brand: 'samsung',
+					level: 'high',
+					source: 'defaults'
+				}]
+			};
+		}
+
+		return Promise.resolve({
+			ok: ok,
+			status: ok ? 200 : 404,
+			json: function () { return Promise.resolve(payload); }
+		});
+	};
+
+	// jsdom این دو را پیاده‌سازی نکرده است.
+	window.confirm = function () { return true; };
+	window.print = function () { window.__printed = (window.__printed || 0) + 1; };
+	window.scrollTo = function () {};
+
+	// jsdom ابعاد جعبه را صفر می‌دهد؛ برای آزمون هولوگرام یک جعبه ثابت لازم است.
+	window.Element.prototype.getBoundingClientRect = function () {
+		return { x: 0, y: 0, top: 0, left: 0, right: 600, bottom: 400, width: 600, height: 400, toJSON: function () { return {}; } };
+	};
+</script>
+</head>
+<body style="padding:1.5rem;display:flex;flex-direction:column;gap:2rem;background:#F7FAFC;">
+
+<!-- ===================== جادوگر ثبت سفارش ===================== -->
+<section class="pixva-section pixva-section--wizard" id="pixva-order-wizard-section">
+	<div class="pixva-container">
+		<div class="pixva-wz pixva-block pixva-block--glass" id="pixva-order-wizard">
+			<form class="pixva-wz__form" data-pixva-wizard data-wz-source="home" novalidate>
+				<input type="hidden" name="pixva_hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
+				<input type="hidden" name="brand" value="">
+				<input type="hidden" name="tech" value="">
+				<input type="hidden" name="size" value="">
+				<input type="hidden" name="problem" value="">
+
+				<ol class="pixva-wz__rail" data-wz-rail aria-label="گام‌های ثبت سفارش">
+					<li class="pixva-wz__dot is-current" data-wz-dot="device"><span class="pixva-wz__dot-no" aria-hidden="true">۱</span><span class="pixva-wz__dot-label">دستگاه</span></li>
+					<li class="pixva-wz__dot" data-wz-dot="fault"><span class="pixva-wz__dot-no" aria-hidden="true">۲</span><span class="pixva-wz__dot-label">خرابی</span></li>
+					<li class="pixva-wz__dot" data-wz-dot="contact"><span class="pixva-wz__dot-no" aria-hidden="true">۳</span><span class="pixva-wz__dot-label">تماس</span></li>
+					<li class="pixva-wz__dot" data-wz-dot="review"><span class="pixva-wz__dot-no" aria-hidden="true">۴</span><span class="pixva-wz__dot-label">برآورد</span></li>
+					<li class="pixva-wz__dot" data-wz-dot="done"><span class="pixva-wz__dot-no" aria-hidden="true">۵</span><span class="pixva-wz__dot-label">ثبت</span></li>
+				</ol>
+
+				<div class="pixva-wz__viewport">
+					<div class="pixva-wz__track">
+
+						<section class="pixva-wz__step is-active" data-wz-step="device" aria-labelledby="wz-device">
+							<h3 id="wz-device">مشخصات دستگاه</h3>
+							<p class="pixva-wz__hint">برند، تکنولوژی پنل و سایز را انتخاب کنید.</p>
+
+							<h4>برند</h4>
+							<div class="pixva-wz__choices pixva-wz__choices--brand" data-wz-choices="brand" role="radiogroup" aria-label="brand">
+								<button type="button" class="pixva-choice" data-wz-group="brand" data-wz-value="samsung" role="radio" aria-checked="false"><span>سامسونگ</span><small class="pixva-latin">Samsung</small></button>
+								<button type="button" class="pixva-choice" data-wz-group="brand" data-wz-value="lg" role="radio" aria-checked="false"><span>ال‌جی</span><small class="pixva-latin">LG</small></button>
+							</div>
+
+							<h4>تکنولوژی پنل</h4>
+							<div class="pixva-wz__choices" data-wz-choices="tech" role="radiogroup" aria-label="tech">
+								<button type="button" class="pixva-choice" data-wz-group="tech" data-wz-value="led" role="radio" aria-checked="false"><span>LED</span></button>
+								<button type="button" class="pixva-choice" data-wz-group="tech" data-wz-value="oled" role="radio" aria-checked="false"><span>OLED</span></button>
+							</div>
+
+							<h4>سایز صفحه</h4>
+							<div class="pixva-wz__choices pixva-wz__choices--size" data-wz-choices="size" role="radiogroup" aria-label="size">
+								<button type="button" class="pixva-choice" data-wz-group="size" data-wz-value="55" role="radio" aria-checked="false"><span>۵۵ اینچ</span></button>
+								<button type="button" class="pixva-choice" data-wz-group="size" data-wz-value="65" role="radio" aria-checked="false"><span>۶۵ اینچ</span></button>
+							</div>
+
+							<div class="pixva-field">
+								<label for="wz-model">مدل دستگاه (اختیاری)</label>
+								<input type="text" id="wz-model" name="model" maxlength="80" placeholder="UA55AU7000" dir="ltr">
+							</div>
+
+							<div class="pixva-wz__nav">
+								<button type="button" class="pixva-btn pixva-btn--gradient" data-wz-next disabled>گام بعد</button>
+							</div>
+						</section>
+
+						<section class="pixva-wz__step" data-wz-step="fault" hidden>
+							<h3>خرابی دستگاه</h3>
+							<p class="pixva-wz__hint">علامت اصلی خرابی را انتخاب کنید.</p>
+
+							<h4>علامت خرابی</h4>
+							<div class="pixva-wz__choices pixva-wz__choices--problem" data-wz-choices="problem" role="radiogroup" aria-label="problem">
+								<button type="button" class="pixva-choice" data-wz-group="problem" data-wz-value="no_picture" role="radio" aria-checked="false"><span>تصویر سیاه / صدا دارد</span></button>
+								<button type="button" class="pixva-choice" data-wz-group="problem" data-wz-value="lines" role="radio" aria-checked="false"><span>خطوط عمودی و رنگی</span></button>
+							</div>
+
+							<div class="pixva-field">
+								<label for="wz-notes">شرح خرابی (اختیاری)</label>
+								<textarea id="wz-notes" name="notes" rows="3" maxlength="600"></textarea>
+							</div>
+
+							<div class="pixva-wz__pair">
+								<div class="pixva-field">
+									<label for="wz-preferred">زمان مراجعه</label>
+									<select id="wz-preferred" name="preferred">
+										<option value="urgent">اورژانسی (امروز)</option>
+										<option value="normal">عادی (۲۴ ساعت)</option>
+									</select>
+								</div>
+								<div class="pixva-field">
+									<label for="wz-zone">منطقه</label>
+									<select id="wz-zone" name="zone">
+										<option value="تهران - مرکز">تهران - مرکز</option>
+										<option value="تهران - غرب">تهران - غرب</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="pixva-wz__nav">
+								<button type="button" class="pixva-btn pixva-btn--ghost" data-wz-prev>بازگشت</button>
+								<button type="button" class="pixva-btn pixva-btn--gradient" data-wz-next disabled>گام بعد</button>
+							</div>
+						</section>
+
+						<section class="pixva-wz__step" data-wz-step="contact" hidden>
+							<h3>مشخصات تماس</h3>
+							<p class="pixva-wz__hint">کد پیگیری به همین شماره ارسال می‌شود.</p>
+
+							<div class="pixva-field">
+								<label for="wz-name">نام و نام خانوادگی</label>
+								<input type="text" id="wz-name" name="name" autocomplete="name" maxlength="80" required>
+							</div>
+							<div class="pixva-field">
+								<label for="wz-phone">شماره همراه</label>
+								<input type="tel" id="wz-phone" name="phone" inputmode="numeric" autocomplete="tel" placeholder="0912xxxxxxx" dir="ltr" required>
+							</div>
+							<div class="pixva-field">
+								<label for="wz-address">آدرس (اختیاری)</label>
+								<textarea id="wz-address" name="address" rows="2" maxlength="300"></textarea>
+							</div>
+
+							<div class="pixva-wz__nav">
+								<button type="button" class="pixva-btn pixva-btn--ghost" data-wz-prev>بازگشت</button>
+								<button type="button" class="pixva-btn pixva-btn--gradient" data-wz-next data-wz-quote>محاسبه برآورد</button>
+							</div>
+						</section>
+
+						<section class="pixva-wz__step" data-wz-step="review" hidden>
+							<h3>برآورد و تأیید نهایی</h3>
+
+							<dl class="pixva-wz__summary" data-wz-summary>
+								<div><dt>دستگاه</dt><dd data-wz-sum="device">—</dd></div>
+								<div><dt>خرابی</dt><dd data-wz-sum="problem">—</dd></div>
+								<div><dt>زمان مراجعه</dt><dd data-wz-sum="preferred">—</dd></div>
+								<div><dt>منطقه</dt><dd data-wz-sum="zone">—</dd></div>
+								<div><dt>نام</dt><dd data-wz-sum="name">—</dd></div>
+								<div><dt>شماره همراه</dt><dd data-wz-sum="phone">—</dd></div>
+							</dl>
+
+							<div class="pixva-wz__quote" data-wz-quote-box>
+								<p class="pixva-wz__quote-label">بازه برآورد (نرخ‌نامه مصوب)</p>
+								<p class="pixva-wz__quote-price" data-wz-price>—</p>
+								<p class="pixva-wz__quote-days" data-wz-days></p>
+								<p class="pixva-wz__quote-note">قیمت نهایی پس از عیب‌یابی رایگان تأیید شما می‌رسد.</p>
+							</div>
+
+							<p class="pixva-notice pixva-notice--warning" data-wz-warning hidden></p>
+							<p class="pixva-notice pixva-notice--error" data-wz-error hidden></p>
+
+							<div class="pixva-wz__nav">
+								<button type="button" class="pixva-btn pixva-btn--ghost" data-wz-prev>اصلاح اطلاعات</button>
+								<button type="submit" class="pixva-btn pixva-btn--cta pixva-btn--pulse" data-wz-submit disabled>ثبت سفارش و دریافت کد پیگیری</button>
+							</div>
+						</section>
+
+						<section class="pixva-wz__step pixva-wz__step--done" data-wz-step="done" hidden>
+							<div class="pixva-wz__done" data-wz-success>
+								<span class="pixva-wz__done-ring" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6 9 17l-5-5"/></svg></span>
+								<h3>سفارش شما ثبت شد</h3>
+								<p class="pixva-wz__done-msg" data-wz-message></p>
+								<p class="pixva-wz__code"><span>کد پیگیری</span><strong data-wz-code dir="ltr">—</strong></p>
+								<p class="pixva-wz__done-status">وضعیت فعلی: <strong data-wz-status></strong></p>
+								<div class="pixva-wz__done-actions">
+									<a class="pixva-btn pixva-btn--gradient" href="/tracking" data-wz-track>پیگیری وضعیت پرونده</a>
+									<a class="pixva-btn pixva-btn--ghost-dark" href="https://wa.me/989120000000" target="_blank" rel="noopener noreferrer">مشاوره در واتساپ</a>
+								</div>
+								<button type="button" class="pixva-wz__restart" data-wz-restart>ثبت سفارش دیگر</button>
+							</div>
+						</section>
+
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</section>
+
+<!-- ===================== ایستگاه کاری تعمیرکار ===================== -->
+<div class="pixva-crm pixva-crm--technician" data-crm-panel data-crm-view="technician" data-crm-role="technician">
+
+	<header class="pixva-crm__head">
+		<div>
+			<span class="pixva-badge pixva-badge--brand">پنل تعمیرکار</span>
+			<h2>ایستگاه کاری تعمیر</h2>
+			<p class="pixva-muted">سلام رضا؛ پرونده‌های زیر به شما تخصیص داده شده‌اند.</p>
+		</div>
+		<dl class="pixva-crm__kpis">
+			<div><dt>پرونده باز</dt><dd>۲</dd></div>
+			<div><dt>در حال تعمیر</dt><dd>۱</dd></div>
+			<div><dt>تست کیفیت</dt><dd>۰</dd></div>
+			<div><dt>گارانتی صادرشده</dt><dd>۱</dd></div>
+			<div><dt>کارکرد ریالی</dt><dd>۴٬۲۰۰٬۰۰۰</dd></div>
+		</dl>
+	</header>
+
+	<nav class="pixva-crm__filters" aria-label="فیلتر وضعیت پرونده‌ها">
+		<a class="pixva-crm__chip is-active" href="?crm_status=" data-crm-filter="">همه پرونده‌ها</a>
+		<a class="pixva-crm__chip" href="?crm_status=repairing" data-crm-filter="repairing">در حال تعمیر</a>
+		<a class="pixva-crm__chip" href="?crm_status=ready" data-crm-filter="ready">آماده تحویل</a>
+	</nav>
+
+	<p class="pixva-notice" data-crm-message role="status" aria-live="polite" hidden></p>
+
+	<div class="pixva-crm__list">
+
+		<!-- پرونده ۱: در حال تعمیر، بدون گارانتی -->
+		<article class="pixva-crm-order" data-crm-order="101" data-crm-status="repairing">
+			<header class="pixva-crm-order__head">
+				<div class="pixva-crm-order__id">
+					<strong dir="ltr">PXV-1404-000101</strong>
+					<span class="pixva-crm-order__status pixva-crm-order__status--repairing">در حال تعمیر</span>
+				</div>
+				<p class="pixva-crm-order__device">سامسونگ UA55AU7000</p>
+				<p class="pixva-crm-order__problem">تصویر سیاه است اما صدا پخش می‌شود.</p>
+			</header>
+
+			<dl class="pixva-crm-order__facts">
+				<div><dt>مشتری</dt><dd>مریم احمدی</dd></div>
+				<div><dt>تماس</dt><dd dir="ltr">۰۹۱۲۱۲۳۴۵۶۷</dd></div>
+				<div><dt>برآورد اولیه</dt><dd>۱٬۵۵۰٬۰۰۰ تا ۲٬۵۸۰٬۰۰۰ تومان</dd></div>
+				<div><dt>تخصیص</dt><dd>۱۴۰۴/۰۷/۰۲</dd></div>
+			</dl>
+
+			<div class="pixva-crm-order__actions" data-crm-actions>
+				<button type="button" class="pixva-btn pixva-btn--ghost pixva-btn--sm" data-crm-action="status" data-status="qc">تست کیفیت</button>
+				<button type="button" class="pixva-btn pixva-btn--ghost pixva-btn--sm" data-crm-action="status" data-status="ready">آماده تحویل</button>
+				<button type="button" class="pixva-btn pixva-btn--ghost pixva-btn--sm" data-crm-toggle="report-101" aria-expanded="false">گزارش فنی</button>
+				<button type="button" class="pixva-btn pixva-btn--gradient pixva-btn--sm" data-crm-action="warranty">تایید نهایی و صدور گارانتی</button>
+			</div>
+
+			<form class="pixva-crm-report" data-crm-report id="report-101" hidden>
+				<h4>گزارش فنی و قطعات تعویضی</h4>
+
+				<div class="pixva-crm-report__parts" data-crm-parts>
+					<div class="pixva-crm-report__row" data-crm-part-row>
+						<input type="text" name="parts[0][name]" placeholder="قطعه (مثلاً بک‌لایت)" data-crm-part="name">
+						<input type="text" name="parts[0][spec]" placeholder="مشخصات (۶۵ اینچ LG)" data-crm-part="spec">
+						<input type="text" name="parts[0][serial]" placeholder="سریال قطعه" dir="ltr" data-crm-part="serial">
+						<input type="number" name="parts[0][qty]" min="1" value="1" aria-label="تعداد" data-crm-part="qty">
+						<input type="number" name="parts[0][price]" min="0" step="1000" value="0" aria-label="قیمت واحد" data-crm-part="price" data-crm-price>
+						<button type="button" class="pixva-crm-report__remove" data-crm-remove-part aria-label="حذف ردیف">×</button>
+					</div>
+				</div>
+
+				<button type="button" class="pixva-btn pixva-btn--ghost pixva-btn--sm" data-crm-add-part>افزودن قطعه</button>
+
+				<div class="pixva-field">
+					<label for="diagnosis-101">شرح عیب‌یابی</label>
+					<textarea id="diagnosis-101" name="diagnosis" rows="2" maxlength="600"></textarea>
+				</div>
+				<div class="pixva-field">
+					<label for="actions-101">اقدامات انجام‌شده</label>
+					<textarea id="actions-101" name="actions" rows="2" maxlength="600"></textarea>
+				</div>
+
+				<div class="pixva-crm-report__numbers">
+					<div class="pixva-field">
+						<label for="minutes-101">زمان صرف‌شده (دقیقه)</label>
+						<input type="number" id="minutes-101" name="minutes" min="0" step="5" value="90">
+					</div>
+					<div class="pixva-field">
+						<label for="labor-101">دستمزد (تومان)</label>
+						<input type="number" id="labor-101" name="labor" min="0" step="10000" value="800000" data-crm-labor>
+					</div>
+					<p class="pixva-crm-report__total">جمع کل: <strong data-crm-total>۸۰۰٬۰۰۰</strong></p>
+				</div>
+
+				<label class="pixva-crm-report__qc">
+					<input type="checkbox" name="qc_passed" value="1">
+					<span>تست کیفیت با الگوی کالیبراسیون انجام و قبول شد.</span>
+				</label>
+
+				<div class="pixva-crm-report__nav">
+					<button type="submit" class="pixva-btn pixva-btn--primary pixva-btn--sm" data-crm-action="report">ذخیره گزارش فنی</button>
+				</div>
+			</form>
+
+			<div class="pixva-crm-order__warranty" data-crm-warranty-host></div>
+
+			<details class="pixva-crm-order__log">
+				<summary>گزارش فعالیت پرونده</summary>
+				<ol class="pixva-crm-timeline">
+					<li><time datetime="2026-09-24T08:00:00Z">۱۴۰۴/۰۷/۰۲ ۱۱:۳۰</time><span>تخصیص به تعمیرکار</span><em>دیسپچ</em></li>
+				</ol>
+			</details>
+		</article>
+
+		<!-- پرونده ۲: گارانتی صادرشده + فاکتور -->
+		<article class="pixva-crm-order is-warrantied" data-crm-order="102" data-crm-status="ready">
+			<header class="pixva-crm-order__head">
+				<div class="pixva-crm-order__id">
+					<strong dir="ltr">PXV-1404-000102</strong>
+					<span class="pixva-crm-order__status pixva-crm-order__status--ready">آماده تحویل</span>
+					<span class="pixva-crm-order__serial" dir="ltr">PXV-G-250926-A1B2C3</span>
+				</div>
+				<p class="pixva-crm-order__device">ال‌جی OLED55C2</p>
+				<p class="pixva-crm-order__problem">خطوط عمودی روی پنل.</p>
+			</header>
+
+			<div class="pixva-crm-order__actions" data-crm-actions>
+				<button type="button" class="pixva-btn pixva-btn--ghost pixva-btn--sm" data-crm-action="status" data-status="delivered">تحویل به مشتری</button>
+			</div>
+
+			<div class="pixva-crm-order__warranty" data-crm-warranty-host>
+				<article class="pixva-warranty pixva-warranty--card pixva-warranty--compact"
+					data-pixva-warranty data-warranty-serial="PXV-G-250926-A1B2C3"
+					style="--holo-x: 50%; --holo-y: 50%;">
+
+					<div class="pixva-holo" data-pixva-holo aria-hidden="true">
+						<span class="pixva-holo__foil"></span>
+						<span class="pixva-holo__sheen"></span>
+						<span class="pixva-holo__grid"></span>
+						<span class="pixva-holo__ring"></span>
+						<span class="pixva-holo__core"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg></span>
+					</div>
+
+					<div class="pixva-warranty__body">
+						<header class="pixva-warranty__head">
+							<div>
+								<span class="pixva-badge pixva-badge--success">گارانتی دیجیتال پیکسوا</span>
+								<h3 class="pixva-warranty__serial" dir="ltr">PXV-G-250926-A1B2C3</h3>
+							</div>
+							<div class="pixva-warranty__validity">
+								<span>اعتبار</span>
+								<strong>۱۸۰ روز</strong>
+								<small>۱۴۰۵/۰۱/۰۴</small>
+							</div>
+						</header>
+
+						<dl class="pixva-warranty__facts">
+							<div><dt>پرونده</dt><dd dir="ltr">PXV-1404-000102</dd></div>
+							<div><dt>دستگاه</dt><dd>ال‌جی OLED55C2</dd></div>
+							<div><dt>تعمیرکار</dt><dd>رضا محمدی</dd></div>
+							<div><dt>تاریخ صدور</dt><dd>۱۴۰۴/۰۷/۰۴</dd></div>
+							<div><dt>انقضا</dt><dd>۱۴۰۵/۰۱/۰۴</dd></div>
+							<div><dt>اثرانگشت دیجیتال</dt><dd dir="ltr"><code>9F2AC11B44D0E7A2</code></dd></div>
+						</dl>
+
+						<div class="pixva-warranty__covers">
+							<h4>قطعات و خدمات تحت پوشش</h4>
+							<ul>
+								<li>بندینگ فلت COF پنل</li>
+								<li>برد T-CON</li>
+							</ul>
+						</div>
+
+						<div class="pixva-warranty__serials">
+							<h4>سریال قطعات نصب‌شده</h4>
+							<table class="pixva-table pixva-table--tight">
+								<thead><tr><th>قطعه</th><th>مشخصات</th><th>سریال</th><th>تعداد</th></tr></thead>
+								<tbody><tr><td>فلت COF</td><td>۵۵ اینچ LG</td><td dir="ltr">COF-8842</td><td>۲</td></tr></tbody>
+							</table>
+						</div>
+
+						<div class="pixva-warranty__terms">
+							<h4>شرایط پوشش</h4>
+							<ol>
+								<li>پوشش فقط شامل قطعات و خدمات درج‌شده است.</li>
+								<li>باز شدن دستگاه توسط شخص ثالث گارانتی را باطل می‌کند.</li>
+							</ol>
+						</div>
+
+						<div class="pixva-warranty__foot">
+							<div class="pixva-qr-card pixva-qr-card--warranty" data-pixva-qr data-qr-value="https://pixva.test/?warranty=PXV-G-250926-A1B2C3">
+								<span class="pixva-qr-card__code" data-qr-target aria-hidden="true"></span>
+								<small>استعلام اصالت گارانتی</small>
+							</div>
+							<div class="pixva-warranty__actions">
+								<button type="button" class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" data-copy="PXV-G-250926-A1B2C3"><span>کپی سریال</span></button>
+								<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="https://pixva.test/?warranty=PXV-G-250926-A1B2C3" target="_blank" rel="noopener noreferrer">استعلام آنلاین</a>
+								<button type="button" class="pixva-btn pixva-btn--gradient pixva-btn--sm" data-pixva-print data-print-area="invoice-102"><span>چاپ فاکتور رسمی / PDF</span></button>
+							</div>
+							<p class="pixva-warranty__issuer">مهندس رضا محمدی — کارگاه مرکزی پیکسوا<small>تهران، پاساژ علاءالدین، طبقه ۳، واحد ۳۱۲</small></p>
+						</div>
+					</div>
+				</article>
+
+				<article class="pixva-invoice" data-print-area="invoice-102" id="invoice-102">
+					<header class="pixva-invoice__head">
+						<div class="pixva-invoice__brand">
+							<strong>کارگاه مرکزی پیکسوا</strong>
+							<span>تهران، پاساژ علاءالدین، طبقه ۳، واحد ۳۱۲</span>
+							<span dir="ltr">۰۲۱۱۲۳۴۵۶۷۸</span>
+							<span>شناسه مالیاتی: ۴۱۰۲۳۳۵۶۷۸</span>
+						</div>
+						<div class="pixva-invoice__meta">
+							<h2>فاکتور رسمی تعمیر</h2>
+							<p>شماره فاکتور: <strong dir="ltr">INV-1404-000102</strong></p>
+							<p>تاریخ صدور: <strong>۱۴۰۴/۰۷/۰۴</strong></p>
+							<p>کد پرونده: <strong dir="ltr">PXV-1404-000102</strong></p>
+						</div>
+					</header>
+
+					<div class="pixva-invoice__parties">
+						<section>
+							<h3>مشتری</h3>
+							<p>سینا کریمی</p>
+							<p dir="ltr">۰۹۱۲۹۸۷۶۵۴۳</p>
+						</section>
+						<section>
+							<h3>دستگاه</h3>
+							<p>ال‌جی OLED55C2</p>
+							<p>خطوط عمودی روی پنل</p>
+						</section>
+						<section>
+							<h3>تعمیرکار مسئول</h3>
+							<p>رضا محمدی</p>
+							<p>گارانتی: <strong dir="ltr">PXV-G-250926-A1B2C3</strong></p>
+						</section>
+					</div>
+
+					<section class="pixva-invoice__report">
+						<h3>گزارش فنی</h3>
+						<p><strong>عیب‌یابی:</strong> آسیب COF در دو ستون پنل.</p>
+						<p><strong>اقدامات:</strong> بندینگ مجدد با دستگاه صنعتی و تست الگوی کالیبراسیون.</p>
+					</section>
+
+					<table class="pixva-table pixva-invoice__table">
+						<thead><tr><th>ردیف</th><th>شرح قطعه / خدمت</th><th>سریال</th><th>تعداد</th><th>مبلغ (تومان)</th></tr></thead>
+						<tbody>
+							<tr><td>۱</td><td>فلت COF ۵۵ اینچ LG</td><td dir="ltr">COF-8842</td><td>۲</td><td>۳٬۴۰۰٬۰۰۰</td></tr>
+							<tr class="pixva-invoice__labor"><td>۲</td><td>دستمزد تخصصی تعمیر و تست</td><td>—</td><td>۱</td><td>۸۰۰٬۰۰۰</td></tr>
+						</tbody>
+						<tfoot><tr><th colspan="4">جمع کل قابل پرداخت</th><td><strong>۴٬۲۰۰٬۰۰۰</strong></td></tr></tfoot>
+					</table>
+
+					<footer class="pixva-invoice__foot">
+						<div class="pixva-invoice__sign">
+							<span class="pixva-invoice__stamp" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg></span>
+							<p>مهندس رضا محمدی</p>
+							<small>امضا و مهر دیجیتال کارگاه</small>
+						</div>
+						<div class="pixva-invoice__verify">
+							<p>اثرانگشت اصالت سند: <code dir="ltr">9F2AC11B44D0E7A2C5</code></p>
+							<p>استعلام آنلاین: <span dir="ltr">https://pixva.test/?warranty=PXV-G-250926-A1B2C3</span></p>
+						</div>
+					</footer>
+
+					<div class="pixva-invoice__actions" data-print-hide>
+						<button type="button" class="pixva-btn pixva-btn--gradient" data-pixva-print data-print-area="invoice-102"><span>چاپ / ذخیره PDF</span></button>
+					</div>
+				</article>
+			</div>
+		</article>
+
+	</div>
+</div>
+
+<!-- ===================== استعلام اصالت گارانتی ===================== -->
+<div class="pixva-card pixva-warranty-check" data-pixva-warranty-check>
+	<span class="pixva-badge pixva-badge--cta">گارانتی دیجیتال</span>
+	<h3>استعلام اصالت گارانتی با سریال</h3>
+	<form class="pixva-tool-row" data-warranty-form novalidate>
+		<input type="text" name="serial" class="pixva-input" dir="ltr" placeholder="PXV-G-000000-XXXXXX" aria-label="سریال گارانتی" data-warranty-serial required>
+		<button type="submit" class="pixva-btn pixva-btn--cta" data-warranty-submit>استعلام اصالت</button>
+	</form>
+	<div class="pixva-warranty-check__result" data-warranty-result hidden>
+		<p class="pixva-warranty-check__state" data-warranty-state></p>
+		<dl>
+			<div><dt>تعمیرکار</dt><dd data-warranty-tech>—</dd></div>
+			<div><dt>صدور</dt><dd data-warranty-issued>—</dd></div>
+			<div><dt>انقضا</dt><dd data-warranty-expires>—</dd></div>
+			<div><dt>پوشش</dt><dd data-warranty-covers>—</dd></div>
+		</dl>
+	</div>
+	<p class="pixva-notice pixva-notice--error" data-warranty-error hidden></p>
+</div>
+
+<!-- ===================== ابزارک‌های سایدبار ===================== -->
+<aside class="pixva-sidebar">
+	<section class="pixva-card pixva-widget pixva-widget--errors" data-pixva-error-search>
+		<h3 class="pixva-widget__title">جست‌وجوی کد خطا</h3>
+		<p class="pixva-widget__hint">کد خطا یا تعداد چشمک چراغ را بنویسید.</p>
+		<form class="pixva-widget__search" role="search" data-error-form action="/error-codes" method="get">
+			<input id="pixva-error-q-1" type="search" name="q" value="" autocomplete="off" placeholder="مثلاً ۳ چشمک یا E101" data-error-input>
+			<button type="submit" class="pixva-btn pixva-btn--primary pixva-btn--sm" aria-label="جست‌وجو">جست‌وجو</button>
+		</form>
+		<ul class="pixva-widget__results" data-error-results data-error-endpoint="/wp-json/pixva/v1/errors" aria-live="polite"></ul>
+		<p class="pixva-widget__empty" data-error-empty hidden>موردی پیدا نشد.</p>
+		<a class="pixva-widget__more" href="/error-codes">پایگاه کامل کدهای خطا</a>
+	</section>
+
+	<section class="pixva-card pixva-widget pixva-widget--quote" data-pixva-quick-quote>
+		<h3 class="pixva-widget__title">برآورد سریع هزینه</h3>
+		<p class="pixva-widget__hint">برند، سایز و علامت خرابی را انتخاب کنید.</p>
+		<form class="pixva-widget__quote-form" data-quote-form novalidate>
+			<div class="pixva-field">
+				<label for="pixva-quote-brand-1">برند</label>
+				<select id="pixva-quote-brand-1" name="brand" data-quote-brand>
+					<option value="samsung">سامسونگ</option>
+					<option value="lg">ال‌جی</option>
+				</select>
+			</div>
+			<div class="pixva-field">
+				<label for="pixva-quote-size-1">سایز</label>
+				<select id="pixva-quote-size-1" name="size" data-quote-size>
+					<option value="55">۵۵ اینچ</option>
+					<option value="65">۶۵ اینچ</option>
+				</select>
+			</div>
+			<div class="pixva-field">
+				<label for="pixva-quote-problem-1">علامت خرابی</label>
+				<select id="pixva-quote-problem-1" name="problem" data-quote-problem>
+					<option value="no_picture">تصویر سیاه / صدا دارد</option>
+					<option value="lines">خطوط عمودی و رنگی</option>
+				</select>
+			</div>
+			<button type="submit" class="pixva-btn pixva-btn--gradient pixva-btn--sm" data-quote-submit>محاسبه برآورد</button>
+			<div class="pixva-widget__quote-result" data-quote-result hidden>
+				<p class="pixva-widget__quote-price" data-quote-price>—</p>
+				<p class="pixva-widget__quote-days" data-quote-days></p>
+			</div>
+			<p class="pixva-notice pixva-notice--error" data-quote-error hidden></p>
+		</form>
+	</section>
+
+	<section class="pixva-card pixva-widget pixva-widget--guides">
+		<h3 class="pixva-widget__title">تازه‌ترین راهنماها</h3>
+		<ul class="pixva-widget__posts">
+			<li class="pixva-widget__post">
+				<span class="pixva-widget__post-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="12" rx="2"/></svg></span>
+				<span class="pixva-widget__post-body"><a href="/backlight-repair">نشانه‌های سوختن بک‌لایت تلویزیون</a><small>۶ دقیقه مطالعه</small></span>
+			</li>
+		</ul>
+	</section>
+</aside>
+
+<script src="../../pixva/assets/js/crm-engine.js" defer></script>
+</body>
+</html>

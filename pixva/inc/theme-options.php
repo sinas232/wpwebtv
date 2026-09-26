@@ -26,7 +26,7 @@ function pixva_home_sections() {
 		'before_after'  => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
 		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
 		'dispatch_hub'  => esc_html__( 'هاب اعزام اورژانسی و پیگیری پرونده (ابزار ۱۷ و ۱۹)', 'pixva' ),
-		'tv_simulator'  => esc_html__( 'شبیه‌ساز لمسی تلویزیون مجازی (ابزار ۵)', 'pixva' ),
+		'order_wizard'  => esc_html__( 'جادوگر ثبت سفارش تعمیر — موتور CRM (ابزار ۵)', 'pixva' ),
 		'screen_tester' => esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
 		'errors'        => esc_html__( 'کدهای خطا و چشمک چراغ پاور', 'pixva' ),
 		'brands'        => esc_html__( 'برندها و ضرایب نرخ‌نامه', 'pixva' ),

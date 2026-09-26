@@ -458,13 +458,23 @@ if ( ! function_exists( 'pixva_order_delivered_timestamp' ) ) {
 	 * @return int
 	 */
 	function pixva_order_delivered_timestamp( $order ) {
-		$steps = pixva_order_steps( $order );
+		$steps    = pixva_order_steps( $order );
+		$delivered = (int) get_post_meta( $order->ID, '_pixva_order_delivered', true );
 
+		if ( $delivered ) {
+			return $delivered;
+		}
+		if ( ! empty( $steps['delivered'] ) ) {
+			return (int) $steps['delivered'];
+		}
 		if ( ! empty( $steps['ready'] ) ) {
 			return (int) $steps['ready'];
 		}
 		if ( ! empty( $steps['testing'] ) ) {
 			return (int) $steps['testing'];
+		}
+		if ( ! empty( $steps['qc'] ) ) {
+			return (int) $steps['qc'];
 		}
 
 		$modified = strtotime( (string) $order->post_modified );
@@ -485,6 +495,9 @@ if ( ! function_exists( 'pixva_order_public_data' ) ) {
 		$problem  = (string) get_post_meta( $order->ID, '_pixva_order_problem', true );
 		$statuses = pixva_order_statuses();
 		$status   = (string) get_post_meta( $order->ID, '_pixva_order_status', true );
+		if ( function_exists( 'pixva_crm_normalize_status' ) ) {
+			$status = pixva_crm_normalize_status( $status );
+		}
 		$keys     = array_keys( $statuses );
 		$index    = array_search( $status, $keys, true );
 

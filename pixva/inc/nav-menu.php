@@ -362,12 +362,17 @@ if ( ! function_exists( 'pixva_sidebar_fallback' ) ) {
 
 			<?php pixva_sidebar_services_list(); ?>
 		<?php else : ?>
-			<section class="pixva-card pixva-widget pixva-widget--calc">
-				<h3 class="pixva-widget__title"><?php esc_html_e( 'عیب را خودتان قیمت بگیرید', 'pixva' ); ?></h3>
-				<p><?php esc_html_e( 'بازه هزینه و زمان تعمیر را در چند مرحله ببینید.', 'pixva' ); ?></p>
-				<a class="pixva-btn pixva-btn--gradient pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه‌گر هزینه', 'pixva' ); ?></a>
-				<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></a>
-			</section>
+			<?php // ابزارک‌های تخصصی مجله: جست‌وجوی کد خطا، آخرین آموزش‌ها و استعلام سریع هزینه. ?>
+			<?php if ( function_exists( 'pixva_blog_sidebar_extras' ) ) : ?>
+				<?php pixva_blog_sidebar_extras(); ?>
+			<?php else : ?>
+				<section class="pixva-card pixva-widget pixva-widget--calc">
+					<h3 class="pixva-widget__title"><?php esc_html_e( 'عیب را خودتان قیمت بگیرید', 'pixva' ); ?></h3>
+					<p><?php esc_html_e( 'بازه هزینه و زمان تعمیر را در چند مرحله ببینید.', 'pixva' ); ?></p>
+					<a class="pixva-btn pixva-btn--gradient pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه‌گر هزینه', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--ghost-dark pixva-btn--sm" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری دستگاه', 'pixva' ); ?></a>
+				</section>
+			<?php endif; ?>
 		<?php endif; ?>
 
 		<?php pixva_sidebar_hubs_list(); ?>

@@ -19,6 +19,8 @@ get_header();
 		?>
 		<div class="pixva-container pixva-content pixva-layout pixva-layout--post">
 		<article <?php post_class( 'pixva-entry' ); ?>>
+			<?php pixva_entry_meta( get_the_ID() ); ?>
+			<?php pixva_share_bar( get_the_ID() ); ?>
 			<?php pixva_diagnostics_box( get_the_ID() ); ?>
 			<?php
 			$content = apply_filters( 'the_content', get_the_content() );
@@ -33,6 +35,7 @@ get_header();
 			?>
 			<footer class="pixva-entry-footer">
 				<?php the_tags( '', '', '' ); ?>
+				<?php pixva_share_bar( get_the_ID() ); ?>
 			</footer>
 			<?php
 			$faq = pixva_current_faq_items();

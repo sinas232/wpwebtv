@@ -594,7 +594,7 @@ add_action( 'save_post_pixva_review', 'pixva_save_review_meta' );
  * @return array<string, string>
  */
 function pixva_order_statuses() {
-	return array(
+	$statuses = array(
 		'received'  => esc_html__( 'دریافت دستگاه', 'pixva' ),
 		'diagnosed' => esc_html__( 'عیب‌یابی اولیه', 'pixva' ),
 		'parts'     => esc_html__( 'تامین قطعه', 'pixva' ),
@@ -602,6 +602,13 @@ function pixva_order_statuses() {
 		'testing'   => esc_html__( 'تست نهایی', 'pixva' ),
 		'ready'     => esc_html__( 'آماده تحویل', 'pixva' ),
 	);
+
+	/**
+	 * فیلتر تایم‌لاین وضعیت پرونده (موتور CRM خط لوله شش‌مرحله‌ای خودش را جایگزین می‌کند).
+	 *
+	 * @param array<string, string> $statuses کلید => برچسب.
+	 */
+	return apply_filters( 'pixva_order_statuses', $statuses );
 }
 
 /**
@@ -867,6 +874,16 @@ if ( ! function_exists( 'pixva_create_order' ) ) {
 				'id'   => 0,
 			);
 		}
+
+		/**
+		 * هوک ثبت پرونده تعمیر جدید (موتور CRM: پیامک کد پیگیری و صف دیسپچ).
+		 *
+		 * @param int    $order_id شناسه پرونده.
+		 * @param string $code     کد پیگیری.
+		 * @param array  $data     داده ورودی سفارش.
+		 */
+		do_action( 'pixva_order_created', (int) $id, $code, $data );
+
 		return array(
 			'code' => $code,
 			'id'   => (int) $id,

@@ -669,50 +669,6 @@
 	}
 
 	/* ==================================================================
-	   ۲) شبیه‌ساز لمسی تلویزیون (ابزار ۵)
-	   ================================================================== */
-	function initTVSimulator() {
-		qsa('[data-tv-simulator]').forEach(function (root) {
-			var parts = {};
-			try { parts = JSON.parse(root.getAttribute('data-simulator-data') || '{}'); } catch (error) { parts = {}; }
-
-			var tag = qs('[data-sim-tag]', root);
-			var title = qs('[data-sim-title]', root);
-			var desc = qs('[data-sim-desc]', root);
-			var priceBox = qs('[data-sim-price-box]', root);
-			var price = qs('[data-sim-price]', root);
-			var days = qs('[data-sim-days]', root);
-			var screen = qs('[data-sim-screen-msg]', root);
-			var quote = qs('[data-sim-quote]', root);
-
-			qsa('[data-part]', root).forEach(function (spot) {
-				spot.addEventListener('click', function () {
-					var info = parts[spot.getAttribute('data-part')];
-					if (!info) { return; }
-					qsa('[data-part]', root).forEach(function (other) { other.classList.remove('is-active'); });
-					spot.classList.add('is-active');
-					if (tag) { tag.textContent = info.title; }
-					if (title) { title.textContent = info.title; }
-					if (desc) { desc.textContent = info.desc; }
-					if (price) { price.textContent = money(info.floor) + ' تا ' + toFa(group(info.max)) + ' تومان'; }
-					if (days && info.days) { days.textContent = info.days; }
-					if (priceBox) { priceBox.hidden = false; }
-					if (screen) {
-						screen.innerHTML = '';
-						var p = document.createElement('p');
-						p.textContent = info.title;
-						screen.appendChild(p);
-					}
-					if (quote && info.service) {
-						quote.href = quote.href.split('?')[0] + '?problem=' + encodeURIComponent(info.service);
-						quote.hidden = false;
-					}
-				});
-			});
-		});
-	}
-
-	/* ==================================================================
 	   ۳) تستر RGB و احیای OLED (ابزار ۶ و ۷)
 	   ================================================================== */
 	function initRGBTester() {
@@ -2390,7 +2346,6 @@
 		initAIStudio();
 		initAIFloating();
 		initHeroSimulator();
-		initTVSimulator();
 		initRGBTester();
 		initBlinkTester();
 		initAudioTester();

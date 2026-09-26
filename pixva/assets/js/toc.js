@@ -21,6 +21,28 @@
 			});
 		}
 
+		// نوار پیشرفت مطالعه: در مرورگرهای بدون scroll-driven animations با rAF پر می‌شود.
+		const bar = toc.querySelector('[data-toc-progress]');
+		const supportsScrollTimeline = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('animation-timeline', 'scroll()');
+		if (bar && !supportsScrollTimeline) {
+			let frame = 0;
+			const update = () => {
+				frame = 0;
+				const doc = document.documentElement;
+				const max = (doc.scrollHeight || 0) - (window.innerHeight || 0);
+				const ratio = max > 0 ? Math.min(1, Math.max(0, (window.scrollY || doc.scrollTop || 0) / max)) : 0;
+				bar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
+			};
+			const onScroll = () => {
+				if (!frame) {
+					frame = window.requestAnimationFrame(update);
+				}
+			};
+			window.addEventListener('scroll', onScroll, { passive: true });
+			window.addEventListener('resize', onScroll, { passive: true });
+			update();
+		}
+
 		const links = Array.from(toc.querySelectorAll('a[href^="#"]'));
 		const map = new Map();
 		links.forEach((link) => {

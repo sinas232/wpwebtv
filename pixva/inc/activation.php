@@ -181,6 +181,7 @@ if ( ! function_exists( 'pixva_page_definitions' ) ) {
 			'rates'       => array( 'نرخ‌نامه و تعرفه‌ها', 'page-templates/page-rates.php' ),
 			'b2b'         => array( 'خدمات سازمانی و B2B', 'page-templates/page-b2b.php' ),
 			'client-hub'  => array( 'پنل مشتریان و گارانتی دیجیتال', 'page-templates/page-client-hub.php' ),
+			'technician'  => array( 'ایستگاه کاری تعمیرکاران', 'page-templates/page-technician.php' ),
 			'parts-stock' => array( 'استعلام انبار قطعات فابریک', 'page-templates/page-parts-stock.php' ),
 			/* پنج هاب تخصصی Master Specification v25.0 */
 			'ai-diagnostics'    => array( 'عیب‌یابی هوشمند با هوش مصنوعی', 'page-templates/page-hub-ai.php' ),

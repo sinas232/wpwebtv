@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.3.0' );
+define( 'PIXVA_VERSION', '1.4.0' );
 define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
@@ -41,6 +41,12 @@ require_once PIXVA_DIR . '/inc/shortcodes.php';
 require_once PIXVA_DIR . '/inc/nav-menu.php';
 require_once PIXVA_DIR . '/inc/fault-simulator.php';
 require_once PIXVA_DIR . '/inc/ajax-handlers.php';
+require_once PIXVA_DIR . '/inc/crm-engine.php';
+require_once PIXVA_DIR . '/inc/crm-wizard.php';
+require_once PIXVA_DIR . '/inc/crm-warranty.php';
+require_once PIXVA_DIR . '/inc/crm-technician.php';
+require_once PIXVA_DIR . '/inc/crm-dispatcher.php';
+require_once PIXVA_DIR . '/inc/blog-ecosystem.php';
 require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/pwa.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
@@ -237,46 +243,49 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			)
 		);
 
-		wp_enqueue_script(
-			'pixva-tools',
-			PIXVA_URI . '/assets/js/interactive-tools.js',
-			array( 'pixva-main' ),
-			PIXVA_VERSION,
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
-		);
+		// اسکریپت ابزارها فقط در صفحه‌هایی که واقعاً ابزار/سیمولاتور دارند بارگذاری می‌شود (سرعت).
+		if ( pixva_needs_tools_js() ) {
+			wp_enqueue_script(
+				'pixva-tools',
+				PIXVA_URI . '/assets/js/interactive-tools.js',
+				array( 'pixva-main' ),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
 
-		wp_localize_script(
-			'pixva-tools',
-			'pixvaVars',
-			array(
-				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
-				'restUrl'      => esc_url_raw( rest_url( 'pixva/v1' ) ),
-				'homeUrl'      => esc_url_raw( home_url( '/' ) ),
-				'nonce'        => wp_create_nonce( 'pixva_nonce' ),
-				'nonces'       => array(
-					'tool'       => wp_create_nonce( 'pixva_nonce' ),
-					'calculator' => wp_create_nonce( 'pixva_calculator_nonce' ),
-					'order'      => wp_create_nonce( 'pixva_order_nonce' ),
-					'tracking'   => wp_create_nonce( 'pixva_tracking_nonce' ),
-					'contact'    => wp_create_nonce( 'pixva_contact_nonce' ),
-				),
-				'aiConfigured' => function_exists( 'pixva_ai_is_configured' ) && pixva_ai_is_configured(),
-				'pwa'          => array(
-					'enabled' => function_exists( 'pixva_pwa_enabled' ) && pixva_pwa_enabled(),
-					'offline' => function_exists( 'pixva_pwa_offline_message' ) ? pixva_pwa_offline_message() : '',
-				),
-				'i18n'         => array(
-					'toman'    => esc_html__( 'تومان', 'pixva' ),
-					'loading'  => esc_html__( 'در حال پردازش…', 'pixva' ),
-					'error'    => esc_html__( 'خطایی رخ داد؛ دوباره تلاش کنید.', 'pixva' ),
-					'sent'     => esc_html__( 'ارسال شد', 'pixva' ),
-					'analysis' => esc_html__( 'در حال تحلیل…', 'pixva' ),
-				),
-			)
-		);
+			wp_localize_script(
+				'pixva-tools',
+				'pixvaVars',
+				array(
+					'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+					'restUrl'      => esc_url_raw( rest_url( 'pixva/v1' ) ),
+					'homeUrl'      => esc_url_raw( home_url( '/' ) ),
+					'nonce'        => wp_create_nonce( 'pixva_nonce' ),
+					'nonces'       => array(
+						'tool'       => wp_create_nonce( 'pixva_nonce' ),
+						'calculator' => wp_create_nonce( 'pixva_calculator_nonce' ),
+						'order'      => wp_create_nonce( 'pixva_order_nonce' ),
+						'tracking'   => wp_create_nonce( 'pixva_tracking_nonce' ),
+						'contact'    => wp_create_nonce( 'pixva_contact_nonce' ),
+					),
+					'aiConfigured' => function_exists( 'pixva_ai_is_configured' ) && pixva_ai_is_configured(),
+					'pwa'          => array(
+						'enabled' => function_exists( 'pixva_pwa_enabled' ) && pixva_pwa_enabled(),
+						'offline' => function_exists( 'pixva_pwa_offline_message' ) ? pixva_pwa_offline_message() : '',
+					),
+					'i18n'         => array(
+						'toman'    => esc_html__( 'تومان', 'pixva' ),
+						'loading'  => esc_html__( 'در حال پردازش…', 'pixva' ),
+						'error'    => esc_html__( 'خطایی رخ داد؛ دوباره تلاش کنید.', 'pixva' ),
+						'sent'     => esc_html__( 'ارسال شد', 'pixva' ),
+						'analysis' => esc_html__( 'در حال تحلیل…', 'pixva' ),
+					),
+				)
+			);
+		}
 
 		// کتابخانه تولید QR (فقط در صفحه‌هایی که کارت QR گارانتی دارند).
 		if ( pixva_needs_qrcode_js() ) {
@@ -316,6 +325,22 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 					'strategy'  => 'defer',
 				)
 			);
+		}
+
+		// موتور اتوماسیون CRM: جادوگر سفارش، پنل تعمیرکار/دیسپچ، هولوگرام و چاپ فاکتور.
+		if ( pixva_needs_crm_js() ) {
+			wp_enqueue_script(
+				'pixva-crm',
+				PIXVA_URI . '/assets/js/crm-engine.js',
+				array( 'pixva-main' ),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
+
+			wp_localize_script( 'pixva-crm', 'pixvaCrm', pixva_crm_localize() );
 		}
 
 		if ( pixva_needs_before_after_js() ) {
@@ -359,6 +384,62 @@ if ( ! function_exists( 'pixva_preload_font' ) ) {
 	 */
 	function pixva_preload_font() {
 		echo '<link rel="preload" href="' . esc_url( PIXVA_URI . '/assets/fonts/vazirmatn-variable.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+	}
+}
+
+if ( ! function_exists( 'pixva_needs_tools_js' ) ) {
+	/**
+	 * آیا صفحه جاری به اسکریپت ابزارهای تعاملی نیاز دارد؟
+	 *
+	 * بارگذاری شرایطی interactive-tools.js (بیش از ۲۴۰۰ خط) باعث می‌شود صفحه‌های
+	 * متنی و مجله بدون اسکریپت اضافه رندر شوند و LCP زیر ۱٫۵ ثانیه بماند.
+	 *
+	 * @return bool
+	 */
+	function pixva_needs_tools_js() {
+		if ( is_admin() ) {
+			return false;
+		}
+
+		// صفحه اصلی (هیرو با سیمولاتور زنده تشخیص عیب) و قالب‌های ابزارمحور.
+		$templates = array(
+			'page-templates/page-client-hub.php',
+			'page-templates/page-hub-ai.php',
+			'page-templates/page-hub-pricing.php',
+			'page-templates/page-hub-tracking.php',
+			'page-templates/page-hub-parts-b2b.php',
+			'page-templates/page-parts-stock.php',
+			'page-templates/page-error-codes.php',
+			'page-templates/page-technician.php',
+			'page-templates/page-calculator.php',
+			'page-templates/page-b2b.php',
+		);
+
+		$needed = is_front_page() || is_home() || is_page_template( $templates );
+
+		// محتوای نوشته/برگه (شامل JSON المنتور) که ابزار یا ویجت پیکسوا دارد.
+		if ( ! $needed && is_singular() ) {
+			$current = get_post();
+
+			if ( $current instanceof WP_Post ) {
+				$content = (string) $current->post_content;
+				$markers = array( '[pixva_tool', '[pixva_hub', 'data-pixva-tool', 'data-sim-root', 'elementor-widget-pixva' );
+
+				foreach ( $markers as $marker ) {
+					if ( false !== strpos( $content, $marker ) ) {
+						$needed = true;
+						break;
+					}
+				}
+			}
+		}
+
+		/**
+		 * فیلتر بارگذاری اسکریپت ابزارها در صفحه جاری.
+		 *
+		 * @param bool $needed نیاز به اسکریپت.
+		 */
+		return (bool) apply_filters( 'pixva_needs_tools_js', $needed );
 	}
 }
 
@@ -496,20 +577,7 @@ if ( ! function_exists( 'pixva_price' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pixva_reading_time' ) ) {
-	/**
-	 * محاسبه زمان مطالعه مقاله به دقیقه.
-	 *
-	 * @param string $content محتوای مقاله.
-	 * @return int
-	 */
-	function pixva_reading_time( $content ) {
-		$text  = wp_strip_all_tags( $content );
-		$words = preg_split( '/[\s،.!؟؛:]+/u', $text, -1, PREG_SPLIT_NO_EMPTY );
-		$count = is_array( $words ) ? count( $words ) : 0;
-		return max( 1, (int) ceil( $count / 180 ) ); // سرعت مطالعه رایج فارسی: ۱۸۰ واژه در دقیقه.
-	}
-}
+// pixva_reading_time() در inc/blog-ecosystem.php تعریف می‌شود (تعریف یگانه قالب).
 
 if ( ! function_exists( 'pixva_heading_ids' ) ) {
 	/**
@@ -569,13 +637,19 @@ if ( ! function_exists( 'pixva_build_toc' ) ) {
 		if ( '' === $items ) {
 			return '';
 		}
+		$reading = function_exists( 'pixva_reading_time_label' ) ? pixva_reading_time_label() : '';
 		ob_start();
 		?>
-		<nav class="pixva-toc pixva-glass" aria-label="<?php esc_attr_e( 'فهرست مطالب مقاله', 'pixva' ); ?>">
+		<nav class="pixva-toc pixva-toc--floating pixva-glass" aria-label="<?php esc_attr_e( 'فهرست مطالب مقاله', 'pixva' ); ?>" data-pixva-toc>
+			<span class="pixva-toc__progress" aria-hidden="true"><i class="pixva-toc__progress-bar" data-toc-progress></i></span>
 			<button type="button" class="pixva-toc__toggle" aria-expanded="true" aria-controls="pixva-toc-list">
 				<span class="pixva-toc__title"><?php esc_html_e( 'فهرست مطالب', 'pixva' ); ?></span>
 				<span class="pixva-toc__chevron" aria-hidden="true"></span>
 			</button>
+			<p class="pixva-toc__meta">
+				<span><?php echo esc_html( sprintf( /* translators: %s: تعداد سرفصل */ __( '%s سرفصل', 'pixva' ), pixva_fa_num( (string) count( $matches ) ) ) ); ?></span>
+				<?php if ( '' !== $reading ) : ?><span><?php echo esc_html( $reading ); ?></span><?php endif; ?>
+			</p>
 			<ul id="pixva-toc-list" class="pixva-toc__list">
 				<?php echo wp_kses_post( $items ); ?>
 			</ul>

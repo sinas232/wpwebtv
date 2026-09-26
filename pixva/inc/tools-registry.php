@@ -60,12 +60,12 @@ if ( ! function_exists( 'pixva_tools_registry' ) ) {
 				'icon'     => 'mic',
 			),
 			5  => array(
-				'title'    => __( 'شبیه‌ساز لمسی تلویزیون مجازی', 'pixva' ),
-				'en'       => 'TV Canvas Simulator',
-				'summary'  => __( 'روی بخش‌های تلویزیون لمس کنید تا عیب، قطعه معیوب و کف قیمت بازار نمایش داده شود.', 'pixva' ),
-				'group'    => __( 'شبیه‌سازی', 'pixva' ),
-				'renderer' => 'tv_simulator',
-				'icon'     => 'panel',
+				'title'    => __( 'ثبت سفارش تعمیر پس از عیب‌یابی', 'pixva' ),
+				'en'       => 'Repair Order Wizard (CRM)',
+				'summary'  => __( 'جادوگر چهارمرحله‌ای پذیرش سفارش: برآورد زنده از نرخ‌نامه، صدور کد پیگیری آنی و تخصیص خودکار به تعمیرکار.', 'pixva' ),
+				'group'    => __( 'پذیرش و سفارش', 'pixva' ),
+				'renderer' => 'order_wizard',
+				'icon'     => 'check',
 			),
 			6  => array(
 				'title'    => __( 'تستر پیکسل‌سوختگی RGB', 'pixva' ),

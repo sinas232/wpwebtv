@@ -611,6 +611,10 @@ function pixva_icon( $name ) {
 		'plug'     => '<path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/>',
 		'doc'      => '<path d="M6.5 3.5h7L18 8v12.5H6.5z"/><path d="M13 3.5V8h5"/><path d="M9 12h6M9 15.5h6"/>',
 		'calculator' => '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8 11.5h2M12 11.5h2M16 11.5h0M8 15.5h2M12 15.5h2M16 15.5h0"/>',
+		'printer'  => '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M7 16h10v4H7z"/>',
+		'link'     => '<path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 1 0-5-5L11.8 7.2"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0L6 13a3.5 3.5 0 1 0 5 5l1.2-1.2"/>',
+		'share'    => '<path d="M12 15V4"/><path d="M8.5 7.5L12 4l3.5 3.5"/><path d="M5 14v5h14v-5"/>',
+		'send'     => '<path d="M21 3L3 10.4l6.6 2.4L12 21l3.4-4.6L21 3z"/><path d="M21 3l-11.4 9.8"/>',
 	);
 
 	if ( ! isset( $paths[ $name ] ) ) {
@@ -1166,11 +1170,19 @@ function pixva_post_card( $post_id = 0 ) {
 	$permalink = get_permalink( $post_id );
 	$cats      = get_the_category( $post_id );
 	?>
-	<article class="pixva-card pixva-post-card">
+	<article class="pixva-card pixva-post-card pixva-glass pixva-reveal">
 		<a class="pixva-post-card__media" href="<?php echo esc_url( $permalink ); ?>" tabindex="-1" aria-hidden="true">
 			<?php
 			if ( has_post_thumbnail( $post_id ) ) {
-				echo get_the_post_thumbnail( $post_id, 'pixva-card', array( 'alt' => esc_attr( get_the_title( $post_id ) ) ) );
+				echo get_the_post_thumbnail(
+					$post_id,
+					'pixva-card',
+					array(
+						'alt'      => esc_attr( get_the_title( $post_id ) ),
+						'loading'  => 'lazy',
+						'decoding' => 'async',
+					)
+				);
 			} else {
 				echo '<span class="pixva-post-card__placeholder">' . pixva_icon( 'panel' ) . '</span>';
 			}
@@ -1182,9 +1194,14 @@ function pixva_post_card( $post_id = 0 ) {
 					<a href="<?php echo esc_url( get_category_link( $cats[0] ) ); ?>"><?php echo esc_html( $cats[0]->name ); ?></a>
 				<?php endif; ?>
 				<time datetime="<?php echo esc_attr( get_the_date( 'c', $post_id ) ); ?>"><?php echo esc_html( pixva_format_date( get_post_timestamp( $post_id ) ) ); ?></time>
+				<span class="pixva-post-card__reading">
+					<?php echo pixva_icon( 'clock' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo esc_html( function_exists( 'pixva_reading_time_label' ) ? pixva_reading_time_label( $post_id ) : '' ); ?>
+				</span>
 			</div>
 			<h3><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></h3>
 			<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 22 ) ); ?></p>
+			<span class="pixva-post-card__more"><?php echo pixva_icon( 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php esc_html_e( 'ادامه مطلب', 'pixva' ); ?></span>
 		</div>
 	</article>
 	<?php
@@ -1268,8 +1285,7 @@ function pixva_render_faq( $items, $prefix = 'faq' ) {
  * @return void
  */
 function pixva_diagnostics_box( $post_id ) {
-	$content    = (string) get_post_field( 'post_content', $post_id );
-	$minutes    = pixva_reading_time( $content );
+	$minutes    = pixva_reading_time( $post_id );
 	$difficulty = pixva_difficulty_label( (string) get_post_meta( $post_id, '_pixva_post_difficulty', true ) );
 	$brand      = (string) get_post_meta( $post_id, '_pixva_post_brand', true );
 	$tools      = (string) get_post_meta( $post_id, '_pixva_post_tools', true );

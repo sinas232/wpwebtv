@@ -613,13 +613,13 @@ function pixva_home_blog() {
 }
 
 /**
- * سکشن شبیه‌ساز لمسی تلویزیون مجازی.
+ * سکشن جادوگر ثبت سفارش تعمیر (موتور CRM).
  *
  * @return void
  */
-function pixva_home_tv_simulator() {
-	if ( function_exists( 'pixva_render_tv_canvas_simulator' ) ) {
-		pixva_render_tv_canvas_simulator();
+function pixva_home_order_wizard() {
+	if ( function_exists( 'pixva_render_order_wizard' ) ) {
+		pixva_render_order_wizard( array( 'source' => 'home' ) );
 	}
 }
 

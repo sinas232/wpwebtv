@@ -72,19 +72,6 @@ function pixva_tool_render_ai_voice( $id, $tool ) {
 }
 
 /**
- * ابزار ۵: شبیه‌ساز لمسی تلویزیون مجازی.
- *
- * @param int   $id   شناسه ابزار.
- * @param array $tool رکورد رجیستری.
- * @return void
- */
-function pixva_tool_render_tv_simulator( $id, $tool ) {
-	if ( function_exists( 'pixva_render_tv_canvas_simulator' ) ) {
-		pixva_render_tv_canvas_simulator( array( 'wrap' => false ) );
-	}
-}
-
-/**
  * ابزار ۶: تستر پیکسل‌سوختگی RGB.
  *
  * @param int   $id   شناسه ابزار.
