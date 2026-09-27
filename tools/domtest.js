@@ -107,8 +107,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۸٫۰', /Version:\s*1\.8\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
+	check('style.css: نسخه ۱٫۹٫۰', /Version:\s*1\.9\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -614,6 +614,9 @@ function v7StaticChecks() {
 	const cinematic = read('inc/cinematic.php');
 	const aiPhp = read('inc/ai-diagnose.php');
 	const aiHandler = read('inc/ai-handler.php');
+	const smsHandler = read('inc/sms-handler.php');
+	const hostFix = read('inc/host-fix.php');
+	const activation = read('inc/activation.php');
 	const mapPhp = read('inc/tracker-map.php');
 	const funcs = read('functions.php');
 	const support = read('inc/elementor-support.php');
@@ -631,7 +634,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۱٫۸٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.8.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
+	check('v7: نسخه پوسته ۱٫۹٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.9.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -697,6 +700,30 @@ function v7StaticChecks() {
 	check('v9: اکشن‌های پیشخوان با nonce و سطح دسترسی', aiHandler.indexOf("check_admin_referer( 'pixva_ai_convert' )") > -1 && aiHandler.indexOf("check_admin_referer( 'pixva_ai_save_settings', 'pixva_ai_save_nonce' )") > -1 && aiHandler.indexOf("check_ajax_referer( 'pixva_ai_test' )") > -1 && (aiHandler.match(/current_user_can\( 'manage_options' \)/g) || []).length >= 4);
 	check('v9: دکمه تست اتصال آنلاین و فیلد مخفی کلید', aiHandler.indexOf('pixva-ai-test') > -1 && aiHandler.indexOf("type=\"password\"") > -1 && aiHandler.indexOf('wp_ajax_pixva_ai_test') > -1);
 	check('v9: پاسخ بدون کلید = صف بررسی (بدون خطای ۵۰۰)', aiHandler.indexOf("'no_key'") > -1 && aiHandler.indexOf('pixva_ai_handler_configured()') > -1);
+
+	/* --- لایه ۱٫۹٫۰ / Master Prompt v10: تولیدی، پیامک، ضداسپم، پاک‌سازی، رفع محدودیت هاست --- */
+	check('v10: دو پرونده تازه در functions.php', funcs.indexOf('inc/sms-handler.php') > -1 && funcs.indexOf('inc/host-fix.php') > -1);
+	check('v10: ضبط مستقیم با دوربین روی ورودی فایل', cinematic.indexOf('capture="" . esc_attr') > -1 || cinematic.indexOf("'camera_capture'") > -1 && cinematic.indexOf('capture=') > -1);
+	check('v10: سه فیلد مشتری (برندو مدل/توضیحات/موبایل اجباری) در رندر', cinematic.indexOf('name="brand_model"') > -1 && cinematic.indexOf('name="notes"') > -1 && cinematic.indexOf('data-ai-required="phone"') > -1 && cinematic.indexOf('pattern="09[0-9]{9}"') > -1);
+	check('v10: کنترل‌های المنتور برای دوربین و اجباری بودن موبایل', read('inc/widgets/class-pixva-ai-diagnose-widget.php').indexOf("'camera_capture'") > -1 && read('inc/widgets/class-pixva-ai-diagnose-widget.php').indexOf("'phone_required'") > -1);
+	check('v10: اعتبارسنجی شماره ۰۹xx در JS پیش از ارسال', aiJs.indexOf('data-ai-required') > -1 && aiJs.indexOf('/^09[0-9]{9}$/') > -1 && aiJs.indexOf('i18n.badPhone') > -1 && aiJs.indexOf('i18n.needPhone') > -1);
+	check('v10: محدودیت ۳ درخواست در ۲۴ ساعت (IP + کوکی)', aiHandler.indexOf('function pixva_ai_handler_daily_limited(') > -1 && aiHandler.indexOf('pixva_ai_daily_max') > -1 && aiHandler.indexOf('DAY_IN_SECONDS') > -1 && aiHandler.indexOf("_COOKIE['pixva_ai_daily']") > -1 && aiHandler.indexOf("'status' => 429") > -1);
+	check('v10: اعتبارسنجی شماره سمت سرور پیش از ذخیره فایل', aiHandler.indexOf('pixva_ai_handler_phone_required(') > -1 && aiHandler.indexOf('pixva_is_valid_iranian_mobile') > -1 && aiHandler.indexOf("'pixva_ai_phone'") > -1);
+	check('v10: پارام‌های brand_model و notes در اندپوینت', aiHandler.indexOf("'brand_model'") > -1 && aiHandler.indexOf("'notes'") > -1 && aiHandler.indexOf("'_pixva_ai_brand_model'") > -1);
+	check('v10: مسیر آپلود اختصاصی uploads/pixva-ai/', aiHandler.indexOf('function pixva_ai_upload_dir(') > -1 && aiHandler.indexOf("'pixva-ai'") > -1 && aiPhp.indexOf("add_filter( 'upload_dir', 'pixva_ai_upload_dir' )") > -1 && aiPhp.indexOf("remove_filter( 'upload_dir', 'pixva_ai_upload_dir' )") > -1);
+	check('v10: کرون روزانه پاک‌سازی فایل‌های قدیمی‌تر از ۷ روز', aiHandler.indexOf('function pixva_schedule_media_cleanup(') > -1 && aiHandler.indexOf('function pixva_ai_media_cleanup(') > -1 && aiHandler.indexOf("wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'pixva_ai_media_cleanup_event' )") > -1 && aiHandler.indexOf('pixva_ai_media_cleanup_days') > -1 && aiHandler.indexOf('@unlink(') > -1);
+	check('v10: پاک‌سازی فقط فایل‌ها — سوابق پایگاه‌داده حفظ می‌شوند', aiHandler.indexOf("'post_type'      => 'attachment'") > -1 && aiHandler.indexOf("'_pixva_ai_media_purged'") > -1 && aiHandler.indexOf('wp_delete_attachment') === -1);
+	check('v10: زمان‌بندی/لغو کرون در فعال‌سازی و خروج از پوسته', activation.indexOf('pixva_schedule_media_cleanup()') > -1 && activation.indexOf("add_action( 'switch_theme', 'pixva_on_switch_away_theme' )") > -1 && activation.indexOf("wp_clear_scheduled_hook( 'pixva_ai_media_cleanup_event' )") > -1);
+	check('v10: سامانه پیامک بومی با چهار درگاه', smsHandler.indexOf('function pixva_sms_handler_send(') > -1 && smsHandler.indexOf('function pixva_sms_handler_dispatch(') > -1 && ['kavenegar', 'ippanel', 'melipayamak', 'smsir'].every((p2) => smsHandler.indexOf("case '" + p2 + "':") > -1) && smsHandler.indexOf('wp_remote_post') > -1);
+	check('v10: آدرس API درگاه‌ها بومی و بدون افزونه', smsHandler.indexOf('api.kavenegar.com') > -1 && smsHandler.indexOf('rest.ippanel.com') > -1 && smsHandler.indexOf('restapi.payamak.com') > -1 && smsHandler.indexOf('api.sms.ir') > -1);
+	check('v10: تنظیمات پیامک با fallback مرکز کنترل', smsHandler.indexOf("pixva_option( 'pixva_sms_provider'") > -1 && smsHandler.indexOf("pixva_option( 'pixva_sms_api_key'") > -1 && smsHandler.indexOf("pixva_option( 'pixva_sms_sender_line'") > -1 && smsHandler.indexOf('sms_provider') > -1 && smsHandler.indexOf('sms_api_key') > -1);
+	check('v10: سه رویداد پیامک (خوش‌آمد/وضعیت/هشدار مدیر) به هوک‌ها وصل است', smsHandler.indexOf("add_action( 'pixva_ai_diagnose_saved', 'pixva_ai_sms_on_diagnose'") > -1 && smsHandler.indexOf("add_action( 'pixva_ai_log_converted', 'pixva_ai_sms_on_convert'") > -1 && smsHandler.indexOf("'ai_welcome'") > -1 && smsHandler.indexOf("'ai_status'") > -1 && smsHandler.indexOf("'ai_admin'") > -1);
+	check('v10: قالب پیامک با جای‌گیر کد پیگیری و درصد اطمینان', smsHandler.indexOf('function pixva_sms_handler_templates(') > -1 && smsHandler.indexOf('function pixva_sms_handler_fill(') > -1 && smsHandler.indexOf('{code}') > -1 && smsHandler.indexOf('{order_code}') > -1 && smsHandler.indexOf('{conf}') > -1);
+	check('v10: کارت تنظیمات پیامک در پنل بومی عیب‌یاب', aiHandler.indexOf('pixva_sms_enabled') > -1 && aiHandler.indexOf('pixva_sms_provider') > -1 && aiHandler.indexOf('pixva_sms_sender_line') > -1 && aiHandler.indexOf('pixva_sms_admin_number') > -1);
+	check('v10: بخش سفارشی‌ساز پیامک عیب‌یاب', options.indexOf("'pixva_ai_sms'") > -1 && options.indexOf('function pixva_sanitize_sms_provider(') > -1 && options.indexOf("'pixva_sms_welcome_text'") > -1);
+	check('v10: رفع محدودیت هاست (زمان/حافظه) و فراخوانی آن در اندپوینت', hostFix.indexOf('function pixva_host_raise_limits(') > -1 && hostFix.indexOf('set_time_limit(') > -1 && hostFix.indexOf("'memory_limit'") > -1 && hostFix.indexOf('256M') > -1 && aiHandler.indexOf('pixva_host_raise_limits()') > -1);
+	check('v10: هشدار upload_max_filesize زیر ۳۲ مگابایت در صفحه عیب‌یاب', hostFix.indexOf('function pixva_host_ai_upload_notice(') > -1 && hostFix.indexOf('upload_max_filesize') > -1 && hostFix.indexOf('32 * MB_IN_BYTES') > -1 && hostFix.indexOf("'pixva-ai-settings'") > -1 && hostFix.indexOf("add_action( 'admin_notices', 'pixva_host_ai_upload_notice' )") > -1);
+	check('v10: CSS لایه ۳۲ فیلد اجباری و حالت خطای موبایل', css.indexOf('لایه ۳۲') > -1 && css.indexOf('.pixva-ai__field--req') > -1 && css.indexOf('input.is-invalid') > -1);
 	check('v7: کد پیگیری PXV-AI', aiPhp.indexOf('PXV-AI') > -1);
 
 	/* --- REST نقشه زنده --- */
@@ -889,6 +916,23 @@ async function v7Checks(window) {
 	await wait(30);
 	check('v7: با توقف ضبط، فایل صدا جایگزین شد', !mic.classList.contains('is-recording') && $('[data-ai-media-icon]', mediaBox).dataset.aiKind === 'audio');
 
+	// لایه ۱٫۹٫۰ (Master Prompt v10): اعتبارسنجی شماره موبایل پیش از ارسال.
+	const aiPhone = $('[name="phone"]', form);
+	aiPhone.value = '';
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(20);
+	check('v10: بدون شماره موبایل، ارسال متوقف می‌شود', window.__pixvaCalls.ai === 0 && ai.dataset.aiState === 'idle' && errorBox.textContent.indexOf('شماره موبایل الزامی') > -1 && aiPhone.classList.contains('is-invalid'));
+	aiPhone.value = '02112345678';
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(20);
+	check('v10: شماره نامعتبر (غیر ۰۹xx) رد می‌شود', window.__pixvaCalls.ai === 0 && errorBox.textContent.indexOf('شماره موبایل معتبر نیست') > -1 && aiPhone.classList.contains('is-invalid'));
+	aiPhone.value = '09121111111';
+	aiPhone.dispatchEvent(new window.Event('input', { bubbles: true }));
+	await wait(5);
+	check('v10: با شماره معتبر، علامت خطای فیلد پاک می‌شود', aiPhone.classList.contains('is-invalid') === false);
+	$('[name="brand_model"]', form).value = 'سامسونگ ۵۵ NU7100';
+	$('[name="notes"]', form).value = 'تصویر سیاه است ولی صدا دارد';
+
 	// ارسال موفق به REST.
 	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
 	await wait(20);
@@ -897,6 +941,7 @@ async function v7Checks(window) {
 	await wait(220);
 	check('v7: درخواست به ai-diagnose با نانس فرستاده شد', window.__pixvaCalls.ai === 1 && window.__pixvaAiHeaders['X-Pixva-Nonce'] === 'ai-nonce');
 	check('v7: فایل رسانه داخل FormData است', window.__pixvaAiBody && typeof window.__pixvaAiBody.get === 'function' && !!window.__pixvaAiBody.get('media'));
+	check('v10: فیلدهای مشتری (موبایل/برندو مدل/توضیحات) به اندپوینت ارسال می‌شوند', window.__pixvaAiBody.get('phone') === '09121111111' && window.__pixvaAiBody.get('brand_model') === 'سامسونگ ۵۵ NU7100' && window.__pixvaAiBody.get('notes') === 'تصویر سیاه است ولی صدا دارد');
 
 	const result = $('[data-ai-result]', ai);
 	check('v7: کارت نتیجه باز شد', ai.dataset.aiState === 'done' && result.hidden === false && result.classList.contains('is-open'));
@@ -1008,7 +1053,7 @@ function v8StaticChecks() {
 	});
 
 	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
-	check('v8: پوسته نسخه ۱٫۸٫۰ است', styleCss.indexOf('Version: 1.8.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
+	check('v8: پوسته نسخه ۱٫۹٫۰ است', styleCss.indexOf('Version: 1.9.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
 
 	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
 	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1

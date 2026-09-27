@@ -145,6 +145,13 @@ if ( ! function_exists( 'pixva_ai_diagnose_store_media' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
+		// رسانه عیب‌یابی در پوشه اختصاصی uploads/pixva-ai/ ذخیره می‌شود تا
+		// پاک‌سازی زمان‌بندی‌شده (کرون ۷ روزه) فقط همین فایل‌ها را هدف بگیرد.
+		$pixva_ai_filter_dir = function_exists( 'pixva_ai_upload_dir' );
+		if ( $pixva_ai_filter_dir ) {
+			add_filter( 'upload_dir', 'pixva_ai_upload_dir' );
+		}
+
 		$attachment_id = media_handle_sideload(
 			array(
 				'name'     => sanitize_file_name( $file['name'] ),
@@ -159,6 +166,10 @@ if ( ! function_exists( 'pixva_ai_diagnose_store_media' ) ) {
 				'mime_types' => array_values( pixva_ai_diagnose_allowed_types() ),
 			)
 		);
+
+		if ( $pixva_ai_filter_dir ) {
+			remove_filter( 'upload_dir', 'pixva_ai_upload_dir' );
+		}
 
 		if ( is_wp_error( $attachment_id ) ) {
 			return $attachment_id;

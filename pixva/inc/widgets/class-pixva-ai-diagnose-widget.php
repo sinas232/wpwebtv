@@ -180,6 +180,33 @@ if ( ! class_exists( 'Pixva_Ai_Diagnose_Widget' ) ) {
 			);
 
 			$this->add_control(
+				'phone_required',
+				array(
+					'label'        => esc_html__( 'شماره همراه الزامی باشد', 'pixva' ),
+					'type'         => \Elementor\Controls_Manager::SWITCHER,
+					'default'      => 'yes',
+					'return_value' => 'yes',
+					'description'  => esc_html__( 'اعتبارسنجی شماره‌های ایران (09xx) در فرانت‌اند و سمت سرور.', 'pixva' ),
+					'condition'    => array( 'show_phone' => 'yes' ),
+				)
+			);
+
+			$this->add_control(
+				'camera_capture',
+				array(
+					'label'       => esc_html__( 'ضبط مستقیم با دوربین', 'pixva' ),
+					'type'        => \Elementor\Controls_Manager::SELECT,
+					'default'     => 'environment',
+					'options'     => array(
+						'environment' => esc_html__( 'دوربین پشت (environment)', 'pixva' ),
+						'user'        => esc_html__( 'دوربین سلفی (user)', 'pixva' ),
+						''            => esc_html__( 'غیرفعال (انتخاب فایل)', 'pixva' ),
+					),
+					'description' => esc_html__( 'ویژگی HTML «capture» برای ورودی فایل؛ در موبایل دوربین را مستقیم باز می‌کند.', 'pixva' ),
+				)
+			);
+
+			$this->add_control(
 				'accept',
 				array(
 					'label'       => esc_html__( 'انواع فایل مجاز', 'pixva' ),
@@ -301,6 +328,8 @@ if ( ! class_exists( 'Pixva_Ai_Diagnose_Widget' ) ) {
 					'max_note'    => (string) $settings['max_note'],
 					'accept'      => '' !== trim( (string) $settings['accept'] ) ? (string) $settings['accept'] : 'video/*,audio/*',
 					'show_phone'  => isset( $settings['show_phone'] ) && 'yes' === $settings['show_phone'],
+					'phone_required' => isset( $settings['phone_required'] ) && 'yes' === $settings['phone_required'],
+					'camera_capture' => isset( $settings['camera_capture'] ) ? (string) $settings['camera_capture'] : 'environment',
 					'pulse'       => $pulse,
 					'neon'        => '' !== trim( (string) $settings['neon'] ) ? (string) $settings['neon'] : 'rgb(56, 189, 248)',
 					'neon2'       => '' !== trim( (string) $settings['neon2'] ) ? (string) $settings['neon2'] : 'rgb(168, 85, 247)',

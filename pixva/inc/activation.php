@@ -125,9 +125,28 @@ function pixva_on_switch_theme() {
 		pixva_seed_home_elementor( false );
 	}
 
+	// لایه ۱٫۹٫۰: زمان‌بندی کرون روزانه پاک‌سازی فایل‌های رسانه عیب‌یابی.
+	if ( function_exists( 'pixva_schedule_media_cleanup' ) ) {
+		pixva_schedule_media_cleanup();
+	}
+
 	flush_rewrite_rules();
 }
 add_action( 'after_switch_theme', 'pixva_on_switch_theme' );
+
+/**
+ * لغو زمان‌بندی کرون پاک‌سازی هنگام خروج از پوسته (جلوگیری از کرون یتیم).
+ *
+ * @return void
+ */
+function pixva_on_switch_away_theme() {
+	$timestamp = wp_next_scheduled( 'pixva_ai_media_cleanup_event' );
+	if ( $timestamp ) {
+		wp_unschedule_event( $timestamp, 'pixva_ai_media_cleanup_event' );
+	}
+	wp_clear_scheduled_hook( 'pixva_ai_media_cleanup_event' );
+}
+add_action( 'switch_theme', 'pixva_on_switch_away_theme' );
 
 /**
  * نصب برگه، منو و نمونه محتوا.
@@ -492,6 +511,15 @@ function pixva_maybe_upgrade() {
 		&& (bool) apply_filters( 'pixva_drop_legacy_ai_agent_on_upgrade', true ) ) {
 		remove_theme_mod( 'pixva_ai_agent_url' );
 		remove_theme_mod( 'pixva_ai_agent_token' );
+	}
+
+	/*
+	 * ارتقا به ۱٫۹٫۰ (Master Prompt v10): زمان‌بندی کرون روزانه پاک‌سازی
+	 * فایل‌های رسانه عیب‌یابی در uploads/pixva-ai/ (قدیمی‌تر از ۷ روز).
+	 */
+	if ( '' !== $stored_version && version_compare( $stored_version, '1.9.0', '<' )
+		&& function_exists( 'pixva_schedule_media_cleanup' ) ) {
+		pixva_schedule_media_cleanup();
 	}
 
 	update_option( 'pixva_theme_version', $version );

@@ -472,6 +472,8 @@ if ( ! function_exists( 'pixva_cinematic_register_assets' ) ) {
 					'tooLarge'  => esc_html__( 'حجم فایل بیش از حد مجاز است.', 'pixva' ),
 					'badType'   => esc_html__( 'فقط فایل ویدیو یا صدا پذیرفته می‌شود.', 'pixva' ),
 					'needMedia' => esc_html__( 'ابتدا یک ویدیو یا صدای دستگاه را اضافه کنید.', 'pixva' ),
+					'needPhone' => esc_html__( 'شماره موبایل برای دریافت کد پیگیری و پیامک نتیجه الزامی است.', 'pixva' ),
+					'badPhone'  => esc_html__( 'شماره موبایل نامعتبر است؛ با ۰۹ و ۱۱ رقم وارد کنید (مثلاً ۰۹۱۲۱۱۱۱۱۱۱).', 'pixva' ),
 					'noMic'     => esc_html__( 'مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.', 'pixva' ),
 					'error'     => esc_html__( 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.', 'pixva' ),
 					'done'      => esc_html__( 'تحلیل ثبت شد', 'pixva' ),
@@ -1256,6 +1258,8 @@ if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
 				'pulse'      => 2.4,
 				'accept'     => 'video/*,audio/*',
 				'show_phone' => true,
+				'phone_required' => true,
+				'camera_capture' => 'environment',
 				'element_id' => '',
 			)
 		);
@@ -1299,19 +1303,20 @@ if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
 					</label>
 
 					<label class="pixva-ai__field">
-						<span><?php esc_html_e( 'مدل دستگاه', 'pixva' ); ?></span>
-						<input type="text" name="model" autocomplete="off" placeholder="<?php esc_attr_e( 'مثلاً 55Q80A', 'pixva' ); ?>">
+						<span><?php esc_html_e( 'برند و مدل دستگاه', 'pixva' ); ?></span>
+						<input type="text" name="brand_model" autocomplete="off" placeholder="<?php esc_attr_e( 'مثلاً سامسونگ ۵۵ NU7100', 'pixva' ); ?>">
 					</label>
 
 					<label class="pixva-ai__field pixva-ai__field--wide">
-						<span><?php esc_html_e( 'شرح خرابی', 'pixva' ); ?></span>
-						<textarea name="symptom" rows="2" placeholder="<?php esc_attr_e( 'مثلاً تصویر سیاه است ولی صدا دارد', 'pixva' ); ?>"></textarea>
+						<span><?php esc_html_e( 'توضیحات کوتاه خرابی', 'pixva' ); ?></span>
+						<textarea name="notes" rows="2" placeholder="<?php esc_attr_e( 'مثلاً تصویر سیاه است ولی صدا دارد', 'pixva' ); ?>"></textarea>
 					</label>
 
 					<?php if ( $settings['show_phone'] ) : ?>
-						<label class="pixva-ai__field">
-							<span><?php esc_html_e( 'شماره تماس', 'pixva' ); ?></span>
-							<input type="tel" name="phone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx">
+						<label class="pixva-ai__field<?php echo ! empty( $settings['phone_required'] ) ? ' pixva-ai__field--req' : ''; ?>">
+							<span><?php esc_html_e( 'شماره موبایل', 'pixva' ); ?><?php if ( ! empty( $settings['phone_required'] ) ) : ?> <em aria-hidden="true">*</em><?php endif; ?></span>
+							<input type="tel" name="phone" inputmode="numeric" autocomplete="tel" dir="ltr" placeholder="09xxxxxxxxx"
+								<?php echo ! empty( $settings['phone_required'] ) ? 'required data-ai-required="phone" pattern="09[0-9]{9}"' : ''; ?>>
 						</label>
 					<?php endif; ?>
 				</div>
@@ -1331,7 +1336,7 @@ if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
 					<label class="pixva-btn pixva-btn--ghost-dark pixva-ai__pick" data-ai-pick>
 						<?php echo pixva_icon( 'camera' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<span><?php echo esc_html( (string) $settings['video_label'] ); ?></span>
-						<input type="file" name="media" accept="<?php echo esc_attr( (string) $settings['accept'] ); ?>" data-ai-file hidden>
+						<input type="file" name="media" accept="<?php echo esc_attr( (string) $settings['accept'] ); ?>"<?php echo '' !== trim( (string) $settings['camera_capture'] ) ? ' capture="' . esc_attr( (string) $settings['camera_capture'] ) . '"' : ''; ?> data-ai-file hidden>
 					</label>
 
 					<button type="button" class="pixva-btn pixva-btn--ghost-dark pixva-ai__mic" data-ai-mic>

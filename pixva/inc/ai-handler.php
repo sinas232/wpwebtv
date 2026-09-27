@@ -681,6 +681,191 @@ if ( ! function_exists( 'pixva_ai_handler_test' ) ) {
 }
 
 /* ==========================================================================
+   ۳-ب) مقاومت تولیدی: محدودیت روزانه، اعتبارسنجی شماره، مسیر آپلود و پاک‌سازی
+   ========================================================================== */
+
+if ( ! function_exists( 'pixva_ai_handler_daily_limited' ) ) {
+	/**
+	 * محدودیت ۳ درخواست عیب‌یابی در ۲۴ ساعت برای هر کاربر (IP + کوکی).
+	 *
+	 * برای جلوگیری از اتمام سهمیه Gemini و پر شدن هاست. هم کلید IP (transient)
+	 * و هم کوکی مرورگر شمرده می‌شود؛ عبور از هرکدام درخواست را رد می‌کند.
+	 *
+	 * @return bool
+	 */
+	function pixva_ai_handler_daily_limited() {
+		$max    = (int) apply_filters( 'pixva_ai_daily_max', 3 );
+		$window = (int) apply_filters( 'pixva_ai_daily_window', DAY_IN_SECONDS );
+
+		$ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+		$ip_key  = 'pixva_ai_daily_' . md5( $ip . wp_salt( 'nonce' ) );
+		$ip_hit  = (int) get_transient( $ip_key );
+
+		// کوکی سمت مرورگر (برای کاربرانی که IP مشترک/NAT دارند).
+		$cookie_hit = isset( $_COOKIE['pixva_ai_daily'] ) ? (int) $_COOKIE['pixva_ai_daily'] : 0; // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables
+
+		if ( $ip_hit >= $max || $cookie_hit >= $max ) {
+			return true;
+		}
+
+		set_transient( $ip_key, $ip_hit + 1, $window );
+		if ( ! headers_sent() ) {
+			setcookie( 'pixva_ai_daily', (string) ( $cookie_hit + 1 ), time() + $window, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN );
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'pixva_ai_handler_phone_required' ) ) {
+	/**
+	 * آیا شماره همراه معتبر برای ثبت عیب‌یابی الزامی است؟
+	 *
+	 * @return bool
+	 */
+	function pixva_ai_handler_phone_required() {
+		return (bool) apply_filters( 'pixva_ai_phone_required', (bool) pixva_option( 'pixva_ai_require_phone', true ) );
+	}
+}
+
+if ( ! function_exists( 'pixva_ai_upload_subdir' ) ) {
+	/**
+	 * زیرپوشه اختصاصی آپلود رسانه عیب‌یابی داخل uploads.
+	 *
+	 * @return string
+	 */
+	function pixva_ai_upload_subdir() {
+		return (string) apply_filters( 'pixva_ai_upload_subdir', 'pixva-ai' );
+	}
+}
+
+if ( ! function_exists( 'pixva_ai_upload_dir' ) ) {
+	/**
+	 * فیلتر مسیر آپلود: رسانه عیب‌یابی در uploads/pixva-ai/ (بدون زیرپوشه سال/ماه).
+	 *
+	 * @param array $uploads خروجی wp_upload_dir.
+	 * @return array
+	 */
+	function pixva_ai_upload_dir( $uploads ) {
+		$subdir = '/' . trim( pixva_ai_upload_subdir(), '/' );
+
+		$uploads['subdir'] = $subdir;
+		$uploads['path']   = untrailingslashit( $uploads['basedir'] ) . $subdir;
+		$uploads['url']    = untrailingslashit( $uploads['baseurl'] ) . $subdir;
+
+		return $uploads;
+	}
+}
+
+if ( ! function_exists( 'pixva_schedule_media_cleanup' ) ) {
+	/**
+	 * زمان‌بندی کرون روزانه پاک‌سازی فایل‌های رسانه عیب‌یابی.
+	 *
+	 * @return void
+	 */
+	function pixva_schedule_media_cleanup() {
+		if ( ! wp_next_scheduled( 'pixva_ai_media_cleanup_event' ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'pixva_ai_media_cleanup_event' );
+		}
+	}
+}
+
+if ( ! function_exists( 'pixva_ai_media_cleanup' ) ) {
+	/**
+	 * پاک‌سازی فایل‌های ویدیو/صدا/تصویر آپلودشده در uploads/pixva-ai/ که
+	 * قدیمی‌تر از N روز (پیش‌فرض ۷) هستند. سوابق و نتایج JSON در پایگاه‌داده
+	 * دست‌نخورده می‌مانند و فقط فایل‌های سنگین حذف می‌شوند تا هاست پر نشود.
+	 *
+	 * @return int تعداد فایل‌های حذف‌شده.
+	 */
+	function pixva_ai_media_cleanup() {
+		$days = (int) apply_filters( 'pixva_ai_media_cleanup_days', 7 );
+		$days = max( 1, $days );
+
+		$upload = wp_upload_dir();
+		$dir    = untrailingslashit( (string) $upload['basedir'] ) . '/' . trim( pixva_ai_upload_subdir(), '/' );
+		if ( ! is_dir( $dir ) ) {
+			return 0;
+		}
+
+		$exts   = apply_filters( 'pixva_ai_media_cleanup_exts', array( 'mp4', 'm4v', 'webm', 'ogv', 'mov', 'avi', 'mp3', 'm4a', 'wav', 'ogg', 'weba', 'amr', 'jpg', 'jpeg', 'png', 'webp' ) );
+		$cutoff = time() - ( $days * DAY_IN_SECONDS );
+		$count  = 0;
+
+		$files = glob( $dir . '/*' );
+		if ( ! is_array( $files ) ) {
+			return 0;
+		}
+
+		foreach ( $files as $file ) {
+			if ( is_dir( $file ) || ! is_file( $file ) ) {
+				continue;
+			}
+			$ext = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
+			if ( ! in_array( $ext, (array) $exts, true ) ) {
+				continue;
+			}
+			if ( filemtime( $file ) >= $cutoff ) {
+				continue;
+			}
+			if ( @unlink( $file ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				$count++;
+			}
+		}
+
+		if ( $count > 0 ) {
+			update_option( 'pixva_ai_media_last_cleanup', array( 'time' => time(), 'deleted' => $count ) );
+		}
+
+		/**
+		 * هوک پس از پاک‌سازی فایل‌های رسانه عیب‌یابی.
+		 *
+		 * @param int $count تعداد حذف‌شده.
+		 * @param string $dir مسیر.
+		 */
+		do_action( 'pixva_ai_media_cleaned', $count, $dir );
+
+		return $count;
+	}
+	add_action( 'pixva_ai_media_cleanup_event', 'pixva_ai_media_cleanup' );
+}
+
+if ( ! function_exists( 'pixva_ai_media_mark_purged' ) ) {
+	/**
+	 * نشانه‌گذاری پیوست‌هایی که فایل فیزیکی‌شان پاک‌سازی شده (برای نمایش در تاریخچه).
+	 *
+	 * @return void
+	 */
+	function pixva_ai_media_mark_purged() {
+		$upload = wp_upload_dir();
+		$dir    = untrailingslashit( (string) $upload['basedir'] ) . '/' . trim( pixva_ai_upload_subdir(), '/' );
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => 100,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'     => '_pixva_ai_media',
+						'compare' => 'EXISTS',
+					),
+				),
+			)
+		);
+
+		foreach ( $query->posts as $attachment_id ) {
+			$path = (string) get_attached_file( (int) $attachment_id );
+			if ( '' !== $path && 0 === strpos( $path, $dir ) && ! file_exists( $path ) ) {
+				update_post_meta( (int) $attachment_id, '_pixva_ai_media_purged', 1 );
+			}
+		}
+	}
+	add_action( 'pixva_ai_media_cleaned', 'pixva_ai_media_mark_purged' );
+}
+
+/* ==========================================================================
    ۴) اندپوینت بومی REST: POST wp-json/pixva/v1/ai-diagnose
    ========================================================================== */
 
@@ -692,9 +877,29 @@ if ( ! function_exists( 'pixva_rest_ai_diagnose' ) ) {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	function pixva_rest_ai_diagnose( $request ) {
+		// رفع محدودیت زمان/حافظه هاست پیش از پردازش آپلود و فراخوانی API.
+		if ( function_exists( 'pixva_host_raise_limits' ) ) {
+			pixva_host_raise_limits();
+		}
+
 		$files = isset( $_FILES['media'] ) ? $_FILES['media'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		if ( empty( $files ) ) {
 			return new WP_Error( 'pixva_ai_media', __( 'ابتدا یک ویدیو یا صدای دستگاه را اضافه کنید.', 'pixva' ), array( 'status' => 400 ) );
+		}
+
+		// محدودیت ضداسپم: حداکثر ۳ درخواست در ۲۴ ساعت (IP + کوکی).
+		if ( pixva_ai_handler_daily_limited() ) {
+			return new WP_Error( 'pixva_ai_daily', __( 'سقف درخواست‌های عیب‌یابی روزانه (۳ در ۲۴ ساعت) پر شده است؛ برای حفظ سهمیه سرویس، فردا دوباره تلاش کنید.', 'pixva' ), array( 'status' => 429 ) );
+		}
+
+		// اعتبارسنجی شماره همراه ایران پیش از ذخیره فایل روی هاست.
+		$phone_raw = (string) $request->get_param( 'phone' );
+		$phone     = function_exists( 'pixva_normalize_mobile' ) ? pixva_normalize_mobile( $phone_raw ) : sanitize_text_field( $phone_raw );
+		if ( pixva_ai_handler_phone_required() ) {
+			$phone_ok = function_exists( 'pixva_is_valid_iranian_mobile' ) ? pixva_is_valid_iranian_mobile( $phone ) : (bool) preg_match( '/^09[0-9]{9}$/', $phone );
+			if ( ! $phone_ok ) {
+				return new WP_Error( 'pixva_ai_phone', __( 'شماره موبایل معتبر نیست؛ آن را با ۰۹ و ۱۱ رقم وارد کنید (مثلاً ۰۹۱۲۱۱۱۱۱۱۱).', 'pixva' ), array( 'status' => 400 ) );
+			}
 		}
 
 		$attachment_id = pixva_ai_diagnose_store_media( $files );
@@ -702,12 +907,19 @@ if ( ! function_exists( 'pixva_rest_ai_diagnose' ) ) {
 			return $attachment_id;
 		}
 
-		$brand   = sanitize_text_field( (string) $request->get_param( 'brand' ) );
-		$model   = sanitize_text_field( (string) $request->get_param( 'model' ) );
+		$brand       = sanitize_text_field( (string) $request->get_param( 'brand' ) );
+		$brand_model = sanitize_text_field( (string) $request->get_param( 'brand_model' ) );
+		$model       = sanitize_text_field( (string) $request->get_param( 'model' ) );
+		if ( '' === $model && '' !== $brand_model ) {
+			$model = $brand_model;
+		}
+		$notes   = sanitize_textarea_field( (string) $request->get_param( 'notes' ) );
 		$symptom = sanitize_textarea_field( (string) $request->get_param( 'symptom' ) );
-		$phone   = function_exists( 'pixva_normalize_mobile' ) ? pixva_normalize_mobile( (string) $request->get_param( 'phone' ) ) : sanitize_text_field( (string) $request->get_param( 'phone' ) );
-		$brands  = function_exists( 'pixva_brand_catalog' ) ? pixva_brand_catalog() : array();
-		$brand_label = isset( $brands[ $brand ]['fa'] ) ? $brands[ $brand ]['fa'] : ( '' !== $brand ? $brand : __( 'نامشخص', 'pixva' ) );
+		if ( '' === $symptom && '' !== $notes ) {
+			$symptom = $notes;
+		}
+		$brands      = function_exists( 'pixva_brand_catalog' ) ? pixva_brand_catalog() : array();
+		$brand_label = isset( $brands[ $brand ]['fa'] ) ? $brands[ $brand ]['fa'] : ( '' !== $brand ? $brand : ( '' !== $brand_model ? $brand_model : __( 'نامشخص', 'pixva' ) ) );
 
 		$post_type = post_type_exists( 'pixva_inbox' ) ? 'pixva_inbox' : 'post';
 		$post_id   = wp_insert_post(
@@ -738,6 +950,7 @@ if ( ! function_exists( 'pixva_rest_ai_diagnose' ) ) {
 		update_post_meta( $post_id, '_pixva_ai_code', $ticket );
 		update_post_meta( $post_id, '_pixva_ai_media', (int) $attachment_id );
 		update_post_meta( $post_id, '_pixva_ai_brand', $brand );
+		update_post_meta( $post_id, '_pixva_ai_brand_model', $brand_model );
 		update_post_meta( $post_id, '_pixva_ai_model', $model );
 		update_post_meta( $post_id, '_pixva_ai_symptom', $symptom );
 		update_post_meta( $post_id, '_pixva_ai_phone', $phone );
@@ -856,19 +1069,27 @@ if ( ! function_exists( 'pixva_register_ai_diagnose_route' ) ) {
 				'callback'            => 'pixva_rest_ai_diagnose',
 				'permission_callback' => 'pixva_ai_diagnose_permission',
 				'args'                => array(
-					'brand'   => array(
+					'brand'       => array(
 						'required'          => false,
 						'sanitize_callback' => 'sanitize_key',
 					),
-					'model'   => array(
+					'brand_model' => array(
 						'required'          => false,
 						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'symptom' => array(
+					'model'       => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'notes'       => array(
 						'required'          => false,
 						'sanitize_callback' => 'sanitize_textarea_field',
 					),
-					'phone'   => array(
+					'symptom'     => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+					'phone'       => array(
 						'required'          => false,
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -1119,6 +1340,8 @@ if ( ! function_exists( 'pixva_ai_handler_render_settings' ) ) {
 		$max_size  = pixva_ai_handler_max_size();
 		$auto      = pixva_ai_handler_auto_draft();
 		$models    = pixva_ai_handler_models();
+		$sms       = function_exists( 'pixva_sms_handler_settings' ) ? pixva_sms_handler_settings() : array( 'enabled' => false, 'provider' => 'none', 'api_key' => '', 'sender' => '', 'pattern' => '', 'admin_number' => '' );
+		$sms_providers = function_exists( 'pixva_sms_handler_providers' ) ? pixva_sms_handler_providers() : array( 'none' => '—' );
 		$nonce     = wp_create_nonce( 'pixva_ai_test' );
 		$updated   = isset( $_GET['settings-updated'] ) && 'true' === sanitize_key( wp_unslash( $_GET['settings-updated'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
@@ -1180,6 +1403,53 @@ if ( ! function_exists( 'pixva_ai_handler_render_settings' ) ) {
 								<?php esc_html_e( 'به محض تشخیص خطا توسط هوش مصنوعی، یک پرونده سفارش (pixva_orders) به‌صورت پیش‌نویس ساخته شود.', 'pixva' ); ?>
 							</label>
 						</td>
+					</tr>
+				</table>
+
+				<h2><?php esc_html_e( 'سامانه پیامک خودکار', 'pixva' ); ?></h2>
+				<p class="pixva-ai-note"><?php esc_html_e( 'ارسال خودکار کد پیگیری به مشتری پس از آنالیز، پیامک وضعیت هنگام تبدیل به سفارش و هشدار عیب‌یابی جدید به مدیر. در نبود تنظیمات، از پیکربندی پیامک مرکز کنترل استفاده می‌شود.', 'pixva' ); ?></p>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'فعال‌سازی پیامک', 'pixva' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="pixva_sms_enabled" value="1" <?php checked( ! empty( $sms['enabled'] ), true ); ?> />
+								<?php esc_html_e( 'ارسال پیامک‌های خودکار عیب‌یابی فعال باشد.', 'pixva' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="pixva_sms_provider"><?php esc_html_e( 'پنل پیامک', 'pixva' ); ?></label></th>
+						<td>
+							<select name="pixva_sms_provider" id="pixva_sms_provider">
+								<?php foreach ( $sms_providers as $value => $label ) : ?>
+									<option value="<?php echo esc_attr( $value ); ?>" <?php selected( (string) $sms['provider'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="pixva_sms_api_key"><?php esc_html_e( 'کلید API پیامک', 'pixva' ); ?></label></th>
+						<td>
+							<input type="password" name="pixva_sms_api_key" id="pixva_sms_api_key" value="" autocomplete="new-password" dir="ltr" class="regular-text"
+								placeholder="<?php echo '' !== $sms['api_key'] ? esc_attr__( '•••••• (ذخیره شده — برای تغییر وارد کنید)', 'pixva' ) : ''; ?>" />
+							<label class="pixva-ai-note"><input type="checkbox" name="pixva_sms_api_key_clear" value="1" /> <?php esc_html_e( 'حذف کلید ذخیره‌شده', 'pixva' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="pixva_sms_sender_line"><?php esc_html_e( 'شماره/خط ارسال‌کننده', 'pixva' ); ?></label></th>
+						<td><input type="text" name="pixva_sms_sender_line" id="pixva_sms_sender_line" value="<?php echo esc_attr( (string) $sms['sender'] ); ?>" dir="ltr" class="regular-text" /></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="pixva_sms_pattern"><?php esc_html_e( 'کد الگو (Pattern)', 'pixva' ); ?></label></th>
+						<td>
+							<input type="text" name="pixva_sms_pattern" id="pixva_sms_pattern" value="<?php echo esc_attr( (string) $sms['pattern'] ); ?>" dir="ltr" class="regular-text" />
+							<p class="description"><?php esc_html_e( 'در صورت داشتن الگوی تأییدشده در پنل (کدنویسی/verify) پر کنید؛ در غیر این صورت متن آزاد ارسال می‌شود.', 'pixva' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="pixva_sms_admin_number"><?php esc_html_e( 'شماره مدیر/تعمیرکار (هشدار)', 'pixva' ); ?></label></th>
+						<td><input type="text" name="pixva_sms_admin_number" id="pixva_sms_admin_number" value="<?php echo esc_attr( (string) $sms['admin_number'] ); ?>" dir="ltr" class="regular-text" placeholder="09xxxxxxxxx" /></td>
 					</tr>
 				</table>
 
@@ -1264,6 +1534,30 @@ if ( ! function_exists( 'pixva_ai_handler_save_settings' ) ) {
 		}
 
 		set_theme_mod( 'pixva_ai_auto_create_draft', empty( $_POST['pixva_ai_auto_create_draft'] ) ? false : true );
+
+		// سامانه پیامک.
+		set_theme_mod( 'pixva_sms_enabled', empty( $_POST['pixva_sms_enabled'] ) ? false : true );
+
+		if ( isset( $_POST['pixva_sms_provider'] ) ) {
+			$provider = sanitize_key( wp_unslash( $_POST['pixva_sms_provider'] ) );
+			if ( function_exists( 'pixva_sms_handler_providers' ) && array_key_exists( $provider, pixva_sms_handler_providers() ) ) {
+				set_theme_mod( 'pixva_sms_provider', $provider );
+			}
+		}
+		if ( ! empty( $_POST['pixva_sms_api_key_clear'] ) ) {
+			set_theme_mod( 'pixva_sms_api_key', '' );
+		} elseif ( isset( $_POST['pixva_sms_api_key'] ) && '' !== trim( (string) wp_unslash( $_POST['pixva_sms_api_key'] ) ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			set_theme_mod( 'pixva_sms_api_key', sanitize_text_field( wp_unslash( $_POST['pixva_sms_api_key'] ) ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		}
+		if ( isset( $_POST['pixva_sms_sender_line'] ) ) {
+			set_theme_mod( 'pixva_sms_sender_line', sanitize_text_field( wp_unslash( $_POST['pixva_sms_sender_line'] ) ) );
+		}
+		if ( isset( $_POST['pixva_sms_pattern'] ) ) {
+			set_theme_mod( 'pixva_sms_pattern', sanitize_text_field( wp_unslash( $_POST['pixva_sms_pattern'] ) ) );
+		}
+		if ( isset( $_POST['pixva_sms_admin_number'] ) ) {
+			set_theme_mod( 'pixva_sms_admin_number', sanitize_text_field( wp_unslash( $_POST['pixva_sms_admin_number'] ) ) );
+		}
 
 		wp_safe_redirect(
 			add_query_arg(

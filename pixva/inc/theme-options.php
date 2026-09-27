@@ -923,8 +923,85 @@ function pixva_customize_register( $wp_customize ) {
 			'description' => esc_html__( 'یک پرونده pixva_orders از روی نتیجه عیب‌یابی ساخته می‌شود (قابل تبدیل نهایی در تاریخچه).', 'pixva' ),
 		)
 	);
+
+	/* ------- سامانه پیامک خودکار عیب‌یاب (لایه ۱٫۹٫۰ / Master Prompt v10) ------- */
+	$wp_customize->add_section(
+		'pixva_ai_sms',
+		array(
+			'title'       => esc_html__( 'پیکسوا: پیامک عیب‌یاب هوشمند', 'pixva' ),
+			'description' => esc_html__( 'ارسال خودکار کد پیگیری به مشتری، پیامک وضعیت هنگام تبدیل به سفارش و هشدار عیب‌یابی جدید به مدیر. در نبود این تنظیمات، از پیکربندی پیامک مرکز کنترل استفاده می‌شود.', 'pixva' ),
+			'priority'    => 38,
+		)
+	);
+
+	$pixva_sms_fields = array(
+		'pixva_sms_enabled'      => array( __( 'فعال‌سازی پیامک خودکار', 'pixva' ), 'checkbox', false, '' ),
+		'pixva_sms_provider'     => array( __( 'پنل پیامک', 'pixva' ), 'sms_provider', 'none', '' ),
+		'pixva_sms_api_key'      => array( __( 'کلید API پیامک', 'pixva' ), 'text', '', __( 'فقط سمت سرور نگهداری می‌شود.', 'pixva' ) ),
+		'pixva_sms_sender_line'  => array( __( 'شماره/خط ارسال‌کننده', 'pixva' ), 'text', '', '' ),
+		'pixva_sms_pattern'      => array( __( 'کد الگو (Pattern)', 'pixva' ), 'text', '', __( 'برای درگاه‌های دارای الگوی تأییدشده (verify).', 'pixva' ) ),
+		'pixva_sms_admin_number' => array( __( 'شماره مدیر/تعمیرکار (هشدار)', 'pixva' ), 'text', '', '' ),
+		'pixva_sms_welcome_text' => array( __( 'قالب پیامک خوش‌آمدگویی مشتری', 'pixva' ), 'textarea', '', __( 'جای‌گیرها: {code} {fault} {phone} {brand} {site}', 'pixva' ) ),
+		'pixva_sms_status_text'  => array( __( 'قالب پیامک وضعیت سفارش', 'pixva' ), 'textarea', '', __( 'جای‌گیرها: {order_code} {status} {time} {phone} {site}', 'pixva' ) ),
+		'pixva_sms_admin_text'   => array( __( 'قالب پیامک هشدار مدیر', 'pixva' ), 'textarea', '', __( 'جای‌گیرها: {brand} {fault} {conf} {phone} {site}', 'pixva' ) ),
+	);
+
+	foreach ( $pixva_sms_fields as $pixva_key => $pixva_field ) {
+		$pixva_type = $pixva_field[1];
+
+		if ( 'checkbox' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_checkbox';
+			$pixva_control  = 'checkbox';
+		} elseif ( 'textarea' === $pixva_type ) {
+			$pixva_sanitize = 'sanitize_textarea_field';
+			$pixva_control  = 'textarea';
+		} elseif ( 'sms_provider' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_sms_provider';
+			$pixva_control  = 'select';
+		} else {
+			$pixva_sanitize = 'sanitize_text_field';
+			$pixva_control  = 'text';
+		}
+
+		$wp_customize->add_setting(
+			$pixva_key,
+			array(
+				'default'           => $pixva_field[2],
+				'sanitize_callback' => $pixva_sanitize,
+			)
+		);
+
+		$pixva_args = array(
+			'label'   => $pixva_field[0],
+			'section' => 'pixva_ai_sms',
+			'type'    => $pixva_control,
+		);
+		if ( '' !== $pixva_field[3] ) {
+			$pixva_args['description'] = $pixva_field[3];
+		}
+		if ( 'sms_provider' === $pixva_type ) {
+			$pixva_args['choices'] = function_exists( 'pixva_sms_handler_providers' ) ? pixva_sms_handler_providers() : array( 'none' => '—' );
+		}
+		if ( 'text' === $pixva_control && false !== strpos( $pixva_key, 'api_key' ) ) {
+			$pixva_args['input_attrs'] = array( 'dir' => 'ltr', 'style' => 'font-family:monospace' );
+		}
+
+		$wp_customize->add_control( $pixva_key, $pixva_args );
+	}
 }
 add_action( 'customize_register', 'pixva_customize_register' );
+
+/**
+ * پاک‌سازی انتخاب درگاه پیامک (فقط درگاه‌های مجاز).
+ *
+ * @param string $provider درگاه.
+ * @return string
+ */
+function pixva_sanitize_sms_provider( $provider ) {
+	$provider = sanitize_key( (string) $provider );
+	$allowed  = function_exists( 'pixva_sms_handler_providers' ) ? pixva_sms_handler_providers() : array( 'none' => '' );
+	return array_key_exists( $provider, $allowed ) ? $provider : 'none';
+}
 
 /**
  * پاک‌سازی انتخاب مدل جمینای (فقط مدل‌های مجاز).

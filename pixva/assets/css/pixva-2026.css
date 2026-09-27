@@ -11457,3 +11457,61 @@ html.pixva-cine-js .pixva-cine__bar i {
 		animation: none;
 	}
 }
+
+/* ==========================================================================
+   لایه ۳۲ — فیلدهای مشتری و ضبط دوربین عیب‌یاب (نسخه ۱٫۹٫۰ / v10)
+
+   فیلد اجباری شماره همراه، حالت خطای اعتبارسنجی و برچسب «ضبط با دوربین»
+   روی ورودی فایل. فقط رنگ/حالت؛ بدون تغییر متغیرهای ویجت.
+   ----------------------------------------------------------------------- */
+
+.pixva-ai__field--req > span em {
+	color: var(--ai-neon, #f43f5e);
+	font-style: normal;
+	font-weight: 900;
+	margin-inline-start: 2px;
+}
+
+.pixva-ai__field input[name="phone"] {
+	direction: ltr;
+	text-align: left;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.06em;
+}
+
+.pixva-ai__field input.is-invalid,
+.pixva-ai__field input[name="phone"].is-invalid {
+	border-color: rgb(244, 63, 94) !important;
+	box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.18);
+	animation: pixva-ai-shake 0.32s ease;
+}
+
+@keyframes pixva-ai-shake {
+	0%, 100% { transform: translateX(0); }
+	25% { transform: translateX(-4px); }
+	75% { transform: translateX(4px); }
+}
+
+.pixva-ai__pick[data-ai-pick]::after {
+	content: attr(data-capture-hint);
+	position: absolute;
+	inset-block-end: -16px;
+	inset-inline-start: 50%;
+	transform: translateX(-50%);
+	font-size: 0.6rem;
+	white-space: nowrap;
+	color: rgba(255, 255, 255, 0.45);
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	pointer-events: none;
+}
+
+.pixva-ai__pick[data-ai-pick]:hover::after {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-ai__field input.is-invalid {
+		animation: none;
+	}
+}

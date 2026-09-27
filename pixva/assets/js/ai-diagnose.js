@@ -260,6 +260,23 @@
 			return;
 		}
 
+		// اعتبارسنجی شماره همراه ایران (۰۹xx) — فیلد اجباری سایبرپانک.
+		var phoneInput = qs('[name="phone"]', section);
+		if (phoneInput && 'phone' === phoneInput.getAttribute('data-ai-required')) {
+			var phoneVal = (phoneInput.value || '').replace(/[\s\-()]/g, '');
+			var phoneOk = /^09[0-9]{9}$/.test(phoneVal) || /^(\+?98|0098)?9[0-9]{9}$/.test(phoneVal);
+			if (!phoneOk) {
+				stopLoading(0);
+				setState(section, 'idle');
+				showError(section, ('' === phoneVal ? i18n.needPhone : i18n.badPhone) || '');
+				if (submitButton) { submitButton.disabled = false; }
+				phoneInput.classList.add('is-invalid');
+				phoneInput.focus();
+				return;
+			}
+			phoneInput.classList.remove('is-invalid');
+		}
+
 		var body = new window.FormData(form || undefined);
 		body.append('media', media, media.name || 'media.webm');
 		if (!body.has('pixva_hp')) { body.append('pixva_hp', ''); }
@@ -401,6 +418,19 @@
 			var stop = startLoading(section);
 			submit(section, stop);
 		});
+
+		// لایه ۱٫۹٫۰: پاک‌سازی علامت خطای شماره موبایل به‌محض اصلاح آن.
+		var phoneField = qs('[data-ai-required="phone"]', section);
+		if (phoneField) {
+			['input', 'change'].forEach(function (eventName) {
+				phoneField.addEventListener(eventName, function () {
+					var digits = (phoneField.value || '').replace(/[^\d]/g, '').replace(/^0098/, '0').replace(/^\+?98/, '0');
+					if (/^09[0-9]{9}$/.test(digits)) {
+						phoneField.classList.remove('is-invalid');
+					}
+				});
+			});
+		}
 	}
 
 	function scan(root) {

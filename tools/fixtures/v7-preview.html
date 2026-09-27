@@ -61,6 +61,8 @@
 			tooLarge: 'حجم فایل بیش از حد مجاز است.',
 			badType: 'فقط فایل ویدیو یا صدا پذیرفته می‌شود.',
 			needMedia: 'ابتدا یک ویدیو یا صدای دستگاه را اضافه کنید.',
+			needPhone: 'برای دریافت نتیجه عیب‌یابی، شماره موبایل الزامی است.',
+			badPhone: 'شماره موبایل معتبر نیست (مثال: 09121234567).',
 			noMic: 'مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.',
 			error: 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.',
 			done: 'تحلیل ثبت شد',
@@ -436,18 +438,18 @@
 				</label>
 
 				<label class="pixva-ai__field">
-					<span>مدل دستگاه</span>
-					<input type="text" name="model" autocomplete="off" placeholder="مثلاً 55Q80A">
+					<span>برند و مدل دستگاه</span>
+					<input type="text" name="brand_model" autocomplete="off" placeholder="مثلاً سامسونگ ۵۵ NU7100">
 				</label>
 
 				<label class="pixva-ai__field pixva-ai__field--wide">
-					<span>شرح خرابی</span>
-					<textarea name="symptom" rows="2" placeholder="مثلاً تصویر سیاه است ولی صدا دارد"></textarea>
+					<span>توضیحات کوتاه خرابی</span>
+					<textarea name="notes" rows="2" placeholder="مثلاً تصویر سیاه است ولی صدا دارد"></textarea>
 				</label>
 
-				<label class="pixva-ai__field">
-					<span>شماره تماس</span>
-					<input type="tel" name="phone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx">
+				<label class="pixva-ai__field pixva-ai__field--req">
+					<span>شماره موبایل <em aria-hidden="true">*</em></span>
+					<input type="tel" name="phone" inputmode="numeric" autocomplete="tel" dir="ltr" placeholder="09xxxxxxxxx" required data-ai-required="phone" pattern="09[0-9]{9}">
 				</label>
 			</div>
 
@@ -466,7 +468,7 @@
 				<label class="pixva-btn pixva-btn--ghost-dark pixva-ai__pick" data-ai-pick>
 					<svg viewBox="0 0 24 24" aria-hidden="true"></svg>
 					<span>آپلود ویدیوی خرابی</span>
-					<input type="file" name="media" accept="video/*,audio/*" data-ai-file hidden>
+					<input type="file" name="media" accept="video/*,audio/*" capture="environment" data-ai-file hidden>
 				</label>
 
 				<button type="button" class="pixva-btn pixva-btn--ghost-dark pixva-ai__mic" data-ai-mic>
