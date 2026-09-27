@@ -348,6 +348,7 @@ if ( ! function_exists( 'pixva_symptom_guide_items' ) ) {
 			array(
 				'id'       => 'no-picture-backlight',
 				'problem'  => 'no_picture',
+				'icon'     => 'sound',
 				'question' => __( 'تلویزیون صدا دارد ولی تصویر ندارد؛ علت چیست؟', 'pixva' ),
 				'title'    => __( 'صدا دارد ولی تصویر ندارد (خرابی بک‌لایت)', 'pixva' ),
 				'cause'    => __( 'خاموش‌شدن یا سوختن ریسه‌های LED بک‌لایت', 'pixva' ),
@@ -362,6 +363,7 @@ if ( ! function_exists( 'pixva_symptom_guide_items' ) ) {
 			array(
 				'id'       => 'vertical-horizontal-lines',
 				'problem'  => 'lines',
+				'icon'     => 'panel',
 				'question' => __( 'خطوط عمودی یا افقی روی صفحه تلویزیون نشانه چیست؟', 'pixva' ),
 				'title'    => __( 'خطوط عمودی یا افقی روی صفحه (ایراد پنل/تیکان)', 'pixva' ),
 				'cause'    => __( 'قطع شدن فلت‌های COF یا ایراد برد T-Con', 'pixva' ),
@@ -376,6 +378,7 @@ if ( ! function_exists( 'pixva_symptom_guide_items' ) ) {
 			array(
 				'id'       => 'no-power-blink',
 				'problem'  => 'no_power',
+				'icon'     => 'plug',
 				'question' => __( 'تلویزیون روشن نمی‌شود و چراغ پاور چشمک می‌زند؛ چه کنم؟', 'pixva' ),
 				'title'    => __( 'تلویزیون روشن نمی‌شود / چراغ پاور چشمک می‌زند (برد تغذیه)', 'pixva' ),
 				'cause'    => __( 'خرابی برد پاور، بادکردن خازن‌ها یا فعال‌شدن محافظت', 'pixva' ),
@@ -390,6 +393,7 @@ if ( ! function_exists( 'pixva_symptom_guide_items' ) ) {
 			array(
 				'id'       => 'logo-loop-reset',
 				'problem'  => 'mainboard',
+				'icon'     => 'cpu',
 				'question' => __( 'تلویزیون روی لوگو گیر کرده یا مدام ریست می‌شود؛ مشکل کجاست؟', 'pixva' ),
 				'title'    => __( 'روی لوگو گیر کرده یا ریست می‌شود (مین‌برد)', 'pixva' ),
 				'cause'    => __( 'خرابی حافظه، نیم‌سوز شدن مین‌برد یا آسیب فریم‌ور', 'pixva' ),
@@ -562,6 +566,9 @@ if ( ! function_exists( 'pixva_render_symptom_guide' ) ) {
 				<div class="pixva-symptom__grid">
 					<?php foreach ( $items as $item ) : ?>
 						<article class="pixva-symptom__card" id="<?php echo esc_attr( $item['id'] ); ?>">
+							<span class="pixva-symptom__icon" aria-hidden="true">
+								<?php echo pixva_icon( isset( $item['icon'] ) && '' !== $item['icon'] ? $item['icon'] : 'tool' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							</span>
 							<h3><?php echo esc_html( $item['title'] ); ?></h3>
 
 							<p class="pixva-symptom__q"><?php echo esc_html( $item['question'] ); ?></p>
@@ -894,6 +901,27 @@ if ( ! function_exists( 'pixva_render_price_calculator' ) ) {
 							<?php endforeach; ?>
 						</select>
 					</label>
+
+					<?php
+					/*
+					 * فیلتر قرصی برند (لایه ۲٫۱٫۰): کلیک روی هر قرص همان
+					 * <select data-price-brand> را به‌روز می‌کند تا بدون JS هم
+					 * جدول سمت سرور درست بماند و رفتار فیلتر یکی باشد.
+					 * ویژگی data-price-pill عمداً با data-price-brand فرق دارد
+					 * تا انتخابگر option در JS دوباره دچار تداخل نشود.
+					 */
+					?>
+					<div class="pixva-pricetable__pills" data-price-pills="brand" role="group" aria-label="<?php esc_attr_e( 'فیلتر سریع برند', 'pixva' ); ?>">
+						<?php foreach ( $brands as $key => $brand ) : ?>
+							<button
+								type="button"
+								class="px-pill<?php echo $default_brand === $key ? ' is-active' : ''; ?>"
+								data-price-pill="<?php echo esc_attr( $key ); ?>"
+								aria-pressed="<?php echo $default_brand === $key ? 'true' : 'false'; ?>">
+								<?php echo esc_html( $brand['fa'] ); ?>
+							</button>
+						<?php endforeach; ?>
+					</div>
 
 					<p class="pixva-pricetable__live" data-price-status role="status" aria-live="polite"></p>
 				</div>
@@ -1236,6 +1264,14 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 	 * @return void
 	 */
 	function pixva_render_express_booking( $settings = array() ) {
+		/*
+		 * وارینت card (لایه ۲٫۱٫۰): همان فرم دو فیلدی در قالب کارت elevated
+		 * برای ستون کناری هیرو؛ شناسه بخش و منبع ثبت درخواست جدا می‌شود تا
+		 * دو فرم در یک صفحه بدون تداخل id رندر شوند.
+		 */
+		$variant    = isset( $settings['variant'] ) ? (string) $settings['variant'] : '';
+		$section_id = isset( $settings['section_id'] ) && '' !== $settings['section_id'] ? (string) $settings['section_id'] : 'express-booking';
+
 		$title    = isset( $settings['title'] ) && '' !== $settings['title'] ? $settings['title'] : (string) pixva_option( 'pixva_express_title', __( 'اعزام فوری تکنسین تعمیر تلویزیون', 'pixva' ) );
 		$subtitle = isset( $settings['subtitle'] ) && '' !== $settings['subtitle'] ? $settings['subtitle'] : (string) pixva_option(
 			'pixva_express_subtitle',
@@ -1251,7 +1287,7 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 
 		pixva_seo_cro_assets();
 		?>
-		<section class="pixva-seo pixva-express" id="express-booking">
+		<section class="pixva-seo pixva-express<?php echo 'card' === $variant ? ' pixva-express--card' : ''; ?>" id="<?php echo esc_attr( $section_id ); ?>">
 			<div class="pixva-container">
 				<header class="pixva-seo__head">
 					<h2><?php echo esc_html( $title ); ?></h2>
@@ -1642,6 +1678,11 @@ if ( ! function_exists( 'pixva_seo_cro_assets' ) ) {
 
 		if ( wp_style_is( 'pixva-2026', 'registered' ) ) {
 			wp_enqueue_style( 'pixva-2026' );
+		}
+
+		// لایه ۲٫۱٫۰: سامانه طراحی سازمانی هم در همان مسیرهای اضطراری صف می‌شود.
+		if ( wp_style_is( 'pixva-seo-cro', 'registered' ) && ( ! function_exists( 'pixva_corporate_ui_mode' ) || pixva_corporate_ui_mode() ) ) {
+			wp_enqueue_style( 'pixva-seo-cro' );
 		}
 	}
 }

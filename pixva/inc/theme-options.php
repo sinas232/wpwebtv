@@ -1031,6 +1031,41 @@ function pixva_customize_register( $wp_customize ) {
 		)
 	);
 
+	// کلیدهای لایه ۲٫۱٫۰: رابط کاربری سازمانی و هیروی دوستونی.
+	$wp_customize->add_setting(
+		'pixva_corporate_ui',
+		array(
+			'default'           => true,
+			'sanitize_callback' => 'pixva_sanitize_checkbox',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_corporate_ui',
+		array(
+			'label'       => esc_html__( 'رابط کاربری سازمانی (لایه ۲٫۱٫۰)', 'pixva' ),
+			'section'     => 'pixva_seo_cro',
+			'type'        => 'checkbox',
+			'description' => esc_html__( 'سامانه طراحی سازمانی seo-cro.css: هدر چسبان ۷۰ پیکسلی، کارت‌های هم‌ارتفاع JetEngine، گرید auto-fit، جدول زبرا با فیلتر قرصی، فوتر اسلیت تیره و نوار اقدام ثابت موبایل. خاموش‌کردن، ظاهر لایه ۲٫۰٫۰ را بازمی‌گرداند.', 'pixva' ),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_corporate_hero',
+		array(
+			'default'           => true,
+			'sanitize_callback' => 'pixva_sanitize_checkbox',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_corporate_hero',
+		array(
+			'label'       => esc_html__( 'هیروی دوستونی سازمانی', 'pixva' ),
+			'section'     => 'pixva_seo_cro',
+			'type'        => 'checkbox',
+			'description' => esc_html__( 'ستون راست: عنوان رسمی، فهرست اعتماد سه‌گانه و دکمه‌های تماس سریع؛ ستون چپ: کارت فرم اعزام فوری با ورودی ۴۸ پیکسلی. خاموش‌کردن، هیروی سیمولاتور لایه قبل را بازمی‌گرداند.', 'pixva' ),
+		)
+	);
+
 	$pixva_seo_fields = array(
 		'pixva_symptom_title'          => array( __( 'عنوان راهنمای علائم خرابی', 'pixva' ), 'text', '', __( 'پیش‌فرض: «مشکل تلویزیون شما چیست؟»', 'pixva' ) ),
 		'pixva_symptom_subtitle'       => array( __( 'توضیح راهنمای علائم', 'pixva' ), 'textarea', '', '' ),
@@ -1045,6 +1080,9 @@ function pixva_customize_register( $wp_customize ) {
 		'pixva_express_title'          => array( __( 'عنوان فرم اعزام فوری', 'pixva' ), 'text', '', '' ),
 		'pixva_express_subtitle'       => array( __( 'توضیح فرم اعزام فوری', 'pixva' ), 'textarea', '', '' ),
 		'pixva_express_cta'            => array( __( 'متن دکمه فرم اعزام فوری', 'pixva' ), 'text', '', __( 'پیش‌فرض: «ثبت درخواست اعزام فوری تکنسین»', 'pixva' ) ),
+		'pixva_hero_booking_title'     => array( __( 'عنوان کارت فرم اعزام در هیرو', 'pixva' ), 'text', '', __( 'پیش‌فرض: «اعزام فوری تکنسین تعمیر تلویزیون»', 'pixva' ) ),
+		'pixva_hero_booking_subtitle'  => array( __( 'توضیح کارت فرم اعزام در هیرو', 'pixva' ), 'textarea', '', '' ),
+		'pixva_dock_booking_text'      => array( __( 'متن دکمه درخواست تعمیرکار در نوار موبایل', 'pixva' ), 'text', '', __( 'پیش‌فرض: «درخواست تعمیرکار»', 'pixva' ) ),
 		'pixva_sms_express_text'       => array( __( 'قالب پیامک مشتری (فرم اعزام فوری)', 'pixva' ), 'textarea', '', __( 'جای‌گیر: {code}', 'pixva' ) ),
 		'pixva_sms_express_admin_text' => array( __( 'قالب پیامک مدیر (فرم اعزام فوری)', 'pixva' ), 'textarea', '', __( 'جای‌گیرها: {code} {brand} {problem} {phone} {size}', 'pixva' ) ),
 	);

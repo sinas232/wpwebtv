@@ -563,6 +563,10 @@ function pixva_elementor_editor_assets() {
 		return;
 	}
 	wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array(), PIXVA_VERSION );
+	// لایه ۲٫۱٫۰: ویرایشگر المنتور هم همان سامانه طراحی سازمانی را می‌بیند (WYSIWYG).
+	if ( ! function_exists( 'pixva_corporate_ui_mode' ) || pixva_corporate_ui_mode() ) {
+		wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );
+	}
 	wp_enqueue_script( 'pixva-main', PIXVA_URI . '/assets/js/main.js', array(), PIXVA_VERSION, true );
 	wp_enqueue_script( 'pixva-tools', PIXVA_URI . '/assets/js/interactive-tools.js', array( 'pixva-main' ), PIXVA_VERSION, true );
 	wp_localize_script(

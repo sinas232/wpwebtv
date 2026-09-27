@@ -202,7 +202,7 @@ function pixva_home_work() {
 					<?php endforeach; ?>
 				</div>
 
-				<div class="pixva-section-foot" style="text-align:center;margin-top:1.6rem">
+				<div class="pixva-section-foot px-u-center-block">
 					<a class="pixva-btn pixva-btn--ghost-dark" href="<?php echo esc_url( $archive ); ?>"><?php esc_html_e( 'همه نمونه‌کارها', 'pixva' ); ?></a>
 				</div>
 			<?php endif; ?>
@@ -221,6 +221,121 @@ function pixva_home_work() {
  * @return void
  */
 function pixva_home_hero() {
+	/*
+	 * لایه ۲٫۱٫۰ (Master Prompt v12): هیروی دوستونی سازمانی — ستون راست
+	 * عنوان رسمی + فهرست اعتماد سه‌گانه + دکمه‌های تماس سریع و ستون چپ
+	 * کارت فرم اعزام فوری (ورودی ۴۸px، بدون کشیدگی تمام‌صفحه).
+	 * با خاموش‌کردن کلید سازمانی، همان هیروی قبلی (سیمولاتور) برمی‌گردد.
+	 */
+	if ( function_exists( 'pixva_corporate_hero_enabled' ) && pixva_corporate_hero_enabled() ) {
+		pixva_home_hero_corporate();
+		return;
+	}
+
+	pixva_home_hero_legacy();
+}
+
+/**
+ * هیروی سازمانی دوستونی (لایه ۲٫۱٫۰).
+ *
+ * @return void
+ */
+function pixva_home_hero_corporate() {
+	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تخصصی تلویزیون با گارانتی کتبی ۱۸۰ روزه', 'pixva' ) );
+	$lead  = (string) pixva_option(
+		'pixva_hero_subtitle',
+		__( 'کارگاه مرکزی پیکسوا در پاساژ علاءالدین؛ تعمیر پنل، بک‌لایت، برد پاور و مین‌برد با قطعات فابریک، دستگاه بندینگ صنعتی و تست نهایی با الگوهای کالیبراسیون.', 'pixva' )
+	);
+
+	$phone = pixva_support_phone();
+	$eta   = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
+	$hours = isset( $eta['hub_eta_hours'] ) && '' !== $eta['hub_eta_hours'] ? $eta['hub_eta_hours'] : __( '۲ ساعت', 'pixva' );
+
+	// لنگر استعلام قیمت: اگر بخش quote فعال است به همان بخش، وگرنه برگه محاسبه‌گر.
+	$active_sections = function_exists( 'pixva_active_home_sections' ) ? pixva_active_home_sections() : array();
+	$calc_href       = in_array( 'quote', $active_sections, true ) ? '#quick-calc' : pixva_page_url( 'calculator' );
+
+	$warranty = function_exists( 'pixva_warranty_days' ) ? pixva_warranty_days() : 180;
+	$trust    = function_exists( 'pixva_hero_trust_items' ) ? pixva_hero_trust_items() : array();
+
+	$call_label = (string) pixva_option(
+		'pixva_hero_call_text',
+		sprintf(
+			/* translators: %s: شماره تماس */
+			__( 'تماس فوری: %s', 'pixva' ),
+			function_exists( 'pixva_fa_num' ) ? pixva_fa_num( $phone ) : $phone
+		)
+	);
+	?>
+	<section class="pixva-hero px-hero" id="hero">
+		<div class="pixva-container px-hero__grid">
+			<div class="px-hero__content">
+				<div class="px-hero__badges">
+					<span class="px-hero__badge">
+						<?php echo pixva_icon( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php echo esc_html( sprintf( __( 'اعزام تکنسین زیر %s', 'pixva' ), $hours ) ); ?>
+					</span>
+					<span class="px-hero__badge">
+						<?php echo pixva_icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php echo esc_html( sprintf( __( 'گارانتی کتبی %s روزه', 'pixva' ), function_exists( 'pixva_fa_num' ) ? pixva_fa_num( (string) $warranty ) : $warranty ) ); ?>
+					</span>
+				</div>
+
+				<h1><?php echo esc_html( $title ); ?></h1>
+				<p class="px-hero__lead"><?php echo esc_html( $lead ); ?></p>
+
+				<ul class="px-hero__checks">
+					<?php foreach ( (array) $trust as $item ) : ?>
+						<li>
+							<span class="px-hero__check-ico" aria-hidden="true">
+								<?php echo pixva_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							</span>
+							<span><?php echo esc_html( isset( $item['text'] ) ? $item['text'] : '' ); ?></span>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+
+				<div class="px-hero__actions">
+					<a class="pixva-btn px-btn px-btn--primary" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>">
+						<?php echo pixva_icon( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php echo esc_html( $call_label ); ?></span>
+					</a>
+					<a class="pixva-btn px-btn px-btn--outline" href="<?php echo esc_url( $calc_href ); ?>">
+						<?php echo pixva_icon( 'calculator' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></span>
+					</a>
+				</div>
+
+				<p class="px-hero__meta">
+					<span>
+						<?php echo pixva_icon( 'clock' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php esc_html_e( 'شنبه تا پنجشنبه ۹ تا ۲۰ — پاسخ‌گویی اورژانسی همه‌روزه', 'pixva' ); ?>
+					</span>
+					<span>
+						<?php echo pixva_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php esc_html_e( 'عیب‌یابی و برآورد شفاف هزینه پیش از شروع تعمیر', 'pixva' ); ?>
+					</span>
+				</p>
+			</div>
+
+			<div class="px-hero__aside">
+				<?php
+				if ( function_exists( 'pixva_render_hero_booking' ) ) {
+					pixva_render_hero_booking();
+				}
+				?>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * هیروی پیشین (سیمولاتور زنده) — با خاموش‌کردن کلید سازمانی فعال می‌شود.
+ *
+ * @return void
+ */
+function pixva_home_hero_legacy() {
 	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تخصصی تلویزیون با گارانتی کتبی ۱۸۰ روزه', 'pixva' ) );
 	$lead  = (string) pixva_option(
 		'pixva_hero_subtitle',
@@ -580,7 +695,7 @@ function pixva_home_before_after() {
 	}
 	?>
 	<section class="pixva-section">
-		<div class="pixva-container pixva-grid pixva-grid--2" style="align-items:center">
+		<div class="pixva-container pixva-grid pixva-grid--2 px-u-align-center">
 			<div>
 				<span class="pixva-badge pixva-badge--cta"><?php esc_html_e( 'نمونه واقعی', 'pixva' ); ?></span>
 				<h2><?php echo esc_html( $title ); ?></h2>
@@ -737,7 +852,7 @@ function pixva_home_errors() {
 					</article>
 				<?php endforeach; ?>
 			</div>
-			<p style="text-align:center;margin-top:1.4rem">
+			<p class="px-u-center-block">
 				<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'error-codes' ) ); ?>"><?php esc_html_e( 'پایگاه کامل کدهای خطا', 'pixva' ); ?></a>
 			</p>
 		</div>
@@ -753,13 +868,13 @@ function pixva_home_errors() {
 function pixva_home_faq() {
 	?>
 	<section class="pixva-section" id="faq">
-		<div class="pixva-container" style="max-width:860px">
+		<div class="pixva-container px-container--narrow">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'پرسش‌های رایج', 'pixva' ); ?></span>
 				<h2><?php esc_html_e( 'قبل از آوردن دستگاه، این‌ها را بدانید', 'pixva' ); ?></h2>
 			</div>
 			<?php pixva_render_faq( array_slice( pixva_default_faqs(), 0, 6 ), 'home-faq' ); ?>
-			<p style="text-align:center;margin-top:1.4rem">
+			<p class="px-u-center-block">
 				<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'faq' ) ); ?>"><?php esc_html_e( 'همه سوالات', 'pixva' ); ?></a>
 			</p>
 		</div>
@@ -796,7 +911,7 @@ function pixva_home_blog() {
 			<?php else : ?>
 				<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'هنوز مقاله‌ای منتشر نشده است. اولین مطلب را از پیشخوان اضافه کنید.', 'pixva' ); ?></p>
 			<?php endif; ?>
-			<p style="text-align:center;margin-top:1.4rem"><a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_blog_url() ); ?>"><?php esc_html_e( 'همه مقاله‌ها', 'pixva' ); ?></a></p>
+			<p class="px-u-center-block"><a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_blog_url() ); ?>"><?php esc_html_e( 'همه مقاله‌ها', 'pixva' ); ?></a></p>
 		</div>
 	</section>
 	<?php

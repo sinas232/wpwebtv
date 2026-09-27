@@ -23,6 +23,7 @@ const v6Harness = path.join(repo, 'tools', 'fixtures', 'v6-preview.html');
 const v7Harness = path.join(repo, 'tools', 'fixtures', 'v7-preview.html');
 const v8Harness = path.join(repo, 'tools', 'fixtures', 'v8-preview.html');
 const v11Harness = path.join(repo, 'tools', 'fixtures', 'v11-preview.html');
+const v12Harness = path.join(repo, 'tools', 'fixtures', 'v12-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -108,8 +109,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۲٫۰٫۰', /Version:\s*2\.0\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
+	check('style.css: نسخه ۲٫۱٫۰', /Version:\s*2\.1\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -643,7 +644,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۲٫۰٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 2.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
+	check('v7: نسخه پوسته ۲٫۱٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 2.1.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -1203,7 +1204,7 @@ function v8StaticChecks() {
 	});
 
 	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
-	check('v8: پوسته نسخه ۲٫۰٫۰ است', styleCss.indexOf('Version: 2.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
+	check('v8: پوسته نسخه ۲٫۱٫۰ است', styleCss.indexOf('Version: 2.1.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
 
 	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
 	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1
@@ -1897,6 +1898,220 @@ async function v11Checks(window) {
 		&& ['pixva-trust', 'pixva-symptom', 'pixva-pricetable', 'pixva-express'].every((cls) => !!$('.pixva-seo.' + cls)));
 }
 
+/* ------------------------------------------------------------------ *
+ * لایه ۲٫۱٫۰ (Master Prompt v12) — پورتال سازمانی
+ * ------------------------------------------------------------------ */
+function v12StaticChecks() {
+	const read = (rel) => fs.readFileSync(path.join(theme, rel), 'utf8');
+	const exists = (rel) => fs.existsSync(path.join(theme, rel));
+
+	/* ۱) پرونده سامانه طراحی seo-cro.css */
+	check('v12: پرونده سامانه طراحی سازمانی وجود دارد', exists('assets/css/seo-cro.css'));
+	const corpCss = exists('assets/css/seo-cro.css') ? read('assets/css/seo-cro.css') : '';
+	check('v12: CSS سازمانی زیر ۵۰ کیلوبایت است', corpCss.length > 0 && Buffer.byteLength(corpCss, 'utf8') < 50 * 1024);
+	check('v12: توکن‌های اسلیت و برند سازمانی در :root', ['#0F172A', '#F8FAFC', '#E2E8F0', '#2563EB', '#1D4ED8', '#10B981']
+		.every((c) => corpCss.indexOf(c) > -1) && corpCss.indexOf(':root {') > -1);
+	check('v12: کانتینر متمرکز .px-container (۱۲۰۰px + حاشیه ۲۰px)', corpCss.indexOf('.px-container') > -1
+		&& /max-width:\s*1200px/.test(corpCss) && /padding:\s*0 20px/.test(corpCss) && /margin:\s*0 auto/.test(corpCss));
+	check('v12: توکن ارتفاع هدر ۷۰ پیکسل و اعمال آن', corpCss.indexOf('--px-header-h: 70px') > -1
+		&& corpCss.indexOf('min-height: var(--px-header-h)') > -1);
+	check('v12: کارت JetEngine دقیقاً با بدنه خواسته‌شده', ['border: 1px solid #E2E8F0', 'border-radius: 16px', 'background: #FFFFFF',
+		'box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06)', 'padding: 24px', 'display: flex', 'flex-direction: column',
+		'justify-content: space-between', 'height: 100%', 'transition: all 0.25s ease'].every((d) => corpCss.indexOf(d) > -1)
+		&& corpCss.indexOf('.px-card {') > -1);
+	check('v12: گرید equal-height با repeat(auto-fit, minmax(260px, 1fr))', corpCss.indexOf('repeat(auto-fit, minmax(260px, 1fr))') > -1
+		&& ['.pixva-symptom__grid', '.pixva-trust__grid'].every((g) => corpCss.indexOf(g) > -1));
+	check('v12: ورودی فرم اعزام ۴۸ پیکسل', corpCss.indexOf('--px-input-h: 48px') > -1 && corpCss.indexOf('height: var(--px-input-h)') > -1);
+	check('v12: حداقل هدف لمسی ۴۴ پیکسل', corpCss.indexOf('--px-touch-min: 44px') > -1 && corpCss.indexOf('min-height: var(--px-touch-min)') > -1);
+	check('v12: سرریز افقی سراسری بسته (html hidden + body clip برای حفظ چسبنده‌ها)', /html\s*\{[^}]*overflow-x:\s*hidden/.test(corpCss)
+		&& /body\s*\{[^}]*overflow-x:\s*clip/.test(corpCss));
+	check('v12: جدول قیمت زبرا + فیلتر قرصی برند', corpCss.indexOf('tbody tr:nth-child(even)') > -1 && corpCss.indexOf('.px-pill') > -1
+		&& corpCss.indexOf('.px-pill.is-active') > -1 && corpCss.indexOf('.pixva-pricetable__pills') > -1);
+	check('v12: نوار اقدام ثابت موبایل با safe-area', corpCss.indexOf('.pixva-mobile-dock') > -1 && /position:\s*fixed/.test(corpCss)
+		&& /bottom:\s*0/.test(corpCss) && corpCss.indexOf('safe-area-inset-bottom') > -1);
+	check('v12: هدر چسبان سازمانی', /[\s\S]*\.pixva-header[\s\S]*position:\s*sticky/.test(corpCss) && corpCss.indexOf('backdrop-filter') > -1);
+	check('v12: احترام به prefers-reduced-motion در لایه سازمانی', corpCss.indexOf('prefers-reduced-motion') > -1);
+	check('v12: هیروی دوستونی + کارت فرم elevated', corpCss.indexOf('.px-hero__grid') > -1 && corpCss.indexOf('.px-hero__aside') > -1
+		&& corpCss.indexOf('.pixva-express--card') > -1 && corpCss.indexOf('.px-hero__checks') > -1);
+	check('v12: فوتر سازمانی چهارستونه', corpCss.indexOf('.pixva-footer__grid') > -1 && /grid-template-columns:\s*repeat\(4/.test(corpCss));
+	check('v12: صفحه‌های داخلی کیت سازمانی را ارث می‌برند', corpCss.indexOf('.pixva-entry') > -1 && corpCss.indexOf('.page-numbers') > -1);
+
+	/* ۲) سیم‌کشی در functions.php */
+	const funcs = read('functions.php');
+	check('v12: CSS سازمانی پس از pixva-2026 با نسخه ۲٫۱٫۰ صف می‌شود', funcs.indexOf("wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );") > -1
+		&& funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
+	check('v12: لایه سازمانی فقط با کلید روشن صف می‌شود', funcs.indexOf('pixva_corporate_ui_mode()') > -1);
+	check('v12: corporate-ui.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/corporate-ui.php';") > -1);
+
+	/* ۳) inc/corporate-ui.php */
+	const corp = read('inc/corporate-ui.php');
+	check('v12: کلید حالت سازمانی با پیش‌فرض روشن و فیلترپذیر', corp.indexOf('function pixva_corporate_ui_mode(') > -1
+		&& corp.indexOf("pixva_option( 'pixva_corporate_ui', true )") > -1 && corp.indexOf("apply_filters( 'pixva_corporate_ui_mode'") > -1);
+	check('v12: کلید هیروی دوستونی مستقل از کلید کلی', corp.indexOf('function pixva_corporate_hero_enabled(') > -1
+		&& corp.indexOf("pixva_option( 'pixva_corporate_hero', true )") > -1 && corp.indexOf("apply_filters( 'pixva_corporate_hero_enabled'") > -1);
+	check('v12: فهرست اعتماد هیرو از داده واقعی (گارانتی/اعزام) بدون سخت‌کد', corp.indexOf('function pixva_hero_trust_items(') > -1
+		&& corp.indexOf('pixva_warranty_days()') > -1 && corp.indexOf("$control['hub_eta_hours']") > -1
+		&& corp.indexOf("apply_filters( 'pixva_hero_trust_items'") > -1);
+	check('v12: کارت رزرو هیرو از رندر مشترک v11 با variant=card', corp.indexOf('function pixva_render_hero_booking(') > -1
+		&& corp.indexOf('pixva_render_express_booking(') > -1 && corp.indexOf("'variant'    => 'card'") > -1
+		&& corp.indexOf("'section_id' => 'hero-booking'") > -1 && corp.indexOf("'source'     => 'hero'") > -1);
+
+	/* ۴) front-page.php */
+	const front = read('front-page.php');
+	check('v12: تابع هیرو به سازمانی یا قدیمی مسیر می‌دهد', front.indexOf('function pixva_home_hero_corporate(') > -1
+		&& front.indexOf('function pixva_home_hero_legacy(') > -1 && front.indexOf('pixva_corporate_hero_enabled()') > -1);
+	check('v12: هیروی سازمانی دوستونی + فهرست اعتماد + تماس سریع', front.indexOf('px-hero__grid') > -1
+		&& front.indexOf('px-hero__content') > -1 && front.indexOf('px-hero__aside') > -1
+		&& front.indexOf('px-hero__checks') > -1 && front.indexOf('pixva_tel_href( $phone )') > -1
+		&& front.indexOf('pixva_render_hero_booking()') > -1);
+	check('v12: متن هیرو و دکمه تماس گزینه‌محور است', front.indexOf("pixva_option( 'pixva_hero_title'") > -1
+		&& front.indexOf("'pixva_hero_call_text'") > -1);
+
+	/* ۵) inc/seo-cro.php */
+	const seoCro = read('inc/seo-cro.php');
+	check('v12: وارینت کارت فرم اعزام با شناسه جدا', seoCro.indexOf('pixva-express--card') > -1
+		&& seoCro.indexOf("$settings['section_id']") > -1 && seoCro.indexOf("'express-booking'") > -1);
+	check('v12: چهار کارت علائم آیکن SVG بومی دارند', seoCro.indexOf('pixva-symptom__icon') > -1
+		&& ["'icon'     => 'sound'", "'icon'     => 'panel'", "'icon'     => 'plug'", "'icon'     => 'cpu'"].every((i) => seoCro.indexOf(i) > -1));
+	check('v12: فیلتر قرصی برند با ویژگی بدون تداخل انتخابگر', seoCro.indexOf('data-price-pill') > -1
+		&& seoCro.indexOf('data-price-pills="brand"') > -1 && seoCro.indexOf('aria-pressed') > -1);
+
+	/* ۶) assets/js/seo-cro.js */
+	const seoCroJs = read('assets/js/seo-cro.js');
+	check('v12: قرص‌ها دوطرفه با select برند همگام‌اند', seoCroJs.indexOf('[data-price-pill]') > -1
+		&& seoCroJs.indexOf('function syncPills()') > -1 && seoCroJs.indexOf('brandSel.value = value') > -1
+		&& seoCroJs.indexOf("setAttribute('aria-pressed'") > -1);
+	check('v12: JS ماژول همچنان بدون jQuery/gsap/spline', ['gsap', 'jQuery', 'spline', 'ScrollTrigger'].every((lib) => seoCroJs.indexOf(lib) === -1));
+
+	/* ۷) فوتر، سفارشی‌ساز، المنتور و style.css */
+	const footer = read('footer.php');
+	check('v12: دکمه «درخواست تعمیرکار» داک موبایل لنگر زنده دارد', footer.indexOf('#hero-booking') > -1
+		&& footer.indexOf('#express-booking') > -1 && footer.indexOf("pixva_option( 'pixva_dock_booking_text'") > -1);
+	const options = read('inc/theme-options.php');
+	check('v12: کلیدهای سازمانی و متن‌های کارت هیرو در سفارشی‌ساز', options.indexOf("'pixva_corporate_ui'") > -1
+		&& options.indexOf("'pixva_corporate_hero'") > -1 && options.indexOf("'pixva_hero_booking_title'") > -1
+		&& options.indexOf("'pixva_dock_booking_text'") > -1);
+	const support = read('inc/elementor-support.php');
+	check('v12: ویرایشگر المنتور هم طراحی سازمانی را می‌بیند', support.indexOf("wp_enqueue_style( 'pixva-seo-cro'") > -1);
+	const styleCss = read('style.css');
+	check('v12: style.css نسخه ۲٫۱٫۰ با توضیح لایه سازمانی', styleCss.indexOf('Version: 2.1.0') > -1 && styleCss.indexOf('Master Prompt v12') > -1);
+}
+
+async function v12Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+	const attr = (el, name) => (el && el.getAttribute ? (el.getAttribute(name) || '') : '');
+
+	/* ۱) هدر و هیروی دوستونی */
+	check('v12: هدر چسبان لوگو + CTA تماس + برگر دارد', !!$('.pixva-header .pixva-logo-link')
+		&& attr($('.pixva-header-phone'), 'href').indexOf('tel:') === 0 && !!$('.pixva-burger'));
+	check('v12: هیرو دوستونی است و ستون محتوا نخست می‌آید (راست در RTL)', !!$('.px-hero__grid')
+		&& $$('.px-hero__grid > *').length === 2
+		&& $('.px-hero__grid').children[0].classList.contains('px-hero__content')
+		&& $('.px-hero__grid').children[1].classList.contains('px-hero__aside'));
+	check('v12: H1 و دو نشان اعتماد هیرو رندر شده‌اند', $('#hero h1').textContent.indexOf('تعمیر تخصصی تلویزیون') > -1
+		&& $$('.px-hero__badge').length === 2);
+	check('v12: فهرست اعتماد دقیقاً سه مورد با آیکن چک SVG', $$('.px-hero__checks li').length === 3
+		&& $$('.px-hero__checks .px-hero__check-ico svg').length === 3);
+	check('v12: تماس سریع tel + استعلام قیمت در اقدامات هیرو', !!$('.px-hero__actions a[href^="tel:"]')
+		&& $$('.px-hero__actions .px-btn').length === 2);
+
+	/* ۲) کارت رزرو هیرو */
+	const heroCard = $('#hero-booking');
+	check('v12: کارت رزرو elevated در ستون چپ هیرو با کلاس وارینت', !!heroCard
+		&& heroCard.classList.contains('pixva-express--card')
+		&& $('.px-hero__aside').contains(heroCard)
+		&& !!$('[data-express-form]', heroCard));
+	check('v12: فرم کارت دو فیلد دارد و CTA همان متن مستر پرامپت است', $$('input[name="phone"]', heroCard).length === 1
+		&& $$('input[name="details"]', heroCard).length === 1
+		&& $('[data-express-submit]', heroCard).textContent.indexOf('ثبت درخواست اعزام فوری تکنسین') > -1);
+	check('v12: فرم کارت source=hero و نونس دارد', $('input[name="source"]', heroCard).value === 'hero'
+		&& $('input[name="nonce"]', heroCard).value === 'express-nonce-123');
+	check('v12: دو فرم اعزام در صفحه بدون تداخل id', $$('.pixva-express').length === 2
+		&& !!$('#express-booking') && $$('#hero-booking').length === 1);
+	check('v12: هر دو فرم مستقل به JS مقید شده‌اند', $$('[data-express-form]').length === 2
+		&& $$('[data-express-bound="1"]').length === 2);
+
+	/* ۳) ارسال فرم کارت هیرو */
+	const heroForm = $('[data-express-form]', heroCard);
+	const heroPhone = $('input[name="phone"]', heroForm);
+	const heroDetails = $('input[name="details"]', heroForm);
+	const heroMsg = $('[data-express-msg]', heroForm);
+
+	heroPhone.value = '9121234567';
+	heroPhone.dispatchEvent(new window.Event('input', { bubbles: true }));
+	heroForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(30);
+	check('v12: فرم کارت هیرو بدون شرح، ارسال را متوقف می‌کند', window.__pixvaCalls.express === 0
+		&& heroMsg.textContent.indexOf('برند و مشکل دستگاه') > -1 && heroDetails.classList.contains('is-invalid'));
+
+	heroDetails.value = 'سونی ۵۵ اینچ — خطوط عمودی روی صفحه';
+	heroForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(40);
+	check('v12: درخواست کارت هیرو با source=hero و شماره نرمال‌شده ارسال شد', window.__pixvaCalls.express === 1
+		&& window.__pixvaExpressBody instanceof window.FormData
+		&& window.__pixvaExpressBody.get('phone') === '09121234567'
+		&& window.__pixvaExpressBody.get('source') === 'hero');
+	check('v12: پیام موفق با کد پیگیری در کارت هیرو نمایش یافت', heroMsg.classList.contains('is-success')
+		&& heroMsg.textContent.indexOf('PXV-2510-4821') > -1 && heroForm.classList.contains('is-done'));
+
+	/* ۴) گریدهای کارت */
+	check('v12: چهار کارت علائم با آیکن SVG و CTA', $$('.pixva-symptom__card').length === 4
+		&& $$('.pixva-symptom__card .pixva-symptom__icon svg').length === 4
+		&& $$('.pixva-symptom__card .pixva-seo__cta').length === 4);
+	check('v12: چهار اصل اعتماد با آیکن در گرید', $$('.pixva-trust__item').length === 4
+		&& $$('.pixva-trust__item .pixva-trust__icon svg').length === 4);
+
+	/* ۵) فیلتر قرصی جدول قیمت */
+	const priceSection = $('#price-table');
+	const brandSel = $('[data-price-brand]');
+	const caption = $('.pixva-pricetable__table caption');
+	check('v12: قرص‌های برند رندر شده و قرص پیش‌فرض فعال است', $$('[data-price-pill]').length === 4
+		&& $('[data-price-pill="samsung"]').classList.contains('is-active')
+		&& attr($('[data-price-pill="samsung"]'), 'aria-pressed') === 'true');
+
+	$('[data-price-pill="lg"]').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+	check('v12: کلیک قرص، select را پر کرده و حالت به‌روزرسانی می‌دهد', brandSel.value === 'lg'
+		&& priceSection.classList.contains('is-updating')
+		&& $('[data-price-pill="lg"]').classList.contains('is-active')
+		&& !$('[data-price-pill="samsung"]').classList.contains('is-active'));
+	await wait(220);
+	check('v12: جدول از REST به‌روز شد (برند=ال‌جی، سایز=۵۵)', window.__pixvaCalls.price === 1
+		&& window.__pixvaCalls.priceUrls[0].indexOf('brand=lg') > -1
+		&& window.__pixvaCalls.priceUrls[0].indexOf('size=55') > -1
+		&& caption.textContent.indexOf('ال‌جی') > -1
+		&& $$('.pixva-pricetable__table tbody tr').length === 3
+		&& attr(priceSection, 'data-price-active-brand') === 'lg');
+
+	brandSel.value = 'sony';
+	brandSel.dispatchEvent(new window.Event('change', { bubbles: true }));
+	await wait(220);
+	check('v12: تغییر select هم قرص‌ها را همگام می‌کند (دوطرفه)', $('[data-price-pill="sony"]').classList.contains('is-active')
+		&& attr($('[data-price-pill="sony"]'), 'aria-pressed') === 'true'
+		&& window.__pixvaCalls.price === 2
+		&& $('.pixva-pricetable__table tbody tr th').textContent.indexOf('بک‌لایت') > -1);
+
+	check('v12: جدول چهار سرتیتر scope=col و ردیف scope=row دارد', $$('.pixva-pricetable__table thead th[scope="col"]').length === 4
+		&& $$('.pixva-pricetable__table tbody th[scope="row"]').length > 0
+		&& !!$('.pixva-pricetable__wrap'));
+
+	/* ۶) فوتر و نوار اقدام موبایل */
+	check('v12: فوتر چهارستونه با کپی‌رایت و نسخه ۲٫۱٫۰', $$('.pixva-footer__grid .pixva-footer__col').length === 4
+		&& $('.pixva-copyright').textContent.indexOf('پیکسوا') > -1
+		&& $('.pixva-footer__base').textContent.indexOf('۲٫۱٫۰') > -1);
+	check('v12: داک موبایل چهار اقدام با تماس و درخواست تعمیرکار', $$('.pixva-mobile-dock__item').length === 4
+		&& attr($('.pixva-mobile-dock__item'), 'href').indexOf('tel:') === 0
+		&& attr($('.pixva-mobile-dock__item.is-cta'), 'href') === '#hero-booking'
+		&& $('.pixva-mobile-dock__item.is-cta').textContent.indexOf('درخواست تعمیرکار') > -1);
+	check('v12: لنگر CTA داک به فرم واقعی صفحه می‌رسد', !!$($('.pixva-mobile-dock__item.is-cta').getAttribute('href')));
+
+	/* ۷) یکپارچگی ساختار */
+	check('v12: همه بخش‌های سئو کانتینر متمرکز دارند و گرید هیرو هم کانتینر است', $$('.pixva-seo > .pixva-container').length >= 4
+		&& $('.px-hero__grid').classList.contains('pixva-container'));
+	check('v12: بدون قفل اسکرول یا کتابخانه بیرونی در صفحه', $$('[data-scroll-pin], .pin-spacer, spline-viewer, [data-pixva-cine]').length === 0);
+}
+
 (async function main() {
 	staticChecks();
 
@@ -2054,6 +2269,37 @@ async function v11Checks(window) {
 			v11Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
 		}
 		v11Dom.window.close();
+	}
+
+	// هارنس لایه ۲٫۱٫۰ (پورتال سازمانی: هیروی دوستونی + کارت رزرو + فیلتر قرصی).
+	v12StaticChecks();
+	if (!fs.existsSync(v12Harness)) {
+		failures.push('هارنس tools/fixtures/v12-preview.html پیدا نشد');
+		failed += 1;
+	} else {
+		const v12Errors = [];
+		const v12Console = new VirtualConsole();
+		v12Console.on('jsdomError', (error) => v12Errors.push(error.message));
+		v12Console.on('error', (message) => v12Errors.push(String(message)));
+
+		const v12Dom = await JSDOM.fromFile(v12Harness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: v12Console,
+		});
+		if (v12Dom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => v12Dom.window.addEventListener('load', resolve));
+		}
+		await wait(240);
+
+		await v12Checks(v12Dom.window);
+
+		check('v12: بدون خطای jsdom در کنسول (' + v12Errors.length + ')', v12Errors.length === 0);
+		if (v12Errors.length) {
+			v12Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		v12Dom.window.close();
 	}
 
 	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.

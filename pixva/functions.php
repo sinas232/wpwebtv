@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '2.0.0' );
+define( 'PIXVA_VERSION', '2.1.0' );
 define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
@@ -33,6 +33,7 @@ require_once PIXVA_DIR . '/inc/ai-handler.php';
 require_once PIXVA_DIR . '/inc/sms-handler.php';
 require_once PIXVA_DIR . '/inc/host-fix.php';
 require_once PIXVA_DIR . '/inc/seo-cro.php';
+require_once PIXVA_DIR . '/inc/corporate-ui.php';
 require_once PIXVA_DIR . '/inc/tracker-map.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
 require_once PIXVA_DIR . '/inc/home-seed.php';
@@ -219,6 +220,16 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 		 * مگامنو، فوتر سرمه‌ای و انیمیشن‌های جدید بر قواعد قدیمی کامپوننت‌ها اولویت داشته باشند.
 		 */
 		wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array( 'pixva-main' ), PIXVA_VERSION );
+
+		/*
+		 * سامانه طراحی سازمانی (لایه ۲٫۱٫۰): آخرین لایه CSS سایت — توکن‌های
+		 * اسلیت/آبی، کانتینر ۱۲۰۰px، کارت JetEngine، هدر ۷۰px، هیروی دوستونی،
+		 * گریدهای auto-fit، جدول زبرا با فیلتر قرصی، فوتر سازمانی و نوار موبایل.
+		 * فقط وقتی کلید رابط سازمانی روشن است بارگذاری می‌شود.
+		 */
+		if ( ! function_exists( 'pixva_corporate_ui_mode' ) || pixva_corporate_ui_mode() ) {
+			wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );
+		}
 
 		wp_enqueue_script(
 			'pixva-main',

@@ -143,7 +143,33 @@
 			});
 		}
 
-		brandSel.addEventListener('change', update);
+		/* --- فیلتر قرصی برند (لایه ۲٫۱٫۰): همگام با <select> --- */
+		var pills = section.querySelectorAll('[data-price-pill]');
+
+		function syncPills() {
+			Array.prototype.forEach.call(pills, function (pill) {
+				var active = pill.getAttribute('data-price-pill') === brandSel.value;
+				pill.classList.toggle('is-active', active);
+				pill.setAttribute('aria-pressed', active ? 'true' : 'false');
+			});
+		}
+
+		Array.prototype.forEach.call(pills, function (pill) {
+			pill.addEventListener('click', function () {
+				var value = pill.getAttribute('data-price-pill');
+				if (!value || value === brandSel.value) {
+					return;
+				}
+				brandSel.value = value;
+				syncPills();
+				update();
+			});
+		});
+
+		brandSel.addEventListener('change', function () {
+			syncPills();
+			update();
+		});
 		sizeSel.addEventListener('change', update);
 	}
 

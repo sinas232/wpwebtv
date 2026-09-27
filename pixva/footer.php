@@ -19,6 +19,22 @@ $pixva_address = isset( $pixva_control['hub_address'] )
 	: (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، تقاطع حافظ، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) );
 $pixva_eta     = isset( $pixva_control['hub_eta_hours'] ) ? $pixva_control['hub_eta_hours'] : '۲ ساعت';
 $pixva_qr_url  = (string) pixva_option( 'pixva_footer_qr_url', pixva_page_url( 'tracking' ) );
+
+/*
+ * نوار اقدام موبایل (لایه ۲٫۱٫۰): مقصد «درخواست تعمیرکار» همیشه زنده است —
+ * در صفحه اصلی به لنگر فرم اعزام (هیروی سازمانی یا بخش مستقل) و در سایر
+ * صفحه‌ها به برگه محاسبه‌گر می‌رود تا هرگز لنگر مرده ساخته نشود.
+ */
+$pixva_dock_booking_url = pixva_page_url( 'calculator' );
+if ( is_front_page() ) {
+	$pixva_active_sections = function_exists( 'pixva_active_home_sections' ) ? pixva_active_home_sections() : array();
+	if ( function_exists( 'pixva_corporate_hero_enabled' ) && pixva_corporate_hero_enabled() ) {
+		$pixva_dock_booking_url = '#hero-booking';
+	} elseif ( in_array( 'express_booking', $pixva_active_sections, true ) ) {
+		$pixva_dock_booking_url = '#express-booking';
+	}
+}
+$pixva_dock_booking_text = (string) pixva_option( 'pixva_dock_booking_text', __( 'درخواست تعمیرکار', 'pixva' ) );
 ?>
 <footer class="pixva-footer">
 	<?php if ( is_active_sidebar( 'footer-widgets' ) ) : ?>
@@ -113,9 +129,9 @@ $pixva_qr_url  = (string) pixva_option( 'pixva_footer_qr_url', pixva_page_url( '
 		<?php echo pixva_icon( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<span><?php esc_html_e( 'تماس', 'pixva' ); ?></span>
 	</a>
-	<a href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>" class="pixva-mobile-dock__item is-cta">
+	<a href="<?php echo esc_url( $pixva_dock_booking_url ); ?>" class="pixva-mobile-dock__item is-cta">
 		<?php echo pixva_icon( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-		<span><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></span>
+		<span><?php echo esc_html( $pixva_dock_booking_text ); ?></span>
 	</a>
 	<a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" class="pixva-mobile-dock__item">
 		<?php echo pixva_icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

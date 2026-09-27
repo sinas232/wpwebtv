@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="pixva-native-scroll">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>هارنس لایه ۲٫۱٫۰ — پورتال سازمانی پیکسوا</title>
+	<link rel="stylesheet" href="../../pixva/style.css">
+	<link rel="stylesheet" href="../../pixva/assets/css/main.css">
+	<link rel="stylesheet" href="../../pixva/assets/css/pixva-2026.css">
+	<link rel="stylesheet" href="../../pixva/assets/css/seo-cro.css">
+</head>
+<body class="home page-template-front-page pixva-theme pixva-native-scroll">
+
+<script>
+	/* --- پیکربندی ماژول سئو/تبدیل (معادل wp_localize_script در پوسته) --- */
+	window.pixvaSeoCro = {
+		restUrl: '/wp-json/pixva/v1',
+		nonce: 'express-nonce-123',
+		homeUrl: '/',
+		i18n: {
+			needPhone: 'برای هماهنگی اعزام، شماره موبایل الزامی است.',
+			badPhone: 'شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷).',
+			needDetails: 'برند و مشکل دستگاه را کوتاه بنویسید.',
+			sending: 'در حال ثبت درخواست…',
+			updating: 'در حال به‌روزرسانی جدول قیمت…',
+			error: 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.',
+			toman: 'تومان',
+			panelQuote: 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.'
+		}
+	};
+
+	/* --- شمارنده فراخوانی‌های REST برای آزمون --- */
+	window.__pixvaCalls = { express: 0, price: 0, priceUrls: [] };
+	window.__pixvaExpressBody = null;
+	window.__pixvaExpressResult = {
+		success: true,
+		data: {
+			code: 'PXV-2510-4821',
+			order_id: 918,
+			message: 'درخواست شما با کد پیگیری PXV-2510-4821 ثبت شد. تکنسین به‌زودی برای هماهنگی مراجعه تماس می‌گیرد.'
+		}
+	};
+
+	window.fetch = function (url, options) {
+		var target = String(url);
+
+		if (target.indexOf('/price-table') > -1) {
+			window.__pixvaCalls.price += 1;
+			window.__pixvaCalls.priceUrls.push(target);
+			return new Promise(function (resolve) { window.setTimeout(resolve, 110); }).then(function () { return {
+				ok: true,
+				status: 200,
+				json: function () {
+					return Promise.resolve({
+						success: true,
+						data: {
+							brand: 'lg',
+							brand_label: 'ال‌جی',
+							size: '55',
+							currency: 'تومان',
+							caption: 'نرخ‌نامه تعمیر تلویزیون ال‌جی — ۵۵ اینچ (تومان)',
+							status_label: 'ال‌جی — ۵۵ اینچ',
+							quote_label: 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.',
+							rows: [
+								{ service: 'backlight', label: 'تعویض بک‌لایت', min: 18000000, max: 26000000, min_label: '۱۸٬۰۰۰٬۰۰۰', max_label: '۲۶٬۰۰۰٬۰۰۰', days: '۱ تا ۲ روز کاری', panel_replacement: false },
+								{ service: 'powerboard', label: 'تعمیر برد پاور', min: 21000000, max: 32000000, min_label: '۲۱٬۰۰۰٬۰۰۰', max_label: '۳۲٬۰۰۰٬۰۰۰', days: '۱ تا ۳ روز کاری', panel_replacement: false },
+								{ service: 'panel', label: 'تعمیر پنل با بندینگ', min: 0, max: 0, min_label: '', max_label: '', days: '۴ تا ۸ روز کاری', panel_replacement: true }
+							],
+							schema: []
+						}
+					});
+				}
+			}; });
+		}
+
+		if (target.indexOf('/express-booking') > -1) {
+			window.__pixvaCalls.express += 1;
+			window.__pixvaExpressBody = options && options.body ? options.body : null;
+			return Promise.resolve({
+				ok: true,
+				status: 200,
+				json: function () { return Promise.resolve(window.__pixvaExpressResult); }
+			});
+		}
+
+		return Promise.resolve({ ok: false, status: 404, json: function () { return Promise.resolve({}); } });
+	};
+</script>
+
+<!-- ============ هدر سازمانی چسبان ۷۰ پیکسلی ============ -->
+<div class="pixva-topbar">
+	<div class="pixva-container pixva-topbar__inner">
+		<p class="pixva-topbar__text"><span>اعزام تکنسین در تهران زیر ۲ ساعت | گارانتی کتبی ۱۸۰ روزه | قطعات فابریک با هولوگرام اصالت</span></p>
+		<p class="pixva-topbar__hours"><span>شنبه تا پنجشنبه ۹ تا ۲۰ | اعزام اورژانسی زیر ۲ ساعت</span></p>
+	</div>
+</div>
+
+<header class="pixva-header pixva-header--glass" data-pixva-header>
+	<div class="pixva-container pixva-header__inner">
+		<a class="pixva-logo-link" href="/" rel="home">
+			<span class="pixva-logo__text"><strong>پیکسوا</strong><small>مرکز تخصصی تعمیر تلویزیون</small></span>
+		</a>
+		<div class="pixva-header__actions">
+			<a class="pixva-header-phone" href="tel:02191009990">
+				<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3.5h3.2l1.2 3-2 1.2a12.5 12.5 0 0 0 6 6l1.2-2 3 1.2V16a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5 7.7 2 2 0 0 1 7 3.5z"/></svg></span>
+				<span data-phone-text>۰۲۱۹۱۰۰۹۹۹۰</span>
+			</a>
+			<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-header-cta" href="/calculator/">
+				<span>استعلام سریع قیمت</span>
+			</a>
+			<button type="button" class="pixva-burger" data-pixva-burger aria-expanded="false" aria-controls="pixva-drawer" aria-label="باز کردن منو">
+				<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h12"/></svg></span>
+			</button>
+		</div>
+	</div>
+</header>
+
+<main id="content" class="pixva-home--minimal">
+
+	<!-- ============ هیروی دوستونی سازمانی ============ -->
+	<section class="pixva-hero px-hero" id="hero">
+		<div class="pixva-container px-hero__grid">
+			<div class="px-hero__content">
+				<div class="px-hero__badges">
+					<span class="px-hero__badge">
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L5 14h7l-1 8 8-12h-7l1-8z"/></svg></span>
+						اعزام تکنسین زیر ۲ ساعت
+					</span>
+					<span class="px-hero__badge">
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7-7 9-4-2-7-4.5-7-9V6l7-3z"/></svg></span>
+						گارانتی کتبی ۱۸۰ روزه
+					</span>
+				</div>
+
+				<h1>تعمیر تخصصی تلویزیون با گارانتی کتبی ۱۸۰ روزه</h1>
+				<p class="px-hero__lead">کارگاه مرکزی پیکسوا در پاساژ علاءالدین؛ تعمیر پنل، بک‌لایت، برد پاور و مین‌برد با قطعات فابریک، دستگاه بندینگ صنعتی و تست نهایی با الگوهای کالیبراسیون.</p>
+
+				<ul class="px-hero__checks">
+					<li>
+						<span class="px-hero__check-ico" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></span>
+						<span>اعزام تکنسین به منزل یا محل شما در کمتر از ۲ ساعت — بدون حمل دستگاه</span>
+					</li>
+					<li>
+						<span class="px-hero__check-ico" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></span>
+						<span>گارانتی کتبی ۱۸۰ روزه قطعات و اجرت تعمیر روی فاکتور رسمی</span>
+					</li>
+					<li>
+						<span class="px-hero__check-ico" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></span>
+						<span>قطعات فابریک با هولوگرام اصالت و برآورد شفاف هزینه پیش از شروع تعمیر</span>
+					</li>
+				</ul>
+
+				<div class="px-hero__actions">
+					<a class="pixva-btn px-btn px-btn--primary" href="tel:02191009990">
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3.5h3.2l1.2 3-2 1.2a12.5 12.5 0 0 0 6 6l1.2-2 3 1.2V16a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5 7.7 2 2 0 0 1 7 3.5z"/></svg></span>
+						<span>تماس فوری: ۰۲۱۹۱۰۰۹۹۹۰</span>
+					</a>
+					<a class="pixva-btn px-btn px-btn--outline" href="/calculator/">
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8 11.5h2M12 11.5h2"/></svg></span>
+						<span>استعلام سریع قیمت</span>
+					</a>
+				</div>
+
+				<p class="px-hero__meta">
+					<span>
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span>
+						شنبه تا پنجشنبه ۹ تا ۲۰ — پاسخ‌گویی اورژانسی همه‌روزه
+					</span>
+					<span>
+						<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span>
+						عیب‌یابی و برآورد شفاف هزینه پیش از شروع تعمیر
+					</span>
+				</p>
+			</div>
+
+			<div class="px-hero__aside">
+				<!-- کارت فرم اعزام فوری (آینه pixva_render_express_booking variant=card) -->
+				<section class="pixva-seo pixva-express pixva-express--card" id="hero-booking">
+					<div class="pixva-container">
+						<header class="pixva-seo__head">
+							<h2>اعزام فوری تکنسین تعمیر تلویزیون</h2>
+							<p>شماره موبایل و شرح کوتاه مشکل را بنویسید؛ کارشناس برای هماهنگی و اعلام برآورد هزینه تماس می‌گیرد.</p>
+						</header>
+
+						<form class="pixva-express__form" data-express-form novalidate>
+							<div class="pixva-express__fields">
+								<label class="pixva-express__field">
+									<span>شماره موبایل <em aria-hidden="true">*</em></span>
+									<input type="tel" name="phone" dir="ltr" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" pattern="09[0-9]{9}" required data-express-required="phone">
+								</label>
+
+								<label class="pixva-express__field pixva-express__field--wide">
+									<span>برند و مشکل دستگاه <em aria-hidden="true">*</em></span>
+									<input type="text" name="details" autocomplete="off" placeholder="مثلاً: سامسونگ ۵۵ اینچ — صدا دارد ولی تصویر ندارد" required data-express-required="details">
+								</label>
+							</div>
+
+							<p class="pixva-express__hp" aria-hidden="true">
+								<label>
+									<span>این فیلد را خالی بگذارید</span>
+									<input type="text" name="pixva_hp" value="" tabindex="-1" autocomplete="off">
+								</label>
+							</p>
+
+							<input type="hidden" name="source" value="hero">
+							<input type="hidden" name="nonce" value="express-nonce-123" data-express-nonce>
+
+							<div class="pixva-express__actions">
+								<button type="submit" class="pixva-express__submit" data-express-submit>
+									ثبت درخواست اعزام فوری تکنسین
+								</button>
+								<p class="pixva-express__hint">اعزام تکنسین در کمتر از ۲ ساعت — عیب‌یابی و برآورد هزینه پیش از تعمیر.</p>
+							</div>
+
+							<p class="pixva-express__msg" data-express-msg role="status" aria-live="polite" hidden></p>
+						</form>
+					</div>
+				</section>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ چهار اصل اعتماد ============ -->
+	<section class="pixva-seo pixva-trust" id="trust-features">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>چرا تعمیر تلویزیون را به پیکسوا بسپارید؟</h2>
+				<p>چهار اصل که در هر پرونده تعمیر، از بازدید تا گارانتی، بدون استثنا رعایت می‌شود.</p>
+			</header>
+			<ul class="pixva-trust__grid">
+				<li class="pixva-trust__item" id="trust-onsite">
+					<span class="pixva-trust__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg></span></span>
+					<h3>تعمیر در منزل و محل شما</h3>
+					<p>بدون حمل دستگاه؛ تکنسین با قطعات فابریک در محل شما تعمیر می‌کند.</p>
+				</li>
+				<li class="pixva-trust__item" id="trust-warranty">
+					<span class="pixva-trust__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7-7 9-4-2-7-4.5-7-9V6l7-3z"/></svg></span></span>
+					<h3>گارانتی کتبی قطعات فابریک</h3>
+					<p>۱۸۰ روز گارانتی کتبی روی قطعه و اجرت، درج‌شده در فاکتور رسمی.</p>
+				</li>
+				<li class="pixva-trust__item" id="trust-dispatch">
+					<span class="pixva-trust__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L5 14h7l-1 8 8-12h-7l1-8z"/></svg></span></span>
+					<h3>اعزام تکنسین در کمتر از ۲ ساعت</h3>
+					<p>دیسپچ هوشمند نزدیک‌ترین تکنسین در تهران.</p>
+				</li>
+				<li class="pixva-trust__item" id="trust-transparent">
+					<span class="pixva-trust__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8 11.5h2"/></svg></span></span>
+					<h3>عیب‌یابی و برآورد هزینه شفاف قبل از تعمیر</h3>
+					<p>پیش از شروع، برآورد کتبی اعلام و با تأیید شما اجرا می‌شود.</p>
+				</li>
+			</ul>
+		</div>
+	</section>
+
+	<!-- ============ راهنمای علائم خرابی ============ -->
+	<section class="pixva-seo pixva-symptom" id="symptom-guide">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>مشکل تلویزیون شما چیست؟</h2>
+				<p>راهنمای کارگاهی تشخیص علامت‌های پرتکرار خرابی تلویزیون، همراه با علت احتمالی، تست سریع خانگی و بازه واقعی هزینه تعمیر.</p>
+			</header>
+
+			<div class="pixva-symptom__grid">
+				<article class="pixva-symptom__card" id="no-picture-backlight">
+					<span class="pixva-symptom__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10h3l4-3v10l-4-3H4zM16 9a4 4 0 0 1 0 6"/></svg></span></span>
+					<h3>صدا دارد ولی تصویر ندارد (خرابی بک‌لایت)</h3>
+					<p class="pixva-symptom__q">تلویزیون صدا دارد ولی تصویر ندارد؛ علت چیست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خاموش‌شدن یا سوختن ریسه‌های LED بک‌لایت</p>
+					<p>وقتی صدا هست و تصویر نیست، در بیشتر موارد پنل سالم است و ریسه‌های بک‌لایت سوخته‌اند.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>با چراغ‌قوه گوشی از زاویه مایل به صفحه بتابانید.</li>
+						<li>اگر تصویر کم‌رنگ دیده شد، بک‌لایت خاموش است.</li>
+						<li>منوی تلویزیون را باز کنید.</li>
+					</ol>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong><span>۱۵٬۵۵۰٬۰۰۰ — ۲۵٬۸۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۲ تا ۴ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=no_picture">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="vertical-horizontal-lines">
+					<span class="pixva-symptom__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span></span>
+					<h3>خطوط عمودی یا افقی روی صفحه (ایراد پنل/تیکان)</h3>
+					<p class="pixva-symptom__q">خطوط عمودی یا افقی روی صفحه تلویزیون نشانه چیست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> قطع شدن فلت‌های COF یا ایراد برد T-Con</p>
+					<p>خطوط ثابت عمودی معمولاً از قطع شدن اتصال فلت‌های COF روی لبه پنل می‌آید.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>عکس تمام‌صفحه سفید و مشکی پخش کنید.</li>
+						<li>با انگشت آرام روی قاب مقابل خط بزنید.</li>
+						<li>یک منبع دیگر وصل کنید.</li>
+					</ol>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong><span>۵۷٬۰۰۰٬۰۰۰ — ۷۸٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۳ تا ۶ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=lines">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="no-power-blink">
+					<span class="pixva-symptom__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg></span></span>
+					<h3>تلویزیون روشن نمی‌شود / چراغ پاور چشمک می‌زند (برد تغذیه)</h3>
+					<p class="pixva-symptom__q">تلویزیون روشن نمی‌شود و چراغ پاور چشمک می‌زند؛ چه کنم؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خرابی برد پاور، بادکردن خازن‌ها یا فعال‌شدن محافظت</p>
+					<p>چشمک‌زدن چراغ پاور یعنی برد اصلی کد خطا اعلام می‌کند.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>۵ دقیقه از برق بکشید و دوباره بزنید.</li>
+						<li>تعداد چشمک را بشمارید.</li>
+						<li>مستقیم به پریز بزنید.</li>
+					</ol>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong><span>۹٬۸۰۰٬۰۰۰ — ۱۶٬۴۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۱ تا ۳ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=no_power">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="logo-loop-reset">
+					<span class="pixva-symptom__icon" aria-hidden="true"><span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3"/></svg></span></span>
+					<h3>روی لوگو گیر کرده یا ریست می‌شود (مین‌برد)</h3>
+					<p class="pixva-symptom__q">تلویزیون روی لوگو گیر کرده یا مدام ریست می‌شود؛ مشکل کجاست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خرابی حافظه، نیم‌سوز شدن مین‌برد یا آسیب فریم‌ور</p>
+					<p>ماندن روی لوگو یعنی فریم‌ور یا حافظه مین‌برد آسیب دیده است.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>ریست سخت‌افزاری ۱۰ ثانیه‌ای.</li>
+						<li>دستگاه‌های HDMI را جدا کنید.</li>
+						<li>مدل و نسخه فریم‌ور را یادداشت کنید.</li>
+					</ol>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong><span>۲۴٬۰۰۰٬۰۰۰ — ۳۹٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۲ تا ۵ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=mainboard">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+			</div>
+
+			<footer class="pixva-seo__foot">
+				<p>تشخیص قطعی نیازمند بازدید در محل است؛ عیب‌یابی و برآورد هزینه پیش از شروع تعمیر به شما اعلام می‌شود.</p>
+				<a class="pixva-seo__link" href="/tracking/">پیگیری پرونده تعمیر</a>
+			</footer>
+		</div>
+	</section>
+
+	<!-- ============ جدول شفاف قیمت با فیلتر قرصی ============ -->
+	<section class="pixva-seo pixva-pricetable" id="price-table" data-price-active-brand="samsung" data-price-active-size="55">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>جدول شفاف هزینه تعمیر تلویزیون</h2>
+				<p>حدود قیمت قطعه فابریک و اجرت تخصصی بر اساس نرخ‌نامه رسمی کارگاه.</p>
+			</header>
+
+			<div class="pixva-pricetable__filters" data-price-filters>
+				<label class="pixva-pricetable__filter">
+					<span>برند تلویزیون</span>
+					<select name="brand" data-price-brand>
+						<option value="samsung" selected>سامسونگ (Samsung)</option>
+						<option value="lg">ال‌جی (LG)</option>
+						<option value="sony">سونی (Sony)</option>
+						<option value="snowa">اسنوا (Snowa)</option>
+					</select>
+				</label>
+
+				<label class="pixva-pricetable__filter">
+					<span>سایز صفحه</span>
+					<select name="size" data-price-size>
+						<option value="43">۴۳ اینچ</option>
+						<option value="55" selected>۵۵ اینچ</option>
+						<option value="65">۶۵ اینچ</option>
+					</select>
+				</label>
+
+				<div class="pixva-pricetable__pills" data-price-pills="brand" role="group" aria-label="فیلتر سریع برند">
+					<button type="button" class="px-pill is-active" data-price-pill="samsung" aria-pressed="true">سامسونگ</button>
+					<button type="button" class="px-pill" data-price-pill="lg" aria-pressed="false">ال‌جی</button>
+					<button type="button" class="px-pill" data-price-pill="sony" aria-pressed="false">سونی</button>
+					<button type="button" class="px-pill" data-price-pill="snowa" aria-pressed="false">اسنوا</button>
+				</div>
+
+				<p class="pixva-pricetable__live" data-price-status role="status" aria-live="polite"></p>
+			</div>
+
+			<div class="pixva-pricetable__wrap">
+				<table class="pixva-pricetable__table" data-price-table>
+					<caption>نرخ‌نامه تعمیر تلویزیون سامسونگ — ۵۵ اینچ (تومان)</caption>
+					<thead>
+						<tr>
+							<th scope="col">خدمت تعمیراتی</th>
+							<th scope="col">حداقل هزینه</th>
+							<th scope="col">حداکثر هزینه</th>
+							<th scope="col">زمان تحویل</th>
+						</tr>
+					</thead>
+					<tbody data-price-body>
+						<tr data-service="no_picture">
+							<th scope="row">بی‌تصویری (صدا دارد)</th>
+							<td data-min="15550000">۱۵٬۵۵۰٬۰۰۰</td>
+							<td data-max="25800000">۲۵٬۸۰۰٬۰۰۰</td>
+							<td>۲ تا ۴ روز کاری</td>
+						</tr>
+						<tr data-service="powerboard">
+							<th scope="row">تعمیر برد پاور</th>
+							<td data-min="9800000">۹٬۸۰۰٬۰۰۰</td>
+							<td data-max="16400000">۱۶٬۴۰۰٬۰۰۰</td>
+							<td>۱ تا ۳ روز کاری</td>
+						</tr>
+						<tr data-service="mainboard">
+							<th scope="row">تعمیر برد اصلی</th>
+							<td data-min="24000000">۲۴٬۰۰۰٬۰۰۰</td>
+							<td data-max="39000000">۳۹٬۰۰۰٬۰۰۰</td>
+							<td>۲ تا ۵ روز کاری</td>
+						</tr>
+						<tr data-service="panel">
+							<th scope="row">تعمیر پنل با بندینگ</th>
+							<td colspan="2" class="pixva-pricetable__quote">تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.</td>
+							<td>۴ تا ۸ روز کاری</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p class="pixva-pricetable__note">همه مبالغ شامل قطعه فابریک، اجرت تخصصی و ۱۸۰ روز گارانتی کتبی است.</p>
+
+			<div class="pixva-pricetable__actions">
+				<a class="pixva-seo__cta" href="/calculator/">استعلام دقیق قیمت با مدل دستگاه</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ فرم اعزام فوری (بخش مستقل) ============ -->
+	<section class="pixva-seo pixva-express" id="express-booking">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>اعزام فوری تکنسین تعمیر تلویزیون</h2>
+				<p>فقط شماره موبایل و شرح کوتاه مشکل را بنویسید.</p>
+			</header>
+
+			<form class="pixva-express__form" data-express-form novalidate>
+				<div class="pixva-express__fields">
+					<label class="pixva-express__field">
+						<span>شماره موبایل <em aria-hidden="true">*</em></span>
+						<input type="tel" name="phone" dir="ltr" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" pattern="09[0-9]{9}" required data-express-required="phone">
+					</label>
+					<label class="pixva-express__field pixva-express__field--wide">
+						<span>برند و مشکل دستگاه <em aria-hidden="true">*</em></span>
+						<input type="text" name="details" autocomplete="off" placeholder="مثلاً: سامسونگ ۵۵ اینچ — صدا دارد ولی تصویر ندارد" required data-express-required="details">
+					</label>
+				</div>
+
+				<p class="pixva-express__hp" aria-hidden="true">
+					<label>
+						<span>این فیلد را خالی بگذارید</span>
+						<input type="text" name="pixva_hp" value="" tabindex="-1" autocomplete="off">
+					</label>
+				</p>
+
+				<input type="hidden" name="source" value="home">
+				<input type="hidden" name="nonce" value="express-nonce-123" data-express-nonce>
+
+				<div class="pixva-express__actions">
+					<button type="submit" class="pixva-express__submit" data-express-submit>ثبت درخواست اعزام فوری تکنسین</button>
+					<p class="pixva-express__hint">اعزام تکنسین در کمتر از ۲ ساعت.</p>
+				</div>
+
+				<p class="pixva-express__msg" data-express-msg role="status" aria-live="polite" hidden></p>
+			</form>
+		</div>
+	</section>
+</main>
+
+<!-- ============ فوتر چهارستونه سازمانی ============ -->
+<footer class="pixva-footer">
+	<div class="pixva-container pixva-footer__grid">
+		<section class="pixva-footer__col">
+			<span class="pixva-logo__text"><strong>پیکسوا</strong></span>
+			<p>مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت، برد پاور و مین‌برد با قطعات فابریک.</p>
+			<div class="pixva-footer__cert">
+				<span>گواهی کسب اتحادیه الکترونیک تهران</span>
+				<span>گارانتی کتبی ۱۸۰ روزه خدمات</span>
+			</div>
+		</section>
+		<section class="pixva-footer__col">
+			<h2>پنج هاب تخصصی پیکسوا</h2>
+			<ul class="pixva-footer__links">
+				<li><a href="/hub/ai/">قطب هوش مصنوعی</a></li>
+				<li><a href="/hub/pricing/">قطب نرخ‌نامه</a></li>
+			</ul>
+		</section>
+		<section class="pixva-footer__col">
+			<h2>تماس اورژانسی و نشانی کارگاه</h2>
+			<div class="pixva-footer__emergency">
+				<a href="tel:02191009990"><span>۰۲۱۹۱۰۰۹۹۹۰</span></a>
+			</div>
+			<address class="pixva-footer__address"><span>تهران، خیابان جمهوری، تقاطع حافظ، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲</span></address>
+		</section>
+		<section class="pixva-footer__col">
+			<h2>نمادهای اعتماد و استعلام اصالت</h2>
+			<div class="pixva-trust-row"></div>
+			<div class="pixva-qr-card" data-pixva-qr data-qr-value="/tracking/">
+				<span class="pixva-qr-card__code" data-qr-target aria-hidden="true"></span>
+				<p><strong>استعلام گارانتی با QR</strong></p>
+			</div>
+		</section>
+	</div>
+	<div class="pixva-container pixva-footer__base">
+		<p class="pixva-copyright">© تمامی حقوق برای مرکز تخصصی تعمیرات پیکسوا محفوظ است.</p>
+		<p>نسخه ۲٫۱٫۰ — نرخ‌نامه مصوب بازار ۱۴۰۵</p>
+	</div>
+</footer>
+
+<!-- ============ نوار اقدام ثابت موبایل ============ -->
+<nav class="pixva-mobile-dock" aria-label="نوار دسترسی سریع موبایل">
+	<a href="tel:02191009990" class="pixva-mobile-dock__item">
+		<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3.5h3.2l1.2 3-2 1.2a12.5 12.5 0 0 0 6 6l1.2-2 3 1.2V16a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5 7.7 2 2 0 0 1 7 3.5z"/></svg></span>
+		<span>تماس</span>
+	</a>
+	<a href="#hero-booking" class="pixva-mobile-dock__item is-cta">
+		<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L5 14h7l-1 8 8-12h-7l1-8z"/></svg></span>
+		<span>درخواست تعمیرکار</span>
+	</a>
+	<a href="/tracking/" class="pixva-mobile-dock__item">
+		<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></span>
+		<span>پیگیری</span>
+	</a>
+	<a href="https://wa.me/989120000000" target="_blank" rel="noopener noreferrer" class="pixva-mobile-dock__item">
+		<span class="pixva-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 19l1.2-3.4A8 8 0 1 1 8.4 18L5 19z"/></svg></span>
+		<span>واتساپ</span>
+	</a>
+</nav>
+
+<script src="../../pixva/assets/js/seo-cro.js" defer></script>
+</body>
+</html>
