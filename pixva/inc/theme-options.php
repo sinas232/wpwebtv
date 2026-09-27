@@ -19,20 +19,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	/*
-	 * ترتیب کلیدها همان ترتیب پیش‌فرض صفحه است (لایه ۱٫۷٫۰ / Master Prompt v8):
-	 * هیرو و منوی مگا ← اسکرول سینمایی ← عیب‌یاب هوشمند ← مدل سه‌بعدی ←
-	 * نقشه زنده تعمیرکار ← سه مزیت ← نمونه‌کار تصویری ← نظرات مشتریان ← فوتر.
-	 * بقیه سکشن‌ها خاموش‌اند ولی از منوی مگا و هاب‌ها در دسترس می‌مانند.
+	 * ترتیب کلیدها همان ترتیب پیش‌فرض صفحه است (لایه ۲٫۰٫۰ / Master Prompt v11):
+	 * هیرو ← چهار اصل اعتماد ← راهنمای علائم خرابی (سئو) ← جدول شفاف قیمت (سئو)
+	 * ← عیب‌یاب هوشمند ← فرم اعزام فوری (تبدیل) ← سه مزیت ← نمونه‌کار ← نظرات.
+	 *
+	 * سه تجربه سنگین لایه‌های قبل (اسکرول سینمایی، مدل سه‌بعدی و نقشه دمو) به
+	 * انتهای فهرست منتقل و پیش‌فرض خاموش شده‌اند؛ در حالت کارایی حتی اگر روشن
+	 * شوند هم اسکریپت قفل‌کننده اسکرول صف نمی‌شود.
 	 */
 	return array(
-		'hero'          => esc_html__( 'هیرو با عنوان و دکمه استعلام سریع قیمت', 'pixva' ),
-		'cinematic'     => esc_html__( 'اسکرول سینمایی: نمای انفجاری پنج‌لایه تلویزیون (لایه ۱٫۷٫۰)', 'pixva' ),
-		'ai_diagnose'   => esc_html__( 'عیب‌یاب هوشمند با ویدیو و صدای دستگاه (لایه ۱٫۷٫۰)', 'pixva' ),
-		'repair_3d'     => esc_html__( 'مدل سه‌بعدی تعاملی با هات‌اسپیت قیمت قطعه (لایه ۱٫۷٫۰)', 'pixva' ),
-		'tech_tracker'  => esc_html__( 'نقشه زنده تعمیرکار با مسیر دمو و ETA (لایه ۱٫۷٫۰)', 'pixva' ),
-		'advantages'    => esc_html__( 'سه مزیت کلیدی کارگاه (گارانتی، اعزام، قطعه فابریک)', 'pixva' ),
-		'work'          => esc_html__( 'نمونه‌کار تصویری گالری تعمیرات', 'pixva' ),
-		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'hero'            => esc_html__( 'هیرو با عنوان و دکمه استعلام سریع قیمت', 'pixva' ),
+		'trust_features'  => esc_html__( 'چهار اصل اعتماد: تعمیر در محل، گارانتی کتبی، اعزام فوری، برآورد شفاف (لایه ۲٫۰٫۰)', 'pixva' ),
+		'symptom_guide'   => esc_html__( 'راهنمای متنی علائم خرابی با اسکیما FAQPage — ماژول سئو ۱ (لایه ۲٫۰٫۰)', 'pixva' ),
+		'price_calculator' => esc_html__( 'جدول شفاف هزینه‌ها با فیلتر برند/سایز و اسکیما قیمت — ماژول سئو ۲ (لایه ۲٫۰٫۰)', 'pixva' ),
+		'ai_diagnose'     => esc_html__( 'عیب‌یاب هوشمند با ویدیو و صدای دستگاه (لایه ۱٫۷٫۰)', 'pixva' ),
+		'express_booking' => esc_html__( 'فرم یک‌مرحله‌ای اعزام فوری تکنسین با پیامک خودکار (لایه ۲٫۰٫۰)', 'pixva' ),
+		'advantages'      => esc_html__( 'سه مزیت کلیدی کارگاه (گارانتی، اعزام، قطعه فابریک)', 'pixva' ),
+		'work'            => esc_html__( 'نمونه‌کار تصویری گالری تعمیرات', 'pixva' ),
+		'testimonials'    => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'cinematic'       => esc_html__( 'اسکرول سینمایی: نمای انفجاری پنج‌لایه تلویزیون (سنگین — پیش‌فرض خاموش)', 'pixva' ),
+		'repair_3d'       => esc_html__( 'مدل سه‌بعدی تعاملی Spline با هات‌اسپیت قیمت قطعه (سنگین — پیش‌فرض خاموش)', 'pixva' ),
+		'tech_tracker'    => esc_html__( 'نقشه زنده تعمیرکار با مسیر دمو و ETA (سنگین — پیش‌فرض خاموش)', 'pixva' ),
 		'quote'         => esc_html__( 'ویجت استعلام سریع قیمت (نرخ‌نامه ۱۴۰۵)', 'pixva' ),
 		'services'      => esc_html__( 'چهار کارت خدمت تخصصی', 'pixva' ),
 		'journey'       => esc_html__( 'مسیر پنج‌مرحله‌ای تعمیر با نقطه نورانی', 'pixva' ),
@@ -58,20 +65,27 @@ function pixva_home_sections() {
  */
 function pixva_home_section_defaults() {
 	/*
-	 * صفحه اصلی (Master Prompt v8): هیرو + چهار تجربه سینمایی (اسکرول انفجاری،
-	 * عیب‌یاب هوشمند، مدل سه‌بعدی و نقشه زنده) + سه مزیت + نمونه‌کار + نظرات.
-	 * بقیه ابزارها خاموش‌اند و از منوی مگا و صفحات اختصاصی در دسترس می‌مانند؛
-	 * کاربر می‌تواند هر سکشن را از «پیکسوا: سکشن‌های صفحه اصلی» تغییر دهد.
+	 * صفحه اصلی (لایه ۲٫۰٫۰ / Master Prompt v11): قیف سئو و تبدیل —
+	 * هیرو ← چهار اصل اعتماد ← راهنمای علائم خرابی ← جدول شفاف قیمت ←
+	 * عیب‌یاب هوشمند ← فرم اعزام فوری ← سه مزیت ← نمونه‌کار ← نظرات.
+	 *
+	 * سه ماژول سنگین (اسکرول سینمایی GSAP، مدل سه‌بعدی Spline و نقشه دمو)
+	 * پیش‌فرض خاموش‌اند؛ کدشان برای سازگاری باقی می‌ماند ولی در حالت کارایی
+	 * هیچ اسکریپت قفل‌کننده اسکرولی صف نمی‌شود.
 	 */
 	$defaults = array(
-		'hero'          => true,
-		'cinematic'     => true,
-		'ai_diagnose'   => true,
-		'repair_3d'     => true,
-		'tech_tracker'  => true,
-		'advantages'    => true,
-		'work'          => true,
-		'testimonials'  => true,
+		'hero'             => true,
+		'trust_features'   => true,
+		'symptom_guide'    => true,
+		'price_calculator' => true,
+		'ai_diagnose'      => true,
+		'express_booking'  => true,
+		'advantages'       => true,
+		'work'             => true,
+		'testimonials'     => true,
+		'cinematic'        => false,
+		'repair_3d'        => false,
+		'tech_tracker'     => false,
 		'quote'         => false,
 		'services'      => false,
 		'journey'       => false,
@@ -988,8 +1002,151 @@ function pixva_customize_register( $wp_customize ) {
 
 		$wp_customize->add_control( $pixva_key, $pixva_args );
 	}
+
+	/* ------- معماری سئو و تبدیل (لایه ۲٫۰٫۰ / Master Prompt v11) ------- */
+	$wp_customize->add_section(
+		'pixva_seo_cro',
+		array(
+			'title'       => esc_html__( 'پیکسوا: سئو، سرعت و تبدیل (لایه ۲٫۰٫۰)', 'pixva' ),
+			'description' => esc_html__( 'حالت کارایی (حذف انیمیشن سنگین و قفل اسکرول)، متن چهار ماژول سئو/تبدیل صفحه اصلی و قالب پیامک فرم اعزام فوری.', 'pixva' ),
+			'priority'    => 39,
+		)
+	);
+
+	// کلید اصلی: حالت کارایی.
+	$wp_customize->add_setting(
+		'pixva_performance_mode',
+		array(
+			'default'           => true,
+			'sanitize_callback' => 'pixva_sanitize_checkbox',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_performance_mode',
+		array(
+			'label'       => esc_html__( 'حالت کارایی (سئو-محور)', 'pixva' ),
+			'section'     => 'pixva_seo_cro',
+			'type'        => 'checkbox',
+			'description' => esc_html__( 'GSAP، ScrollTrigger، Spline و نقشه دمو از صف اسکریپت‌ها حذف می‌شوند؛ اسکرول کاملاً بومی و روان می‌ماند. خاموش‌کردن آن تجربه سینمایی لایه‌های قبل را بازمی‌گرداند.', 'pixva' ),
+		)
+	);
+
+	$pixva_seo_fields = array(
+		'pixva_symptom_title'          => array( __( 'عنوان راهنمای علائم خرابی', 'pixva' ), 'text', '', __( 'پیش‌فرض: «مشکل تلویزیون شما چیست؟»', 'pixva' ) ),
+		'pixva_symptom_subtitle'       => array( __( 'توضیح راهنمای علائم', 'pixva' ), 'textarea', '', '' ),
+		'pixva_symptom_ref_brand'      => array( __( 'برند مرجع برآورد هزینه در راهنما', 'pixva' ), 'brand', 'samsung', '' ),
+		'pixva_symptom_ref_size'       => array( __( 'سایز مرجع برآورد هزینه در راهنما', 'pixva' ), 'size', '55', '' ),
+		'pixva_price_title'            => array( __( 'عنوان جدول شفاف قیمت', 'pixva' ), 'text', '', __( 'پیش‌فرض: «جدول شفاف هزینه تعمیر تلویزیون»', 'pixva' ) ),
+		'pixva_price_subtitle'         => array( __( 'توضیح جدول قیمت', 'pixva' ), 'textarea', '', '' ),
+		'pixva_price_default_brand'    => array( __( 'برند پیش‌فرض جدول قیمت', 'pixva' ), 'brand', 'samsung', '' ),
+		'pixva_price_default_size'     => array( __( 'سایز پیش‌فرض جدول قیمت', 'pixva' ), 'size', '55', '' ),
+		'pixva_trust_title'            => array( __( 'عنوان بخش چهار اصل اعتماد', 'pixva' ), 'text', '', '' ),
+		'pixva_trust_subtitle'         => array( __( 'توضیح بخش اعتماد', 'pixva' ), 'textarea', '', '' ),
+		'pixva_express_title'          => array( __( 'عنوان فرم اعزام فوری', 'pixva' ), 'text', '', '' ),
+		'pixva_express_subtitle'       => array( __( 'توضیح فرم اعزام فوری', 'pixva' ), 'textarea', '', '' ),
+		'pixva_express_cta'            => array( __( 'متن دکمه فرم اعزام فوری', 'pixva' ), 'text', '', __( 'پیش‌فرض: «ثبت درخواست اعزام فوری تکنسین»', 'pixva' ) ),
+		'pixva_sms_express_text'       => array( __( 'قالب پیامک مشتری (فرم اعزام فوری)', 'pixva' ), 'textarea', '', __( 'جای‌گیر: {code}', 'pixva' ) ),
+		'pixva_sms_express_admin_text' => array( __( 'قالب پیامک مدیر (فرم اعزام فوری)', 'pixva' ), 'textarea', '', __( 'جای‌گیرها: {code} {brand} {problem} {phone} {size}', 'pixva' ) ),
+	);
+
+	$pixva_brand_choices = array( '' => esc_html__( '— پیش‌فرض کاتالوگ —', 'pixva' ) );
+	if ( function_exists( 'pixva_brand_catalog' ) ) {
+		foreach ( (array) pixva_brand_catalog() as $pixva_brand_key => $pixva_brand ) {
+			$pixva_brand_choices[ $pixva_brand_key ] = isset( $pixva_brand['fa'] ) ? $pixva_brand['fa'] : $pixva_brand_key;
+		}
+	}
+
+	$pixva_size_choices = array( '' => esc_html__( '— پیش‌فرض جدول —', 'pixva' ) );
+	if ( function_exists( 'pixva_price_table_sizes' ) ) {
+		foreach ( (array) pixva_price_table_sizes() as $pixva_size ) {
+			$pixva_size_choices[ $pixva_size ] = $pixva_size . ' ' . esc_html__( 'اینچ', 'pixva' );
+		}
+	}
+
+	foreach ( $pixva_seo_fields as $pixva_key => $pixva_field ) {
+		$pixva_kind = $pixva_field[1];
+
+		if ( 'textarea' === $pixva_kind ) {
+			$pixva_sanitize = 'sanitize_textarea_field';
+			$pixva_control  = 'textarea';
+		} elseif ( 'brand' === $pixva_kind ) {
+			$pixva_sanitize = 'pixva_sanitize_brand_key';
+			$pixva_control  = 'select';
+		} elseif ( 'size' === $pixva_kind ) {
+			$pixva_sanitize = 'pixva_sanitize_table_size';
+			$pixva_control  = 'select';
+		} else {
+			$pixva_sanitize = 'sanitize_text_field';
+			$pixva_control  = 'text';
+		}
+
+		$wp_customize->add_setting(
+			$pixva_key,
+			array(
+				'default'           => $pixva_field[2],
+				'sanitize_callback' => $pixva_sanitize,
+			)
+		);
+
+		$pixva_args = array(
+			'label'   => $pixva_field[0],
+			'section' => 'pixva_seo_cro',
+			'type'    => $pixva_control,
+		);
+		if ( '' !== $pixva_field[3] ) {
+			$pixva_args['description'] = $pixva_field[3];
+		}
+		if ( 'brand' === $pixva_kind ) {
+			$pixva_args['choices'] = $pixva_brand_choices;
+		}
+		if ( 'size' === $pixva_kind ) {
+			$pixva_args['choices'] = $pixva_size_choices;
+		}
+
+		$wp_customize->add_control( $pixva_key, $pixva_args );
+	}
 }
 add_action( 'customize_register', 'pixva_customize_register' );
+
+/**
+ * پاک‌سازی کلید برند انتخاب‌شده (فقط برندهای کاتالوگ نرخ‌نامه).
+ *
+ * @param string $brand کلید برند.
+ * @return string
+ */
+function pixva_sanitize_brand_key( $brand ) {
+	$brand = sanitize_key( (string) $brand );
+
+	if ( '' === $brand ) {
+		return '';
+	}
+
+	if ( function_exists( 'pixva_brand_catalog' ) && ! array_key_exists( $brand, (array) pixva_brand_catalog() ) ) {
+		return '';
+	}
+
+	return $brand;
+}
+
+/**
+ * پاک‌سازی سایز انتخاب‌شده برای جدول قیمت.
+ *
+ * @param string $size سایز.
+ * @return string
+ */
+function pixva_sanitize_table_size( $size ) {
+	$size = sanitize_key( (string) $size );
+
+	if ( '' === $size ) {
+		return '';
+	}
+
+	if ( function_exists( 'pixva_price_table_sizes' ) && ! in_array( $size, (array) pixva_price_table_sizes(), true ) ) {
+		return '';
+	}
+
+	return $size;
+}
 
 /**
  * پاک‌سازی انتخاب درگاه پیامک (فقط درگاه‌های مجاز).

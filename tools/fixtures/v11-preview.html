@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="pixva-native-scroll">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>هارنس لایه ۲٫۰٫۰ — معماری سئو و تبدیل پیکسوا</title>
+	<link rel="stylesheet" href="../../pixva/style.css">
+	<link rel="stylesheet" href="../../pixva/assets/css/main.css">
+	<link rel="stylesheet" href="../../pixva/assets/css/pixva-2026.css">
+</head>
+<body class="home page-template-front-page">
+
+<script>
+	/* --- پیکربندی ماژول سئو/تبدیل (معادل wp_localize_script در پوسته) --- */
+	window.pixvaSeoCro = {
+		restUrl: '/wp-json/pixva/v1',
+		nonce: 'express-nonce-123',
+		homeUrl: '/',
+		i18n: {
+			needPhone: 'برای هماهنگی اعزام، شماره موبایل الزامی است.',
+			badPhone: 'شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷).',
+			needDetails: 'برند و مشکل دستگاه را کوتاه بنویسید.',
+			sending: 'در حال ثبت درخواست…',
+			updating: 'در حال به‌روزرسانی جدول قیمت…',
+			error: 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.',
+			toman: 'تومان',
+			panelQuote: 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.'
+		}
+	};
+
+	/* --- شمارنده فراخوانی‌های REST برای آزمون --- */
+	window.__pixvaCalls = { express: 0, price: 0, priceUrls: [] };
+	window.__pixvaExpressBody = null;
+	window.__pixvaExpressHeaders = null;
+	window.__pixvaExpressResult = {
+		success: true,
+		data: {
+			code: 'PXV-2510-4821',
+			order_id: 918,
+			brand: 'ال‌جی',
+			problem: 'بی‌تصویری (صدا دارد)',
+			estimate: '۱۶٬۰۰۰٬۰۰۰ — ۲۲٬۰۰۰٬۰۰۰ تومان',
+			message: 'درخواست شما با کد پیگیری PXV-2510-4821 ثبت شد. تکنسین به‌زودی برای هماهنگی مراجعه تماس می‌گیرد.'
+		}
+	};
+
+	window.fetch = function (url, options) {
+		var target = String(url);
+
+		if (target.indexOf('/price-table') > -1) {
+			window.__pixvaCalls.price += 1;
+			window.__pixvaCalls.priceUrls.push(target);
+			// تأخیر عمدی تا حالت «در حال به‌روزرسانی» در آزمون دیده شود.
+			return new Promise(function (resolve) { window.setTimeout(resolve, 110); }).then(function () { return {
+				ok: true,
+				status: 200,
+				json: function () {
+					return Promise.resolve({
+						success: true,
+						data: {
+							brand: 'lg',
+							brand_label: 'ال‌جی',
+							size: '65',
+							currency: 'تومان',
+							caption: 'نرخ‌نامه تعمیر تلویزیون ال‌جی — ۶۵ اینچ (تومان)',
+							status_label: 'ال‌جی — ۶۵ اینچ',
+							quote_label: 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.',
+							rows: [
+								{ service: 'backlight', label: 'تعویض بک‌لایت', min: 26000000, max: 34000000, min_label: '۲۶٬۰۰۰٬۰۰۰', max_label: '۳۴٬۰۰۰٬۰۰۰', days: '۱ تا ۲ روز کاری', panel_replacement: false },
+								{ service: 'powerboard', label: 'تعمیر برد پاور', min: 31000000, max: 42000000, min_label: '۳۱٬۰۰۰٬۰۰۰', max_label: '۴۲٬۰۰۰٬۰۰۰', days: '۱ تا ۳ روز کاری', panel_replacement: false },
+								{ service: 'mainboard', label: 'تعمیر برد اصلی', min: 44000000, max: 61000000, min_label: '۴۴٬۰۰۰٬۰۰۰', max_label: '۶۱٬۰۰۰٬۰۰۰', days: '۲ تا ۵ روز کاری', panel_replacement: false },
+								{ service: 'lines', label: 'خطوط عمودی یا افقی', min: 57000000, max: 78000000, min_label: '۵۷٬۰۰۰٬۰۰۰', max_label: '۷۸٬۰۰۰٬۰۰۰', days: '۳ تا ۶ روز کاری', panel_replacement: false },
+								{ service: 'panel', label: 'تعمیر پنل با بندینگ', min: 0, max: 0, min_label: '', max_label: '', days: '۴ تا ۸ روز کاری', panel_replacement: true },
+								{ service: 'no_picture', label: 'بی‌تصویری (صدا دارد)', min: 18000000, max: 26000000, min_label: '۱۸٬۰۰۰٬۰۰۰', max_label: '۲۶٬۰۰۰٬۰۰۰', days: '۲ تا ۴ روز کاری', panel_replacement: false }
+							],
+							schema: []
+						}
+					});
+				}
+			}; });
+		}
+
+		if (target.indexOf('/express-booking') > -1) {
+			window.__pixvaCalls.express += 1;
+			window.__pixvaExpressBody = options && options.body ? options.body : null;
+			window.__pixvaExpressHeaders = options && options.headers ? options.headers : null;
+			return new Promise(function (resolve) { window.setTimeout(resolve, 90); }).then(function () {
+				return {
+					ok: true,
+					status: 200,
+					json: function () { return Promise.resolve(window.__pixvaExpressResult); }
+				};
+			});
+		}
+
+		return Promise.resolve({ ok: false, status: 404, json: function () { return Promise.resolve({}); } });
+	};
+</script>
+
+<main id="content" class="pixva-home--minimal">
+
+	<!-- ماژول ۳: چهار اصل اعتماد -->
+	<section class="pixva-seo pixva-trust" id="trust-features">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>چرا تعمیر تلویزیون را به پیکسوا بسپارید؟</h2>
+				<p>چهار اصل که در هر پرونده تعمیر، از بازدید تا گارانتی، بدون استثنا رعایت می‌شود.</p>
+			</header>
+			<ul class="pixva-trust__grid">
+				<li class="pixva-trust__item" id="onsite">
+					<span class="pixva-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24"></svg></span>
+					<h3>تعمیر در منزل و محل شما</h3>
+					<p>تکنسین با ابزار کامل و قطعه پرمصرف به محل می‌آید؛ نیازی به حمل تلویزیون نیست.</p>
+				</li>
+				<li class="pixva-trust__item" id="warranty">
+					<span class="pixva-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24"></svg></span>
+					<h3>۶ ماه گارانتی کتبی قطعات فابریک</h3>
+					<p>کارت گارانتی دیجیتال با سریال یکتا، هولوگرام اصالت و فاکتور رسمی صادر می‌شود.</p>
+				</li>
+				<li class="pixva-trust__item" id="dispatch">
+					<span class="pixva-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24"></svg></span>
+					<h3>اعزام تکنسین در کمتر از ۲ ساعت</h3>
+					<p>نزدیک‌ترین تکنسین شیفت انتخاب و زمان مراجعه هماهنگ می‌شود.</p>
+				</li>
+				<li class="pixva-trust__item" id="transparent">
+					<span class="pixva-trust__icon" aria-hidden="true"><svg viewBox="0 0 24 24"></svg></span>
+					<h3>عیب‌یابی و برآورد هزینه شفاف قبل از تعمیر</h3>
+					<p>تفکیک قطعه، اجرت و هزینه کارشناسی پیش از شروع کار نشان داده می‌شود.</p>
+				</li>
+			</ul>
+		</div>
+	</section>
+
+	<!-- ماژول سئو ۱: راهنمای علائم خرابی -->
+	<section class="pixva-seo pixva-symptom" id="symptom-guide">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>مشکل تلویزیون شما چیست؟</h2>
+				<p>راهنمای کارگاهی تشخیص علامت‌های پرتکرار خرابی تلویزیون، همراه با علت احتمالی و بازه واقعی هزینه تعمیر.</p>
+			</header>
+
+			<div class="pixva-symptom__grid">
+				<article class="pixva-symptom__card" id="no-picture-backlight">
+					<h3>صدا دارد ولی تصویر ندارد (خرابی بک‌لایت)</h3>
+					<p class="pixva-symptom__q">تلویزیون صدا دارد ولی تصویر ندارد؛ علت چیست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خاموش‌شدن یا سوختن ریسه‌های LED بک‌لایت</p>
+					<p>وقتی صدا هست و تصویر نیست، در بیشتر موارد پنل سالم است و ریسه‌های بک‌لایت سوخته‌اند.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>تلویزیون را در اتاق تاریک روشن کنید و با چراغ‌قوه گوشی به صفحه بتابانید.</li>
+						<li>اگر تصویر کم‌رنگ دیده شد، بک‌لایت خاموش است.</li>
+						<li>منوی تلویزیون را باز کنید؛ اگر منو هم دیده نمی‌شود ایراد از بک‌لایت است.</li>
+					</ol>
+					<p class="pixva-symptom__warn">باز کردن پنل بدون دستگاه بندینگ ریسک شکستن صفحه را دارد.</p>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong> <span>۱۵٬۵۰۰٬۰۰۰ — ۲۱٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۲ تا ۴ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=no_picture">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="vertical-horizontal-lines">
+					<h3>خطوط عمودی یا افقی روی صفحه (ایراد پنل/تیکان)</h3>
+					<p class="pixva-symptom__q">خطوط عمودی یا افقی روی صفحه تلویزیون نشانه چیست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> قطع شدن فلت‌های COF یا ایراد برد T-Con</p>
+					<p>خطوط ثابت عمودی معمولاً از قطع شدن اتصال فلت‌های COF روی لبه پنل می‌آید.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>عکس تمام‌صفحه سفید و مشکی پخش کنید.</li>
+						<li>با انگشت به‌آرامی روی قاب مقابل خط بزنید.</li>
+						<li>یک منبع دیگر وصل کنید تا ایراد کابل HDMI رد شود.</li>
+					</ol>
+					<p class="pixva-symptom__warn">تعداد و پهنای خط تعیین‌کننده امکان تعمیر است.</p>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong> <span>۳۲٬۰۰۰٬۰۰۰ — ۴۸٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۳ تا ۶ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=lines">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="no-power-blink">
+					<h3>تلویزیون روشن نمی‌شود / چراغ پاور چشمک می‌زند (برد تغذیه)</h3>
+					<p class="pixva-symptom__q">تلویزیون روشن نمی‌شود و چراغ پاور چشمک می‌زند؛ چه کنم؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خرابی برد پاور، بادکردن خازن‌ها یا فعال‌شدن محافظت</p>
+					<p>چشمک‌زدن چراغ پاور یعنی برد اصلی کد خطا اعلام می‌کند.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>تلویزیون را ۵ دقیقه از برق بکشید و دوباره بزنید.</li>
+						<li>تعداد چشمک چراغ پاور را بشمارید و ثبت کنید.</li>
+						<li>دستگاه محافظ یا سه‌راهی را حذف کنید.</li>
+					</ol>
+					<p class="pixva-symptom__warn">برد پاور ولتاژ خطرناک ذخیره‌شده دارد.</p>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong> <span>۱۸٬۰۰۰٬۰۰۰ — ۲۶٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۱ تا ۳ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=no_power">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+
+				<article class="pixva-symptom__card" id="logo-loop-reset">
+					<h3>روی لوگو گیر کرده یا ریست می‌شود (مین‌برد)</h3>
+					<p class="pixva-symptom__q">تلویزیون روی لوگو گیر کرده یا مدام ریست می‌شود؛ مشکل کجاست؟</p>
+					<p class="pixva-symptom__cause"><strong>علت احتمالی:</strong> خرابی حافظه، نیم‌سوز شدن مین‌برد یا آسیب فریم‌ور</p>
+					<p>ماندن روی لوگو و ریست‌شدن پیاپی یعنی فریم‌ور یا حافظه مین‌برد آسیب دیده است.</p>
+					<h4>سه تست سریع خانگی</h4>
+					<ol class="pixva-symptom__checks">
+						<li>ریست سخت‌افزاری: نگه‌داشتن دکمه پاور به مدت ۱۰ ثانیه.</li>
+						<li>همه دستگاه‌های HDMI را جدا کنید.</li>
+						<li>اگر منوی سرویس باز می‌شود، نسخه فریم‌ور را یادداشت کنید.</li>
+					</ol>
+					<p class="pixva-symptom__warn">پروگرام فریم‌ور با فایل ناسازگار مین‌برد را غیرقابل‌بازیابی می‌کند.</p>
+					<p class="pixva-symptom__cost"><strong>بازه هزینه تعمیر</strong> <span>۲۵٬۰۰۰٬۰۰۰ — ۳۶٬۰۰۰٬۰۰۰ تومان</span><small>برآورد ۵۵ اینچ LED — ۲ تا ۵ روز کاری</small></p>
+					<a class="pixva-seo__cta" href="/calculator/?problem=mainboard">ثبت درخواست اعزام فوری تکنسین</a>
+				</article>
+			</div>
+
+			<footer class="pixva-seo__foot">
+				<p>تشخیص قطعی نیازمند بازدید در محل است؛ عیب‌یابی و برآورد هزینه پیش از شروع تعمیر اعلام می‌شود.</p>
+				<a class="pixva-seo__link" href="/tracking/">پیگیری پرونده تعمیر</a>
+			</footer>
+		</div>
+		<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"تلویزیون صدا دارد ولی تصویر ندارد؛ علت چیست؟","acceptedAnswer":{"@type":"Answer","text":"وقتی صدا هست و تصویر نیست، ریسه‌های بک‌لایت سوخته‌اند."}}]},{"@type":"Service","serviceType":"تعمیر تخصصی تلویزیون در محل","name":"مشکل تلویزیون شما چیست؟","hasOfferCatalog":{"@type":"OfferCatalog","name":"خدمات تعمیر تلویزیون","itemListElement":[{"@type":"Offer","name":"بی‌تصویری (صدا دارد)","priceCurrency":"IRR","priceSpecification":{"@type":"PriceSpecification","minPrice":"155000000","maxPrice":"210000000","priceCurrency":"IRR"}}]}}]}</script>
+	</section>
+
+	<!-- ماژول سئو ۲: جدول شفاف قیمت -->
+	<section class="pixva-seo pixva-pricetable" id="price-table" data-price-active-brand="samsung" data-price-active-size="55">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>جدول شفاف هزینه تعمیر تلویزیون</h2>
+				<p>حدود قیمت قطعه فابریک و اجرت تخصصی بر اساس نرخ‌نامه رسمی کارگاه.</p>
+			</header>
+
+			<div class="pixva-pricetable__filters" data-price-filters>
+				<label class="pixva-pricetable__filter">
+					<span>برند تلویزیون</span>
+					<select name="brand" data-price-brand>
+						<option value="samsung" selected>سامسونگ (Samsung)</option>
+						<option value="lg">ال‌جی (LG)</option>
+						<option value="sony">سونی (Sony)</option>
+						<option value="snowa">اسنوا (Snowa)</option>
+					</select>
+				</label>
+				<label class="pixva-pricetable__filter">
+					<span>سایز صفحه</span>
+					<select name="size" data-price-size>
+						<option value="32">۳۲ اینچ</option>
+						<option value="43">۴۳ اینچ</option>
+						<option value="50">۵۰ اینچ</option>
+						<option value="55" selected>۵۵ اینچ</option>
+						<option value="65">۶۵ اینچ</option>
+						<option value="75">۷۵ اینچ</option>
+					</select>
+				</label>
+				<p class="pixva-pricetable__live" data-price-status role="status" aria-live="polite"></p>
+			</div>
+
+			<div class="pixva-pricetable__wrap">
+				<table class="pixva-pricetable__table" data-price-table>
+					<caption>نرخ‌نامه تعمیر تلویزیون سامسونگ — ۵۵ اینچ (تومان)</caption>
+					<thead>
+						<tr>
+							<th scope="col">خدمت تعمیراتی</th>
+							<th scope="col">حداقل هزینه</th>
+							<th scope="col">حداکثر هزینه</th>
+							<th scope="col">زمان تحویل</th>
+						</tr>
+					</thead>
+					<tbody data-price-body>
+						<tr data-service="backlight">
+							<th scope="row">تعویض بک‌لایت</th>
+							<td data-min="15500000">۱۵٬۵۰۰٬۰۰۰</td>
+							<td data-max="21000000">۲۱٬۰۰۰٬۰۰۰</td>
+							<td>۱ تا ۲ روز کاری</td>
+						</tr>
+						<tr data-service="powerboard">
+							<th scope="row">تعمیر برد پاور</th>
+							<td data-min="18000000">۱۸٬۰۰۰٬۰۰۰</td>
+							<td data-max="26000000">۲۶٬۰۰۰٬۰۰۰</td>
+							<td>۱ تا ۳ روز کاری</td>
+						</tr>
+						<tr data-service="mainboard">
+							<th scope="row">تعمیر برد اصلی</th>
+							<td data-min="25000000">۲۵٬۰۰۰٬۰۰۰</td>
+							<td data-max="36000000">۳۶٬۰۰۰٬۰۰۰</td>
+							<td>۲ تا ۵ روز کاری</td>
+						</tr>
+						<tr data-service="lines">
+							<th scope="row">خطوط عمودی یا افقی</th>
+							<td data-min="32000000">۳۲٬۰۰۰٬۰۰۰</td>
+							<td data-max="48000000">۴۸٬۰۰۰٬۰۰۰</td>
+							<td>۳ تا ۶ روز کاری</td>
+						</tr>
+						<tr data-service="panel">
+							<th scope="row">تعمیر پنل با بندینگ</th>
+							<td data-min="30000000">۳۰٬۰۰۰٬۰۰۰</td>
+							<td data-max="44000000">۴۴٬۰۰۰٬۰۰۰</td>
+							<td>۴ تا ۸ روز کاری</td>
+						</tr>
+						<tr data-service="no_picture">
+							<th scope="row">بی‌تصویری (صدا دارد)</th>
+							<td data-min="16000000">۱۶٬۰۰۰٬۰۰۰</td>
+							<td data-max="23000000">۲۳٬۰۰۰٬۰۰۰</td>
+							<td>۲ تا ۴ روز کاری</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p class="pixva-pricetable__note">همه مبالغ شامل قطعه فابریک، اجرت تخصصی و ۱۸۰ روز گارانتی کتبی است.</p>
+			<div class="pixva-pricetable__actions">
+				<a class="pixva-seo__cta" href="/calculator/">استعلام دقیق قیمت با مدل دستگاه</a>
+			</div>
+		</div>
+		<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Service","serviceType":"تعمیر تلویزیون در محل با نرخ‌نامه شفاف","name":"قیمت تعمیر تلویزیون سامسونگ","hasOfferCatalog":{"@type":"OfferCatalog","name":"نرخ‌نامه تعمیر تلویزیون","itemListElement":[{"@type":"Offer","name":"تعویض بک‌لایت تلویزیون سامسونگ 55 اینچ","priceCurrency":"IRR","price":"155000000","availability":"https://schema.org/InStock","priceSpecification":{"@type":"PriceSpecification","minPrice":"155000000","maxPrice":"210000000","priceCurrency":"IRR","unitText":"هر دستگاه تلویزیون","valueAddedTaxIncluded":false}}]}}]}</script>
+	</section>
+
+	<!-- ماژول ۴: فرم اعزام فوری -->
+	<section class="pixva-seo pixva-express" id="express-booking">
+		<div class="pixva-container">
+			<header class="pixva-seo__head">
+				<h2>اعزام فوری تکنسین تعمیر تلویزیون</h2>
+				<p>فقط شماره موبایل و شرح کوتاه مشکل را بنویسید؛ کارشناس برای هماهنگی مراجعه تماس می‌گیرد.</p>
+			</header>
+
+			<form class="pixva-express__form" data-express-form novalidate>
+				<div class="pixva-express__fields">
+					<label class="pixva-express__field">
+						<span>شماره موبایل <em aria-hidden="true">*</em></span>
+						<input type="tel" name="phone" dir="ltr" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" pattern="09[0-9]{9}" required data-express-required="phone">
+					</label>
+					<label class="pixva-express__field pixva-express__field--wide">
+						<span>برند و مشکل دستگاه <em aria-hidden="true">*</em></span>
+						<input type="text" name="details" autocomplete="off" placeholder="مثلاً: سامسونگ ۵۵ اینچ — صدا دارد ولی تصویر ندارد" required data-express-required="details">
+					</label>
+				</div>
+
+				<p class="pixva-express__hp" aria-hidden="true">
+					<label>
+						<span>این فیلد را خالی بگذارید</span>
+						<input type="text" name="pixva_hp" value="" tabindex="-1" autocomplete="off">
+					</label>
+				</p>
+
+				<input type="hidden" name="source" value="home">
+				<input type="hidden" name="nonce" value="express-nonce-123" data-express-nonce>
+
+				<div class="pixva-express__actions">
+					<button type="submit" class="pixva-express__submit" data-express-submit>ثبت درخواست اعزام فوری تکنسین</button>
+					<p class="pixva-express__hint">اعزام تکنسین در کمتر از ۲ ساعت — عیب‌یابی و برآورد هزینه پیش از تعمیر.</p>
+				</div>
+
+				<p class="pixva-express__msg" data-express-msg role="status" aria-live="polite" hidden></p>
+			</form>
+		</div>
+	</section>
+
+</main>
+
+<script src="../../pixva/assets/js/seo-cro.js" defer></script>
+</body>
+</html>

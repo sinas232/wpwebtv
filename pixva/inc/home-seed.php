@@ -93,6 +93,46 @@ if ( ! function_exists( 'pixva_home_v8_module_settings' ) ) {
 					'element_id' => 'pixva-home-map',
 				);
 				break;
+
+			/* --- لایه ۲٫۰٫۰ (Master Prompt v11): ماژول‌های سئو و تبدیل --- */
+
+			case 'trust':
+				$settings = array(
+					'title'      => (string) pixva_option( 'pixva_trust_title', __( 'چرا تعمیر تلویزیون را به پیکسوا بسپارید؟', 'pixva' ) ),
+					'subtitle'   => (string) pixva_option( 'pixva_trust_subtitle', __( 'چهار اصل که در هر پرونده تعمیر، از بازدید تا گارانتی، بدون استثنا رعایت می‌شود.', 'pixva' ) ),
+					'element_id' => 'pixva-home-trust',
+				);
+				break;
+
+			case 'symptom':
+				$settings = array(
+					'title'      => (string) pixva_option( 'pixva_symptom_title', __( 'مشکل تلویزیون شما چیست؟', 'pixva' ) ),
+					'subtitle'   => (string) pixva_option( 'pixva_symptom_subtitle', __( 'راهنمای کارگاهی تشخیص علامت‌های پرتکرار خرابی تلویزیون، همراه با علت احتمالی، تست سریع خانگی و بازه واقعی هزینه تعمیر.', 'pixva' ) ),
+					'cta_text'   => (string) pixva_option( 'pixva_symptom_cta', __( 'ثبت درخواست اعزام فوری تکنسین', 'pixva' ) ),
+					'element_id' => 'pixva-home-symptom',
+				);
+				break;
+
+			case 'price':
+				$settings = array(
+					'title'         => (string) pixva_option( 'pixva_price_title', __( 'جدول شفاف هزینه تعمیر تلویزیون', 'pixva' ) ),
+					'subtitle'      => (string) pixva_option( 'pixva_price_subtitle', __( 'حدود قیمت قطعه فابریک و اجرت تخصصی بر اساس نرخ‌نامه رسمی کارگاه؛ مبلغ نهایی پس از عیب‌یابی در محل و با تأیید شما قطعی می‌شود.', 'pixva' ) ),
+					'default_brand' => (string) pixva_option( 'pixva_price_default_brand', 'samsung' ),
+					'default_size'  => (string) pixva_option( 'pixva_price_default_size', '55' ),
+					'element_id'    => 'pixva-home-price',
+				);
+				break;
+
+			case 'express':
+				$settings = array(
+					'title'         => (string) pixva_option( 'pixva_express_title', __( 'اعزام فوری تکنسین تعمیر تلویزیون', 'pixva' ) ),
+					'subtitle'      => (string) pixva_option( 'pixva_express_subtitle', __( 'فقط شماره موبایل و شرح کوتاه مشکل را بنویسید؛ کارشناس برای هماهنگی مراجعه و اعلام برآورد هزینه تماس می‌گیرد.', 'pixva' ) ),
+					'cta_text'      => (string) pixva_option( 'pixva_express_cta', __( 'ثبت درخواست اعزام فوری تکنسین', 'pixva' ) ),
+					'phone_label'   => __( 'شماره موبایل', 'pixva' ),
+					'details_label' => __( 'برند و مشکل دستگاه', 'pixva' ),
+					'element_id'    => 'pixva-home-express',
+				);
+				break;
 		}
 
 		/**
@@ -218,6 +258,9 @@ if ( ! function_exists( 'pixva_home_elementor_widget_settings' ) ) {
 					'privacy'     => __( 'فایل‌ها فقط برای عیب‌یابی پرونده شما استفاده می‌شوند و پس از بسته‌شدن پرونده پاک می‌گردند.', 'pixva' ),
 					'max_note'    => __( 'ویدیوی ۱۰ تا ۳۰ ثانیه‌ای کافی است؛ سقف حجم از تنظیمات پوسته خوانده می‌شود.', 'pixva' ),
 					'show_phone'  => 'yes',
+					// لایه ۱٫۹٫۰: شماره موبایل اجباری و ضبط مستقیم با دوربین موبایل.
+					'phone_required' => 'yes',
+					'camera_capture' => 'environment',
 					'accept'      => 'video/*,audio/*',
 					'pulse'       => array( 'size' => 2.4 ),
 					'neon'        => 'rgb(56, 189, 248)',
@@ -267,14 +310,52 @@ if ( ! function_exists( 'pixva_home_elementor_widget_settings' ) ) {
 					'code'     => '',
 					'phone'    => '',
 					'refresh'  => 20,
-					'height'   => array(
-						'unit' => 'rem',
-						'size' => 26,
-					),
-					'zoom'     => array( 'size' => 14 ),
-					'neon'     => 'rgb(34, 211, 238)',
-					'car'      => 'rgb(248, 113, 113)',
-				);
+				'height'   => array(
+					'unit' => 'rem',
+					'size' => 26,
+				),
+				'zoom'     => array( 'size' => 14 ),
+				'neon'     => 'rgb(34, 211, 238)',
+				'car'      => 'rgb(248, 113, 113)',
+			);
+
+		/* --- لایه ۲٫۰٫۰ (Master Prompt v11): کنترل‌های ماژول‌های سئو/تبدیل --- */
+
+		case 'trust':
+			return array(
+				'title'    => isset( $head['title'] ) ? (string) $head['title'] : '',
+				'subtitle' => isset( $head['subtitle'] ) ? (string) $head['subtitle'] : '',
+				'columns'  => array( 'unit' => 'px', 'size' => 4 ),
+			);
+
+		case 'symptom':
+			return array(
+				'title'    => isset( $head['title'] ) ? (string) $head['title'] : '',
+				'subtitle' => isset( $head['subtitle'] ) ? (string) $head['subtitle'] : '',
+				'cta_text' => isset( $head['cta_text'] ) ? (string) $head['cta_text'] : '',
+				'cta_url'  => array(
+					'url' => function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' ),
+				),
+				'columns'  => array( 'unit' => 'px', 'size' => 2 ),
+			);
+
+		case 'price':
+			return array(
+				'title'         => isset( $head['title'] ) ? (string) $head['title'] : '',
+				'subtitle'      => isset( $head['subtitle'] ) ? (string) $head['subtitle'] : '',
+				'default_brand' => isset( $head['default_brand'] ) ? (string) $head['default_brand'] : '',
+				'default_size'  => isset( $head['default_size'] ) ? (string) $head['default_size'] : '',
+			);
+
+		case 'express':
+			return array(
+				'title'         => isset( $head['title'] ) ? (string) $head['title'] : '',
+				'subtitle'      => isset( $head['subtitle'] ) ? (string) $head['subtitle'] : '',
+				'phone_label'   => isset( $head['phone_label'] ) ? (string) $head['phone_label'] : '',
+				'details_label' => isset( $head['details_label'] ) ? (string) $head['details_label'] : '',
+				'cta_text'      => isset( $head['cta_text'] ) ? (string) $head['cta_text'] : '',
+				'source'        => 'home-seed',
+			);
 		}
 
 		return array();
@@ -283,9 +364,14 @@ if ( ! function_exists( 'pixva_home_elementor_widget_settings' ) ) {
 
 if ( ! function_exists( 'pixva_home_elementor_blocks' ) ) {
 	/**
-	 * چهار بلوک چیدمان پیش‌فرض: ماژول => [نام ویجت, نامک, عنوان].
+	 * بلوک‌های چیدمان پیش‌فرض: ماژول => [نام ویجت, نامک, عنوان].
 	 *
-	 * ترتیب همان ترتیب front-page.php است (Master Prompt v8).
+	 * لایه ۲٫۰٫۰ (Master Prompt v11): سه بلوک سنگین (اسکرول سینمایی GSAP، مدل
+	 * سه‌بعدی Spline و نقشه دمو) از چیدمان پیش‌فرض حذف شده‌اند و جای آن‌ها را
+	 * قیف سئو/تبدیل گرفته است — چهار اصل اعتماد، راهنمای علائم خرابی، جدول
+	 * شفاف قیمت، عیب‌یاب هوشمند و فرم اعزام فوری.
+	 *
+	 * ترتیب همان ترتیب front-page.php است.
 	 *
 	 * @return array<int, array{module:string, widget:string, slug:string, title:string}>
 	 */
@@ -299,10 +385,22 @@ if ( ! function_exists( 'pixva_home_elementor_blocks' ) ) {
 			'pixva_home_elementor_blocks',
 			array(
 				array(
-					'module' => 'cinematic',
-					'widget' => 'pixva_cinematic_unboxing',
-					'slug'   => 'cinematic-unboxing',
-					'title'  => __( 'اسکرول سینمایی — نمای انفجاری تلویزیون', 'pixva' ),
+					'module' => 'trust',
+					'widget' => 'pixva_trust_features',
+					'slug'   => 'trust-features',
+					'title'  => __( 'چهار اصل اعتماد و گارانتی', 'pixva' ),
+				),
+				array(
+					'module' => 'symptom',
+					'widget' => 'pixva_symptom_guide',
+					'slug'   => 'symptom-guide',
+					'title'  => __( 'مشکل تلویزیون شما چیست؟ (راهنمای علائم)', 'pixva' ),
+				),
+				array(
+					'module' => 'price',
+					'widget' => 'pixva_price_calculator',
+					'slug'   => 'price-table',
+					'title'  => __( 'جدول شفاف هزینه تعمیر تلویزیون', 'pixva' ),
 				),
 				array(
 					'module' => 'ai',
@@ -311,16 +409,10 @@ if ( ! function_exists( 'pixva_home_elementor_blocks' ) ) {
 					'title'  => __( 'عیب‌یاب هوشمند — ویدیو و صدا', 'pixva' ),
 				),
 				array(
-					'module' => 'spline',
-					'widget' => 'pixva_3d_repair',
-					'slug'   => 'repair-3d',
-					'title'  => __( 'مدل سه‌بعدی تعاملی با هات‌اسپیت قیمت', 'pixva' ),
-				),
-				array(
-					'module' => 'tracker',
-					'widget' => 'pixva_tech_tracker',
-					'slug'   => 'live-tech-tracker',
-					'title'  => __( 'نقشه زنده تعمیرکار با مسیر دمو', 'pixva' ),
+					'module' => 'express',
+					'widget' => 'pixva_express_booking',
+					'slug'   => 'express-booking',
+					'title'  => __( 'فرم اعزام فوری تکنسین', 'pixva' ),
 				),
 			)
 		);

@@ -14,16 +14,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 $pixva_active  = function_exists( 'pixva_active_home_sections' ) ? pixva_active_home_sections() : array();
-$pixva_core    = array( 'hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials' );
+$pixva_core    = array( 'hero', 'trust_features', 'symptom_guide', 'price_calculator', 'ai_diagnose', 'express_booking', 'advantages', 'work', 'testimonials' );
 $pixva_minimal = ! empty( $pixva_active ) && 0 === count( array_diff( $pixva_active, $pixva_core ) );
 
 /*
- * لایه ۱٫۷٫۰ (Master Prompt v8): اگر مدیر «رندر صفحه اصلی با چیدمان المنتور»
- * را روشن کرده باشد و برگه خانه چیدمان داشته باشد، چهار بخش سینمایی یک‌بار از
+ * لایه ۲٫۰٫۰ (Master Prompt v11): اگر مدیر «رندر صفحه اصلی با چیدمان المنتور»
+ * را روشن کرده باشد و برگه خانه چیدمان داشته باشد، ماژول‌های سئو/تبدیل یک‌بار از
  * المنتور چاپ می‌شوند؛ هیرو، سه مزیت، نمونه‌کار و نظرات همچنان از پوسته می‌آیند
- * تا ترتیب هیرو ← سینمایی ← هوش مصنوعی ← سه‌بعدی ← نقشه ← نمونه‌کار حفظ شود.
+ * تا ترتیب قیف (اعتماد ← علائم ← قیمت ← عیب‌یاب ← اعزام فوری) حفظ شود.
  */
-$pixva_builder_sections = array( 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker' );
+$pixva_builder_sections = array( 'trust_features', 'symptom_guide', 'price_calculator', 'ai_diagnose', 'express_booking', 'cinematic', 'repair_3d', 'tech_tracker' );
 $pixva_builder_checked  = false;
 $pixva_builder_active   = false;
 ?>
@@ -833,6 +833,67 @@ function pixva_home_dispatch_hub() {
 	if ( function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
 		pixva_render_dispatch_and_warranty_hub();
 	}
+}
+
+/* --------------------------------------------------------------------------
+ * ماژول‌های سئو و تبدیل صفحه اصلی — لایه ۲٫۰٫۰ (Master Prompt v11)
+ *
+ * ترتیب قیف: هیرو ← چهار اصل اعتماد ← راهنمای علائم خرابی ← جدول شفاف قیمت ←
+ * عیب‌یاب هوشمند ← فرم اعزام فوری ← سه مزیت ← نمونه‌کار ← نظرات.
+ * همه این بخش‌ها با HTML/CSS خالص رندر می‌شوند و هیچ اسکریپت قفل‌کننده اسکرول،
+ * کتابخانه انیمیشن یا مدل سه‌بعدی بارگذاری نمی‌کنند.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * بخش اعتماد: چهار اصل کلیدی (تعمیر در محل، گارانتی، اعزام، شفافیت).
+ *
+ * @return void
+ */
+function pixva_home_trust_features() {
+	if ( ! function_exists( 'pixva_render_trust_features' ) ) {
+		return;
+	}
+
+	pixva_render_trust_features( pixva_home_seo_section_settings( 'trust_features' ) );
+}
+
+/**
+ * بخش سئو ۱: راهنمای متنی علائم خرابی با اسکیما FAQPage/Service.
+ *
+ * @return void
+ */
+function pixva_home_symptom_guide() {
+	if ( ! function_exists( 'pixva_render_symptom_guide' ) ) {
+		return;
+	}
+
+	pixva_render_symptom_guide( pixva_home_seo_section_settings( 'symptom_guide' ) );
+}
+
+/**
+ * بخش سئو ۲: جدول شفاف هزینه‌ها با اسکیما PriceSpecification.
+ *
+ * @return void
+ */
+function pixva_home_price_calculator() {
+	if ( ! function_exists( 'pixva_render_price_calculator' ) ) {
+		return;
+	}
+
+	pixva_render_price_calculator( pixva_home_seo_section_settings( 'price_calculator' ) );
+}
+
+/**
+ * بخش تبدیل: فرم یک‌مرحله‌ای اعزام فوری تکنسین.
+ *
+ * @return void
+ */
+function pixva_home_express_booking() {
+	if ( ! function_exists( 'pixva_render_express_booking' ) ) {
+		return;
+	}
+
+	pixva_render_express_booking( pixva_home_seo_section_settings( 'express_booking' ) );
 }
 
 /* --------------------------------------------------------------------------

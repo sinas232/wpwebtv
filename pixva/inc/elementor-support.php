@@ -464,6 +464,11 @@ function pixva_section_widget_classes() {
 		'Pixva_3d_Repair_Widget',
 		'Pixva_Ai_Diagnose_Widget',
 		'Pixva_Technician_Tracker_Widget',
+		// لایه ۲٫۰٫۰ (Master Prompt v11): ماژول‌های سئو و تبدیل.
+		'Pixva_Symptom_Guide_Widget',
+		'Pixva_Price_Calculator_Widget',
+		'Pixva_Trust_Features_Widget',
+		'Pixva_Express_Booking_Widget',
 	);
 }
 

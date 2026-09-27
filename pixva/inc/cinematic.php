@@ -235,6 +235,12 @@ if ( ! function_exists( 'pixva_needs_cinematic_js' ) ) {
 			return false;
 		}
 
+		// لایه ۲٫۰٫۰ (Master Prompt v11): در حالت کارایی، موتور قفل‌کننده اسکرول
+		// (GSAP/ScrollTrigger) هرگز صف نمی‌شود تا اسکرول موبایل بومی و روان بماند.
+		if ( function_exists( 'pixva_performance_mode' ) && pixva_performance_mode() ) {
+			return false;
+		}
+
 		$needed = pixva_home_needs_module( 'cinematic' ) || pixva_cinematic_has_marker(
 			array(
 				'pixva_cinematic_unboxing',
@@ -260,6 +266,11 @@ if ( ! function_exists( 'pixva_needs_spline_js' ) ) {
 	 */
 	function pixva_needs_spline_js() {
 		if ( is_admin() ) {
+			return false;
+		}
+
+		// لایه ۲٫۰٫۰: مدل سه‌بعدی Spline در حالت کارایی کاملاً حذف می‌شود.
+		if ( function_exists( 'pixva_performance_mode' ) && pixva_performance_mode() ) {
 			return false;
 		}
 
@@ -317,6 +328,18 @@ if ( ! function_exists( 'pixva_needs_tracker_map_js' ) ) {
 	function pixva_needs_tracker_map_js() {
 		if ( is_admin() ) {
 			return false;
+		}
+
+		/*
+		 * لایه ۲٫۰٫۰ (Master Prompt v11): نقشه دمو/مسیر ساختگی صفحه اصلی حذف
+		 * می‌شود؛ فقط برگه پیگیری پرونده (قابلیت واقعی مشتری) نقشه را نگه می‌دارد.
+		 */
+		if ( function_exists( 'pixva_performance_mode' ) && pixva_performance_mode() ) {
+			$needed = pixva_option( 'pixva_map_on_tracking', true )
+				&& function_exists( 'pixva_is_tracking_view' )
+				&& pixva_is_tracking_view();
+
+			return (bool) apply_filters( 'pixva_needs_tracker_map_js', $needed );
 		}
 
 		$needed = pixva_home_needs_module( 'tracker' ) || ( pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(
@@ -608,6 +631,25 @@ if ( ! function_exists( 'pixva_enqueue_cinematic_assets' ) ) {
 	function pixva_enqueue_cinematic_assets( $modules = array() ) {
 		if ( is_admin() || empty( $modules ) || ! is_array( $modules ) ) {
 			return;
+		}
+
+		/*
+		 * لایه ۲٫۰٫۰ (Master Prompt v11): در حالت کارایی، ماژول‌های سنگین حتی اگر
+		 * مستقیماً (از شورت‌کد یا بخش صفحه اصلی پس از wp_head) درخواست شوند هم صف
+		 * نمی‌شوند تا اسکرول ۱۰۰٪ بومی بماند. ماژول سبک عیب‌یاب هوشمند دست‌نخورده
+		 * می‌ماند و نقشه فقط روی برگه پیگیری پرونده (قابلیت واقعی) مجاز است.
+		 */
+		if ( function_exists( 'pixva_performance_mode' ) && pixva_performance_mode() ) {
+			$modules = array_values( array_diff( $modules, array( 'cinematic', 'spline' ) ) );
+
+			if ( in_array( 'tracker', $modules, true )
+				&& ( ! function_exists( 'pixva_is_tracking_view' ) || ! pixva_is_tracking_view() ) ) {
+				$modules = array_values( array_diff( $modules, array( 'tracker' ) ) );
+			}
+
+			if ( empty( $modules ) ) {
+				return;
+			}
 		}
 
 		$libs = pixva_cinematic_libs();

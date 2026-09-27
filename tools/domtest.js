@@ -22,6 +22,7 @@ const crmHarness = path.join(repo, 'tools', 'fixtures', 'crm-preview.html');
 const v6Harness = path.join(repo, 'tools', 'fixtures', 'v6-preview.html');
 const v7Harness = path.join(repo, 'tools', 'fixtures', 'v7-preview.html');
 const v8Harness = path.join(repo, 'tools', 'fixtures', 'v8-preview.html');
+const v11Harness = path.join(repo, 'tools', 'fixtures', 'v11-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -107,8 +108,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۹٫۰', /Version:\s*1\.9\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
+	check('style.css: نسخه ۲٫۰٫۰', /Version:\s*2\.0\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -469,7 +470,7 @@ function v6StaticChecks() {
 	check('v6: دروئر موبایل همان گروه‌ها را دارد', navMenu.indexOf('function pixva_render_drawer_groups') > -1);
 
 	check('v6: پیش‌فرض صفحه اصلی مینیمال است', /'quote'\s+=> false/.test(options) && /'advantages'\s+=> true/.test(options) && /'work'\s+=> true/.test(options));
-	check('v6: ترتیب پیش‌فرض با هیرو و مزیت‌ها شروع می‌شود', options.indexOf("'hero'          => esc_html__") > -1 && options.indexOf("'advantages'    => esc_html__") > -1);
+	check('v6: ترتیب پیش‌فرض با هیرو و مزیت‌ها شروع می‌شود', /'hero'\s*=>\s*esc_html__/.test(options) && /'advantages'\s*=>\s*esc_html__/.test(options));
 	check('v6: سکشن‌های تازه به ترتیب نصب‌های قدیمی اضافه می‌شوند', options.indexOf('$missing') > -1);
 	check('v6: رندرهای مزیت و نمونه‌کار موجودند', front.indexOf('function pixva_home_advantages()') > -1 && front.indexOf('function pixva_home_work()') > -1);
 	check('v6: مزیت‌ها از داده واقعی (گارانتی/اعزام/انبار) ساخته می‌شوند', front.indexOf('pixva_warranty_days') > -1 && front.indexOf('hub_eta_hours') > -1 && front.indexOf('pixva_parts') > -1);
@@ -617,6 +618,14 @@ function v7StaticChecks() {
 	const smsHandler = read('inc/sms-handler.php');
 	const hostFix = read('inc/host-fix.php');
 	const activation = read('inc/activation.php');
+	const front = read('front-page.php');
+	const seed = read('inc/home-seed.php');
+	const seoCro = read('inc/seo-cro.php');
+	const seoCroJs = read('assets/js/seo-cro.js');
+	const symptomWidget = read('inc/widgets/class-pixva-symptom-guide-widget.php');
+	const priceWidget = read('inc/widgets/class-pixva-price-calculator-widget.php');
+	const trustWidget = read('inc/widgets/class-pixva-trust-features-widget.php');
+	const expressWidget = read('inc/widgets/class-pixva-express-booking-widget.php');
 	const mapPhp = read('inc/tracker-map.php');
 	const funcs = read('functions.php');
 	const support = read('inc/elementor-support.php');
@@ -634,7 +643,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۱٫۹٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.9.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
+	check('v7: نسخه پوسته ۲٫۰٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 2.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -724,6 +733,147 @@ function v7StaticChecks() {
 	check('v10: رفع محدودیت هاست (زمان/حافظه) و فراخوانی آن در اندپوینت', hostFix.indexOf('function pixva_host_raise_limits(') > -1 && hostFix.indexOf('set_time_limit(') > -1 && hostFix.indexOf("'memory_limit'") > -1 && hostFix.indexOf('256M') > -1 && aiHandler.indexOf('pixva_host_raise_limits()') > -1);
 	check('v10: هشدار upload_max_filesize زیر ۳۲ مگابایت در صفحه عیب‌یاب', hostFix.indexOf('function pixva_host_ai_upload_notice(') > -1 && hostFix.indexOf('upload_max_filesize') > -1 && hostFix.indexOf('32 * MB_IN_BYTES') > -1 && hostFix.indexOf("'pixva-ai-settings'") > -1 && hostFix.indexOf("add_action( 'admin_notices', 'pixva_host_ai_upload_notice' )") > -1);
 	check('v10: CSS لایه ۳۲ فیلد اجباری و حالت خطای موبایل', css.indexOf('لایه ۳۲') > -1 && css.indexOf('.pixva-ai__field--req') > -1 && css.indexOf('input.is-invalid') > -1);
+
+	/* --- لایه ۲٫۰٫۰ / Master Prompt v11: پاک‌سازی سنگین‌ها، سئو و تبدیل --- */
+	check('v11: پرونده ماژول سئو/تبدیل در functions.php بارگذاری می‌شود', funcs.indexOf('inc/seo-cro.php') > -1);
+
+	/* ۱) پاک‌سازی و سبک‌سازی */
+	check('v11: حالت کارایی پیش‌فرض روشن است', seoCro.indexOf('function pixva_performance_mode(') > -1 && seoCro.indexOf("pixva_option( 'pixva_performance_mode', true )") > -1 && seoCro.indexOf("apply_filters( 'pixva_performance_mode'") > -1);
+	check('v11: فهرست هندل‌های سنگین شامل GSAP و ScrollTrigger و Spline است', seoCro.indexOf('function pixva_heavy_script_handles(') > -1
+		&& ['pixva-gsap', 'pixva-scrolltrigger', 'pixva-spline', 'pixva-cinematic', 'gsap', 'ScrollTrigger', 'spline-viewer'].every((h) => seoCro.indexOf("'" + h + "'") > -1));
+	check('v11: پاک‌سازی با Dequeue و Deregister انجام می‌شود', seoCro.indexOf('function pixva_purge_heavy_scripts(') > -1
+		&& seoCro.indexOf('wp_dequeue_script( $handle )') > -1 && seoCro.indexOf('wp_deregister_script( $handle )') > -1);
+	check('v11: پاک‌سازی در اولویت دیر و پیش از چاپ اسکریپت‌ها هوک شده', seoCro.indexOf("add_action( 'wp_enqueue_scripts', 'pixva_purge_heavy_scripts', 9999 )") > -1
+		&& seoCro.indexOf("add_action( 'wp_print_scripts', 'pixva_purge_heavy_scripts', 1 )") > -1);
+	check('v11: پاک‌سازی پیش از چاپ اسکریپت‌های فوتر هم هوک شده (آخرین لایه دفاعی)', seoCro.indexOf("add_action( 'wp_print_footer_scripts', 'pixva_purge_heavy_scripts', 1 )") > -1);
+	check('v11: صف‌گذاری مستقیم ماژول سنگین (شورت‌کد/پس از wp_head) در حالت کارایی بی‌اثر است', cinematic.indexOf("array_diff( $modules, array( 'cinematic', 'spline' ) )") > -1
+		&& cinematic.indexOf('pixva_is_tracking_view()') > -1 && cinematic.indexOf("in_array( 'tracker', $modules, true )") > -1);
+	check('v11: نقشه دمو حذف ولی نقشه کاربردی برگه پیگیری حفظ می‌شود', seoCro.indexOf('function pixva_is_tracking_view(') > -1
+		&& seoCro.indexOf('page-templates/page-tracking.php') > -1 && seoCro.indexOf('if ( ! pixva_is_tracking_view() ) {') > -1
+		&& seoCro.indexOf('function pixva_map_script_handles(') > -1);
+	check('v11: موتور اسکرول سینمایی در حالت کارایی هرگز صف نمی‌شود', cinematic.indexOf('function pixva_needs_cinematic_js(') > -1
+		&& cinematic.indexOf('pixva_performance_mode() ) {') > -1 && cinematic.indexOf('function pixva_needs_spline_js(') > -1);
+	check('v11: مدل سه‌بعدی Spline در حالت کارایی کاملاً حذف می‌شود', cinematic.indexOf('pixva_home_needs_module( \'spline\' )') > -1
+		&& cinematic.indexOf('pixva_performance_mode') > -1);
+	check('v11: اسکرول بومی با کلاس روی body و بدون قفل', seoCro.indexOf('function pixva_native_scroll_attrs(') > -1
+		&& seoCro.indexOf('pixva-native-scroll') > -1 && seoCro.indexOf("add_filter( 'body_class', 'pixva_native_scroll_attrs' )") > -1
+		&& css.indexOf('html.pixva-native-scroll') > -1 && css.indexOf('scroll-behavior: smooth') > -1);
+	check('v11: ارتقا به ۲٫۰٫۰ ماژول‌های سنگین را خاموش و سئو را روشن می‌کند', activation.indexOf("version_compare( $stored_version, '2.0.0', '<' )") > -1
+		&& activation.indexOf("set_theme_mod( 'pixva_performance_mode', true )") > -1
+		&& activation.indexOf("'cinematic', 'repair_3d', 'tech_tracker'") > -1
+		&& activation.indexOf("'trust_features', 'symptom_guide', 'price_calculator', 'express_booking'") > -1);
+
+	/* ۲) ماژول سئو ۱ — راهنمای علائم خرابی */
+	check('v11: چهار علامت پرجست‌وجو در راهنمای علائم تعریف شده', seoCro.indexOf('function pixva_symptom_guide_items(') > -1
+		&& seoCro.indexOf('صدا دارد ولی تصویر ندارد (خرابی بک‌لایت)') > -1
+		&& seoCro.indexOf('خطوط عمودی یا افقی روی صفحه (ایراد پنل/تیکان)') > -1
+		&& seoCro.indexOf('تلویزیون روشن نمی‌شود / چراغ پاور چشمک می‌زند (برد تغذیه)') > -1
+		&& seoCro.indexOf('روی لوگو گیر کرده یا ریست می‌شود (مین‌برد)') > -1);
+	check('v11: هر کارت علت، تست خانگی، هشدار و برآورد واقعی هزینه دارد', seoCro.indexOf("'cause'") > -1 && seoCro.indexOf("'checks'") > -1
+		&& seoCro.indexOf("'warning'") > -1 && seoCro.indexOf('pixva_calculate_estimate( $ref_brand') > -1);
+	check('v11: برآورد راهنما از نرخ‌نامه واقعی و بدون عدد سخت‌کد می‌آید', seoCro.indexOf("pixva_option( 'pixva_symptom_ref_size', '55' )") > -1
+		&& seoCro.indexOf("pixva_option( 'pixva_symptom_ref_brand', 'samsung' )") > -1 && seoCro.indexOf("apply_filters( 'pixva_symptom_guide_items'") > -1);
+	check('v11: اسکیما FAQPage با پرسش و پاسخ acceptedAnswer', seoCro.indexOf('function pixva_symptom_guide_schema(') > -1
+		&& seoCro.indexOf("'@type'     => 'FAQPage',") > -1 && seoCro.indexOf("'acceptedAnswer'") > -1 && seoCro.indexOf("'@type'          => 'Question',") > -1);
+	check('v11: اسکیما Service با OfferCatalog و PriceSpecification', seoCro.indexOf("'@type'       => 'Service',") > -1
+		&& seoCro.indexOf("'hasOfferCatalog'") > -1 && seoCro.indexOf("'@type'         => 'PriceSpecification',") > -1 && seoCro.indexOf("'priceCurrency'    => 'IRR',") > -1);
+	check('v11: راهنما با چاپگر اسکیمای مشترک پوسته خروجی می‌گیرد', seoCro.indexOf('pixva_print_schema_graph( pixva_symptom_guide_schema( $items ) )') > -1);
+	check('v11: رندر راهنما با H2/H3 و متن ایندکس‌شدنی و بدون JS', seoCro.indexOf('function pixva_render_symptom_guide(') > -1
+		&& seoCro.indexOf('id="symptom-guide"') > -1 && seoCro.indexOf('pixva-symptom__grid') > -1 && seoCro.indexOf('<h3>') > -1
+		&& seoCro.indexOf('pixva-symptom__checks') > -1 && symptomWidget.indexOf("return array();") > -1);
+
+	/* ۳) ماژول سئو ۲ — جدول شفاف قیمت */
+	check('v11: سایزهای جدول قیمت ۳۲ تا ۷۵ اینچ است', seoCro.indexOf('function pixva_price_table_sizes(') > -1
+		&& seoCro.indexOf("array( '32', '43', '50', '55', '65', '75' )") > -1 && seoCro.indexOf('pixva_pricing_size_factors()') > -1);
+	check('v11: ماتریس قیمت سمت سرور از موتور نرخ‌نامه ساخته می‌شود', seoCro.indexOf('function pixva_price_table_matrix(') > -1
+		&& seoCro.indexOf("pixva_calculate_estimate( $brand, 'led', $size, $service )") > -1 && seoCro.indexOf('pixva_problem_catalog()') > -1);
+	check('v11: جدول متنی با caption و سرتیتر و بدنه ایندکس‌شدنی رندر می‌شود', seoCro.indexOf('function pixva_render_price_calculator(') > -1
+		&& seoCro.indexOf('<table class="pixva-pricetable__table"') > -1 && seoCro.indexOf('<caption>') > -1
+		&& seoCro.indexOf('scope="col"') > -1 && seoCro.indexOf('scope="row"') > -1 && seoCro.indexOf('function pixva_price_table_rows_html(') > -1);
+	check('v11: فیلتر سریع برند و سایز روی جدول', seoCro.indexOf('data-price-brand') > -1 && seoCro.indexOf('data-price-size') > -1
+		&& seoCro.indexOf('pixva_brand_catalog()') > -1 && seoCroJs.indexOf('[data-price-brand]') > -1 && seoCroJs.indexOf('[data-price-size]') > -1);
+	check('v11: اندپوینت جدول قیمت ثبت و پاسخ سبک می‌دهد', seoCro.indexOf("'/price-table',") > -1 && seoCro.indexOf('function pixva_rest_price_table(') > -1
+		&& seoCro.indexOf("'caption'     => sprintf(") > -1 && seoCro.indexOf("'quote_label'") > -1);
+	check('v11: اسکیمای جدول قیمت با PriceSpecification و مبلغ ریالی', seoCro.indexOf('function pixva_price_table_schema(') > -1
+		&& seoCro.indexOf("'minPrice'      => (string) ( (int) $row['min'] * 10 ),") > -1 && seoCro.indexOf("'availability'       => 'https://schema.org/InStock',") > -1);
+	check('v11: مقادیر پیش‌فرض جدول از ویجت، فیلتر و سفارشی‌ساز می‌آید', seoCro.indexOf("apply_filters( 'pixva_price_default_brand_override'") > -1
+		&& seoCro.indexOf("apply_filters( 'pixva_price_default_size_override'") > -1 && seoCro.indexOf("$settings['default_brand']") > -1);
+
+	/* ۴) ماژول ۳ — چهار اصل اعتماد */
+	check('v11: چهار اصل اعتماد با داده واقعی گارانتی و زمان اعزام', seoCro.indexOf('function pixva_trust_feature_items(') > -1
+		&& seoCro.indexOf('تعمیر در منزل و محل شما') > -1 && seoCro.indexOf('گارانتی کتبی قطعات فابریک') > -1
+		&& seoCro.indexOf('اعزام تکنسین در کمتر از') > -1 && seoCro.indexOf('عیب‌یابی و برآورد هزینه شفاف قبل از تعمیر') > -1);
+	check('v11: مدت گارانتی و ETA از مرکز کنترل خوانده می‌شود (بدون عدد سخت‌کد)', seoCro.indexOf('pixva_warranty_days()') > -1
+		&& seoCro.indexOf("pixva_control_options()") > -1 && seoCro.indexOf("$control['hub_eta_hours']") > -1
+		&& seoCro.indexOf("apply_filters( 'pixva_trust_feature_items'") > -1);
+	check('v11: رندر اعتماد با H2/H3 و آیکن بومی پوسته', seoCro.indexOf('function pixva_render_trust_features(') > -1
+		&& seoCro.indexOf('id="trust-features"') > -1 && seoCro.indexOf('pixva-trust__grid') > -1 && seoCro.indexOf('pixva_icon(') > -1);
+
+	/* ۵) ماژول ۴ — فرم اعزام فوری */
+	check('v11: فرم فقط دو فیلد دارد (موبایل + برند و مشکل)', seoCro.indexOf('function pixva_render_express_booking(') > -1
+		&& seoCro.indexOf('name="phone"') > -1 && seoCro.indexOf('name="details"') > -1 && seoCro.indexOf('data-express-required="details"') > -1
+		&& (seoCro.match(/name="(phone|details|source|nonce|pixva_hp)"/g) || []).length === 5);
+	check('v11: دکمه اقدام برجسته با متن قابل تنظیم', seoCro.indexOf('data-express-submit') > -1
+		&& seoCro.indexOf('ثبت درخواست اعزام فوری تکنسین') > -1 && seoCro.indexOf("pixva_option( 'pixva_express_cta'") > -1);
+	check('v11: موبایل با الگوی ۰۹ اجباری و تله ضدربات و نونس در فرم', seoCro.indexOf('pattern="09[0-9]{9}"') > -1
+		&& seoCro.indexOf('name="pixva_hp"') > -1 && seoCro.indexOf("wp_create_nonce( 'pixva_express_booking' )") > -1);
+	check('v11: اندپوینت ثبت سفارش سریع ثبت شده است', seoCro.indexOf("'/express-booking',") > -1 && seoCro.indexOf('function pixva_rest_express_booking(') > -1
+		&& seoCro.indexOf("add_action( 'rest_api_init', 'pixva_register_seo_cro_routes' )") > -1);
+	check('v11: اعتبارسنجی سمت سرور — نونس، تله، محدودیت و شماره ۰۹xx', seoCro.indexOf("wp_verify_nonce( $nonce, 'pixva_express_booking' )") > -1
+		&& seoCro.indexOf('function pixva_express_booking_limited(') > -1 && seoCro.indexOf('pixva_is_valid_iranian_mobile( $phone )') > -1
+		&& seoCro.indexOf("'pixva_express_spam'") > -1 && seoCro.indexOf("'status' => 429") > -1);
+	check('v11: برند، نوع خرابی و سایز از متن آزاد کاربر تشخیص داده می‌شود', seoCro.indexOf('function pixva_express_detect_brand(') > -1
+		&& seoCro.indexOf('function pixva_express_detect_problem(') > -1 && seoCro.indexOf('function pixva_express_size_from_text(') > -1
+		&& seoCro.indexOf('pixva_brand_catalog()') > -1 && seoCro.indexOf('pixva_seo_stripos( $text, $needle )') > -1);
+	check('v11: تابع‌های چندبایتی برای هاست بدون mbstring fallback دارند', seoCro.indexOf('function pixva_seo_stripos(') > -1
+		&& seoCro.indexOf('function pixva_seo_strlen(') > -1 && seoCro.indexOf("function_exists( 'mb_stripos' )") > -1
+		&& seoCro.indexOf("function_exists( 'mb_strlen' )") > -1 && seoCro.indexOf('pixva_seo_strlen( $details )') > -1);
+	check('v11: پرونده تعمیر با موتور CRM ساخته و متای منبع ثبت می‌شود', seoCro.indexOf('pixva_create_order(') > -1
+		&& seoCro.indexOf("'_pixva_order_source'") > -1 && seoCro.indexOf("'_pixva_order_code', true )") > -1);
+	check('v11: پیامک فوری به مشتری و مدیر/تکنسین ارسال می‌شود', seoCro.indexOf("'express_customer'") > -1 && seoCro.indexOf("'express_admin'") > -1
+		&& seoCro.indexOf('pixva_sms_handler_send(') > -1 && seoCro.indexOf("'pixva_sms_express_text',") > -1
+		&& seoCro.indexOf("'pixva_sms_express_admin_text',") > -1
+		&& options.indexOf("'pixva_sms_express_text'") > -1 && options.indexOf("'pixva_sms_express_admin_text'") > -1);
+	check('v11: هوک پس از ثبت درخواست اعزام فوری', seoCro.indexOf("do_action( 'pixva_express_booking_saved'") > -1);
+
+	/* ۶) JS سبک و دارایی‌ها */
+	check('v11: JS ماژول سبک و بدون وابستگی به کتابخانه بیرونی است', seoCroJs.indexOf('window.pixvaSeoCro') > -1
+		&& ['gsap', 'ScrollTrigger', 'jQuery', 'spline'].every((lib) => seoCroJs.indexOf(lib) === -1) && seoCroJs.indexOf('window.fetch') > -1);
+	check('v11: اعتبارسنجی شماره در JS فرم اعزام فوری', seoCroJs.indexOf('/^09[0-9]{9}$/') > -1 && seoCroJs.indexOf('normalizePhone') > -1
+		&& seoCroJs.indexOf('is-invalid') > -1 && seoCroJs.indexOf('i18n.needPhone') > -1);
+	check('v11: اسکریپت ماژول با defer و بدون وابستگی صف می‌شود', seoCro.indexOf("'pixva-seo-cro',") > -1
+		&& seoCro.indexOf("'strategy'  => 'defer',") > -1
+		&& seoCro.indexOf("PIXVA_URI . '/assets/js/seo-cro.js'") > -1
+		&& seoCro.indexOf('wp_register_script(') > -1 && seoCro.indexOf('wp_localize_script(') > -1);
+	check('v11: بارگذاری مشروط ماژول فقط برای صفحه نیازمند', seoCro.indexOf('function pixva_seo_cro_needed(') > -1
+		&& seoCro.indexOf('function pixva_seo_cro_enqueue(') > -1 && seoCro.indexOf("add_action( 'wp_enqueue_scripts', 'pixva_seo_cro_enqueue', 21 )") > -1);
+
+	/* ۷) ویجت‌ها، سکشن‌ها و سفارشی‌ساز */
+	check('v11: چهار ویجت المنتور سئو/تبدیل ساخته شده', ['Pixva_Symptom_Guide_Widget', 'Pixva_Price_Calculator_Widget', 'Pixva_Trust_Features_Widget', 'Pixva_Express_Booking_Widget']
+		.every((c) => support.indexOf("'" + c + "',") > -1));
+	check('v11: نام ویجت‌ها مطابق کلید خواسته‌شده در مستر پرامپت', symptomWidget.indexOf("return 'pixva_symptom_guide';") > -1
+		&& priceWidget.indexOf("return 'pixva_price_calculator';") > -1 && trustWidget.indexOf("return 'pixva_trust_features';") > -1
+		&& expressWidget.indexOf("return 'pixva_express_booking';") > -1);
+	check('v11: ویجت‌های سئو هیچ اسکریپت سنگینی درخواست نمی‌کنند', symptomWidget.indexOf('public function get_script_depends() {') > -1
+		&& symptomWidget.indexOf("return array();") > -1 && trustWidget.indexOf("return array();") > -1
+		&& priceWidget.indexOf("return array( 'pixva-seo-cro' );") > -1 && expressWidget.indexOf("return array( 'pixva-seo-cro' );") > -1);
+	check('v11: چهار تابع سکشن در front-page.php و اتصال به رندر مشترک', ['pixva_home_symptom_guide', 'pixva_home_price_calculator', 'pixva_home_trust_features', 'pixva_home_express_booking']
+		.every((fn) => front.indexOf('function ' + fn + '()') > -1)
+		&& ['pixva_render_symptom_guide(', 'pixva_render_price_calculator(', 'pixva_render_trust_features(', 'pixva_render_express_booking(']
+			.every((call) => front.indexOf(call) > -1));
+	check('v11: بخش‌های سئو در حالت المنتوری یک‌بار چاپ می‌شوند', front.indexOf("'trust_features', 'symptom_guide', 'price_calculator', 'ai_diagnose', 'express_booking'") > -1);
+	check('v11: تنظیمات بخش‌های سئو از یک منبع مشترک می‌آید', seoCro.indexOf('function pixva_home_seo_section_settings(') > -1
+		&& front.indexOf('pixva_home_seo_section_settings(') > -1 && seoCro.indexOf("apply_filters( 'pixva_home_seo_section_settings'") > -1);
+	check('v11: ماژول‌های سئو در home-seed.php تنظیمات کنترل دارند', ['trust', 'symptom', 'price', 'express'].every((m) => seed.indexOf("case '" + m + "':") > -1));
+	check('v11: بخش سفارشی‌ساز سئو/سرعت/تبدیل با کلید حالت کارایی', options.indexOf("'pixva_seo_cro'") > -1
+		&& options.indexOf("'pixva_performance_mode'") > -1 && options.indexOf('function pixva_sanitize_brand_key(') > -1
+		&& options.indexOf('function pixva_sanitize_table_size(') > -1 && options.indexOf("'pixva_sms_express_text'") > -1);
+
+	/* ۸) CSS لایه ۳۳ */
+	check('v11: CSS لایه ۳۳ برای چهار ماژول سئو/تبدیل', css.indexOf('لایه ۳۳') > -1 && ['.pixva-seo', '.pixva-symptom__grid', '.pixva-symptom__card', '.pixva-pricetable__table', '.pixva-trust__grid', '.pixva-express__form', '.pixva-express__submit']
+		.every((sel) => css.indexOf(sel) > -1));
+	check('v11: واکنش‌گرایی موبایل و کاهش حرکت در لایه ۳۳', css.indexOf('@media (max-width: 768px)') > -1 && css.indexOf('@media (max-width: 560px)') > -1
+		&& css.indexOf('@media (prefers-reduced-motion: reduce)') > -1 && css.indexOf('.pixva-pricetable__wrap') > -1 && css.indexOf('overflow-x: auto') > -1);
 	check('v7: کد پیگیری PXV-AI', aiPhp.indexOf('PXV-AI') > -1);
 
 	/* --- REST نقشه زنده --- */
@@ -1053,7 +1203,7 @@ function v8StaticChecks() {
 	});
 
 	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
-	check('v8: پوسته نسخه ۱٫۹٫۰ است', styleCss.indexOf('Version: 1.9.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.9.0' )") > -1);
+	check('v8: پوسته نسخه ۲٫۰٫۰ است', styleCss.indexOf('Version: 2.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.0.0' )") > -1);
 
 	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
 	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1
@@ -1125,7 +1275,7 @@ function v8StaticChecks() {
 
 	/* --- ۶) ترتیب و پیش‌فرض سکشن‌های صفحه اصلی --- */
 	const orderList = options.slice(options.indexOf('function pixva_home_sections('), options.indexOf('function pixva_home_section_defaults('));
-	const order = ['hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials'];
+	const order = ['hero', 'trust_features', 'symptom_guide', 'price_calculator', 'ai_diagnose', 'express_booking', 'advantages', 'work', 'testimonials'];
 	let cursor = -1;
 	let ordered = true;
 	order.forEach((key) => {
@@ -1133,9 +1283,10 @@ function v8StaticChecks() {
 		if (at < 0 || at < cursor) { ordered = false; }
 		cursor = at;
 	});
-	check('v8: ترتیب استاندارد سکشن‌ها (هیرو ← سینمایی ← AI ← سه‌بعدی ← نقشه ← مزیت ← کار ← نظرات)', ordered);
-	check('v8: چهار سکشن سینمایی به‌صورت پیش‌فرض روشن است', options.indexOf("'cinematic'     => true,") > -1
-		&& options.indexOf("'ai_diagnose'   => true,") > -1 && options.indexOf("'repair_3d'     => true,") > -1 && options.indexOf("'tech_tracker'  => true,") > -1);
+	check('v11: ترتیب استاندارد قیف سئو/تبدیل (هیرو ← اعتماد ← علائم ← قیمت ← AI ← اعزام فوری ← مزیت ← کار ← نظرات)', ordered);
+	check('v11: ماژول‌های سئو/تبدیل پیش‌فرض روشن‌اند', /'trust_features'\s*=>\s*true/.test(options) && /'symptom_guide'\s*=>\s*true/.test(options)
+		&& /'price_calculator'\s*=>\s*true/.test(options) && /'express_booking'\s*=>\s*true/.test(options) && /'ai_diagnose'\s*=>\s*true/.test(options));
+	check('v11: سه ماژول سنگین پیش‌فرض خاموش‌اند', /'cinematic'\s*=>\s*false/.test(options) && /'repair_3d'\s*=>\s*false/.test(options) && /'tech_tracker'\s*=>\s*false/.test(options));
 	check('v8: کلیدهای تازه در جایگاه استاندارد درج می‌شوند (نه انتها)', options.indexOf('function pixva_merge_section_order(') > -1
 		&& options.indexOf('array_splice( $keys, (int) $position, 0, array( $key ) );') > -1
 		&& options.indexOf('$keys = array_merge( $keys, $missing );') === -1
@@ -1165,15 +1316,15 @@ function v8StaticChecks() {
 		return list;
 	};
 
-	check('v8: فهرست سکشن‌ها از PHP خوانده شد (' + catalogueKeys.length + ' کلید)', catalogueKeys.length >= 20
-		&& catalogueKeys.slice(0, 8).join(',') === 'hero,cinematic,ai_diagnose,repair_3d,tech_tracker,advantages,work,testimonials');
+	check('v11: فهرست سکشن‌ها از PHP خوانده شد (' + catalogueKeys.length + ' کلید)', catalogueKeys.length >= 24
+		&& catalogueKeys.slice(0, 9).join(',') === 'hero,trust_features,symptom_guide,price_calculator,ai_diagnose,express_booking,advantages,work,testimonials');
 
 	const legacy = ['hero', 'advantages', 'work', 'testimonials', 'quote', 'services', 'journey', 'before_after',
 		'dispatch_hub', 'order_wizard', 'screen_tester', 'errors', 'brands', 'faq', 'blog', 'process'];
-	check('v8: نصب قدیمی پس از ارتقا ترتیب v8 را می‌گیرد', mergeOrder(legacy).slice(0, 8).join(',') === 'hero,cinematic,ai_diagnose,repair_3d,tech_tracker,advantages,work,testimonials');
+	check('v11: نصب قدیمی پس از ارتقا ترتیب قیف سئو را می‌گیرد', mergeOrder(legacy).slice(0, 9).join(',') === 'hero,trust_features,symptom_guide,price_calculator,ai_diagnose,express_booking,advantages,work,testimonials');
 	const userOrder = mergeOrder(['work', 'hero', 'testimonials']);
-	check('v8: ترتیب دلخواه کاربر با درج استاندارد حفظ می‌شود', userOrder.slice(0, 5).join(',') === 'work,hero,cinematic,ai_diagnose,repair_3d');
-	check('v8: سکشن‌های کاربر پس از درج استاندارد سر جای خود می‌مانند', userOrder.indexOf('work') === 0 && userOrder.indexOf('testimonials') === 7);
+	check('v11: ترتیب دلخواه کاربر با درج استاندارد حفظ می‌شود', userOrder.slice(0, 5).join(',') === 'work,hero,trust_features,symptom_guide,price_calculator');
+	check('v11: سکشن‌های کاربر پس از درج استاندارد سر جای خود می‌مانند', userOrder.indexOf('work') === 0 && userOrder.indexOf('testimonials') === 8);
 	check('v8: درج، کلیدی را تکرار نمی‌کند', mergeOrder(legacy).length === catalogueKeys.length
 		&& mergeOrder(legacy).filter((k, i, all) => all.indexOf(k) !== i).length === 0);
 	check('v8: هر سکشن خانه با کلید pixva_section_... قابل خاموش کردن است', options.indexOf("pixva_option( 'pixva_section_' . $key, $default )") > -1);
@@ -1191,7 +1342,7 @@ function v8StaticChecks() {
 		&& front.indexOf("pixva_home_v8_section_settings( 'ai_diagnose' )") > -1
 		&& front.indexOf("pixva_home_v8_section_settings( 'repair_3d' )") > -1
 		&& front.indexOf("pixva_home_v8_section_settings( 'tech_tracker' )") > -1);
-	check('v8: چیدمان مینیمال، چهار بخش تازه را هم می‌شناسد', front.indexOf("'hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials'") > -1);
+	check('v11: چیدمان مینیمال، ماژول‌های سئو/تبدیل را هم می‌شناسد', front.indexOf("'hero', 'trust_features', 'symptom_guide', 'price_calculator', 'ai_diagnose', 'express_booking', 'advantages', 'work', 'testimonials'") > -1);
 	check('v8: حالت المنتوری، چهار بخش را یک‌بار و بدون تکرار چاپ می‌کند', front.indexOf('pixva_home_elementor_layout()') > -1
 		&& front.indexOf('if ( $pixva_builder_active ) {') > -1 && front.indexOf('continue;') > -1);
 
@@ -1200,11 +1351,14 @@ function v8StaticChecks() {
 		&& ['cinematic', 'ai', 'spline', 'tracker'].every((m) => seed.indexOf("case '" + m + "':") > -1));
 	check('v8: تنظیمات بخش‌ها از گزینه‌های v8 می‌آید', ['pixva_home_cine_badge', 'pixva_home_cine_title', 'pixva_home_cine_subtitle', 'pixva_home_ai_badge', 'pixva_home_ai_title', 'pixva_home_3d_badge', 'pixva_home_3d_title', 'pixva_home_map_badge', 'pixva_home_map_title', 'pixva_home_map_subtitle']
 		.every((k) => seed.indexOf("'" + k + "'") > -1 && options.indexOf("'" + k + "'") > -1));
-	check('v8: بلوک‌های المنتور = چهار ویجت v7 به‌ترتیب', ['pixva_cinematic_unboxing', 'pixva_ai_diagnose', 'pixva_3d_repair', 'pixva_tech_tracker']
+	check('v11: بلوک‌های المنتور = پنج ماژول سئو/تبدیل به‌ترتیب قیف', ['pixva_trust_features', 'pixva_symptom_guide', 'pixva_price_calculator', 'pixva_ai_diagnose', 'pixva_express_booking']
 		.every((w) => seed.indexOf("'" + w + "'") > -1)
-		&& seed.indexOf("'pixva_cinematic_unboxing'") < seed.indexOf("'pixva_ai_diagnose'")
-		&& seed.indexOf("'pixva_ai_diagnose'") < seed.indexOf("'pixva_3d_repair'")
-		&& seed.indexOf("'pixva_3d_repair'") < seed.indexOf("'pixva_tech_tracker'"));
+		&& seed.indexOf("'pixva_trust_features'") < seed.indexOf("'pixva_symptom_guide'")
+		&& seed.indexOf("'pixva_symptom_guide'") < seed.indexOf("'pixva_price_calculator'")
+		&& seed.indexOf("'pixva_price_calculator'") < seed.indexOf("'pixva_ai_diagnose'")
+		&& seed.indexOf("'pixva_ai_diagnose'") < seed.indexOf("'pixva_express_booking'"));
+	check('v11: ویجت‌های سنگین از چیدمان پیش‌فرض حذف شده‌اند', ['pixva_cinematic_unboxing', 'pixva_3d_repair', 'pixva_tech_tracker']
+		.every((w) => seed.indexOf("'widget' => '" + w + "'") === -1));
 	check('v8: ساختار المان المنتور (section/column/widget)', seed.indexOf("'elType'   => 'section',") > -1
 		&& seed.indexOf("'elType'   => 'column',") > -1 && seed.indexOf("'elType'     => 'widget',") > -1
 		&& seed.indexOf("'widgetType' => $block['widget'],") > -1 && seed.indexOf("'_column_size' => 100,") > -1);
@@ -1423,6 +1577,180 @@ async function v8Checks(window) {
 	check('v8: همه دارایی‌های دمو در DOM قابل دسترسی‌اند', $$('img[src$=".svg"]', cine).length === 5);
 }
 
+async function v11Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+	const click = (el) => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+
+	/* --- ۱) پاک‌سازی: هیچ اسکریپت سنگینی در صفحه نیست --- */
+	const scripts = $$('script[src]').map((el) => String(el.getAttribute('src')));
+	check('v11: فقط اسکریپت سبک ماژول سئو در صفحه است', scripts.length === 1 && scripts[0].indexOf('seo-cro.js') > -1);
+	check('v11: هیچ قفل‌کننده اسکرول یا مدل سه‌بعدی بارگذاری نمی‌شود', ['gsap', 'ScrollTrigger', 'scrolltrigger', 'spline', 'cinematic', 'tracker-map', 'leaflet']
+		.every((lib) => scripts.every((src) => src.toLowerCase().indexOf(lib.toLowerCase()) === -1)));
+	check('v11: کلاس اسکرول بومی روی <html> نشسته است', document.documentElement.classList.contains('pixva-native-scroll'));
+	check('v11: ماژول سئو/تبدیل در DOM آماده شده', document.documentElement.classList.contains('pixva-seo-js') === true);
+
+	/* --- ۲) ماژول ۳: چهار اصل اعتماد --- */
+	const trust = $('#trust-features');
+	const trustItems = $$('.pixva-trust__item', trust);
+	check('v11: بخش اعتماد با H2 و چهار اصل رندر شده', !!trust && $('h2', trust).textContent.indexOf('چرا تعمیر تلویزیون') > -1 && trustItems.length === 4);
+	check('v11: چهار اصل کلیدی با شناسه معنادار و متن واقعی', ['onsite', 'warranty', 'dispatch', 'transparent'].every((id) => !!$('#' + id, trust))
+		&& trust.textContent.indexOf('تعمیر در منزل و محل شما') > -1
+		&& trust.textContent.indexOf('گارانتی کتبی قطعات فابریک') > -1
+		&& trust.textContent.indexOf('اعزام تکنسین در کمتر از') > -1
+		&& trust.textContent.indexOf('عیب‌یابی و برآورد هزینه شفاف قبل از تعمیر') > -1);
+	check('v11: اصول اعتماد ساختار فهرستی و آیکن بومی دارند', $('ul.pixva-trust__grid', trust).tagName === 'UL'
+		&& $$('.pixva-trust__icon svg', trust).length === 4 && $$('h3', trust).length === 4);
+
+	/* --- ۳) ماژول سئو ۱: راهنمای علائم خرابی --- */
+	const symptom = $('#symptom-guide');
+	const cards = $$('.pixva-symptom__card', symptom);
+	check('v11: راهنمای علائم با عنوان سئویی و چهار کارت رندر شده', !!symptom && $('h2', symptom).textContent.indexOf('مشکل تلویزیون شما چیست') > -1 && cards.length === 4);
+	check('v11: چهار جست‌وجوی پرتکرار گوگل به‌صورت متن ایندکس‌شدنی حاضرند', symptom.textContent.indexOf('صدا دارد ولی تصویر ندارد') > -1
+		&& symptom.textContent.indexOf('خطوط عمودی یا افقی روی صفحه') > -1
+		&& symptom.textContent.indexOf('چراغ پاور چشمک می‌زند') > -1
+		&& symptom.textContent.indexOf('روی لوگو گیر کرده یا ریست می‌شود') > -1);
+	check('v11: هر کارت علت، سه تست خانگی، هشدار و بازه هزینه دارد', cards.every((card) => $('.pixva-symptom__cause', card)
+		&& $$('.pixva-symptom__checks li', card).length === 3
+		&& $('.pixva-symptom__warn', card) && $('.pixva-symptom__cost span', card)
+		&& $('.pixva-symptom__cost span', card).textContent.indexOf('تومان') > -1));
+	check('v11: سلسله‌مراتب سرتیتر برای سئو درست است (یک H2 و چهار H3)', $$('h2', symptom).length === 1 && $$('h3', symptom).length === 4
+		&& $$('h4', symptom).length === 4);
+	check('v11: هر کارت دکمه اقدام با پارامتر نوع خرابی دارد', cards.every((card) => {
+		const cta = $('a.pixva-seo__cta', card);
+		return !!cta && cta.getAttribute('href').indexOf('problem=') > -1 && cta.textContent.indexOf('اعزام فوری') > -1;
+	}));
+
+	const ldBlocks = $$('script[type="application/ld+json"]').map((el) => el.textContent);
+	const symptomLd = JSON.parse(ldBlocks[0]);
+	check('v11: اسکیما FAQPage با پرسش و پاسخ معتبر چاپ شده', symptomLd['@context'] === 'https://schema.org'
+		&& symptomLd['@graph'][0]['@type'] === 'FAQPage'
+		&& symptomLd['@graph'][0].mainEntity[0]['@type'] === 'Question'
+		&& symptomLd['@graph'][0].mainEntity[0].acceptedAnswer['@type'] === 'Answer'
+		&& symptomLd['@graph'][0].mainEntity[0].acceptedAnswer.text.length > 10);
+	check('v11: اسکیما Service با OfferCatalog و PriceSpecification چاپ شده', symptomLd['@graph'][1]['@type'] === 'Service'
+		&& symptomLd['@graph'][1].hasOfferCatalog['@type'] === 'OfferCatalog'
+		&& symptomLd['@graph'][1].hasOfferCatalog.itemListElement[0].priceSpecification['@type'] === 'PriceSpecification'
+		&& symptomLd['@graph'][1].hasOfferCatalog.itemListElement[0].priceCurrency === 'IRR');
+
+	/* --- ۴) ماژول سئو ۲: جدول شفاف قیمت --- */
+	const price = $('#price-table');
+	const rowsBefore = $$('[data-price-body] tr', price);
+	check('v11: جدول قیمت سمت سرور و بدون JS کامل رندر شده', !!price && rowsBefore.length === 6
+		&& $('caption', price).textContent.indexOf('سامسونگ') > -1 && $('caption', price).textContent.indexOf('۵۵ اینچ') > -1);
+	check('v11: جدول ساختار دسترس‌پذیر دارد (caption و scope)', !!$('caption', price)
+		&& $$('thead th[scope="col"]', price).length === 4 && $$('tbody th[scope="row"]', price).length === 6);
+	check('v11: شش خدمت نرخ‌نامه با مبلغ و زمان تحویل در جدول است', ['backlight', 'powerboard', 'mainboard', 'lines', 'panel', 'no_picture']
+		.every((svc) => !!$('tr[data-service="' + svc + '"]', price))
+		&& rowsBefore.every((tr) => tr.children.length === 4 && tr.textContent.indexOf('روز کاری') > -1));
+	check('v11: فیلتر برند و سایز با گزینه‌های واقعی نرخ‌نامه', $$('select[data-price-brand] option', price).length >= 4
+		&& $$('select[data-price-size] option', price).length === 6
+		&& $$('select[data-price-size] option', price).map((o) => o.value).join(',') === '32,43,50,55,65,75');
+
+	const priceLd = JSON.parse(ldBlocks[1]);
+	check('v11: اسکیما PriceSpecification جدول قیمت با مبلغ ریالی و InStock', priceLd['@graph'][0]['@type'] === 'Service'
+		&& priceLd['@graph'][0].hasOfferCatalog.itemListElement[0].priceSpecification.minPrice === '155000000'
+		&& priceLd['@graph'][0].hasOfferCatalog.itemListElement[0].priceSpecification.priceCurrency === 'IRR'
+		&& priceLd['@graph'][0].hasOfferCatalog.itemListElement[0].availability === 'https://schema.org/InStock');
+
+	// فیلتر سریع: تغییر برند و سایز باید جدول را از اندپوینت به‌روز کند.
+	const brandSel = $('[data-price-brand]', price);
+	const sizeSel = $('[data-price-size]', price);
+	brandSel.value = 'lg';
+	sizeSel.value = '65';
+	brandSel.dispatchEvent(new window.Event('change', { bubbles: true }));
+	await wait(20);
+	check('v11: با تغییر برند، وضعیت «در حال به‌روزرسانی» نمایش داده می‌شود', price.classList.contains('is-updating')
+		&& $('[data-price-status]', price).textContent.indexOf('به‌روزرسانی') > -1);
+	await wait(220);
+	check('v11: فیلتر سریع یک واکشی به اندپوینت جدول قیمت می‌زند', window.__pixvaCalls.price === 1
+		&& window.__pixvaCalls.priceUrls[0].indexOf('/price-table?brand=lg&size=65') > -1);
+	const rowsAfter = $$('[data-price-body] tr', price);
+	check('v11: جدول با داده برند/سایز تازه بازسازی شد', rowsAfter.length === 6
+		&& $('tr[data-service="backlight"] td', price).getAttribute('data-min') === '26000000'
+		&& $('tr[data-service="backlight"] td', price).textContent.indexOf('۲۶٬۰۰۰٬۰۰۰') > -1
+		&& $('caption', price).textContent.indexOf('ال‌جی') > -1 && $('caption', price).textContent.indexOf('۶۵ اینچ') > -1);
+	check('v11: ردیف خارج از نرخ‌نامه با متن استعلام و colspan رندر می‌شود', (() => {
+		const quoteCell = $('tr[data-service="panel"] td.pixva-pricetable__quote', price);
+		return !!quoteCell && quoteCell.getAttribute('colspan') === '2'
+			&& quoteCell.textContent.indexOf('خارج از نرخ‌نامه') > -1
+			&& $('tr[data-service="panel"]', price).children.length === 3;
+	})());
+	check('v11: برچسب زنده پس از به‌روزرسانی پاک و وضعیت اعلام شد', !price.classList.contains('is-updating')
+		&& $('[data-price-status]', price).textContent.indexOf('ال‌جی — ۶۵ اینچ') > -1);
+	check('v11: وضعیت فیلتر روی بخش ثبت شد (بدون تداخل با سلکتور فیلدها)', price.getAttribute('data-price-active-brand') === 'lg'
+		&& price.getAttribute('data-price-active-size') === '65' && price.hasAttribute('data-price-brand') === false);
+
+	/* --- ۵) ماژول ۴: فرم اعزام فوری --- */
+	const express = $('#express-booking');
+	const form = $('[data-express-form]', express);
+	const msg = $('[data-express-msg]', form);
+	const phone = $('[name="phone"]', form);
+	const details = $('[name="details"]', form);
+	const submit = $('[data-express-submit]', form);
+
+	check('v11: فرم فقط دو فیلد ورودی کاربر دارد', !!form && $$('input:not([type="hidden"]), textarea, select', form).filter((el) => el.name !== 'pixva_hp').length === 2
+		&& phone.name === 'phone' && details.name === 'details');
+	check('v11: تله ضدربات و نونس و منبع در فرم هست', $('[name="pixva_hp"]', form).value === ''
+		&& $('[data-express-nonce]', form).value === 'express-nonce-123' && $('[name="source"]', form).value === 'home');
+	check('v11: موبایل اجباری با الگوی ۰۹ و جهت ltr', phone.required === true && phone.getAttribute('pattern') === '09[0-9]{9}'
+		&& phone.getAttribute('dir') === 'ltr' && phone.getAttribute('data-express-required') === 'phone');
+	check('v11: دکمه اقدام برجسته با متن درست', submit.type === 'submit' && submit.textContent.indexOf('ثبت درخواست اعزام فوری تکنسین') > -1);
+
+	// بدون شماره → خطا و بدون درخواست شبکه.
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(30);
+	check('v11: بدون شماره موبایل، ارسال متوقف و خطا نمایش داده می‌شود', window.__pixvaCalls.express === 0
+		&& msg.hidden === false && msg.classList.contains('is-error')
+		&& msg.textContent.indexOf('شماره موبایل الزامی') > -1 && phone.classList.contains('is-invalid'));
+
+	// شماره نامعتبر (ثابت تهران) → خطای قالب.
+	phone.value = '02112345678';
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(30);
+	check('v11: شماره غیر ۰۹xx رد می‌شود', window.__pixvaCalls.express === 0
+		&& msg.textContent.indexOf('شماره موبایل معتبر نیست') > -1 && phone.classList.contains('is-invalid'));
+
+	// شماره با پیشوند ۹۸ باید نرمال و پذیرفته شود.
+	phone.value = '+989121111111';
+	phone.dispatchEvent(new window.Event('input', { bubbles: true }));
+	await wait(10);
+	check('v11: پیشوند ۹۸+ نرمال‌سازی و خطای فیلد پاک می‌شود', phone.classList.contains('is-invalid') === false);
+
+	// شرح خالی → خطای فیلد دوم.
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(30);
+	check('v11: بدون شرح برند و مشکل، ارسال متوقف می‌شود', window.__pixvaCalls.express === 0
+		&& msg.textContent.indexOf('برند و مشکل دستگاه') > -1 && details.classList.contains('is-invalid'));
+
+	// ارسال موفق.
+	details.value = 'ال‌جی ۶۵ اینچ — صدا دارد ولی تصویر ندارد';
+	form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(20);
+	check('v11: هنگام ارسال، دکمه غیرفعال و وضعیت «در حال ثبت» نشان داده می‌شود', submit.disabled === true
+		&& msg.classList.contains('is-busy') && msg.textContent.indexOf('در حال ثبت درخواست') > -1);
+	await wait(200);
+	check('v11: درخواست به اندپوینت اعزام فوری با نونس فرستاده شد', window.__pixvaCalls.express === 1
+		&& window.__pixvaExpressHeaders['X-Pixva-Nonce'] === 'express-nonce-123'
+		&& window.__pixvaExpressBody instanceof window.FormData
+		&& window.__pixvaExpressBody.get('nonce') === 'express-nonce-123'
+		&& window.__pixvaExpressBody.get('source') === 'home');
+	check('v11: شماره نرمال‌شده و شرح کاربر در بدنه درخواست است', window.__pixvaExpressBody.get('phone') === '09121111111'
+		&& window.__pixvaExpressBody.get('details') === 'ال‌جی ۶۵ اینچ — صدا دارد ولی تصویر ندارد'
+		&& window.__pixvaExpressBody.get('pixva_hp') === '');
+	check('v11: پیام موفق با کد پیگیری نمایش و فرم آماده ثبت بعدی شد', msg.classList.contains('is-success')
+		&& msg.textContent.indexOf('PXV-2510-4821') > -1 && form.classList.contains('is-done')
+		&& form.getAttribute('data-express-code') === 'PXV-2510-4821' && details.value === '');
+
+	/* --- ۶) سبکی صفحه: بدون قفل اسکرول و بدون خطای کنسول --- */
+	check('v11: هیچ عنصری با ارتفاع اجباری قفل‌کننده اسکرول در صفحه نیست', $$('[data-scroll-pin], .pin-spacer, [style*="position: fixed"]').length === 0
+		&& $$('[data-pixva-cine], [data-pixva-spline], [data-pixva-tracker]').length === 0);
+	check('v11: همه بخش‌های سئو با کلاس مشترک و کانتینر رندر شده‌اند', $$('.pixva-seo').length === 4
+		&& $$('.pixva-seo .pixva-container').length === 4
+		&& ['pixva-trust', 'pixva-symptom', 'pixva-pricetable', 'pixva-express'].every((cls) => !!$('.pixva-seo.' + cls)));
+}
+
 (async function main() {
 	staticChecks();
 
@@ -1547,6 +1875,36 @@ async function v8Checks(window) {
 			v8Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
 		}
 		v8Dom.window.close();
+	}
+
+	// هارنس لایه ۲٫۰٫۰ (پاک‌سازی سنگین‌ها + چهار ماژول سئو/تبدیل).
+	if (!fs.existsSync(v11Harness)) {
+		failures.push('هارنس tools/fixtures/v11-preview.html پیدا نشد');
+		failed += 1;
+	} else {
+		const v11Errors = [];
+		const v11Console = new VirtualConsole();
+		v11Console.on('jsdomError', (error) => v11Errors.push(error.message));
+		v11Console.on('error', (message) => v11Errors.push(String(message)));
+
+		const v11Dom = await JSDOM.fromFile(v11Harness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: v11Console,
+		});
+		if (v11Dom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => v11Dom.window.addEventListener('load', resolve));
+		}
+		await wait(240);
+
+		await v11Checks(v11Dom.window);
+
+		check('v11: بدون خطای jsdom در کنسول (' + v11Errors.length + ')', v11Errors.length === 0);
+		if (v11Errors.length) {
+			v11Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		v11Dom.window.close();
 	}
 
 	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.

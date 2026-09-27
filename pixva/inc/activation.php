@@ -522,6 +522,29 @@ function pixva_maybe_upgrade() {
 		pixva_schedule_media_cleanup();
 	}
 
+	/*
+	 * ارتقا به ۲٫۰٫۰ (Master Prompt v11): گذار به معماری سئو-محور و سبک.
+	 *
+	 * سه ماژول سنگین (اسکرول سینمایی GSAP، مدل سه‌بعدی Spline و نقشه دمو) به‌صورت
+	 * صریح خاموش می‌شوند تا حتی روی نصب‌هایی که پیش‌تر فعال بودند هم اسکرول موبایل
+	 * بومی بماند، و چهار ماژول سئو/تبدیل روشن می‌گردند. این تغییر از سفارشی‌ساز
+	 * («پیکسوا: سکشن‌های صفحه اصلی») قابل بازگرداندن است و کد ماژول‌های قدیمی
+	 * برای سازگاری حذف نشده — فقط در حالت کارایی اسکریپت سنگینی صف نمی‌شود.
+	 */
+	if ( '' !== $stored_version && version_compare( $stored_version, '2.0.0', '<' )
+		&& (bool) apply_filters( 'pixva_apply_v11_layout_on_upgrade', true ) ) {
+
+		set_theme_mod( 'pixva_performance_mode', true );
+
+		foreach ( array( 'cinematic', 'repair_3d', 'tech_tracker' ) as $pixva_heavy ) {
+			set_theme_mod( 'pixva_section_' . $pixva_heavy, false );
+		}
+
+		foreach ( array( 'trust_features', 'symptom_guide', 'price_calculator', 'express_booking' ) as $pixva_seo ) {
+			set_theme_mod( 'pixva_section_' . $pixva_seo, true );
+		}
+	}
+
 	update_option( 'pixva_theme_version', $version );
 	update_option( 'pixva_spec_version', $spec );
 }
