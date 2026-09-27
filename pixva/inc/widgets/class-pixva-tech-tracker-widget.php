@@ -150,6 +150,17 @@ if ( ! class_exists( 'Pixva_Technician_Tracker_Widget' ) ) {
 			);
 
 			$this->add_control(
+				'demo',
+				array(
+					'label'        => esc_html__( 'حالت دمو (مسیر زنده نمایشی)', 'pixva' ),
+					'type'         => \Elementor\Controls_Manager::SWITCHER,
+					'default'      => 'yes',
+					'return_value' => 'yes',
+					'description'  => esc_html__( 'بدون کد پیگیری، نقشه با یک مسیر دمو که بر پایه زمان جلو می‌رود پر می‌شود (پیش‌فرض صفحه اصلی — لایه ۱٫۷٫۰). در صفحه‌های واقعی پرونده آن را خاموش کنید.', 'pixva' ),
+				)
+			);
+
+			$this->add_control(
 				'code',
 				array(
 					'label'       => esc_html__( 'کد پیگیری ثابت', 'pixva' ),
@@ -292,6 +303,7 @@ if ( ! class_exists( 'Pixva_Technician_Tracker_Widget' ) ) {
 					'code'       => (string) $settings['code'],
 					'phone'      => (string) $settings['phone'],
 					'lookup'     => isset( $settings['lookup'] ) && 'yes' === $settings['lookup'],
+					'demo'       => isset( $settings['demo'] ) && 'yes' === $settings['demo'],
 					'height'     => (int) $slider( $settings['height'], 26 ),
 					'zoom'       => (int) $slider( $settings['zoom'], 14 ),
 					'refresh'    => (int) $slider( $settings['refresh'], 20 ),

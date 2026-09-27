@@ -252,7 +252,7 @@ if ( ! class_exists( 'Pixva_Cinematic_Unboxing_Widget' ) ) {
 				'layers_notice',
 				array(
 					'type'        => \Elementor\Controls_Manager::HEADING,
-					'label'       => esc_html__( 'اگر لایه‌ای وارد نکنید، سه لایه پیش‌فرض (پنل، بک‌لایت، برد اصلی) نمایش داده می‌شود.', 'pixva' ),
+					'label'       => esc_html__( 'اگر لایه‌ای وارد نکنید، پنج لایه دمو (قاب رویی، شیشه پنل، بک‌لایت نئونی، برد اصلی و قاب پشتی) از assets/images/demo نمایش داده می‌شود.', 'pixva' ),
 					'separator'   => 'before',
 				)
 			);

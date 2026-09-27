@@ -398,6 +398,8 @@ if ( ! function_exists( 'pixva_tracker_shortcode' ) ) {
 	/**
 	 * شورت‌کد نقشه زنده تعمیرکار: [pixva_technician_tracker code="PXV-..."].
 	 *
+	 * با `demo="yes"` نقشه بدون کد پیگیری با مسیر دمو زنده پر می‌شود (لایه ۱٫۷٫۰).
+	 *
 	 * @param array|string $atts ویژگی‌های شورت‌کد.
 	 * @return string
 	 */
@@ -413,6 +415,7 @@ if ( ! function_exists( 'pixva_tracker_shortcode' ) ) {
 				'zoom'     => 14,
 				'refresh'  => 20,
 				'lookup'   => 'yes',
+				'demo'     => 'no',
 				'neon'     => '',
 				'car'      => '',
 				'id'       => '',
@@ -434,6 +437,7 @@ if ( ! function_exists( 'pixva_tracker_shortcode' ) ) {
 			'zoom'       => max( 3, min( 18, (int) $atts['zoom'] ) ),
 			'refresh'    => max( 5, (int) $atts['refresh'] ),
 			'lookup'     => ! in_array( strtolower( (string) $atts['lookup'] ), array( 'no', 'false', '0' ), true ),
+			'demo'       => in_array( strtolower( (string) $atts['demo'] ), array( 'yes', 'true', '1' ), true ),
 			'element_id' => sanitize_html_class( (string) $atts['id'] ),
 		);
 

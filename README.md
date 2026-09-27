@@ -3,9 +3,9 @@
 قالب اختصاصی وردپرس برای مرکز تعمیر تلویزیون و نمایشگر. راست‌چین، بدون jQuery و بدون وابستگی به افزونه.
 
 پوشه قابل نصب `pixva/` است. فایل‌های آماده بارگذاری در پیشخوان:
-- [`dist/pixva.zip`](dist/pixva.zip) (همیشه آخرین نسخه — ۱٫۶٫۰)
-- [`pixva-1.6.0.zip`](pixva-1.6.0.zip) (در ریشه پروژه)
-- نسخه‌های پیشین: [`pixva-1.5.0.zip`](pixva-1.5.0.zip)، [`pixva-1.4.0.zip`](pixva-1.4.0.zip)
+- [`dist/pixva.zip`](dist/pixva.zip) (همیشه آخرین نسخه — ۱٫۷٫۰)
+- [`pixva-1.7.0.zip`](pixva-1.7.0.zip) (در ریشه پروژه)
+- نسخه‌های پیشین: [`pixva-1.6.0.zip`](pixva-1.6.0.zip)، [`pixva-1.5.0.zip`](pixva-1.5.0.zip)، [`pixva-1.4.0.zip`](pixva-1.4.0.zip)
 
 هر دو فایل زیپ فقط شامل پوشه `pixva` هستند و `style.css` مستقیماً در ریشه آن قرار دارد.
 
@@ -18,6 +18,72 @@
 5. شماره تماس، لوگو، نماد اعتماد و ترتیب سکشن‌های صفحه اصلی را از **سفارشی‌ساز** تنظیم کنید.
 
 پرونده نمونه پیگیری کد `PXV-DEMO-2401` و شماره `09121111111` با تایم‌لاین کامل (دریافت تا آماده تحویل) دارد. قبل از استفاده واقعی آن را از پیشخوان حذف کنید.
+
+## صفحه اصلی خودکار سینمایی (۱٫۷٫۰ — Master Prompt v8)
+
+هر چهار ویجت لایه ۱٫۶٫۰ اکنون **بدون هیچ اقدام دستی** روی صفحه اصلی فعال است و همان چیدمان در المنتور هم از پیش پر شده است.
+
+### ترتیب زنده بخش‌ها در `front-page.php`
+
+`هیرو + منوی مگا` ← `اسکرول سینمایی (نمای انفجاری)` ← `عیب‌یاب هوشمند` ← `مدل سه‌بعدی تعاملی` ← `نقشه زنده تعمیرکار` ← `سه مزیت` ← `نمونه‌کار` ← `نظرات مشتریان` ← `فوتر`
+
+| کلید سکشن | تابع | ماژول |
+| --- | --- | --- |
+| `cinematic` | `pixva_home_cinematic()` | `pixva_render_cinematic_unboxing()` |
+| `ai_diagnose` | `pixva_home_ai_diagnose()` | `pixva_render_ai_diagnose()` |
+| `repair_3d` | `pixva_home_repair_3d()` | `pixva_render_spline_3d()` |
+| `tech_tracker` | `pixva_home_tech_tracker()` | `pixva_render_technician_tracker()` |
+
+هر چهار سکشن در سفارشی‌ساز («پیکسوا: سکشن‌های صفحه اصلی») کلید خاموش/روشن دارند و به‌صورت پیش‌فرض روشن‌اند. ترتیب ذخیره‌شده نصب‌های قدیمی دست‌نخورده می‌ماند: کلیدهای تازه با `pixva_merge_section_order()` دقیقاً در **جایگاه استاندارد** خودشان درج می‌شوند (نه انتهای فهرست)، بنابراین ارتقا از ۱٫۵/۱٫۶ همان ترتیب بالا را می‌سازد.
+
+### دارایی‌های دمو — پنج لایه انفجاری تلویزیون
+
+`assets/images/demo/` (SVG دستی، مجموعاً ≈۱۳ کیلوبایت، بدون هیچ آپلودی):
+
+| فایل | لایه | عمق | خدمت پیوندشده |
+| --- | --- | --- | --- |
+| `tv-frame-front.svg` | قاب رویی و فریم دستگاه | ۵ | — (محاسبه‌گر) |
+| `tv-glass-screen.svg` | صفحه نمایش شیشه‌ای (پنل) | ۴ | `panel` |
+| `tv-backlight-neon.svg` | بک‌لایت نئونی | ۳ | `backlight` |
+| `tv-mainboard.svg` | برد اصلی (مین‌برد) | ۲ | `mainboard` |
+| `tv-back-cover.svg` | قاب پشتی و برد تغذیه | ۱ | `powerboard` |
+
+`pixva_cinematic_demo_images()` / `pixva_cinematic_demo_image()` / `pixva_cinematic_default_layers()` این پنج لایه را می‌سازند؛ `pixva_cinematic_normalize_layers()` هم ورودی گزینه JSON، شورت‌کد و ریپیتر المنتور را یکدست می‌کند. تصویرها با `loading="lazy" decoding="async"` و در CSS با `object-fit: contain` نمایش داده می‌شوند تا هیچ لایه‌ای بریده نشود. فقط مدیر (با توانایی `customize`) راهنمای «حالت دمو» را می‌بیند؛ برای بازدیدکننده هیچ متن اضافه‌ای رندر نمی‌شود.
+
+### پیش‌فرض‌های مدل سه‌بعدی و نقشه زنده
+
+- **Spline:** `pixva_spline_demo_url()` = `https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode` (صحنه نمونه رسمی Spline) به‌عنوان پیش‌فرض `pixva_3d_repair`؛ اگر ماژول یا صحنه در دسترس نبود، همان نمای لایه‌ای CSS-3D داخلی فعال می‌شود و کنسول خطای JavaScript نمی‌گیرد (`data-spline-demo="1"`).
+- **سه هات‌اسپیت دمو:** بک‌لایت (`backlight` در ۲۸٪/۴۰٪)، برد تغذیه (`powerboard` در ۶۲٪/۶۶٪) و پنل (`panel` در ۴۶٪/۲۴٪) — هرکدام با کارت استعلام قیمت همان قطعه از نرخ‌نامه.
+- **نقشه دمو:** `GET wp-json/pixva/v1/dispatch-live?demo=1` بدون کد و شماره، یک مسیر زنده برمی‌گرداند (`pixva_map_demo_payload()`) که پیشرفتش بر پایه زمان واقعی محاسبه می‌شود (چرخه پیش‌فرض ۱۵ دقیقه، فیلتر `pixva_map_demo_cycle`)؛ ون تعمیرکار هر نوسازی جلو می‌رود و ETA کم می‌شود. با واردکردن کد پیگیری واقعی، داده پرونده جای دمو را می‌گیرد. مقصد دمو از `pixva_map_demo_lat/lng` یا دورترین منطقه `pixva_map_zones` یا یک نقطه قطعی نزدیک مبدأ ساخته می‌شود.
+
+### چیدمان پیش‌فرض المنتور (Default Page Template)
+
+`inc/home-seed.php` همان چهار بخش را به‌صورت آرایه المان المنتور می‌سازد و در برگه خانه ذخیره می‌کند:
+
+- `pixva_home_elementor_template()` / `pixva_home_elementor_json()` — چهار `section` تک‌ستونی با `widgetType`های `pixva_cinematic_unboxing`، `pixva_ai_diagnose`، `pixva_3d_repair` و `pixva_tech_tracker`؛ همه کنترل‌ها (برچسب/تیتر/توضیح، ریپیتر پنج لایه با تصویر و خدمت و عمق، آدرس صحنه Spline، ریپیتر سه هات‌اسپیت، ارتفاع/سرعت/رنگ نئونی، حالت دمو نقشه) **از پیش پر** می‌شوند تا در پنل المنتور مستقیماً قابل ویرایش باشند. شناسه HTML هر بخش روی خود `section` است (`pixva-cinematic-unboxing`، `pixva-ai-diagnose`، `pixva-repair-3d`، `pixva-live-tech-tracker`) تا `id` تکراری ساخته نشود.
+- `pixva_seed_home_elementor()` — نوشتن `_elementor_data`، `_elementor_edit_mode=builder`، `_elementor_template_type=wp-page` و `_elementor_version` با `wp_slash()` (سازگار با روش ذخیره خود المنتور). **نگهبان:** اگر برگه خانه از قبل چیدمان داشته باشد، هیچ چیز بازنویسی نمی‌شود مگر با `$force` صریح.
+- زمان‌های اجرا: فعال‌سازی پوسته (`after_switch_theme`)، نصب تازه (`pixva_install_site()`)، ارتقا به ۱٫۷٫۰ (`pixva_maybe_upgrade()`)، باز کردن برگه خانه در ویرایشگر المنتور یا ویرایشگر معمولی (`admin_init` + `elementor/editor/before_enqueue_scripts`) و دکمه مرکز کنترل.
+- `pixva_home_elementor_library_template()` — همان چیدمان به‌عنوان قالب ذخیره‌شده «پیکسوا — چیدمان پیش‌فرض خانه (سینمایی v8)» در کتابخانه المنتور (فقط وقتی المنتور فعال باشد).
+- **پیکسوا ← مرکز کنترل ← تب «۱. عمومی و AI» ← «چیدمان صفحه اصلی و المنتور»:** وضعیت (برگه خانه، فعال بودن المنتور، نسخه چیدمان)، دکمه «بارگذاری چیدمان پیش‌فرض (بدون بازنویسی)»، دکمه «بازنشانی چیدمان» با تأیید و نانس (`admin_post_pixva_seed_home_elementor`) و میان‌بر «ویرایش صفحه اصلی در المنتور».
+- گزینه `pixva_home_use_elementor` (خاموش به‌صورت پیش‌فرض): وقتی روشن شود، `front-page.php` چهار بخش سینمایی را از چیدمان المنتور چاپ می‌کند (`get_builder_content_for_display()`) و هیرو/سه مزیت/نمونه‌کار/نظرات از پوسته می‌مانند؛ اگر المنتور غیرفعال یا چیدمان خالی باشد، همان سکشن‌های PHP رندر می‌شوند (بدون صفحه خالی).
+
+### بازنویسی همه متغیرهای دمو (سفارشی‌ساز)
+
+دو بخش تازه در سفارشی‌ساز اضافه شد:
+
+- **«پیکسوا: صفحه اصلی سینمایی (v8)»** — `pixva_home_use_elementor`، برچسب/تیتر/توضیح هر چهار بخش (`pixva_home_cine_*`، `pixva_home_ai_*`، `pixva_home_3d_*`، `pixva_home_map_*`)، `pixva_home_map_demo` و `pixva_home_map_lookup`.
+- **«پیکسوا: لایه‌های دمو و مدل سه‌بعدی»** — پنج کنترل تصویری `pixva_demo_layer_frame/glass/backlight/mainboard/cover`، `pixva_cine_layers_json` و `pixva_spline_hotspots_json` (بازنویسی کامل با JSON؛ `pixva_sanitize_json()` مقدار نامعتبر را دور می‌اندازد تا پیش‌فرض داده‌محور برگردد)، `pixva_spline_demo_url` و داده مسیر دمو (`pixva_map_demo_lat/lng/label/tech/skill/brand/model`).
+
+همه با `pixva_option()` خوانده می‌شوند و علاوه بر آن با فیلترهای `pixva_cinematic_demo_images`، `pixva_cinematic_demo_image`، `pixva_cinematic_default_layers`، `pixva_spline_demo_url`، `pixva_spline_demo_hotspots`، `pixva_home_v8_module_settings`، `pixva_home_elementor_blocks`، `pixva_home_elementor_template`، `pixva_map_demo_destination`، `pixva_map_demo_payload` و `pixva_home_elementor_seeded` از کد قابل بازنویسی‌اند.
+
+### بارگذاری مشروط با آگاهی از صفحه اصلی
+
+`pixva_home_cinematic_sections()` چهار سکشن صفحه اصلی را به ماژول‌ها نگاشت می‌کند و `pixva_home_needs_module()` با `is_front_page()` + `pixva_active_home_sections()` تصمیم می‌گیرد؛ بنابراین هر چهار `pixva_needs_*_js()` هم محتوای صفحه/المنتور را می‌بینند و هم سکشن‌های PHP صفحه اصلی را. اسکن مارکرها اکنون `_elementor_data` را هم می‌خواند (چون چیدمان المنتور در `post_content` نیست). نتیجه: اسکریپت هر ماژول فقط وقتی واقعاً رندر می‌شود با `defer` در فوتر صف می‌شود.
+
+### سرعت و کنسول پاک
+
+- دارایی‌های دمو ≈۱۳ کیلوبایت SVG با `loading="lazy"`؛ صحنه Spline تنبل (IntersectionObserver)؛ نقشه داخلی SVG بدون هیچ کاشی بیرونی.
+- در هارنس آزمون، همه فایل‌های ارجاعی موجودند (بدون ۴۰۴) و هیچ خطای کنسول ثبت نمی‌شود.
 
 ## تجربه سینمایی، سه‌بعدی، هوش مصنوعی و نقشه زنده (۱٫۶٫۰)
 
@@ -47,7 +113,7 @@
 | اسکرول سینمایی (نمای انفجاری دستگاه) | `pixva_cinematic_unboxing` | Pin + Scrub با طول اسکرول بر حسب `vh`، میزان باز شدن لایه‌ها، چرخش سه‌بعدی و تکرارکننده لایه‌ها (تصویر/عنوان/توضیح/خدمت/عمق) |
 | مدل سه‌بعدی تعاملی تعمیر (Spline) | `pixva_3d_repair` | آدرس `scene.splinecode`، بارگذاری تنبل، ارتفاع صحنه، تکرارکننده هات‌اسپیت (موقعیت ٪/برچسب/شرح/خدمت) و رنگ نقطه‌ها |
 | عیب‌یابی سریع هوشمند (ویدیو/صدا) | `pixva_ai_diagnose` | متن دو دکمه، دکمه تحلیل، انواع فایل مجاز، سرعت تپش گوی، دو رنگ نئونی، اندازه گوی و یادداشت حریم خصوصی |
-| نقشه زنده تعمیرکار (ردیابی سفارش) | `pixva_tech_tracker` | فرم کد پیگیری، کد/شماره ثابت برای دمو، بازه نوسازی، ارتفاع نقشه، بزرگ‌نمایی و رنگ مسیر/مارکر |
+| نقشه زنده تعمیرکار (ردیابی سفارش) | `pixva_tech_tracker` | فرم کد پیگیری، **کلید «حالت دمو (مسیر زنده نمایشی)»** (لایه ۱٫۷٫۰)، کد/شماره ثابت، بازه نوسازی، ارتفاع نقشه، بزرگ‌نمایی و رنگ مسیر/مارکر |
 
 ### بارگذاری زیر ۲ ثانیه
 
@@ -60,7 +126,7 @@
 | مسیر | روش | ورودی | خروجی |
 | --- | --- | --- | --- |
 | `wp-json/pixva/v1/ai-diagnose` | POST (multipart) | `media` (ویدیو/صدا ≤ سقف مگابایتی)، `brand`، `model`، `symptom`، `phone`، هدر `X-Pixva-Nonce` با نانس `pixva_ai_diagnose`، هانی‌پات `pixva_hp` | `ticket` (کد `PXV-AI-…`)، `verdict`، `analysis`، `part`، `createdAt`؛ پرونده در `pixva_inbox` با متاهای `_pixva_ai_*` ثبت و رسانه sideload می‌شود |
-| `wp-json/pixva/v1/dispatch-live` | GET | `code` + `phone` (هر دو لازم، موبایل ایرانی اعتبارسنجی می‌شود) | `origin`، `destination`، `route`، `marker`، `progress`، `eta`، `distance`، `technician`، `status/statusLabel`، `moving/arrived/simulated`، `refresh` |
+| `wp-json/pixva/v1/dispatch-live` | GET | `code` + `phone` (برای درخواست واقعی لازم، موبایل ایرانی اعتبارسنجی می‌شود) یا `demo=1` (از لایه ۱٫۷٫۰، بدون کد و شماره) | `origin`، `destination`، `route`، `marker`، `progress`، `eta`، `distance`، `technician`، `status/statusLabel`، `moving/arrived/simulated`، `refresh`؛ در حالت دمو `demo:true` و `device` نمایشی هم برمی‌گردد |
 
 امنیت: هر دو مسیر محدودسازی نرخ دارند (۶ درخواست در ساعت برای هر IP روی عیب‌یاب، ۲۴۰ در دقیقه روی نقشه)، نقشه فقط پرونده‌ای را برمی‌گرداند که کد **و** شماره همراه مطابق باشد، و اگر `pixva_ai_agent_url` در سفارشی‌ساز پر شود همان درخواست (با `Authorization: Bearer` از `pixva_ai_agent_token`) به عامل پایتون/هوش مصنوعی شما پروکسی می‌شود و پاسخ JSON آن به کاربر نمایش می‌رسد.
 
@@ -230,7 +296,7 @@
 
 - `python3 tools/php_check.py pixva` — توازن بلوک‌ها و سلامت ساختار ۸۳ پرونده PHP.
 - `python3 tools/php_lint.py pixva` — lint سبکی و بررسی تابع تکراری (اکنون بدون تابع تکراری).
-- `node tools/domtest.js` — ۳۴۹ آزمون رگرسیون: چک‌های ایستای قرارداد فایل‌ها (لایه ۲۷ تا ۲۹ CSS، موتور CRM، لایه ۱٫۵٫۰ و ۱٫۶٫۰، حذف ابزار ۵، بارگذاری شرایطی اسکریپت‌ها) به‌همراه آزمون رفتاری jsdom روی سه هارنس داخل مخزن: `tools/fixtures/crm-preview.html`، `tools/fixtures/v6-preview.html` و `tools/fixtures/v7-preview.html`.
+- `node tools/domtest.js` — ۵۳۴ آزمون رگرسیون: چک‌های ایستای قرارداد فایل‌ها (لایه ۲۷ تا ۳۰ CSS، موتور CRM، لایه ۱٫۵٫۰، ۱٫۶٫۰ و ۱٫۷٫۰، دارایی‌های دمو، چیدمان پیش‌فرض المنتور، الگوریتم ترتیب سکشن‌ها، حذف ابزار ۵، بارگذاری شرایطی اسکریپت‌ها) به‌همراه آزمون رفتاری jsdom روی چهار هارنس داخل مخزن: `tools/fixtures/crm-preview.html`، `tools/fixtures/v6-preview.html`، `tools/fixtures/v7-preview.html` و `tools/fixtures/v8-preview.html` (آینه صفحه اصلی خودکار: ترتیب زنده بخش‌ها، پنج لایه دمو، Pin/Scrub، هات‌اسپیت برد تغذیه، مسیر دمو نقشه و عیب‌یاب هوشمند).
   - هارنس CRM: جریان کامل جادوگر (انتخاب چیپ، اعتبارسنجی موبایل، برآورد سمت سرور، ثبت و کد پیگیری، شروع دوباره)، فیلتر و گزارش فنی پنل تعمیرکار (جمع زنده، افزودن/حذف قطعه، انتقال وضعیت، صدور گارانتی)، هولوگرام (متغیرهای `--holo-*`)، چاپ فاکتور، استعلام اصالت گارانتی، جست‌وجوی کد خطا، برآورد سریع و کپی سریال.
   - اجرای آزمون‌ها نیاز به `npm install jsdom` در پوشه والد دارد (خارج از گیت): `NODE_PATH=../node_modules node tools/domtest.js`.
   - هارنس V6 (`tools/fixtures/v6-preview.html`): ساختار چهارگروهی مگامنو و عنوان/پیوند هر گروه، رفتار آبشاری (کلیک، Escape، ArrowDown)، دروئر موبایل با همان گروه‌ها، صفحه اصلی مینیمال (چهار سکشن، سه مزیت، گالری نمونه‌کار)، موتور حرکت (کلاس `pixva-motion-js`، `.pixva-fx`/`is-in`، تأخیر پله‌ای، متغیرهای نور OLED، موج نوری کلیک، اسکرول نرم لنگر) و نوار داشبورد تعمیرکار.

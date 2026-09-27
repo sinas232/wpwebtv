@@ -116,6 +116,15 @@ function pixva_install_workshop_options() {
  */
 function pixva_on_switch_theme() {
 	pixva_install_site();
+
+	/*
+	 * لایه ۱٫۷٫۰ (Master Prompt v8): چیدمان پیش‌فرض المنتور صفحه اصلی آماده
+	 * می‌شود؛ اگر برگه خانه از قبل داده المنتور داشته باشد، کاری انجام نمی‌شود.
+	 */
+	if ( function_exists( 'pixva_home_page_id' ) && pixva_home_page_id() > 0 && function_exists( 'pixva_seed_home_elementor' ) ) {
+		pixva_seed_home_elementor( false );
+	}
+
 	flush_rewrite_rules();
 }
 add_action( 'after_switch_theme', 'pixva_on_switch_theme' );
@@ -137,6 +146,11 @@ function pixva_install_site() {
 	pixva_install_reading( $pages );
 	pixva_install_terms();
 	pixva_install_sample_content();
+
+	// چیدمان پیش‌فرض چهار بخش سینمایی در برگه خانه (پس از تنظیم صفحه اول).
+	if ( function_exists( 'pixva_seed_home_elementor' ) ) {
+		pixva_seed_home_elementor( false );
+	}
 
 	update_option( 'pixva_installed', 1 );
 	update_option( 'pixva_show_setup_notice', 1 );
@@ -452,6 +466,20 @@ function pixva_maybe_upgrade() {
 		if ( '' !== $order && ( false === strpos( $order, 'journey' ) || false === strpos( $order, 'quote' ) ) ) {
 			remove_theme_mod( 'pixva_sections_order' );
 		}
+	}
+
+	/*
+	 * ارتقا به ۱٫۷٫۰ (Master Prompt v8): چهار بخش سینمایی (اسکرول انفجاری،
+	 * عیب‌یاب هوشمند، مدل سه‌بعدی و نقشه زنده) با پیش‌فرض‌های جدید روشن می‌شوند؛
+	 * ترتیب ذخیره‌شده نصب قدیمی دست‌نخورده می‌ماند چون کلیدهای تازه دقیقاً در
+	 * جایگاه استاندارد خودشان درج می‌شوند. چیدمان پیش‌فرض المنتور هم روی برگه
+	 * خانه نوشته می‌شود (بدون بازنویسی محتوای موجود).
+	 */
+	if ( '' !== $stored_version && version_compare( $stored_version, '1.7.0', '<' )
+		&& (bool) apply_filters( 'pixva_seed_home_elementor_on_upgrade', true )
+		&& function_exists( 'pixva_home_page_id' ) && pixva_home_page_id() > 0
+		&& function_exists( 'pixva_seed_home_elementor' ) ) {
+		pixva_seed_home_elementor( false );
 	}
 
 	update_option( 'pixva_theme_version', $version );

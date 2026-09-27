@@ -127,6 +127,17 @@ if ( ! function_exists( 'pixva_cinematic_content_markers' ) ) {
 			$post = get_post();
 			if ( $post instanceof WP_Post ) {
 				$content = (string) $post->post_content;
+
+				/*
+				 * چیدمان المنتور در post_content ذخیره نمی‌شود (در متای
+				 * `_elementor_data` است)؛ برای تشخیص ویجت‌های سینمایی لایه v8
+				 * آن meta هم به متن اسکن افزوده می‌شود تا دارایی‌ها فقط وقتی
+				 * واقعاً لازم‌اند صف شوند.
+				 */
+				$elementor = get_post_meta( $post->ID, '_elementor_data', true );
+				if ( is_string( $elementor ) && '' !== $elementor ) {
+					$content .= $elementor;
+				}
 			}
 		}
 
@@ -157,6 +168,62 @@ if ( ! function_exists( 'pixva_cinematic_has_marker' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pixva_home_cinematic_sections' ) ) {
+	/**
+	 * نگاشت سکشن‌های صفحه اصلی به ماژول سینمایی (Master Prompt v8).
+	 *
+	 * این چهار سکشن در `front-page.php` با PHP رندر می‌شوند و مارکر محتوایی
+	 * ندارند؛ بنابراین تشخیص بارگذاری مشروط باید آن‌ها را از فهرست سکشن‌های
+	 * فعال صفحه اصلی بخواند.
+	 *
+	 * @return array<string, string>
+	 */
+	function pixva_home_cinematic_sections() {
+		/**
+		 * فیلتر نگاشت سکشن صفحه اصلی به ماژول.
+		 *
+		 * @param array<string, string> $map سکشن => ماژول.
+		 */
+		return apply_filters(
+			'pixva_home_cinematic_sections',
+			array(
+				'cinematic'    => 'cinematic',
+				'ai_diagnose'  => 'ai',
+				'repair_3d'    => 'spline',
+				'tech_tracker' => 'tracker',
+			)
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_home_needs_module' ) ) {
+	/**
+	 * آیا صفحه اصلی (رندر PHP، بدون محتوای المنتور) این ماژول را نشان می‌دهد؟
+	 *
+	 * @param string $module نام ماژول: cinematic|spline|ai|tracker.
+	 * @return bool
+	 */
+	function pixva_home_needs_module( $module ) {
+		if ( ! function_exists( 'is_front_page' ) || ! is_front_page() ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'pixva_active_home_sections' ) ) {
+			return false;
+		}
+
+		$active = (array) pixva_active_home_sections();
+
+		foreach ( pixva_home_cinematic_sections() as $section => $section_module ) {
+			if ( $section_module === $module && in_array( $section, $active, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
 if ( ! function_exists( 'pixva_needs_cinematic_js' ) ) {
 	/**
 	 * آیا صفحه به موتور اسکرول سینمایی (GSAP/ScrollTrigger) نیاز دارد؟
@@ -168,7 +235,7 @@ if ( ! function_exists( 'pixva_needs_cinematic_js' ) ) {
 			return false;
 		}
 
-		$needed = pixva_cinematic_has_marker(
+		$needed = pixva_home_needs_module( 'cinematic' ) || pixva_cinematic_has_marker(
 			array(
 				'pixva_cinematic_unboxing',
 				'elementor-widget-pixva_cinematic_unboxing',
@@ -196,7 +263,7 @@ if ( ! function_exists( 'pixva_needs_spline_js' ) ) {
 			return false;
 		}
 
-		$needed = pixva_cinematic_has_marker(
+		$needed = pixva_home_needs_module( 'spline' ) || pixva_cinematic_has_marker(
 			array(
 				'pixva_3d_repair',
 				'elementor-widget-pixva_3d_repair',
@@ -224,7 +291,7 @@ if ( ! function_exists( 'pixva_needs_ai_diagnose_js' ) ) {
 			return false;
 		}
 
-		$needed = pixva_cinematic_has_marker(
+		$needed = pixva_home_needs_module( 'ai' ) || pixva_cinematic_has_marker(
 			array(
 				'pixva_ai_diagnose',
 				'elementor-widget-pixva_ai_diagnose',
@@ -252,7 +319,7 @@ if ( ! function_exists( 'pixva_needs_tracker_map_js' ) ) {
 			return false;
 		}
 
-		$needed = ( pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(
+		$needed = pixva_home_needs_module( 'tracker' ) || ( pixva_option( 'pixva_map_on_tracking', true ) && is_page_template(
 			array(
 				'page-templates/page-tracking.php',
 				'page-templates/page-hub-tracking.php',
@@ -466,6 +533,8 @@ if ( ! function_exists( 'pixva_cinematic_register_assets' ) ) {
 					'simulated'     => esc_html__( 'شبیه‌سازی مسیر', 'pixva' ),
 					'simulatedNote' => esc_html__( 'نقشه داخلی پیکسوا (بدون سرویس بیرونی)؛ تا اتصال GPS واقعی، مسیر شبیه‌سازی می‌شود.', 'pixva' ),
 					'needPhone'     => esc_html__( 'برای نمایش موقعیت زنده، شماره همراه ثبت‌شده روی پرونده لازم است.', 'pixva' ),
+					'demo'          => esc_html__( 'مسیر دمو', 'pixva' ),
+					'demoNote'      => esc_html__( 'نقشه با مسیر دمو به‌صورت زنده نمایش داده می‌شود؛ کد پیگیری پرونده خود را وارد کنید تا موقعیت واقعی تعمیرکار روشن شود.', 'pixva' ),
 				),
 			)
 		);
@@ -595,33 +664,183 @@ if ( ! function_exists( 'pixva_shortcode_json' ) ) {
  * ۴) رندر مشترک: اسکرول سینمایی (Cinematic TV Unboxing)
  * ----------------------------------------------------------------------- */
 
+if ( ! function_exists( 'pixva_cinematic_demo_images' ) ) {
+	/**
+	 * دارایی‌های دمو: پنج لایه انفجاری تلویزیون (Master Prompt v8).
+	 *
+	 * فایل‌های SVG سبک در `assets/images/demo` که بدون هیچ آپلودی، نمای
+	 * انفجاری ویجت سینمایی را کامل می‌کنند. هر لایه یک گزینه سفارشی‌ساز دارد
+	 * تا مدیر بتواند تصویر دلخواه خودش را جایگزین کند.
+	 *
+	 * @return array<string, array{file:string,url:string,label:string,option:string}>
+	 */
+	function pixva_cinematic_demo_images() {
+		$files = array(
+			'frame'     => array( 'tv-frame-front.svg', __( 'قاب رویی', 'pixva' ), 'pixva_demo_layer_frame' ),
+			'glass'     => array( 'tv-glass-screen.svg', __( 'صفحه نمایش شیشه‌ای', 'pixva' ), 'pixva_demo_layer_glass' ),
+			'backlight' => array( 'tv-backlight-neon.svg', __( 'بک‌لایت نئونی', 'pixva' ), 'pixva_demo_layer_backlight' ),
+			'mainboard' => array( 'tv-mainboard.svg', __( 'برد اصلی', 'pixva' ), 'pixva_demo_layer_mainboard' ),
+			'cover'     => array( 'tv-back-cover.svg', __( 'قاب پشتی', 'pixva' ), 'pixva_demo_layer_cover' ),
+		);
+
+		$demo = array();
+		foreach ( $files as $key => $row ) {
+			$path         = PIXVA_DIR . '/assets/images/demo/' . $row[0];
+			$demo[ $key ] = array(
+				'file'   => $row[0],
+				'url'    => file_exists( $path ) ? PIXVA_URI . '/assets/images/demo/' . $row[0] : '',
+				'label'  => $row[1],
+				'option' => $row[2],
+			);
+		}
+
+		/**
+		 * فیلتر فهرست دارایی‌های دمو.
+		 *
+		 * @param array $demo دارایی‌ها.
+		 */
+		return apply_filters( 'pixva_cinematic_demo_images', $demo );
+	}
+}
+
+if ( ! function_exists( 'pixva_cinematic_demo_image' ) ) {
+	/**
+	 * آدرس یک لایه دمو (اولویت با تصویر انتخابی مدیر در سفارشی‌ساز).
+	 *
+	 * @param string $key کلید لایه: frame|glass|backlight|mainboard|cover.
+	 * @return string
+	 */
+	function pixva_cinematic_demo_image( $key ) {
+		$demo = pixva_cinematic_demo_images();
+		if ( ! isset( $demo[ $key ] ) ) {
+			return '';
+		}
+
+		$custom = trim( (string) pixva_option( $demo[ $key ]['option'], '' ) );
+
+		/**
+		 * فیلتر آدرس تصویر یک لایه دمو.
+		 *
+		 * @param string $url آدرس نهایی.
+		 * @param string $key کلید لایه.
+		 */
+		return (string) apply_filters( 'pixva_cinematic_demo_image', '' !== $custom ? $custom : $demo[ $key ]['url'], $key );
+	}
+}
+
+if ( ! function_exists( 'pixva_cinematic_normalize_layers' ) ) {
+	/**
+	 * یکدست‌سازی آرایه لایه‌ها (کلیدهای image/title/text/link/depth).
+	 *
+	 * ورودی می‌تواند از گزینه JSON، شورت‌کد یا ردیف‌های ریپیتر المنتور بیاید؛
+	 * هر سه حالت به یک ساختار مشترک تبدیل می‌شوند تا رندر و JS غافلگیر نشوند.
+	 *
+	 * @param array<int|string, mixed> $rows لایه‌های خام.
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_cinematic_normalize_layers( $rows ) {
+		$layers = array();
+
+		if ( ! is_array( $rows ) ) {
+			return $layers;
+		}
+
+		foreach ( $rows as $index => $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$image = '';
+			if ( isset( $row['image'] ) ) {
+				$image = trim( (string) $row['image'] );
+			} elseif ( isset( $row['layer_image']['url'] ) ) {
+				$image = trim( (string) $row['layer_image']['url'] );
+			}
+
+			$link = '';
+			if ( isset( $row['link'] ) ) {
+				$link = trim( (string) $row['link'] );
+			} elseif ( isset( $row['layer_service'] ) ) {
+				$link = trim( (string) $row['layer_service'] );
+				if ( 'custom' === $link && isset( $row['layer_url']['url'] ) ) {
+					$link = trim( (string) $row['layer_url']['url'] );
+				}
+			}
+
+			$title = isset( $row['title'] ) ? (string) $row['title'] : ( isset( $row['layer_title'] ) ? (string) $row['layer_title'] : '' );
+			$text  = isset( $row['text'] ) ? (string) $row['text'] : ( isset( $row['layer_text'] ) ? (string) $row['layer_text'] : '' );
+			$depth = isset( $row['depth'] ) ? (int) $row['depth'] : ( isset( $row['layer_depth'] ) ? (int) $row['layer_depth'] : (int) $index + 1 );
+
+			if ( '' === $title && '' === $image ) {
+				continue;
+			}
+
+			$layers[] = array(
+				'image' => $image,
+				'title' => $title,
+				'text'  => $text,
+				'link'  => $link,
+				'depth' => max( 1, min( 9, $depth ) ),
+			);
+		}
+
+		return $layers;
+	}
+}
+
 if ( ! function_exists( 'pixva_cinematic_default_layers' ) ) {
 	/**
-	 * لایه‌های پیش‌فرض نمای انفجاری (پنل، بک‌لایت، برد اصلی).
+	 * لایه‌های پیش‌فرض نمای انفجاری — پنج لایه دمو (Master Prompt v8).
+	 *
+	 * ترتیب نمایش از بیرون به داخل است: قاب رویی ← شیشه پنل ← بک‌لایت نئونی ←
+	 * برد اصلی ← قاب پشتی/برد تغذیه. تصویر هر لایه از فایل‌های SVG دمو می‌آید و
+	 * با گزینه‌های سفارشی‌ساز یا یک آرایه JSON قابل جایگزینی کامل است، بنابراین
+	 * ویجت بلافاصله پس از نصب بدون آپلود کار می‌کند.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
 	function pixva_cinematic_default_layers() {
+		// جایگزینی کامل لایه‌ها با JSON سفارشی‌ساز (بدون نیاز به کدنویسی).
+		$custom = pixva_cinematic_normalize_layers( pixva_shortcode_json( (string) pixva_option( 'pixva_cine_layers_json', '' ) ) );
+		if ( ! empty( $custom ) ) {
+			/** This filter is documented in inc/cinematic.php */
+			return apply_filters( 'pixva_cinematic_default_layers', $custom );
+		}
+
 		$layers = array(
 			array(
-				'image' => PIXVA_URI . '/assets/images/panel-after.jpg',
-				'title' => __( 'پنل و شیشه نمایشگر', 'pixva' ),
+				'image' => pixva_cinematic_demo_image( 'frame' ),
+				'title' => __( 'قاب رویی و فریم دستگاه', 'pixva' ),
+				'text'  => __( 'فریم ترک‌خورده یا بدنه ضربه‌دیده با قطعه فابریک همان مدل تعویض و رزوه‌ها با تست استحکام بازرسی می‌شود.', 'pixva' ),
+				'link'  => '',
+				'depth' => 5,
+			),
+			array(
+				'image' => pixva_cinematic_demo_image( 'glass' ),
+				'title' => __( 'صفحه نمایش شیشه‌ای (پنل)', 'pixva' ),
 				'text'  => __( 'بندینگ COF و ترمیم خطوط عمودی/افقی بدون تعویض شیشه، با دستگاه بندینگ صنعتی و تست الگوی کالیبراسیون.', 'pixva' ),
 				'link'  => 'panel',
+				'depth' => 4,
+			),
+			array(
+				'image' => pixva_cinematic_demo_image( 'backlight' ),
+				'title' => __( 'بک‌لایت نئونی', 'pixva' ),
+				'text'  => __( 'تعویض ریسه LED فابریک، رفع تاریکی موضعی و هاله نور با تست یکنواختی نور پس‌زمینه.', 'pixva' ),
+				'link'  => 'backlight',
 				'depth' => 3,
 			),
 			array(
-				'image' => PIXVA_URI . '/assets/images/bonding-lab.jpg',
-				'title' => __( 'ریسه‌های بک‌لایت', 'pixva' ),
-				'text'  => __( 'تعویض نوار LED فابریک، رفع تاریکی موضعی و هاله نور با تست یکنواختی نور پس‌زمینه.', 'pixva' ),
-				'link'  => 'backlight',
+				'image' => pixva_cinematic_demo_image( 'mainboard' ),
+				'title' => __( 'برد اصلی (مین‌برد)', 'pixva' ),
+				'text'  => __( 'عیب‌یابی مین‌برد، HDMI، وای‌فای و بخش پردازش تصویر با اسیلوسکوپ و پروگرامر در سطح قطعه.', 'pixva' ),
+				'link'  => 'mainboard',
 				'depth' => 2,
 			),
 			array(
-				'image' => PIXVA_URI . '/assets/images/hero-workshop.jpg',
-				'title' => __( 'برد اصلی و تغذیه', 'pixva' ),
-				'text'  => __( 'عیب‌یابی مین‌برد، HDMI، وای‌فای و برد پاور با اسیلوسکوپ، پروگرامر و تست بار.', 'pixva' ),
-				'link'  => 'mainboard',
+				'image' => pixva_cinematic_demo_image( 'cover' ),
+				'title' => __( 'قاب پشتی و برد تغذیه', 'pixva' ),
+				'text'  => __( 'رفع چشمک چراغ، خاموشی کامل و نشتی برد پاور با قطعه هم‌تراز، تست بار و بست‌بندی مجدد شاسی.', 'pixva' ),
+				'link'  => 'powerboard',
 				'depth' => 1,
 			),
 		);
@@ -664,9 +883,12 @@ if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
 			)
 		);
 
-		$layers = $settings['layers'];
-		if ( empty( $layers ) || ! is_array( $layers ) ) {
-			$layers = pixva_cinematic_default_layers();
+		$layers  = pixva_cinematic_normalize_layers( is_array( $settings['layers'] ) ? $settings['layers'] : array() );
+		$is_demo = false;
+
+		if ( empty( $layers ) ) {
+			$layers  = pixva_cinematic_normalize_layers( pixva_cinematic_default_layers() );
+			$is_demo = true;
 		}
 
 		$height   = max( 140, (int) $settings['height'] );
@@ -675,6 +897,7 @@ if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
 		$rotate   = max( 0, (int) $settings['rotate'] );
 		$id       = '' !== trim( (string) $settings['element_id'] ) ? sanitize_html_class( (string) $settings['element_id'] ) : 'pixva-cine-' . wp_rand( 100, 999 );
 		$calc_url = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' );
+		$hint     = $is_demo && current_user_can( 'customize' );
 		?>
 		<section
 			id="<?php echo esc_attr( $id ); ?>"
@@ -685,6 +908,7 @@ if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
 			data-cine-rotate="<?php echo esc_attr( (string) $rotate ); ?>"
 			data-cine-pin="<?php echo $settings['pin'] ? '1' : '0'; ?>"
 			data-cine-scrub="<?php echo $settings['scrub'] ? '1' : '0'; ?>"
+			data-cine-demo="<?php echo $is_demo ? '1' : '0'; ?>"
 			style="--cine-neon:<?php echo esc_attr( (string) $settings['neon'] ); ?>;--cine-neon2:<?php echo esc_attr( (string) $settings['neon2'] ); ?>;--cine-length:<?php echo esc_attr( (string) $height ); ?>vh"
 		>
 			<div class="pixva-cine__track" data-cine-track>
@@ -695,6 +919,9 @@ if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
 						<?php endif; ?>
 						<h2><?php echo esc_html( (string) $settings['title'] ); ?></h2>
 						<p class="pixva-muted"><?php echo esc_html( (string) $settings['subtitle'] ); ?></p>
+						<?php if ( $hint ) : ?>
+							<p class="pixva-cine__demo-note"><?php esc_html_e( 'لایه‌های دمو فعال است؛ تصویر و متن هر لایه را از «سفارشی‌سازی ← پیکسوا: لایه‌های دمو» یا پنل المنتور جایگزین کنید.', 'pixva' ); ?></p>
+						<?php endif; ?>
 					</header>
 
 					<div class="pixva-cine__scene" data-cine-scene aria-label="<?php esc_attr_e( 'نمای انفجاری لایه‌های تلویزیون', 'pixva' ); ?>">
@@ -769,6 +996,95 @@ if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
  * ۵) رندر مشترک: مدل سه‌بعدی تعاملی (Spline / WebGL)
  * ----------------------------------------------------------------------- */
 
+if ( ! function_exists( 'pixva_spline_demo_url' ) ) {
+	/**
+	 * آدرس پیش‌فرض مدل سه‌بعدی دمو (Master Prompt v8).
+	 *
+	 * صحنه نمونه رسمی Spline است تا ویجت بلافاصله پس از نصب یک مدل قابل چرخش
+	 * نشان دهد؛ مدیر می‌تواند از «سفارشی‌سازی ← پیکسوا: سینمایی…» آدرس صحنه
+	 * اختصاصی خودش را جایگزین کند. اگر ماژول/صحنه در دسترس نبود، موتور به‌صورت
+	 * خودکار به نمای لایه‌ای CSS-3D داخلی برمی‌گردد و کنسول خطای JS نمی‌گیرد.
+	 *
+	 * @return string
+	 */
+	function pixva_spline_demo_url() {
+		$fallback = 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode';
+		$url      = trim( (string) pixva_option( 'pixva_spline_demo_url', $fallback ) );
+
+		/**
+		 * فیلتر آدرس مدل دمو.
+		 *
+		 * @param string $url آدرس صحنه.
+		 */
+		return (string) apply_filters( 'pixva_spline_demo_url', '' !== $url ? $url : $fallback );
+	}
+}
+
+if ( ! function_exists( 'pixva_spline_demo_hotspots' ) ) {
+	/**
+	 * سه نقطه دمو روی مدل سه‌بعدی: بک‌لایت، برد تغذیه و پنل (Master Prompt v8).
+	 *
+	 * هر نقطه به خدمت همان قطعه در نرخ‌نامه پیوند می‌خورد و برآورد قیمت از
+	 * `pixva_calculate_estimate` سمت سرور خوانده می‌شود. با گزینه JSON
+	 * `pixva_spline_hotspots_json` یا ریپیتر المنتور قابل جایگزینی کامل است.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function pixva_spline_demo_hotspots() {
+		$custom = pixva_shortcode_json( (string) pixva_option( 'pixva_spline_hotspots_json', '' ) );
+		if ( ! empty( $custom ) && is_array( $custom ) ) {
+			$normalized = array();
+			foreach ( $custom as $row ) {
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+				$normalized[] = array(
+					'x'     => isset( $row['x'] ) ? (float) $row['x'] : ( isset( $row['hot_x'] ) ? (float) $row['hot_x'] : 50 ),
+					'y'     => isset( $row['y'] ) ? (float) $row['y'] : ( isset( $row['hot_y'] ) ? (float) $row['hot_y'] : 50 ),
+					'part'  => isset( $row['part'] ) ? (string) $row['part'] : ( isset( $row['hot_part'] ) ? (string) $row['hot_part'] : '' ),
+					'label' => isset( $row['label'] ) ? (string) $row['label'] : ( isset( $row['hot_label'] ) ? (string) $row['hot_label'] : '' ),
+					'text'  => isset( $row['text'] ) ? (string) $row['text'] : ( isset( $row['hot_text'] ) ? (string) $row['hot_text'] : '' ),
+				);
+			}
+			if ( ! empty( $normalized ) ) {
+				/** This filter is documented in inc/cinematic.php */
+				return apply_filters( 'pixva_spline_demo_hotspots', $normalized );
+			}
+		}
+
+		$hotspots = array(
+			array(
+				'x'     => 28,
+				'y'     => 40,
+				'part'  => 'backlight',
+				'label' => __( 'بک‌لایت سوخته', 'pixva' ),
+				'text'  => __( 'تاریکی موضعی یا نیمه‌تاریک شدن تصویر؛ تعویض ریسه LED فابریک و تست یکنواختی نور.', 'pixva' ),
+			),
+			array(
+				'x'     => 62,
+				'y'     => 66,
+				'part'  => 'powerboard',
+				'label' => __( 'برد تغذیه', 'pixva' ),
+				'text'  => __( 'چشمک چراغ پاور، خاموشی کامل یا صدای جرقه؛ تعمیر برد پاور در سطح قطعه با تست بار.', 'pixva' ),
+			),
+			array(
+				'x'     => 46,
+				'y'     => 24,
+				'part'  => 'panel',
+				'label' => __( 'پنل و خطوط تصویر', 'pixva' ),
+				'text'  => __( 'خطوط عمودی/افقی یا شکستگی شیشه؛ بندینگ COF یا تعویض پنل با دستگاه صنعتی.', 'pixva' ),
+			),
+		);
+
+		/**
+		 * فیلتر نقطه‌های دمو روی مدل سه‌بعدی.
+		 *
+		 * @param array $hotspots نقطه‌ها.
+		 */
+		return apply_filters( 'pixva_spline_demo_hotspots', $hotspots );
+	}
+}
+
 if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
 	/**
 	 * رندر ویجت مدل سه‌بعدی تعاملی با هات‌اسپیت استعلام قیمت.
@@ -794,37 +1110,26 @@ if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
 			)
 		);
 
-		$hotspots = $settings['hotspots'];
-		if ( empty( $hotspots ) || ! is_array( $hotspots ) ) {
-			$hotspots = array(
-				array(
-					'x'     => 30,
-					'y'     => 42,
-					'part'  => 'backlight',
-					'label' => __( 'بک‌لایت سوخته', 'pixva' ),
-					'text'  => __( 'تاریکی موضعی یا نیمه تاریک شدن تصویر؛ تعویض ریسه LED فابریک.', 'pixva' ),
-				),
-				array(
-					'x'     => 58,
-					'y'     => 62,
-					'part'  => 'panel',
-					'label' => __( 'خطوط پنل', 'pixva' ),
-					'text'  => __( 'خطوط عمودی/افقی یا شکستگی شیشه؛ بندینگ COF یا تعویض پنل.', 'pixva' ),
-				),
-				array(
-					'x'     => 74,
-					'y'     => 30,
-					'part'  => 'mainboard',
-					'label' => __( 'برد اصلی', 'pixva' ),
-					'text'  => __( 'عدم تصویر، مشکل HDMI یا خاموشی؛ تعمیر مین‌برد در سطح قطعه.', 'pixva' ),
-				),
-			);
+		$hotspots  = is_array( $settings['hotspots'] ) ? $settings['hotspots'] : array();
+		$demo_hot  = false;
+		if ( empty( $hotspots ) ) {
+			$hotspots = pixva_spline_demo_hotspots();
+			$demo_hot = true;
 		}
 
 		$id     = '' !== trim( (string) $settings['element_id'] ) ? sanitize_html_class( (string) $settings['element_id'] ) : 'pixva-3d-' . wp_rand( 100, 999 );
 		$height = max( 16, (int) $settings['height'] );
 		$url    = trim( (string) $settings['url'] );
-		$calc   = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' );
+		$demo   = false;
+
+		// پیش‌فرض v8: اگر آدرس مدل وارد نشده باشد، صحنه دمو بارگذاری می‌شود.
+		if ( '' === $url ) {
+			$url  = pixva_spline_demo_url();
+			$demo = '' !== $url;
+		}
+
+		$calc = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' );
+		$hint = ( $demo || $demo_hot ) && current_user_can( 'customize' );
 		?>
 		<section
 			id="<?php echo esc_attr( $id ); ?>"
@@ -833,6 +1138,7 @@ if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
 			data-spline-url="<?php echo esc_url( $url ); ?>"
 			data-spline-lazy="<?php echo $settings['lazy'] ? '1' : '0'; ?>"
 			data-spline-fallback="<?php echo $settings['fallback'] ? '1' : '0'; ?>"
+			data-spline-demo="<?php echo $demo ? '1' : '0'; ?>"
 			style="--spline-h:<?php echo esc_attr( (string) $height ); ?>rem;--spline-hot:<?php echo esc_attr( (string) $settings['neon'] ); ?>;--spline-accent:<?php echo esc_attr( (string) $settings['accent'] ); ?>"
 		>
 			<header class="pixva-3d__head">
@@ -841,6 +1147,9 @@ if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
 				<?php endif; ?>
 				<h2><?php echo esc_html( (string) $settings['title'] ); ?></h2>
 				<p class="pixva-muted"><?php echo esc_html( (string) $settings['subtitle'] ); ?></p>
+				<?php if ( $hint ) : ?>
+					<p class="pixva-3d__demo-note"><?php esc_html_e( 'مدل و نقطه‌های دمو فعال است؛ آدرس صحنه Spline و هات‌اسپیت‌ها را از «سفارشی‌سازی ← پیکسوا: سینمایی…» یا پنل المنتور جایگزین کنید.', 'pixva' ); ?></p>
+				<?php endif; ?>
 			</header>
 
 			<div class="pixva-3d__stage" data-spline-stage>
@@ -1095,6 +1404,7 @@ if ( ! function_exists( 'pixva_render_technician_tracker' ) ) {
 				'neon'       => 'rgb(34, 211, 238)',
 				'car'        => 'rgb(248, 113, 113)',
 				'lookup'     => true,
+				'demo'       => false,
 				'element_id' => '',
 			)
 		);
@@ -1110,6 +1420,7 @@ if ( ! function_exists( 'pixva_render_technician_tracker' ) ) {
 			data-pixva-tracker
 			data-map-code="<?php echo esc_attr( $code ); ?>"
 			data-map-phone="<?php echo esc_attr( $phone ); ?>"
+			data-map-demo="<?php echo $settings['demo'] ? '1' : '0'; ?>"
 			data-map-zoom="<?php echo esc_attr( (string) max( 3, min( 18, (int) $settings['zoom'] ) ) ); ?>"
 			data-map-refresh="<?php echo esc_attr( (string) max( 5, (int) $settings['refresh'] ) ); ?>"
 			style="--map-h:<?php echo esc_attr( (string) $height ); ?>rem;--map-neon:<?php echo esc_attr( (string) $settings['neon'] ); ?>;--map-car:<?php echo esc_attr( (string) $settings['car'] ); ?>"
@@ -1137,6 +1448,10 @@ if ( ! function_exists( 'pixva_render_technician_tracker' ) ) {
 						<span><?php esc_html_e( 'نمایش موقعیت', 'pixva' ); ?></span>
 					</button>
 				</form>
+			<?php endif; ?>
+
+			<?php if ( $settings['demo'] && current_user_can( 'customize' ) ) : ?>
+				<p class="pixva-map__demo-note"><?php esc_html_e( 'حالت دمو: نقشه با یک مسیر زنده نمایشی پر می‌شود. مبدأ، مقصد و سرعت از «سفارشی‌سازی ← پیکسوا: سینمایی…» خوانده می‌شود و با کد پیگیری واقعی مشتری جایگزین می‌گردد.', 'pixva' ); ?></p>
 			<?php endif; ?>
 
 			<div class="pixva-map__canvas" data-map-canvas role="img" aria-label="<?php esc_attr_e( 'نقشه موقعیت زنده تعمیرکار', 'pixva' ); ?>"></div>

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="برد اصلی تلویزیون">
+	<title>برد اصلی تلویزیون</title>
+	<defs>
+		<linearGradient id="pcbBody" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#0d2b26"/>
+			<stop offset="0.55" stop-color="#0a1f22"/>
+			<stop offset="1" stop-color="#071619"/>
+		</linearGradient>
+		<linearGradient id="chipTop" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#334155"/>
+			<stop offset="1" stop-color="#0f172a"/>
+		</linearGradient>
+		<filter id="boardGlow" x="-15%" y="-15%" width="130%" height="130%">
+			<feGaussianBlur stdDeviation="5" result="b"/>
+			<feMerge>
+				<feMergeNode in="b"/>
+				<feMergeNode in="SourceGraphic"/>
+			</feMerge>
+		</filter>
+	</defs>
+
+	<rect x="56" y="52" width="688" height="396" rx="18" fill="url(#pcbBody)" stroke="#22d3ee" stroke-opacity="0.35" stroke-width="2"/>
+
+	<g stroke="#22d3ee" stroke-opacity="0.45" stroke-width="2.5" fill="none">
+		<path d="M92 96h140l36 36h120"/>
+		<path d="M92 140h96l40 40h220l32-32h180"/>
+		<path d="M92 400h180l44-44h150"/>
+		<path d="M700 96v288"/>
+		<path d="M660 130v220"/>
+	</g>
+	<g stroke="#facc15" stroke-opacity="0.6" stroke-width="2" fill="none">
+		<path d="M120 200h180v96h140"/>
+		<path d="M470 176h150"/>
+		<path d="M120 330h96"/>
+	</g>
+
+	<g filter="url(#boardGlow)">
+		<rect x="300" y="200" width="150" height="110" rx="8" fill="url(#chipTop)" stroke="#22d3ee" stroke-opacity="0.6" stroke-width="2"/>
+		<circle cx="318" cy="218" r="5" fill="#22d3ee" fill-opacity="0.8"/>
+	</g>
+	<g fill="#94a3b8" fill-opacity="0.85">
+		<rect x="308" y="188" width="10" height="10" rx="2"/>
+		<rect x="332" y="188" width="10" height="10" rx="2"/>
+		<rect x="356" y="188" width="10" height="10" rx="2"/>
+		<rect x="380" y="188" width="10" height="10" rx="2"/>
+		<rect x="404" y="188" width="10" height="10" rx="2"/>
+		<rect x="308" y="312" width="10" height="10" rx="2"/>
+		<rect x="332" y="312" width="10" height="10" rx="2"/>
+		<rect x="356" y="312" width="10" height="10" rx="2"/>
+		<rect x="380" y="312" width="10" height="10" rx="2"/>
+		<rect x="404" y="312" width="10" height="10" rx="2"/>
+	</g>
+
+	<rect x="520" y="220" width="120" height="72" rx="6" fill="url(#chipTop)" stroke="#a855f7" stroke-opacity="0.65" stroke-width="2"/>
+	<g fill="#0f172a" stroke="#64748b" stroke-width="1.5">
+		<rect x="96" y="236" width="88" height="56" rx="4"/>
+	</g>
+	<g stroke="#cbd5f5" stroke-opacity="0.7" stroke-width="2">
+		<path d="M96 250H76M96 264H76M96 278H76M184 250h20M184 264h20M184 278h20"/>
+	</g>
+
+	<g fill="#f87171">
+		<circle cx="240" cy="120" r="12"/>
+		<circle cx="278" cy="120" r="12"/>
+	</g>
+	<g fill="#fbbf24">
+		<circle cx="240" cy="160" r="8"/>
+		<circle cx="272" cy="160" r="8"/>
+		<circle cx="304" cy="160" r="8"/>
+	</g>
+
+	<g fill="#0b1120" stroke="#94a3b8" stroke-opacity="0.75" stroke-width="2">
+		<rect x="520" y="360" width="150" height="34" rx="4"/>
+		<rect x="520" y="120" width="96" height="30" rx="4"/>
+	</g>
+	<g stroke="#22d3ee" stroke-opacity="0.5" stroke-width="2">
+		<path d="M540 360v34M566 360v34M592 360v34M618 360v34M644 360v34"/>
+	</g>
+
+	<g fill="#94a3b8" fill-opacity="0.55">
+		<circle cx="80" cy="76" r="7"/>
+		<circle cx="720" cy="76" r="7"/>
+		<circle cx="80" cy="424" r="7"/>
+		<circle cx="720" cy="424" r="7"/>
+	</g>
+	<rect x="96" y="352" width="120" height="52" rx="6" fill="#0b1120" stroke="#22d3ee" stroke-opacity="0.35" stroke-width="2"/>
+	<g fill="#22d3ee" fill-opacity="0.6">
+		<rect x="108" y="364" width="96" height="4" rx="2"/>
+		<rect x="108" y="376" width="70" height="4" rx="2"/>
+		<rect x="108" y="388" width="84" height="4" rx="2"/>
+	</g>
+</svg>

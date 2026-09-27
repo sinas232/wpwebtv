@@ -160,7 +160,7 @@ if ( ! class_exists( 'Pixva_3d_Repair_Widget' ) ) {
 					'type'        => \Elementor\Controls_Manager::URL,
 					'placeholder' => 'https://prod.spline.design/xxxx/scene.splinecode',
 					'default'     => array( 'url' => '' ),
-					'description' => esc_html__( 'از Spline خروجی «Copy as URL / scene.splinecode» بگیرید. خالی بگذارید تا نمای لایه‌ای داخلی نمایش داده شود.', 'pixva' ),
+					'description' => esc_html__( 'از Spline خروجی «Copy as URL / scene.splinecode» بگیرید. خالی بگذارید تا صحنه دمو (لایه ۱٫۷٫۰) بارگذاری شود؛ اگر ماژول یا صحنه در دسترس نبود، نمای لایه‌ای CSS-3D داخلی جایگزین می‌گردد.', 'pixva' ),
 				)
 			);
 

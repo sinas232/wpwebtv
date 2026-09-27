@@ -600,6 +600,16 @@ function pixva_control_tab_general( $opts ) {
 		pixva_control_stat( pixva_fa_num( (string) $opts['ai_max_tokens'] ), __( 'سقف توکن', 'pixva' ) );
 		?>
 	</div>
+
+	<h3><?php esc_html_e( 'چیدمان صفحه اصلی و المنتور (لایه ۱٫۷٫۰)', 'pixva' ); ?></h3>
+	<p class="description">
+		<?php esc_html_e( 'چهار بخش سینمایی (اسکرول انفجاری، عیب‌یاب هوشمند، مدل سه‌بعدی و نقشه زنده) به‌صورت خودکار روی صفحه اصلی فعال است. این دکمه همان چیدمان را به‌عنوان قالب پیش‌فرض در برگه خانه و کتابخانه المنتور می‌نویسد تا در ویرایشگر المنتور از پیش پر شده و قابل ویرایش باشد.', 'pixva' ); ?>
+	</p>
+	<?php
+	if ( function_exists( 'pixva_home_elementor_panel_html' ) ) {
+		echo pixva_home_elementor_panel_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- درون تابع فرار شده است.
+	}
+	?>
 	<?php
 }
 

@@ -19,12 +19,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	/*
-	 * ترتیب کلیدها همان ترتیب پیش‌فرض صفحه است (لایه ۱٫۵٫۰):
-	 * چیدمان مینیمال = هیرو ← سه مزیت ← نمونه‌کار تصویری ← نظرات مشتریان.
+	 * ترتیب کلیدها همان ترتیب پیش‌فرض صفحه است (لایه ۱٫۷٫۰ / Master Prompt v8):
+	 * هیرو و منوی مگا ← اسکرول سینمایی ← عیب‌یاب هوشمند ← مدل سه‌بعدی ←
+	 * نقشه زنده تعمیرکار ← سه مزیت ← نمونه‌کار تصویری ← نظرات مشتریان ← فوتر.
 	 * بقیه سکشن‌ها خاموش‌اند ولی از منوی مگا و هاب‌ها در دسترس می‌مانند.
 	 */
 	return array(
 		'hero'          => esc_html__( 'هیرو با عنوان و دکمه استعلام سریع قیمت', 'pixva' ),
+		'cinematic'     => esc_html__( 'اسکرول سینمایی: نمای انفجاری پنج‌لایه تلویزیون (لایه ۱٫۷٫۰)', 'pixva' ),
+		'ai_diagnose'   => esc_html__( 'عیب‌یاب هوشمند با ویدیو و صدای دستگاه (لایه ۱٫۷٫۰)', 'pixva' ),
+		'repair_3d'     => esc_html__( 'مدل سه‌بعدی تعاملی با هات‌اسپیت قیمت قطعه (لایه ۱٫۷٫۰)', 'pixva' ),
+		'tech_tracker'  => esc_html__( 'نقشه زنده تعمیرکار با مسیر دمو و ETA (لایه ۱٫۷٫۰)', 'pixva' ),
 		'advantages'    => esc_html__( 'سه مزیت کلیدی کارگاه (گارانتی، اعزام، قطعه فابریک)', 'pixva' ),
 		'work'          => esc_html__( 'نمونه‌کار تصویری گالری تعمیرات', 'pixva' ),
 		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
@@ -53,12 +58,17 @@ function pixva_home_sections() {
  */
 function pixva_home_section_defaults() {
 	/*
-	 * صفحه اصلی مینیمال (Master Prompt v6): فقط چهار سکشن روشن است و تمام
-	 * ابزارها به منوی مگا و صفحات اختصاصی منتقل شده‌اند. کاربر می‌تواند از
-	 * بخش «پیکسوا: سکشن‌های صفحه اصلی» هرکدام را دوباره فعال کند.
+	 * صفحه اصلی (Master Prompt v8): هیرو + چهار تجربه سینمایی (اسکرول انفجاری،
+	 * عیب‌یاب هوشمند، مدل سه‌بعدی و نقشه زنده) + سه مزیت + نمونه‌کار + نظرات.
+	 * بقیه ابزارها خاموش‌اند و از منوی مگا و صفحات اختصاصی در دسترس می‌مانند؛
+	 * کاربر می‌تواند هر سکشن را از «پیکسوا: سکشن‌های صفحه اصلی» تغییر دهد.
 	 */
 	$defaults = array(
 		'hero'          => true,
+		'cinematic'     => true,
+		'ai_diagnose'   => true,
+		'repair_3d'     => true,
+		'tech_tracker'  => true,
 		'advantages'    => true,
 		'work'          => true,
 		'testimonials'  => true,
@@ -92,8 +102,9 @@ function pixva_home_section_defaults() {
  */
 function pixva_default_section_order() {
 	/*
-	 * ترتیب فرود طبق Master Prompt v6: هیرو ← سه مزیت ← نمونه‌کار تصویری ←
-	 * نظرات مشتریان، سپس سایر سکشن‌ها با همان ترتیب فهرست بالا.
+	 * ترتیب فرود طبق Master Prompt v8: هیرو ← اسکرول سینمایی ← عیب‌یاب هوشمند ←
+	 * مدل سه‌بعدی ← نقشه زنده ← سه مزیت ← نمونه‌کار ← نظرات مشتریان، سپس سایر
+	 * سکشن‌ها با همان ترتیب فهرست بالا.
 	 */
 	return implode( ',', array_keys( pixva_home_sections() ) );
 }
@@ -113,13 +124,46 @@ function pixva_sanitize_section_order( $value ) {
 			$clean[] = $part;
 		}
 	}
-	// سکشن‌های جاافتاده به انتهای فهرست اضافه می‌شوند تا هیچ‌گاه گم نشوند.
-	foreach ( $allowed as $key ) {
-		if ( ! in_array( $key, $clean, true ) ) {
-			$clean[] = $key;
+	/*
+	 * سکشن‌های جاافتاده (نسخه‌های تازه‌تر پوسته) هیچ‌گاه گم نمی‌شوند، اما به
+	 * انتهای فهرست پرتاب نمی‌شوند؛ هرکدام دقیقاً در جایگاه استاندارد خودش
+	 * درج می‌شود تا ترتیب Master Prompt v8 روی نصب‌های قدیمی هم درست بماند.
+	 */
+	return implode( ',', pixva_merge_section_order( $clean ) );
+}
+
+/**
+ * درج کلیدهای جاافتاده در جایگاه استاندارد ترتیب سکشن‌های صفحه اصلی.
+ *
+ * ترتیب ذخیره‌شده کاربر محترم است؛ فقط کلیدهایی که در آن نیستند به‌جای
+ * «انتهای فهرست»، پس از نزدیک‌ترین کلیدِ قبلی در ترتیب پیش‌فرض قرار می‌گیرند.
+ *
+ * @param array<int, string> $keys ترتیب فعلی.
+ * @return array<int, string>
+ */
+function pixva_merge_section_order( $keys ) {
+	$default_keys = array_map( 'trim', explode( ',', pixva_default_section_order() ) );
+	$keys         = array_values( array_filter( array_map( 'trim', (array) $keys ), 'strlen' ) );
+	$missing      = array_values( array_diff( $default_keys, $keys ) );
+
+	foreach ( $missing as $key ) {
+		$canonical = array_search( $key, $default_keys, true );
+		$position  = count( $keys );
+
+		if ( false !== $canonical ) {
+			$position = 0;
+			for ( $i = 0; $i < $canonical; $i++ ) {
+				$found = array_search( $default_keys[ $i ], $keys, true );
+				if ( false !== $found ) {
+					$position = max( $position, $found + 1 );
+				}
+			}
 		}
+
+		array_splice( $keys, (int) $position, 0, array( $key ) );
 	}
-	return implode( ',', $clean );
+
+	return $keys;
 }
 
 /**
@@ -684,8 +728,153 @@ function pixva_customize_register( $wp_customize ) {
 
 		$wp_customize->add_control( $pixva_key, $pixva_control_args );
 	}
+
+	/* ------- صفحه اصلی سینمایی و دارایی‌های دمو (لایه ۱٫۷٫۰ / Master Prompt v8) ------- */
+	$wp_customize->add_section(
+		'pixva_home_v8',
+		array(
+			'title'       => esc_html__( 'پیکسوا: صفحه اصلی سینمایی (v8)', 'pixva' ),
+			'description' => esc_html__( 'متن چهار بخش خودکار صفحه اصلی (اسکرول سینمایی، عیب‌یاب هوشمند، مدل سه‌بعدی و نقشه زنده) و حالت چیدمان المنتوری. همه فیلدها اختیاری‌اند؛ خالی یعنی مقدار پیش‌فرض داده‌محور.', 'pixva' ),
+			'priority'    => 35,
+		)
+	);
+
+	$wp_customize->add_section(
+		'pixva_demo_assets',
+		array(
+			'title'       => esc_html__( 'پیکسوا: لایه‌های دمو و مدل سه‌بعدی', 'pixva' ),
+			'description' => esc_html__( 'تصویر پنج لایه انفجاری (پیش‌فرض: فایل‌های SVG پوسته در assets/images/demo)، آدرس صحنه Spline، نقطه‌های دمو و داده مسیر نمایشی نقشه.', 'pixva' ),
+			'priority'    => 36,
+		)
+	);
+
+	/**
+	 * فیلدهای لایه ۱٫۷٫۰: کلید => [بخش, برچسب, نوع, پیش‌فرض, توضیح].
+	 *
+	 * @var array<string, array{0:string, 1:string, 2:string, 3:mixed, 4:string}>
+	 */
+	$pixva_v8_fields = array(
+		'pixva_home_use_elementor'    => array( 'pixva_home_v8', __( 'رندر صفحه اصلی با چیدمان المنتور', 'pixva' ), 'checkbox', false, __( 'پس از ذخیره چیدمان پیش‌فرض (دکمه «بارگذاری چیدمان المنتور» در مرکز کنترل)، front-page.php به‌جای سکشن‌های پوسته، محتوای المنتور برگه خانه را چاپ می‌کند.', 'pixva' ) ),
+		'pixva_home_cine_badge'       => array( 'pixva_home_v8', __( 'اسکرول سینمایی: برچسب', 'pixva' ), 'text', __( 'کالبدشکافی زنده', 'pixva' ), '' ),
+		'pixva_home_cine_title'       => array( 'pixva_home_v8', __( 'اسکرول سینمایی: تیتر', 'pixva' ), 'text', __( 'داخل یک تلویزیون چه می‌گذرد؟', 'pixva' ), '' ),
+		'pixva_home_cine_subtitle'    => array( 'pixva_home_v8', __( 'اسکرول سینمایی: توضیح', 'pixva' ), 'textarea', __( 'با اسکرول، پنج لایه دستگاه از هم باز می‌شوند و خدمت تعمیر هر قطعه کنارش ظاهر می‌شود.', 'pixva' ), '' ),
+		'pixva_home_ai_badge'         => array( 'pixva_home_v8', __( 'عیب‌یاب هوشمند: برچسب', 'pixva' ), 'text', __( 'عیب‌یابی هوشمند', 'pixva' ), '' ),
+		'pixva_home_ai_title'         => array( 'pixva_home_v8', __( 'عیب‌یاب هوشمند: تیتر', 'pixva' ), 'text', __( 'ویدیو یا صدای دستگاه را بفرستید تا تحلیل شود', 'pixva' ), '' ),
+		'pixva_home_ai_subtitle'      => array( 'pixva_home_v8', __( 'عیب‌یاب هوشمند: توضیح', 'pixva' ), 'textarea', __( 'یک ویدیوی کوتاه از خرابی یا صدای دستگاه را آپلود کنید؛ خروجی تحلیل به همراه کد پیگیری برای شما ثبت می‌شود.', 'pixva' ), '' ),
+		'pixva_home_3d_badge'         => array( 'pixva_home_v8', __( 'مدل سه‌بعدی: برچسب', 'pixva' ), 'text', __( 'نمای سه‌بعدی', 'pixva' ), '' ),
+		'pixva_home_3d_title'         => array( 'pixva_home_v8', __( 'مدل سه‌بعدی: تیتر', 'pixva' ), 'text', __( 'دستگاه را بچرخانید و قطعه معیوب را لمس کنید', 'pixva' ), '' ),
+		'pixva_home_3d_subtitle'      => array( 'pixva_home_v8', __( 'مدل سه‌بعدی: توضیح', 'pixva' ), 'textarea', __( 'با ماوس مدل را بچرخانید؛ روی نقطه‌های قرمز کلیک کنید تا برآورد قیمت همان قطعه باز شود.', 'pixva' ), '' ),
+		'pixva_home_map_badge'        => array( 'pixva_home_v8', __( 'نقشه زنده: برچسب', 'pixva' ), 'text', __( 'ردیابی زنده', 'pixva' ), '' ),
+		'pixva_home_map_title'        => array( 'pixva_home_v8', __( 'نقشه زنده: تیتر', 'pixva' ), 'text', __( 'تعمیرکار کجاست؟', 'pixva' ), '' ),
+		'pixva_home_map_subtitle'     => array( 'pixva_home_v8', __( 'نقشه زنده: توضیح', 'pixva' ), 'textarea', __( 'مسیر حرکت تعمیرکار تا محل شما روی نقشه تاریک روشن می‌شود؛ با کد پیگیری، موقعیت واقعی پرونده خودتان را ببینید.', 'pixva' ), '' ),
+		'pixva_home_map_demo'         => array( 'pixva_home_v8', __( 'نقشه صفحه اصلی: مسیر دمو زنده', 'pixva' ), 'checkbox', true, __( 'بدون کد پیگیری، نقشه با یک مسیر نمایشی که بر پایه زمان جلو می‌رود پر می‌شود.', 'pixva' ) ),
+		'pixva_home_map_lookup'       => array( 'pixva_home_v8', __( 'نقشه صفحه اصلی: فرم کد پیگیری', 'pixva' ), 'checkbox', true, __( 'بازدیدکننده می‌تواند کد و شماره همراه پرونده خودش را وارد کند.', 'pixva' ) ),
+
+		'pixva_demo_layer_frame'      => array( 'pixva_demo_assets', __( 'لایه دمو ۱: قاب رویی', 'pixva' ), 'image', '', __( 'پیش‌فرض: assets/images/demo/tv-frame-front.svg', 'pixva' ) ),
+		'pixva_demo_layer_glass'      => array( 'pixva_demo_assets', __( 'لایه دمو ۲: صفحه شیشه‌ای', 'pixva' ), 'image', '', __( 'پیش‌فرض: assets/images/demo/tv-glass-screen.svg', 'pixva' ) ),
+		'pixva_demo_layer_backlight'  => array( 'pixva_demo_assets', __( 'لایه دمو ۳: بک‌لایت نئونی', 'pixva' ), 'image', '', __( 'پیش‌فرض: assets/images/demo/tv-backlight-neon.svg', 'pixva' ) ),
+		'pixva_demo_layer_mainboard'  => array( 'pixva_demo_assets', __( 'لایه دمو ۴: برد اصلی', 'pixva' ), 'image', '', __( 'پیش‌فرض: assets/images/demo/tv-mainboard.svg', 'pixva' ) ),
+		'pixva_demo_layer_cover'      => array( 'pixva_demo_assets', __( 'لایه دمو ۵: قاب پشتی', 'pixva' ), 'image', '', __( 'پیش‌فرض: assets/images/demo/tv-back-cover.svg', 'pixva' ) ),
+		'pixva_cine_layers_json'      => array( 'pixva_demo_assets', __( 'بازنویسی کامل لایه‌ها (JSON)', 'pixva' ), 'json', '', __( 'نمونه: [{"image":"https://.../layer.png","title":"پنل","text":"شرح خدمت","link":"panel","depth":4}] — اگر پر شود، جای پنج لایه دمو را می‌گیرد.', 'pixva' ) ),
+		'pixva_spline_demo_url'       => array( 'pixva_demo_assets', __( 'آدرس صحنه دمو Spline', 'pixva' ), 'url', 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode', __( 'صحنه نمونه رسمی Spline؛ آدرس scene.splinecode مدل اختصاصی خودتان را جایگزین کنید.', 'pixva' ) ),
+		'pixva_spline_hotspots_json'  => array( 'pixva_demo_assets', __( 'بازنویسی نقطه‌های سه‌بعدی (JSON)', 'pixva' ), 'json', '', __( 'نمونه: [{"x":28,"y":40,"part":"backlight","label":"بک‌لایت سوخته","text":"شرح"}] — پیش‌فرض سه نقطه است: بک‌لایت، برد تغذیه و پنل.', 'pixva' ) ),
+		'pixva_map_demo_lat'          => array( 'pixva_demo_assets', __( 'مسیر دمو: عرض جغرافیایی مقصد', 'pixva' ), 'coord', '', __( 'خالی = دورترین منطقه از فهرست منطقه‌ها یا مقصد قطعی نزدیک مبدأ.', 'pixva' ) ),
+		'pixva_map_demo_lng'          => array( 'pixva_demo_assets', __( 'مسیر دمو: طول جغرافیایی مقصد', 'pixva' ), 'coord', '', '' ),
+		'pixva_map_demo_label'        => array( 'pixva_demo_assets', __( 'مسیر دمو: برچسب مقصد', 'pixva' ), 'text', '', __( 'خالی = برچسب مقصد عمومی نقشه.', 'pixva' ) ),
+		'pixva_map_demo_tech'         => array( 'pixva_demo_assets', __( 'مسیر دمو: نام تعمیرکار', 'pixva' ), 'text', __( 'تعمیرکار شیفت امروز', 'pixva' ), '' ),
+		'pixva_map_demo_skill'        => array( 'pixva_demo_assets', __( 'مسیر دمو: تخصص تعمیرکار', 'pixva' ), 'text', __( 'بک‌لایت، پنل و برد اصلی', 'pixva' ), '' ),
+		'pixva_map_demo_brand'        => array( 'pixva_demo_assets', __( 'مسیر دمو: برند دستگاه', 'pixva' ), 'text', 'Samsung', '' ),
+		'pixva_map_demo_model'        => array( 'pixva_demo_assets', __( 'مسیر دمو: مدل دستگاه', 'pixva' ), 'text', __( 'نمایش دمو ۵۵ اینچ', 'pixva' ), '' ),
+	);
+
+	foreach ( $pixva_v8_fields as $pixva_key => $pixva_field ) {
+		$pixva_type = $pixva_field[2];
+
+		if ( 'checkbox' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_checkbox';
+			$pixva_control  = 'checkbox';
+		} elseif ( 'number' === $pixva_type ) {
+			$pixva_sanitize = 'absint';
+			$pixva_control  = 'number';
+		} elseif ( 'textarea' === $pixva_type ) {
+			$pixva_sanitize = 'sanitize_textarea_field';
+			$pixva_control  = 'textarea';
+		} elseif ( 'json' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_json';
+			$pixva_control  = 'textarea';
+		} elseif ( 'coord' === $pixva_type ) {
+			$pixva_sanitize = 'pixva_sanitize_coord';
+			$pixva_control  = 'text';
+		} elseif ( 'url' === $pixva_type ) {
+			$pixva_sanitize = 'esc_url_raw';
+			$pixva_control  = 'url';
+		} elseif ( 'image' === $pixva_type ) {
+			$pixva_sanitize = 'esc_url_raw';
+			$pixva_control  = 'image';
+		} else {
+			$pixva_sanitize = 'sanitize_text_field';
+			$pixva_control  = 'text';
+		}
+
+		$wp_customize->add_setting(
+			$pixva_key,
+			array(
+				'default'           => $pixva_field[3],
+				'sanitize_callback' => $pixva_sanitize,
+			)
+		);
+
+		$pixva_args = array(
+			'label'   => $pixva_field[1],
+			'section' => $pixva_field[0],
+			'type'    => $pixva_control,
+		);
+
+		if ( '' !== $pixva_field[4] ) {
+			$pixva_args['description'] = $pixva_field[4];
+		}
+
+		if ( 'image' === $pixva_type ) {
+			$wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, $pixva_key, $pixva_args ) );
+			continue;
+		}
+
+		if ( 'json' === $pixva_type ) {
+			$pixva_args['input_attrs'] = array( 'dir' => 'ltr', 'style' => 'font-family:monospace;font-size:12px' );
+		}
+
+		$wp_customize->add_control( $pixva_key, $pixva_args );
+	}
 }
 add_action( 'customize_register', 'pixva_customize_register' );
+
+/**
+ * پاک‌سازی فیلد JSON (لایه‌ها و هات‌اسپیت‌های دمو).
+ *
+ * مقدار نامعتبر به رشته خالی تبدیل می‌شود تا خواننده گزینه، پیش‌فرض
+ * داده‌محور پوسته را برگرداند؛ در نتیجه هرگز JSON شکسته به مرورگر نمی‌رسد.
+ *
+ * @param mixed $value ورودی.
+ * @return string
+ */
+function pixva_sanitize_json( $value ) {
+	$value = trim( (string) sanitize_textarea_field( (string) $value ) );
+
+	if ( '' === $value ) {
+		return '';
+	}
+
+	$decoded = json_decode( $value, true );
+	if ( ! is_array( $decoded ) ) {
+		$decoded = json_decode( wp_specialchars_decode( $value, ENT_QUOTES ), true );
+	}
+
+	if ( ! is_array( $decoded ) ) {
+		return '';
+	}
+
+	return (string) wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+}
 
 /**
  * Sanitize چک‌باکس.
@@ -751,12 +940,8 @@ function pixva_active_home_sections() {
 	$order = pixva_sanitize_section_order( implode( ',', $order ) );
 	$keys  = array_map( 'trim', explode( ',', $order ) );
 
-	// سکشن‌های تازه‌افزوده‌شده (advantages/work) در ترتیب ذخیره‌شده نصب‌های قدیمی نیستند.
-	$default_keys = array_map( 'trim', explode( ',', pixva_default_section_order() ) );
-	$missing      = array_values( array_diff( $default_keys, $keys ) );
-	if ( ! empty( $missing ) ) {
-		$keys = array_merge( $keys, $missing );
-	}
+	// کلیدهای جاافتاده در جایگاه استاندارد خودشان درج می‌شوند (لایه ۱٫۷٫۰).
+	$keys = pixva_merge_section_order( $keys );
 
 	$defaults = pixva_home_section_defaults();
 	$keys     = array_filter(

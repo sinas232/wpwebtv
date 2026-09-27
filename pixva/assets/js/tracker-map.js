@@ -357,7 +357,8 @@
 				techEl.textContent = name ? (i18n.tech || '') + ': ' + name + (data.technician.skill ? ' · ' + data.technician.skill : '') : (i18n.waiting || '');
 			}
 			if (stateEl) {
-				stateEl.textContent = data.simulated ? (data.statusLabel || '') + ' · ' + (i18n.simulated || '') : (data.statusLabel || '');
+				var extra = data.demo ? (i18n.demo || '') : (data.simulated ? (i18n.simulated || '') : '');
+				stateEl.textContent = extra ? (data.statusLabel || '') + ' · ' + extra : (data.statusLabel || '');
 			}
 		}
 
@@ -369,9 +370,16 @@
 			paintStatus(data);
 			if (errorEl) { errorEl.hidden = true; }
 
+			if (attrEl && data.demo && !useLeaflet && i18n.demoNote) {
+				attrEl.textContent = i18n.demoNote;
+			}
+
 			var refresh = Math.max(5, parseInt(section.dataset.mapRefresh, 10) || data.refresh || 20);
 			if (timer) { window.clearInterval(timer); }
-			if (data.moving) {
+			if (data.demo) {
+				// مسیر دمو سمت سرور بر پایه زمان جلو می‌رود؛ پس خودِ داده تازه می‌شود.
+				timer = window.setInterval(function () { load('', '', true); }, refresh * 1000);
+			} else if (data.moving) {
 				timer = window.setInterval(function () {
 					if (map && lastPayload) {
 						map.animateTo(Math.min(1, lastPayload.progress + 0.02));
@@ -380,9 +388,12 @@
 			}
 		}
 
-		function load(code, phone) {
-			if (!code) { return Promise.resolve(null); }
-			var url = (cfg.restUrl || '/wp-json/pixva/v1') + '/dispatch-live?code=' + encodeURIComponent(code) + '&phone=' + encodeURIComponent(phone || '');
+		function load(code, phone, isDemo) {
+			if (!isDemo && !code) { return Promise.resolve(null); }
+			var base = (cfg.restUrl || '/wp-json/pixva/v1') + '/dispatch-live?';
+			var url = isDemo
+				? base + 'demo=1'
+				: base + 'code=' + encodeURIComponent(code) + '&phone=' + encodeURIComponent(phone || '');
 			section.dataset.mapLoading = '1';
 
 			return window.fetch(url, {
@@ -423,9 +434,13 @@
 
 		// اگر کد از پیش تنظیم شده (شورت‌کد/ویجت) بلافاصله بارگذاری کن.
 		var preset = section.dataset.mapCode || '';
+		var isDemo = '1' === section.dataset.mapDemo;
 		if (preset) {
 			var presetPhone = section.dataset.mapPhone || '';
 			load(preset, presetPhone);
+		} else if (isDemo) {
+			// Master Prompt v8: نقشه صفحه اصلی بدون کد پیگیری هم زنده است.
+			load('', '', true);
 		}
 
 		// نتیجه استعلام پیگیری در همان صفحه → نقشه خودکار پر می‌شود.
@@ -457,7 +472,12 @@
 			}
 		});
 
-		section.pixvaTracker = { load: load, apply: apply, engine: engine };
+		section.pixvaTracker = {
+			load: load,
+			apply: apply,
+			engine: engine,
+			demo: function () { return load('', '', true); }
+		};
 	}
 
 	function scan(root) {

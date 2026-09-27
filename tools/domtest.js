@@ -21,6 +21,7 @@ const harness = path.join(repo, 'preview', 'hero-preview.html');
 const crmHarness = path.join(repo, 'tools', 'fixtures', 'crm-preview.html');
 const v6Harness = path.join(repo, 'tools', 'fixtures', 'v6-preview.html');
 const v7Harness = path.join(repo, 'tools', 'fixtures', 'v7-preview.html');
+const v8Harness = path.join(repo, 'tools', 'fixtures', 'v8-preview.html');
 
 let passed = 0;
 let failed = 0;
@@ -106,8 +107,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۶٫۰', /Version:\s*1\.6\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.6.0' )") > -1);
+	check('style.css: نسخه ۱٫۷٫۰', /Version:\s*1\.7\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -629,7 +630,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۱٫۶٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.6.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.6.0' )") > -1);
+	check('v7: نسخه پوسته ۱٫۷٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.7.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -939,6 +940,415 @@ async function v7Checks(window) {
 	check('v7: رویداد پیگیری با شماره، نقشه را تازه می‌کند', window.__pixvaCalls.dispatch === 2);
 }
 
+/* ==========================================================================
+   لایه ۱٫۷٫۰ — Master Prompt v8: صفحه اصلی خودکار با چهار ویجت سینمایی
+   ========================================================================== */
+function v8StaticChecks() {
+	const read = (rel) => fs.readFileSync(path.join(theme, rel), 'utf8');
+	const exists = (rel) => fs.existsSync(path.join(theme, rel));
+
+	const funcs = read('functions.php');
+	const styleCss = read('style.css');
+	const front = read('front-page.php');
+	const cinematic = read('inc/cinematic.php');
+	const mapPhp = read('inc/tracker-map.php');
+	const options = read('inc/theme-options.php');
+	const activation = read('inc/activation.php');
+	const control = read('inc/control-center.php');
+	const shortcodes = read('inc/shortcodes.php');
+	const seed = read('inc/home-seed.php');
+	const css = read('assets/css/pixva-2026.css');
+	const mapJs = read('assets/js/tracker-map.js');
+	const cineWidget = read('inc/widgets/class-pixva-cinematic-widget.php');
+	const splineWidget = read('inc/widgets/class-pixva-spline-widget.php');
+	const trackerWidget = read('inc/widgets/class-pixva-tech-tracker-widget.php');
+
+	/* --- ۱) دارایی‌های دمو: پنج لایه SVG آماده (بدون آپلود) --- */
+	const demoFiles = [
+		'assets/images/demo/tv-frame-front.svg',
+		'assets/images/demo/tv-glass-screen.svg',
+		'assets/images/demo/tv-backlight-neon.svg',
+		'assets/images/demo/tv-mainboard.svg',
+		'assets/images/demo/tv-back-cover.svg'
+	];
+	demoFiles.forEach((rel) => {
+		const ok = exists(rel);
+		const body = ok ? read(rel) : '';
+		check('v8: فایل دمو ' + path.basename(rel) + ' موجود است', ok);
+		check('v8: فایل دمو ' + path.basename(rel) + ' SVG معتبر است', ok && body.indexOf('<svg') === 0 && body.indexOf('xmlns="http://www.w3.org/2000/svg"') > -1 && body.trim().endsWith('</svg>'));
+		check('v8: فایل دمو ' + path.basename(rel) + ' سبک است (< ۸ کیلوبایت)', ok && Buffer.byteLength(body, 'utf8') < 8192);
+	});
+
+	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
+	check('v8: پوسته نسخه ۱٫۷٫۰ است', styleCss.indexOf('Version: 1.7.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
+
+	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
+	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1
+		&& ['frame', 'glass', 'backlight', 'mainboard', 'cover'].every((k) => cinematic.indexOf("'" + k + "'") > -1)
+		&& ['pixva_demo_layer_frame', 'pixva_demo_layer_glass', 'pixva_demo_layer_backlight', 'pixva_demo_layer_mainboard', 'pixva_demo_layer_cover']
+			.every((o) => cinematic.indexOf("'" + o + "'") > -1 && options.indexOf("'" + o + "'") > -1));
+	check('v8: هر لایه دمو از فایل خودش خوانده می‌شود', demoFiles.every((rel) => cinematic.indexOf(path.basename(rel)) > -1));
+	check('v8: آدرس لایه دمو با گزینه سفارشی‌ساز جایگزین می‌شود', cinematic.indexOf('function pixva_cinematic_demo_image(') > -1
+		&& cinematic.indexOf("pixva_option( $demo[ $key ]['option'], '' )") > -1);
+	check('v8: پنج لایه پیش‌فرض با عمق ۵ تا ۱', (cinematic.match(/'depth' => [1-5],/g) || []).length >= 5
+		&& [5, 4, 3, 2, 1].every((d) => cinematic.indexOf("'depth' => " + d + ",") > -1));
+	check('v8: هر لایه دمو به خدمت درست لینک می‌شود', ['panel', 'backlight', 'mainboard', 'powerboard'].every((k) => cinematic.indexOf("'link'  => '" + k + "',") > -1));
+	check('v8: بازنویسی کامل لایه‌ها با JSON سفارشی‌ساز', cinematic.indexOf("pixva_option( 'pixva_cine_layers_json', '' )") > -1
+		&& options.indexOf("'pixva_cine_layers_json'") > -1);
+	check('v8: یکدست‌سازی لایه‌ها (JSON/شورت‌کد/ریپیتر المنتور)', cinematic.indexOf('function pixva_cinematic_normalize_layers(') > -1
+		&& ['layer_image', 'layer_title', 'layer_text', 'layer_service', 'layer_depth'].every((k) => cinematic.indexOf("'" + k + "'") > -1));
+	check('v8: رندر سینمایی لایه‌ها را یکدست و دمو را علامت می‌زند', cinematic.indexOf('pixva_cinematic_normalize_layers(') > -1
+		&& cinematic.indexOf('data-cine-demo=') > -1);
+	check('v8: تصویر لایه‌ها lazy و async بارگذاری می‌شود', cinematic.indexOf('loading="lazy" decoding="async"') > -1);
+	check('v8: راهنمای لایه دمو فقط برای مدیر', cinematic.indexOf("$hint     = $is_demo && current_user_can( 'customize' );") > -1
+		&& cinematic.indexOf('pixva-cine__demo-note') > -1);
+	check('v8: ویجت سینمایی پنج لایه دمو را اعلام می‌کند', cineWidget.indexOf('پنج لایه دمو') > -1 && cineWidget.indexOf('assets/images/demo') > -1);
+
+	/* --- ۳) پیش‌فرض‌های مدل سه‌بعدی --- */
+	check('v8: آدرس صحنه دمو Spline', cinematic.indexOf('function pixva_spline_demo_url(') > -1
+		&& cinematic.indexOf('https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode') > -1);
+	check('v8: آدرس دمو با گزینه سفارشی‌ساز بازنویسی می‌شود', cinematic.indexOf("pixva_option( 'pixva_spline_demo_url', $fallback )") > -1
+		&& options.indexOf("'pixva_spline_demo_url'") > -1);
+	check('v8: سه هات‌اسپیت دمو (بک‌لایت، برد تغذیه، پنل)', cinematic.indexOf('function pixva_spline_demo_hotspots(') > -1
+		&& ["'part'  => 'backlight',", "'part'  => 'powerboard',", "'part'  => 'panel',"].every((k) => cinematic.indexOf(k) > -1));
+	check('v8: هات‌اسپیت‌های دمو با JSON قابل بازنویسی', cinematic.indexOf("pixva_option( 'pixva_spline_hotspots_json', '' )") > -1
+		&& options.indexOf("'pixva_spline_hotspots_json'") > -1);
+	check('v8: رندر سه‌بعدی بدون آدرس، صحنه دمو را برمی‌دارد', cinematic.indexOf('$url  = pixva_spline_demo_url();') > -1
+		&& cinematic.indexOf('data-spline-demo=') > -1);
+	check('v8: ویجت سه‌بعدی آدرس دمو را توضیح می‌دهد', splineWidget.indexOf('صحنه دمو') > -1);
+
+	/* --- ۴) نقشه زنده با مسیر دمو --- */
+	check('v8: مقصد دمو از گزینه/منطقه‌ها/نزدیک مبدأ', mapPhp.indexOf('function pixva_map_demo_destination(') > -1
+		&& ['pixva_map_demo_lat', 'pixva_map_demo_lng', 'pixva_map_demo_label'].every((k) => mapPhp.indexOf(k) > -1));
+	check('v8: بار دمو بر پایه زمان جلو می‌رود', mapPhp.indexOf('function pixva_map_demo_payload(') > -1
+		&& mapPhp.indexOf('fmod( (float) time()') > -1 && mapPhp.indexOf("'demo'        => true,") > -1
+		&& mapPhp.indexOf("'moving'      => true,") > -1 && mapPhp.indexOf("'simulated'   => true,") > -1);
+	check('v8: بار دمو همان شکل بار واقعی را دارد', ['code', 'statusLabel', 'technician', 'eta', 'progress', 'route', 'marker', 'origin', 'destination', 'refresh', 'updatedAt']
+		.every((k) => mapPhp.indexOf("'" + k + "'") > -1));
+	check('v8: REST مسیر دمو را بدون کد و شماره می‌پذیرد', mapPhp.indexOf("$request->get_param( 'demo' )") > -1
+		&& (mapPhp.match(/'required'          => false,/g) || []).length >= 3
+		&& mapPhp.indexOf("'demo'  => array(") > -1);
+	check('v8: اعتبارسنجی کد/شماره برای درخواست واقعی باقی است', mapPhp.indexOf("__( 'کد پیگیری و شماره همراه هر دو لازم است.', 'pixva' )") > -1);
+	check('v8: رندر نقشه حالت دمو را اعلام می‌کند', cinematic.indexOf("'demo'       => false,") > -1
+		&& cinematic.indexOf('data-map-demo=') > -1 && cinematic.indexOf('pixva-map__demo-note') > -1);
+	check('v8: راهنمای حالت دمو فقط برای مدیر', cinematic.indexOf("$settings['demo'] && current_user_can( 'customize' )") > -1);
+	check('v8: JS نقشه مسیر دمو را خودکار بارگذاری می‌کند', mapJs.indexOf("'1' === section.dataset.mapDemo") > -1
+		&& mapJs.indexOf("load('', '', true)") > -1 && mapJs.indexOf("base + 'demo=1'") > -1);
+	check('v8: JS نقشه در حالت دمو دوره‌ای نوسازی می‌شود', mapJs.indexOf('if (data.demo) {') > -1 && mapJs.indexOf('refresh * 1000') > -1);
+	check('v8: برچسب «مسیر دمو» در کارت وضعیت', mapJs.indexOf('i18n.demo') > -1 && cinematic.indexOf("'demo'          => esc_html__( 'مسیر دمو', 'pixva' )") > -1
+		&& cinematic.indexOf("'demoNote'      =>") > -1);
+	check('v8: API عمومی نقشه برای دمو', mapJs.indexOf('demo: function () { return load(\'\', \'\', true); }') > -1);
+	check('v8: ویجت نقشه کلید حالت دمو دارد', trackerWidget.indexOf("'demo',") > -1 && trackerWidget.indexOf("'default'      => 'yes',") > -1
+		&& trackerWidget.indexOf("'demo'       => isset( $settings['demo'] )") > -1);
+	check('v8: شورت‌کد نقشه مشخصه demo دارد', shortcodes.indexOf("'demo'     => 'no',") > -1 && shortcodes.indexOf("'demo'       => in_array(") > -1);
+
+	/* --- ۵) تشخیص نیاز با آگاهی از صفحه اصلی --- */
+	check('v8: نگاشت چهار سکشن خانه به ماژول', cinematic.indexOf('function pixva_home_cinematic_sections(') > -1
+		&& ["'cinematic'    => 'cinematic',", "'ai_diagnose'  => 'ai',", "'repair_3d'    => 'spline',", "'tech_tracker' => 'tracker',"].every((k) => cinematic.indexOf(k) > -1));
+	check('v8: تشخیص نیاز با is_front_page + سکشن فعال', cinematic.indexOf('function pixva_home_needs_module(') > -1
+		&& cinematic.indexOf('is_front_page()') > -1 && cinematic.indexOf('pixva_active_home_sections()') > -1);
+	check('v8: هر چهار تابع needs از صفحه اصلی هم آگاه است', (cinematic.match(/pixva_home_needs_module\( '(cinematic|spline|ai|tracker)' \)/g) || []).length === 4);
+	check('v8: داده المنتور هم در اسکن مارکر خوانده می‌شود', cinematic.indexOf("get_post_meta( $post->ID, '_elementor_data', true )") > -1);
+
+	/* --- ۶) ترتیب و پیش‌فرض سکشن‌های صفحه اصلی --- */
+	const orderList = options.slice(options.indexOf('function pixva_home_sections('), options.indexOf('function pixva_home_section_defaults('));
+	const order = ['hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials'];
+	let cursor = -1;
+	let ordered = true;
+	order.forEach((key) => {
+		const at = orderList.indexOf("'" + key + "'");
+		if (at < 0 || at < cursor) { ordered = false; }
+		cursor = at;
+	});
+	check('v8: ترتیب استاندارد سکشن‌ها (هیرو ← سینمایی ← AI ← سه‌بعدی ← نقشه ← مزیت ← کار ← نظرات)', ordered);
+	check('v8: چهار سکشن سینمایی به‌صورت پیش‌فرض روشن است', options.indexOf("'cinematic'     => true,") > -1
+		&& options.indexOf("'ai_diagnose'   => true,") > -1 && options.indexOf("'repair_3d'     => true,") > -1 && options.indexOf("'tech_tracker'  => true,") > -1);
+	check('v8: کلیدهای تازه در جایگاه استاندارد درج می‌شوند (نه انتها)', options.indexOf('function pixva_merge_section_order(') > -1
+		&& options.indexOf('array_splice( $keys, (int) $position, 0, array( $key ) );') > -1
+		&& options.indexOf('$keys = array_merge( $keys, $missing );') === -1
+		&& options.indexOf('$clean[] = $key;') === -1
+		&& options.indexOf('pixva_merge_section_order( $clean )') > -1
+		&& options.indexOf('$keys = pixva_merge_section_order( $keys );') > -1);
+
+	/*
+	 * شبیه‌سازی الگوریتم درج با داده واقعی PHP: نصب قدیمی (ترتیب v6) پس از
+	 * ارتقا باید همان ترتیب v8 را بگیرد و ترتیب دلخواه کاربر هم نشکند.
+	 */
+	const catalogueKeys = (orderList.match(/^\t\t'([a-z0-9_]+)'\s*=>/gm) || []).map((m) => m.trim().replace(/^'|'$/g, '').split(/\s/)[0].replace(/'/g, ''));
+	const mergeOrder = (keys) => {
+		const list = keys.slice();
+		catalogueKeys.filter((k) => list.indexOf(k) === -1).forEach((key) => {
+			const canonical = catalogueKeys.indexOf(key);
+			let position = list.length;
+			if (canonical > -1) {
+				position = 0;
+				for (let i = 0; i < canonical; i += 1) {
+					const found = list.indexOf(catalogueKeys[i]);
+					if (found > -1) { position = Math.max(position, found + 1); }
+				}
+			}
+			list.splice(position, 0, key);
+		});
+		return list;
+	};
+
+	check('v8: فهرست سکشن‌ها از PHP خوانده شد (' + catalogueKeys.length + ' کلید)', catalogueKeys.length >= 20
+		&& catalogueKeys.slice(0, 8).join(',') === 'hero,cinematic,ai_diagnose,repair_3d,tech_tracker,advantages,work,testimonials');
+
+	const legacy = ['hero', 'advantages', 'work', 'testimonials', 'quote', 'services', 'journey', 'before_after',
+		'dispatch_hub', 'order_wizard', 'screen_tester', 'errors', 'brands', 'faq', 'blog', 'process'];
+	check('v8: نصب قدیمی پس از ارتقا ترتیب v8 را می‌گیرد', mergeOrder(legacy).slice(0, 8).join(',') === 'hero,cinematic,ai_diagnose,repair_3d,tech_tracker,advantages,work,testimonials');
+	const userOrder = mergeOrder(['work', 'hero', 'testimonials']);
+	check('v8: ترتیب دلخواه کاربر با درج استاندارد حفظ می‌شود', userOrder.slice(0, 5).join(',') === 'work,hero,cinematic,ai_diagnose,repair_3d');
+	check('v8: سکشن‌های کاربر پس از درج استاندارد سر جای خود می‌مانند', userOrder.indexOf('work') === 0 && userOrder.indexOf('testimonials') === 7);
+	check('v8: درج، کلیدی را تکرار نمی‌کند', mergeOrder(legacy).length === catalogueKeys.length
+		&& mergeOrder(legacy).filter((k, i, all) => all.indexOf(k) !== i).length === 0);
+	check('v8: هر سکشن خانه با کلید pixva_section_... قابل خاموش کردن است', options.indexOf("pixva_option( 'pixva_section_' . $key, $default )") > -1);
+
+	/* --- ۷) front-page.php: تزریق چهار بخش --- */
+	check('v8: چهار تابع سکشن سینمایی در front-page.php', ['pixva_home_cinematic', 'pixva_home_ai_diagnose', 'pixva_home_repair_3d', 'pixva_home_tech_tracker']
+		.every((fn) => front.indexOf('function ' + fn + '()') > -1));
+	check('v8: هر بخش به رندر مشترک وصل است', ['pixva_render_cinematic_unboxing( $settings )', 'pixva_render_ai_diagnose( $settings )', 'pixva_render_spline_3d( $settings )', 'pixva_render_technician_tracker( $settings )']
+		.every((call) => front.indexOf(call) > -1));
+	check('v8: هر بخش دارایی ماژول خودش را صف می‌کند', ['cinematic', 'ai', 'spline', 'tracker']
+		.every((m) => front.indexOf("pixva_enqueue_cinematic_assets( array( '" + m + "' ) )") > -1));
+	check('v8: هر بخش در کانتینر پوسته رندر می‌شود', (front.match(/<div class="pixva-container">/g) || []).length >= 4
+		&& ['pixva-section--cinematic', 'pixva-section--ai', 'pixva-section--3d', 'pixva-section--tracker'].every((c) => front.indexOf(c) > -1));
+	check('v8: تنظیمات بخش‌ها از سفارشی‌ساز می‌آید', front.indexOf("pixva_home_v8_section_settings( 'cinematic' )") > -1
+		&& front.indexOf("pixva_home_v8_section_settings( 'ai_diagnose' )") > -1
+		&& front.indexOf("pixva_home_v8_section_settings( 'repair_3d' )") > -1
+		&& front.indexOf("pixva_home_v8_section_settings( 'tech_tracker' )") > -1);
+	check('v8: چیدمان مینیمال، چهار بخش تازه را هم می‌شناسد', front.indexOf("'hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials'") > -1);
+	check('v8: حالت المنتوری، چهار بخش را یک‌بار و بدون تکرار چاپ می‌کند', front.indexOf('pixva_home_elementor_layout()') > -1
+		&& front.indexOf('if ( $pixva_builder_active ) {') > -1 && front.indexOf('continue;') > -1);
+
+	/* --- ۸) home-seed.php: چیدمان پیش‌فرض المنتور --- */
+	check('v8: ارائه‌دهنده تنظیمات چهار ماژول', seed.indexOf('function pixva_home_v8_module_settings(') > -1
+		&& ['cinematic', 'ai', 'spline', 'tracker'].every((m) => seed.indexOf("case '" + m + "':") > -1));
+	check('v8: تنظیمات بخش‌ها از گزینه‌های v8 می‌آید', ['pixva_home_cine_badge', 'pixva_home_cine_title', 'pixva_home_cine_subtitle', 'pixva_home_ai_badge', 'pixva_home_ai_title', 'pixva_home_3d_badge', 'pixva_home_3d_title', 'pixva_home_map_badge', 'pixva_home_map_title', 'pixva_home_map_subtitle']
+		.every((k) => seed.indexOf("'" + k + "'") > -1 && options.indexOf("'" + k + "'") > -1));
+	check('v8: بلوک‌های المنتور = چهار ویجت v7 به‌ترتیب', ['pixva_cinematic_unboxing', 'pixva_ai_diagnose', 'pixva_3d_repair', 'pixva_tech_tracker']
+		.every((w) => seed.indexOf("'" + w + "'") > -1)
+		&& seed.indexOf("'pixva_cinematic_unboxing'") < seed.indexOf("'pixva_ai_diagnose'")
+		&& seed.indexOf("'pixva_ai_diagnose'") < seed.indexOf("'pixva_3d_repair'")
+		&& seed.indexOf("'pixva_3d_repair'") < seed.indexOf("'pixva_tech_tracker'"));
+	check('v8: ساختار المان المنتور (section/column/widget)', seed.indexOf("'elType'   => 'section',") > -1
+		&& seed.indexOf("'elType'   => 'column',") > -1 && seed.indexOf("'elType'     => 'widget',") > -1
+		&& seed.indexOf("'widgetType' => $block['widget'],") > -1 && seed.indexOf("'_column_size' => 100,") > -1);
+	check('v8: شناسه هفت‌نویسه برای هر المان', seed.indexOf('function pixva_elementor_uid(') > -1 && seed.indexOf('md5(') > -1);
+	check('v8: شناسه HTML بخش روی section است نه ویجت (بدون id تکراری)', seed.indexOf("'_element_id'           => 'pixva-' . $block['slug'],") > -1
+		&& seed.indexOf("$settings['_element_id']") === -1);
+	check('v8: ریپیتر لایه‌ها با تصویر/عنوان/خدمت/عمق پر می‌شود', ['layer_image', 'layer_title', 'layer_text', 'layer_service', 'layer_depth'].every((k) => seed.indexOf("'" + k + "'") > -1));
+	check('v8: ریپیتر هات‌اسپیت‌ها با مختصات/برچسب/قطعه پر می‌شود', ['hot_x', 'hot_y', 'hot_label', 'hot_text', 'hot_part'].every((k) => seed.indexOf("'" + k + "'") > -1));
+	check('v8: آدرس صحنه دمو در تنظیمات المنتور', seed.indexOf("pixva_spline_demo_url()") > -1 && seed.indexOf('pixva_spline_demo_hotspots()') > -1);
+	check('v8: JSON چیدمان با یونیکد فارسی ساخته می‌شود', seed.indexOf('JSON_UNESCAPED_UNICODE') > -1);
+	check('v8: نوشتن متاهای لازم المنتور', ['_elementor_data', '_elementor_edit_mode', '_elementor_template_type', '_elementor_version'].every((k) => seed.indexOf("'" + k + "'") > -1)
+		&& seed.indexOf("'builder'") > -1 && seed.indexOf("'wp-page'") > -1 && seed.indexOf('ELEMENTOR_VERSION') > -1);
+	check('v8: اسلش‌گذاری سازگار با وردپرس برای JSON', seed.indexOf('wp_slash( $json )') > -1);
+	check('v8: نگهبان بازنویسی — داده موجود مدیر دست‌نخورده می‌ماند', seed.indexOf("if ( '' !== $existing && ! $force )") > -1
+		&& seed.indexOf('pixva_seed_home_elementor( false )') > -1);
+	check('v8: قالب ذخیره‌شده در کتابخانه المنتور (با نگهبان)', seed.indexOf('function pixva_home_elementor_library_template(') > -1
+		&& seed.indexOf("post_type_exists( 'elementor_library' )") > -1 && seed.indexOf("'page'") > -1);
+	check('v8: نگهبان المنتور برای همه مسیرها', seed.indexOf('function pixva_elementor_available(') > -1
+		&& seed.indexOf("did_action( 'elementor/loaded' )") > -1 && seed.indexOf("class_exists( '\\Elementor\\Plugin' )") > -1);
+	check('v8: خودبارگذاری هنگام باز شدن ویرایشگر المنتور', seed.indexOf("add_action( 'admin_init', 'pixva_maybe_seed_home_elementor', 20 )") > -1
+		&& seed.indexOf("in_array( $action, array( 'elementor', 'edit' ), true )") > -1
+		&& seed.indexOf("if ( $home_id !== $post )") > -1
+		&& seed.indexOf("elementor/editor/before_enqueue_scripts") > -1);
+	check('v8: خودبارگذاری بدون کوئری اضافی روی هر صفحه پیشخوان', seed.indexOf("$action = isset( $_GET['action'] ) ? sanitize_key(") > -1
+		&& seed.indexOf("$post = isset( $_GET['post'] ) ? absint(") > -1);
+	check('v8: عملیات مدیر با نانس و سطح دسترسی', seed.indexOf("add_action( 'admin_post_pixva_seed_home_elementor', 'pixva_handle_home_elementor_seed' )") > -1
+		&& seed.indexOf("check_admin_referer( 'pixva_seed_home_elementor' )") > -1 && seed.indexOf("current_user_can( 'manage_options' )") > -1
+		&& seed.indexOf('wp_safe_redirect(') > -1);
+	check('v8: رندر چیدمان المنتور با API رسمی و جایگزین', seed.indexOf('get_builder_content_for_display') > -1
+		&& seed.indexOf("apply_filters( 'the_content'") > -1);
+	check('v8: وضعیت چیدمان برای مرکز کنترل', seed.indexOf('function pixva_home_elementor_status(') > -1 && seed.indexOf('function pixva_home_elementor_panel_html(') > -1);
+	check('v8: پنل چیدمان در مرکز کنترل', control.indexOf('pixva_home_elementor_panel_html()') > -1
+		&& control.indexOf('چیدمان صفحه اصلی و المنتور') > -1);
+
+	/* --- ۹) فعال‌سازی و ارتقا --- */
+	const installBody = activation.slice(activation.indexOf('function pixva_install_site('), activation.indexOf('function pixva_install_menu('));
+	check('v8: چیدمان در نصب تازه (پس از ساخت برگه‌ها) نوشته می‌شود', installBody.indexOf('pixva_install_sample_content();') > -1
+		&& installBody.indexOf('pixva_seed_home_elementor( false );') > installBody.indexOf('pixva_install_sample_content();'));
+	check('v8: چیدمان در ارتقا به ۱٫۷٫۰ نوشته می‌شود', activation.indexOf("version_compare( $stored_version, '1.7.0', '<' )") > -1
+		&& activation.indexOf('pixva_seed_home_elementor_on_upgrade') > -1);
+	check('v8: ارتقا فقط وقتی برگه خانه موجود باشد', activation.indexOf('pixva_home_page_id() > 0') > -1);
+
+	/* --- ۱۰) گزینه‌های سفارشی‌ساز لایه v8 --- */
+	const v8Keys = ['pixva_home_use_elementor', 'pixva_home_cine_badge', 'pixva_home_cine_title', 'pixva_home_cine_subtitle',
+		'pixva_home_ai_badge', 'pixva_home_ai_title', 'pixva_home_ai_subtitle', 'pixva_home_3d_badge', 'pixva_home_3d_title',
+		'pixva_home_3d_subtitle', 'pixva_home_map_badge', 'pixva_home_map_title', 'pixva_home_map_subtitle', 'pixva_home_map_demo',
+		'pixva_home_map_lookup', 'pixva_demo_layer_frame', 'pixva_demo_layer_glass', 'pixva_demo_layer_backlight',
+		'pixva_demo_layer_mainboard', 'pixva_demo_layer_cover', 'pixva_cine_layers_json', 'pixva_spline_demo_url',
+		'pixva_spline_hotspots_json', 'pixva_map_demo_lat', 'pixva_map_demo_lng', 'pixva_map_demo_label', 'pixva_map_demo_tech',
+		'pixva_map_demo_skill', 'pixva_map_demo_brand', 'pixva_map_demo_model'];
+	v8Keys.forEach((key) => check('v8: گزینه سفارشی‌ساز ' + key, options.indexOf("'" + key + '\'') > -1));
+	check('v8: دو بخش تازه سفارشی‌ساز', options.indexOf("'pixva_home_v8',") > -1 && options.indexOf("'pixva_demo_assets',") > -1);
+	check('v8: پنج لایه دمو با کنترل تصویری', options.indexOf('WP_Customize_Image_Control( $wp_customize, $pixva_key, $pixva_args )') > -1
+		&& options.indexOf("'image' === $pixva_type") > -1);
+	check('v8: پاک‌ساز JSON نامعتبر را دور می‌اندازد', options.indexOf('function pixva_sanitize_json(') > -1
+		&& options.indexOf('JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES') > -1);
+
+	/* --- ۱۱) لایه CSS ۳۰ --- */
+	check('v8: لایه ۳۰ در pixva-2026.css', css.indexOf('لایه ۳۰ — صفحه اصلی خودکار v8') > -1);
+	check('v8: پوسته چهار بخش خانه بدون فاصله دوبل', ['pixva-section--cinematic', 'pixva-section--ai', 'pixva-section--3d', 'pixva-section--tracker']
+		.every((c) => css.indexOf('.' + c) > -1) && css.indexOf('margin-block: 0;') > -1);
+	check('v8: لنگرها زیر هدر چسبان', css.indexOf('scroll-margin-block-start:') > -1);
+	check('v8: تصاویر SVG دمو کامل دیده می‌شوند', css.indexOf('.pixva-cine[data-cine-demo="1"] .pixva-cine__layer img') > -1
+		&& css.indexOf('object-fit: contain;') > -1 && css.indexOf('img[src$=".svg"]') > -1);
+	check('v8: یادداشت‌های پنج‌قدمی فشرده می‌شوند', css.indexOf('.pixva-cine__note:nth-last-child(n+5)') > -1
+		&& css.indexOf('max-height: min(68vh, 540px);') > -1);
+	check('v8: سبک راهنمای دمو', ['.pixva-cine__demo-note', '.pixva-3d__demo-note', '.pixva-map__demo-note'].every((c) => css.indexOf(c) > -1));
+	check('v8: راهنمای دمو در چاپ حذف می‌شود', css.split('@media print').some((block) => block.indexOf('demo-note') > -1));
+
+	/* --- ۱۲) هیچ فایل نایابی در کنسول: همه ارجاع‌های هارنس روی دیسک هستند --- */
+	const harnessSrc = fs.readFileSync(path.join(repo, 'tools', 'fixtures', 'v8-preview.html'), 'utf8');
+	const refs = harnessSrc.match(/\.\.\/\.\.\/pixva\/[^"')\s]+/g) || [];
+	const missing = refs.filter((ref) => !fs.existsSync(path.join(repo, 'tools', 'fixtures', ref)));
+	check('v8: همه ' + refs.length + ' فایل ارجاعی هارنس موجود است (بدون ۴۰۴)', refs.length >= 12 && missing.length === 0);
+	if (missing.length) { missing.slice(0, 5).forEach((m) => console.log('  ! ' + m)); }
+
+	check('v8: هارنس آزمون v8 وجود دارد', fs.existsSync(path.join(repo, 'tools', 'fixtures', 'v8-preview.html')));
+}
+
+async function v8Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+	const click = (el) => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	/* --- ۱) ترتیب سکشن‌های صفحه اصلی --- */
+	const sections = $$('main#content > .pixva-section').map((el) => {
+		const found = (el.className.match(/pixva-section--([a-z0-9_]+)/) || [])[1] || '';
+		return found;
+	});
+	const expected = ['hero', 'cinematic', 'ai', '3d', 'tracker', 'advantages', 'work', 'testimonials'];
+	check('v8: ترتیب زنده صفحه اصلی (' + sections.join(' ← ') + ')', sections.join(',') === expected.join(','));
+	check('v8: فوتر پس از همه بخش‌ها می‌آید', !!$('.pixva-footer') && document.querySelectorAll('.pixva-footer').length === 1);
+
+	/* --- ۲) اسکرول سینمایی با پنج لایه دمو --- */
+	const cine = $('[data-pixva-cine]');
+	check('v8: بخش سینمایی داخل کانتینر پوسته است', !!cine.closest('.pixva-section--cinematic .pixva-container'));
+	check('v8: حالت دمو روی بخش علامت‌گذاری شد', cine.dataset.cineDemo === '1');
+
+	const layers = $$('[data-cine-layer]', cine);
+	check('v8: پنج لایه دمو رندر شد', layers.length === 5);
+	const srcs = layers.map((l) => ($('img', l) || {}).getAttribute ? $('img', l).getAttribute('src') : '');
+	check('v8: هر پنج لایه از assets/images/demo می‌آید', srcs.every((src) => src.indexOf('/assets/images/demo/') > -1 && src.endsWith('.svg')));
+	check('v8: لایه‌ها به‌ترتیب قاب ← شیشه ← بک‌لایت ← برد ← پشت هستند', srcs.map((s) => path.basename(s)).join(',') === [
+		'tv-frame-front.svg', 'tv-glass-screen.svg', 'tv-backlight-neon.svg', 'tv-mainboard.svg', 'tv-back-cover.svg'
+	].join(','));
+	check('v8: همه لایه‌ها lazy و async هستند', layers.every((l) => {
+		const img = $('img', l);
+		return !!img && img.getAttribute('loading') === 'lazy' && img.getAttribute('decoding') === 'async';
+	}));
+	check('v8: عمق لایه‌ها از ۵ تا ۱ نزولی است', layers.map((l) => parseInt(l.dataset.cineDepth, 10)).join(',') === '5,4,3,2,1');
+
+	const notes = $$('[data-cine-note]', cine);
+	check('v8: پنج یادداشت خدمت رندر شد', notes.length === 5);
+	check('v8: شمارنده گام پنج‌قدمی است', $('[data-cine-step]', cine).textContent.indexOf('/ ۵') > -1);
+	check('v8: یادداشت‌ها به چهار خدمت نرخ‌نامه لینک هستند', ['panel', 'backlight', 'mainboard', 'powerboard']
+		.every((k) => notes.some((n) => ($('.pixva-cine__cta', n).getAttribute('href') || '').indexOf(k) > -1)));
+
+	const stage = $('[data-cine-stage]', cine);
+	const spacer = stage.parentNode;
+	check('v8: صحنه در spacer قفل‌شده قرار گرفت', spacer.classList.contains('pixva-pin-spacer') && parseFloat(spacer.style.height) >= 2000);
+
+	// میانه تایم‌لاین (پیش از رها شدن قفل در انتهای مسیر).
+	Object.defineProperty(document.documentElement, 'scrollTop', { value: 1300, writable: true, configurable: true });
+	Object.defineProperty(window, 'pageYOffset', { value: 1300, writable: true, configurable: true });
+	window.dispatchEvent(new window.Event('scroll'));
+	await wait(140);
+
+	check('v8: با اسکرول، نوار پیشرفت پنج‌لایه پر شد', $('[data-cine-bar]', cine).style.transform.indexOf('scaleX(0.') > -1 || $('[data-cine-bar]', cine).style.transform.indexOf('scaleX(1') > -1);
+	check('v8: گام فعال با پنج لایه به‌روز شد', $('[data-cine-step]', cine).textContent.indexOf('۰') === -1 && notes.filter((n) => n.classList.contains('is-active')).length === 1);
+	check('v8: صحنه قفل (fixed) شد', stage.style.position === 'fixed' && stage.dataset.pixvaPinned === '1');
+	check('v8: پنج لایه با ترنسفورم سه‌بعدی باز شدند', layers.filter((l) => l.style.transform.indexOf('translate3d') > -1).length === 5);
+	check('v8: راهنمای دمو در DOM هست (نمای مدیر)', !!$('.pixva-cine__demo-note', cine));
+
+	/* --- ۳) عیب‌یاب هوشمند --- */
+	const ai = $('[data-pixva-ai-diagnose]');
+	check('v8: بخش عیب‌یاب پس از سینمایی و در کانتینر است', !!ai.closest('.pixva-section--ai .pixva-container'));
+	check('v8: موتور عیب‌یاب فعال شد', document.documentElement.classList.contains('pixva-ai-js') && ai.dataset.aiState === 'idle');
+
+	const aiForm = $('[data-ai-form]', ai);
+	const aiFile = $('[data-ai-file]', ai);
+	const aiMedia = new window.File([new Uint8Array(4096)], 'no-backlight.mp4', { type: 'video/mp4' });
+	Object.defineProperty(aiFile, 'files', { value: [aiMedia], configurable: true });
+	aiFile.dispatchEvent(new window.Event('change', { bubbles: true }));
+	check('v8: رسانه انتخابی پیش‌نمایش شد', $('[data-ai-media]', ai).hidden === false && ai.dataset.aiHasMedia === '1');
+
+	$('[name="phone"]', aiForm).value = '09121112222';
+	aiForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(30);
+	check('v8: حالت تحلیل فعال شد', ai.dataset.aiState === 'analyzing');
+	await wait(220);
+	check('v8: درخواست REST عیب‌یاب از صفحه اصلی فرستاده شد', window.__pixvaCalls.ai === 1);
+	check('v8: نتیجه با کد پیگیری نمایش داده شد', $('[data-ai-result]', ai).hidden === false
+		&& $('[data-ai-result-code]', ai).textContent === 'PXV-AI-991204');
+
+	/* --- ۴) مدل سه‌بعدی با صحنه دمو و سه هات‌اسپیت --- */
+	const three = $('[data-pixva-spline]');
+	check('v8: بخش سه‌بعدی پس از عیب‌یاب می‌آید', !!three.closest('.pixva-section--3d .pixva-container'));
+	check('v8: آدرس صحنه دمو Spline روی بخش نوشته شد', three.dataset.splineUrl === 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode');
+	check('v8: حالت دمو علامت‌گذاری شد', three.dataset.splineDemo === '1');
+	check('v8: بدون ماژول Spline، نمای جایگزین بدون خطا فعال است', three.classList.contains('is-fallback')
+		&& $('[data-spline-status]', three).textContent.indexOf('نمای لایه‌ای داخلی') > -1);
+	check('v8: نمای جایگزین با متغیر چرخش ساخته شد', $('.pixva-3d__tv', three).style.getPropertyValue('--rot-y').indexOf('deg') > -1);
+
+	const hots = $$('[data-spline-hot]', three);
+	check('v8: سه هات‌اسپیت دمو (بک‌لایت، برد تغذیه، پنل)', hots.map((h) => h.dataset.splineHot).join(',') === 'backlight,powerboard,panel');
+	check('v8: مختصات هات‌اسپیت‌های دمو', hots.map((h) => h.getAttribute('style')).join('|').indexOf('--hx:28%') > -1
+		&& hots.map((h) => h.getAttribute('style')).join('|').indexOf('--hx:62%') > -1);
+
+	const panel3d = $('[data-spline-panel]', three);
+	click(hots[1]);
+	check('v8: کارت استعلام برد تغذیه باز شد', panel3d.hidden === false
+		&& $('[data-spline-panel-title]', panel3d).textContent === 'برد تغذیه'
+		&& $('[data-spline-panel-part]', panel3d).textContent === 'تعمیر برد پاور');
+	check('v8: CTA به محاسبه‌گر همان قطعه می‌رود', ($('[data-spline-panel-cta]', panel3d).getAttribute('href') || '').indexOf('problem=powerboard') > -1);
+	click($('[data-spline-close]', three));
+	check('v8: کارت استعلام بسته شد', panel3d.hidden === true);
+	check('v8: راهنمای دمو سه‌بعدی در DOM هست (نمای مدیر)', !!$('.pixva-3d__demo-note', three));
+
+	/* --- ۵) نقشه زنده با مسیر دمو --- */
+	const map = $('[data-pixva-tracker]');
+	check('v8: بخش نقشه پس از سه‌بعدی می‌آید', !!map.closest('.pixva-section--tracker .pixva-container'));
+	check('v8: حالت دمو روی نقشه فعال است', map.dataset.mapDemo === '1');
+	check('v8: نقشه بدون کد پیگیری، مسیر دمو را گرفت', window.__pixvaCalls.demo === 1 && window.__pixvaCalls.dispatch === 0);
+
+	const canvas = $('[data-map-canvas]', map);
+	const svg = $('.pixva-map__svg', canvas);
+	check('v8: نقشه SVG با مسیر دمو رندر شد', !!svg && !!$('.pixva-map__route', svg) && !!$('.pixva-map__car', svg));
+	check('v8: مسیر دمو بیش از چهار نقطه دارد', ($('.pixva-map__route', svg).getAttribute('points') || '').split(' ').length === 5);
+	check('v8: ون دمو روی مسیر قرار گرفت', ($('.pixva-map__car', svg).getAttribute('transform') || '').indexOf('translate(') === 0);
+
+	const status = $('[data-map-status]', map);
+	check('v8: کارت ETA دمو نمایش داده شد', status.hidden === false
+		&& $('[data-map-eta]', status).textContent.indexOf('۱۲ دقیقه') > -1
+		&& $('[data-map-tech]', status).textContent.indexOf('تعمیرکار شیفت امروز') > -1);
+	check('v8: برچسب «مسیر دمو» در وضعیت', $('[data-map-state]', status).textContent.indexOf('مسیر دمو') > -1);
+	check('v8: پرچم‌های دمو/شبیه‌سازی/حرکت', map.dataset.mapSimulated === '1' && map.dataset.mapMoving === '1' && !map.dataset.mapLoading);
+	check('v8: یادداشت مسیر دمو در انتهای بخش', $('[data-map-attr]', map).textContent.indexOf('کد پیگیری پرونده خود را وارد کنید') > -1);
+	check('v8: راهنمای حالت دمو برای مدیر رندر شد', !!$('.pixva-map__demo-note', map));
+
+	// کد پیگیری واقعی → مسیر دمو جای خودش را به داده پرونده می‌دهد.
+	const mapForm = $('[data-map-form]', map);
+	$('[name="code"]', mapForm).value = 'PXV-G-250926-A1B2C3';
+	$('[name="phone"]', mapForm).value = '09121111111';
+	mapForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(90);
+	check('v8: استعلام واقعی با کد و شماره فرستاده شد', window.__pixvaCalls.dispatch === 1 && window.__pixvaCalls.demo === 1);
+	check('v8: نقشه با داده پرونده واقعی تازه شد', $('[data-map-eta]', status).textContent.indexOf('۱۵ دقیقه') > -1
+		&& $('[data-map-tech]', status).textContent.indexOf('رضا کریمی') > -1);
+	check('v8: پس از استعلام واقعی، برچسب دمو برداشته شد', $('[data-map-state]', status).textContent.indexOf('مسیر دمو') === -1);
+
+	/* --- ۶) بخش‌های پایانی --- */
+	check('v8: سه مزیت، نمونه‌کار و نظرات پس از نقشه هستند', sections.slice(5).join(',') === 'advantages,work,testimonials');
+	check('v8: همه دارایی‌های دمو در DOM قابل دسترسی‌اند', $$('img[src$=".svg"]', cine).length === 5);
+}
+
 (async function main() {
 	staticChecks();
 
@@ -1032,6 +1442,37 @@ async function v7Checks(window) {
 			v7Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
 		}
 		v7Dom.window.close();
+	}
+
+	// هارنس لایه ۱٫۷٫۰ (صفحه اصلی خودکار: چهار ویجت سینمایی + دارایی‌های دمو).
+	v8StaticChecks();
+	if (!fs.existsSync(v8Harness)) {
+		failures.push('هارنس tools/fixtures/v8-preview.html پیدا نشد');
+		failed += 1;
+	} else {
+		const v8Errors = [];
+		const v8Console = new VirtualConsole();
+		v8Console.on('jsdomError', (error) => v8Errors.push(error.message));
+		v8Console.on('error', (message) => v8Errors.push(String(message)));
+
+		const v8Dom = await JSDOM.fromFile(v8Harness, {
+			runScripts: 'dangerously',
+			resources: 'usable',
+			pretendToBeVisual: true,
+			virtualConsole: v8Console,
+		});
+		if (v8Dom.window.document.readyState !== 'complete') {
+			await new Promise((resolve) => v8Dom.window.addEventListener('load', resolve));
+		}
+		await wait(280);
+
+		await v8Checks(v8Dom.window);
+
+		check('v8: بدون خطای jsdom در کنسول (' + v8Errors.length + ')', v8Errors.length === 0);
+		if (v8Errors.length) {
+			v8Errors.slice(0, 5).forEach((e) => console.log('  ! ' + e));
+		}
+		v8Dom.window.close();
 	}
 
 	// هارنس قدیمی هیرو (خارج از گیت)؛ در صورت نبود، فقط یادداشت می‌شود.

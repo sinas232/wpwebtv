@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="قاب پشتی تلویزیون">
+	<title>قاب پشتی تلویزیون</title>
+	<defs>
+		<linearGradient id="shellBody" x1="0" y1="0" x2="0.9" y2="1">
+			<stop offset="0" stop-color="#1a2130"/>
+			<stop offset="0.5" stop-color="#111826"/>
+			<stop offset="1" stop-color="#080c15"/>
+		</linearGradient>
+		<linearGradient id="standMetal" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#94a3b8"/>
+			<stop offset="1" stop-color="#334155"/>
+		</linearGradient>
+		<pattern id="ventSlots" width="26" height="26" patternUnits="userSpaceOnUse">
+			<rect x="4" y="6" width="18" height="7" rx="3.5" fill="#05070d" opacity="0.85"/>
+		</pattern>
+	</defs>
+
+	<rect x="44" y="36" width="712" height="404" rx="26" fill="url(#shellBody)" stroke="#334155" stroke-width="3"/>
+	<rect x="76" y="68" width="648" height="340" rx="16" fill="none" stroke="#475569" stroke-opacity="0.55" stroke-width="2"/>
+
+	<rect x="110" y="96" width="290" height="150" rx="12" fill="url(#ventSlots)" stroke="#475569" stroke-opacity="0.4" stroke-width="2"/>
+	<rect x="430" y="96" width="260" height="150" rx="12" fill="url(#ventSlots)" stroke="#475569" stroke-opacity="0.4" stroke-width="2"/>
+
+	<g fill="none" stroke="#22d3ee" stroke-opacity="0.5" stroke-width="3">
+		<circle cx="330" cy="316" r="14"/>
+		<circle cx="400" cy="316" r="14"/>
+		<circle cx="330" cy="380" r="14"/>
+		<circle cx="400" cy="380" r="14"/>
+	</g>
+
+	<rect x="470" y="286" width="220" height="112" rx="10" fill="#0b1120" stroke="#64748b" stroke-opacity="0.6" stroke-width="2"/>
+	<g fill="#e2e8f0" fill-opacity="0.75">
+		<rect x="488" y="304" width="130" height="7" rx="3.5"/>
+		<rect x="488" y="320" width="96" height="7" rx="3.5"/>
+	</g>
+	<g fill="#f8fafc" fill-opacity="0.85">
+		<rect x="488" y="342" width="4" height="34"/>
+		<rect x="497" y="342" width="8" height="34"/>
+		<rect x="510" y="342" width="4" height="34"/>
+		<rect x="519" y="342" width="10" height="34"/>
+		<rect x="534" y="342" width="4" height="34"/>
+		<rect x="543" y="342" width="7" height="34"/>
+		<rect x="556" y="342" width="4" height="34"/>
+		<rect x="565" y="342" width="9" height="34"/>
+		<rect x="580" y="342" width="4" height="34"/>
+	</g>
+
+	<rect x="110" y="286" width="150" height="112" rx="10" fill="#0b1120" stroke="#a855f7" stroke-opacity="0.5" stroke-width="2"/>
+	<g stroke="#a855f7" stroke-opacity="0.75" stroke-width="3" fill="none">
+		<path d="M132 316h106M132 340h106M132 364h72"/>
+	</g>
+
+	<g fill="#94a3b8" fill-opacity="0.5">
+		<circle cx="66" cy="58" r="6"/>
+		<circle cx="734" cy="58" r="6"/>
+		<circle cx="66" cy="418" r="6"/>
+		<circle cx="734" cy="418" r="6"/>
+	</g>
+
+	<path d="M330 440h140l26 44H304z" fill="url(#standMetal)" opacity="0.9"/>
+	<rect x="286" y="480" width="228" height="12" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-opacity="0.45" stroke-width="2"/>
+</svg>

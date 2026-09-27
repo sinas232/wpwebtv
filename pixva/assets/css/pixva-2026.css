@@ -11235,3 +11235,150 @@ html.pixva-cine-js .pixva-cine__bar i {
 		display: none;
 	}
 }
+
+/* ==========================================================================
+   لایه ۳۰ — صفحه اصلی خودکار v8 (Master Prompt v8)
+
+   ۳۰-A: پوسته چهار بخش سینمایی روی front-page.php (بدون فاصله دوبل)
+   ۳۰-B: پنج لایه دمو SVG و یادداشت‌های فشرده برای پنج قدم
+   ۳۰-C: راهنمای «حالت دمو» فقط برای مدیر (current_user_can('customize'))
+   ۳۰-D: واکنش‌گرایی، حرکت کاهسته و چاپ
+   ========================================================================== */
+
+/* --- ۳۰-A: پوسته بخش‌های خودکار صفحه اصلی --- */
+.pixva-section--cinematic,
+.pixva-section--ai,
+.pixva-section--3d,
+.pixva-section--tracker {
+	position: relative;
+}
+
+.pixva-section--cinematic .pixva-cine,
+.pixva-section--ai .pixva-ai,
+.pixva-section--3d .pixva-3d,
+.pixva-section--tracker .pixva-map {
+	margin-block: 0;
+}
+
+/* لنگرها زیر هدر چسبان می‌نشینند (منوی مگا و دکمه‌های هیرو). */
+.pixva-cine,
+.pixva-3d,
+.pixva-ai,
+.pixva-map {
+	scroll-margin-block-start: clamp(4.5rem, 11vw, 7rem);
+}
+
+/* --- ۳۰-B: پنج لایه دمو و قدم‌های فشرده --- */
+.pixva-cine[data-cine-demo="1"] .pixva-cine__layer img,
+.pixva-cine__layer img[src$=".svg"] {
+	object-fit: contain;
+	padding: clamp(0.3rem, 1vw, 0.6rem);
+	background:
+		radial-gradient(120% 90% at 50% 0%, rgba(34, 211, 238, 0.12) 0%, rgba(34, 211, 238, 0) 62%),
+		linear-gradient(160deg, rgba(20, 29, 47, 0.96), rgba(7, 11, 22, 0.98));
+}
+
+/* با پنج لایه، ستون یادداشت‌ها کمی فشرده‌تر می‌شود تا هیچ قدمی بریده نشود. */
+.pixva-cine__notes {
+	max-height: min(68vh, 540px);
+}
+
+.pixva-cine__note:nth-last-child(n+5),
+.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note {
+	padding-block: 0.6rem;
+	border-radius: 14px;
+}
+
+.pixva-cine__note:nth-last-child(n+5) h3,
+.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note h3 {
+	font-size: 0.92rem;
+}
+
+.pixva-cine__note:nth-last-child(n+5) p,
+.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note p {
+	font-size: 0.79rem;
+	line-height: 1.8;
+}
+
+.pixva-cine__note:nth-last-child(n+5) .pixva-cine__cta,
+.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note .pixva-cine__cta {
+	margin-top: 0.3rem;
+	padding-block: 0.3rem;
+	font-size: 0.72rem;
+}
+
+/* --- ۳۰-C: راهنمای حالت دمو (فقط مدیر می‌بیند) --- */
+.pixva-cine__demo-note,
+.pixva-3d__demo-note,
+.pixva-map__demo-note {
+	display: block;
+	max-width: 46rem;
+	margin: 0.7rem auto 0;
+	padding: 0.42rem 0.85rem;
+	border: 1px dashed rgba(251, 191, 36, 0.5);
+	border-radius: 999px;
+	background: rgba(251, 191, 36, 0.08);
+	font-size: 0.72rem;
+	line-height: 1.85;
+	text-align: center;
+	color: rgb(253, 230, 138);
+}
+
+.pixva-map__demo-note {
+	margin-block: 0.6rem;
+}
+
+/* --- ۳۰-D: واکنش‌گرایی، حرکت کاهسته و چاپ --- */
+@media (max-width: 980px) {
+	.pixva-cine__notes {
+		max-height: none;
+	}
+
+	.pixva-section--cinematic .pixva-cine,
+	.pixva-section--ai .pixva-ai,
+	.pixva-section--3d .pixva-3d,
+	.pixva-section--tracker .pixva-map {
+		margin-block: 0;
+	}
+}
+
+@media (max-width: 640px) {
+	.pixva-cine__note:nth-last-child(n+5),
+	.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note {
+		padding-block: 0.55rem;
+	}
+
+	.pixva-cine__note:nth-last-child(n+5) p,
+	.pixva-cine__note:nth-last-child(n+5) ~ .pixva-cine__note p {
+		font-size: 0.76rem;
+		line-height: 1.75;
+	}
+
+	.pixva-cine__demo-note,
+	.pixva-3d__demo-note,
+	.pixva-map__demo-note {
+		border-radius: 14px;
+		font-size: 0.68rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-section--cinematic .pixva-cine__glow {
+		animation: none;
+	}
+}
+
+@media print {
+	.pixva-cine__demo-note,
+	.pixva-3d__demo-note,
+	.pixva-map__demo-note {
+		display: none;
+	}
+
+	.pixva-section--cinematic,
+	.pixva-section--ai,
+	.pixva-section--3d,
+	.pixva-section--tracker {
+		break-inside: avoid;
+	}
+}

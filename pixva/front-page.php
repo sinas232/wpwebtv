@@ -14,11 +14,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 $pixva_active  = function_exists( 'pixva_active_home_sections' ) ? pixva_active_home_sections() : array();
-$pixva_minimal = ! empty( $pixva_active ) && 0 === count( array_diff( $pixva_active, array( 'hero', 'advantages', 'work', 'testimonials' ) ) );
+$pixva_core    = array( 'hero', 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker', 'advantages', 'work', 'testimonials' );
+$pixva_minimal = ! empty( $pixva_active ) && 0 === count( array_diff( $pixva_active, $pixva_core ) );
+
+/*
+ * لایه ۱٫۷٫۰ (Master Prompt v8): اگر مدیر «رندر صفحه اصلی با چیدمان المنتور»
+ * را روشن کرده باشد و برگه خانه چیدمان داشته باشد، چهار بخش سینمایی یک‌بار از
+ * المنتور چاپ می‌شوند؛ هیرو، سه مزیت، نمونه‌کار و نظرات همچنان از پوسته می‌آیند
+ * تا ترتیب هیرو ← سینمایی ← هوش مصنوعی ← سه‌بعدی ← نقشه ← نمونه‌کار حفظ شود.
+ */
+$pixva_builder_sections = array( 'cinematic', 'ai_diagnose', 'repair_3d', 'tech_tracker' );
+$pixva_builder_checked  = false;
+$pixva_builder_active   = false;
 ?>
 <main id="content" class="<?php echo $pixva_minimal ? 'pixva-home--minimal' : ''; ?>">
 	<?php
 	foreach ( pixva_active_home_sections() as $pixva_section ) {
+		if ( in_array( $pixva_section, $pixva_builder_sections, true ) ) {
+			// تصمیم فقط یک‌بار (در نخستین بخش سینمایی) گرفته می‌شود.
+			if ( ! $pixva_builder_checked ) {
+				$pixva_builder_checked = true;
+				$pixva_builder_active  = function_exists( 'pixva_home_elementor_layout' ) && pixva_home_elementor_layout();
+			}
+
+			// چیدمان المنتور هر چهار بخش را یک‌جا چاپ کرد؛ سکشن PHP تکرار نشود.
+			if ( $pixva_builder_active ) {
+				continue;
+			}
+		}
+
 		$pixva_callback = 'pixva_home_' . $pixva_section;
 		if ( function_exists( $pixva_callback ) ) {
 			call_user_func( $pixva_callback );
@@ -809,4 +833,108 @@ function pixva_home_dispatch_hub() {
 	if ( function_exists( 'pixva_render_dispatch_and_warranty_hub' ) ) {
 		pixva_render_dispatch_and_warranty_hub();
 	}
+}
+
+/* --------------------------------------------------------------------------
+ * چهار بخش سینمایی خودکار صفحه اصلی — لایه ۱٫۷٫۰ (Master Prompt v8)
+ *
+ * ترتیب: هیرو و منوی مگا ← اسکرول سینمایی ← عیب‌یاب هوشمند ← مدل سه‌بعدی ←
+ * نقشه زنده تعمیرکار ← سه مزیت ← نمونه‌کار ← نظرات ← فوتر.
+ * همه متن‌ها و تصویرها از سفارشی‌ساز و پیش‌فرض‌های دمو می‌آیند.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * بخش ۲ صفحه اصلی: اسکرول سینمایی با نمای انفجاری پنج‌لایه تلویزیون.
+ *
+ * @return void
+ */
+function pixva_home_cinematic() {
+	if ( ! function_exists( 'pixva_render_cinematic_unboxing' ) ) {
+		return;
+	}
+
+	if ( function_exists( 'pixva_enqueue_cinematic_assets' ) ) {
+		pixva_enqueue_cinematic_assets( array( 'cinematic' ) );
+	}
+
+	$settings = function_exists( 'pixva_home_v8_section_settings' ) ? pixva_home_v8_section_settings( 'cinematic' ) : array();
+	?>
+	<section class="pixva-section pixva-section--cinematic">
+		<div class="pixva-container">
+			<?php pixva_render_cinematic_unboxing( $settings ); ?>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * بخش ۳ صفحه اصلی: عیب‌یاب هوشمند با ویدیو و صدای دستگاه.
+ *
+ * @return void
+ */
+function pixva_home_ai_diagnose() {
+	if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
+		return;
+	}
+
+	if ( function_exists( 'pixva_enqueue_cinematic_assets' ) ) {
+		pixva_enqueue_cinematic_assets( array( 'ai' ) );
+	}
+
+	$settings = function_exists( 'pixva_home_v8_section_settings' ) ? pixva_home_v8_section_settings( 'ai_diagnose' ) : array();
+	?>
+	<section class="pixva-section pixva-section--ai">
+		<div class="pixva-container">
+			<?php pixva_render_ai_diagnose( $settings ); ?>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * بخش ۴ صفحه اصلی: مدل سه‌بعدی تعاملی با هات‌اسپیت قیمت قطعه.
+ *
+ * @return void
+ */
+function pixva_home_repair_3d() {
+	if ( ! function_exists( 'pixva_render_spline_3d' ) ) {
+		return;
+	}
+
+	if ( function_exists( 'pixva_enqueue_cinematic_assets' ) ) {
+		pixva_enqueue_cinematic_assets( array( 'spline' ) );
+	}
+
+	$settings = function_exists( 'pixva_home_v8_section_settings' ) ? pixva_home_v8_section_settings( 'repair_3d' ) : array();
+	?>
+	<section class="pixva-section pixva-section--3d">
+		<div class="pixva-container">
+			<?php pixva_render_spline_3d( $settings ); ?>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * بخش ۵ صفحه اصلی: نقشه تاریک با مسیر حرکت زنده (دمو) و ETA تعمیرکار.
+ *
+ * @return void
+ */
+function pixva_home_tech_tracker() {
+	if ( ! function_exists( 'pixva_render_technician_tracker' ) ) {
+		return;
+	}
+
+	if ( function_exists( 'pixva_enqueue_cinematic_assets' ) ) {
+		pixva_enqueue_cinematic_assets( array( 'tracker' ) );
+	}
+
+	$settings = function_exists( 'pixva_home_v8_section_settings' ) ? pixva_home_v8_section_settings( 'tech_tracker' ) : array();
+	?>
+	<section class="pixva-section pixva-section--tracker">
+		<div class="pixva-container">
+			<?php pixva_render_technician_tracker( $settings ); ?>
+		</div>
+	</section>
+	<?php
 }
