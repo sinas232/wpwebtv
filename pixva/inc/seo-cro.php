@@ -531,10 +531,10 @@ if ( ! function_exists( 'pixva_symptom_guide_schema' ) ) {
 
 if ( ! function_exists( 'pixva_render_symptom_guide' ) ) {
 	/**
-	 * رندر بخش «مشکل تلویزیون شما چیست؟» با HTML متنی کاملاً ایندکس‌شدنی.
+	 * رندر راهنمای علائم با پوسته بنتو (لایه ۴٫۰٫۰).
 	 *
-	 * بدون تصویر سنگین، بدون انیمیشن اسکرول و بدون JS — فقط متن ساختاریافته
-	 * با سرتیترهای معنادار (H2/H3) و فهرست‌های تست خانگی.
+	 * آیتم‌ها به‌صورت <details> بومی رندر می‌شوند: بدون JS هم کاملاً
+	 * خوانا و ایندکس‌شدنی است و اسکیما بدون تغییر چاپ می‌شود.
 	 *
 	 * @param array<string, mixed> $settings تنظیمات ویجت/سکشن.
 	 * @return void
@@ -553,85 +553,42 @@ if ( ! function_exists( 'pixva_render_symptom_guide' ) ) {
 		$cta_text = isset( $settings['cta_text'] ) && '' !== $settings['cta_text'] ? $settings['cta_text'] : __( 'ثبت درخواست اعزام فوری تکنسین', 'pixva' );
 		$cta_url  = isset( $settings['cta_url'] ) && '' !== $settings['cta_url'] ? $settings['cta_url'] : ( function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' ) );
 		$diagnose = function_exists( 'pixva_page_url' ) ? pixva_page_url( 'tracking' ) : home_url( '/' );
-
-		$ref_size = (string) pixva_option( 'pixva_symptom_ref_size', '55' );
 		?>
-		<section class="pixva-seo pixva-symptom" id="symptom-guide">
-			<div class="pixva-container">
-				<header class="pixva-seo__head">
-					<h2><?php echo esc_html( $title ); ?></h2>
-					<p><?php echo esc_html( $subtitle ); ?></p>
+		<section class="bx-module bx-sym-module" id="symptom-guide">
+			<div class="bx-wrap">
+				<header class="bx-module__head">
+					<p class="bx-eyebrow"><?php esc_html_e( 'راهنمای تشخیص', 'pixva' ); ?></p>
+					<h2 class="bx-module__title"><?php echo esc_html( $title ); ?></h2>
+					<p class="bx-module__lead"><?php echo esc_html( $subtitle ); ?></p>
 				</header>
 
-				<div class="pixva-symptom__grid">
+				<div class="bx-sym">
 					<?php foreach ( $items as $item ) : ?>
-						<article class="pixva-symptom__card" id="<?php echo esc_attr( $item['id'] ); ?>">
-							<span class="pixva-symptom__icon" aria-hidden="true">
-								<?php echo pixva_icon( isset( $item['icon'] ) && '' !== $item['icon'] ? $item['icon'] : 'tool' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							</span>
-							<h3><?php echo esc_html( $item['title'] ); ?></h3>
-
-							<p class="pixva-symptom__q"><?php echo esc_html( $item['question'] ); ?></p>
-
-							<p class="pixva-symptom__cause">
-								<strong><?php esc_html_e( 'علت احتمالی:', 'pixva' ); ?></strong>
-								<?php echo esc_html( $item['cause'] ); ?>
-							</p>
-
-							<p><?php echo esc_html( $item['body'] ); ?></p>
-
-							<h4><?php esc_html_e( 'سه تست سریع خانگی', 'pixva' ); ?></h4>
-							<ol class="pixva-symptom__checks">
-								<?php foreach ( (array) $item['checks'] as $check ) : ?>
-									<li><?php echo esc_html( $check ); ?></li>
-								<?php endforeach; ?>
-							</ol>
-
-							<?php if ( ! empty( $item['warning'] ) ) : ?>
-								<p class="pixva-symptom__warn"><?php echo esc_html( $item['warning'] ); ?></p>
-							<?php endif; ?>
-
-							<?php if ( ! empty( $item['estimate'] ) && ! empty( $item['estimate']['min'] ) ) : ?>
-								<p class="pixva-symptom__cost">
-									<strong><?php esc_html_e( 'بازه هزینه تعمیر', 'pixva' ); ?></strong>
-									<span>
-										<?php
-										echo esc_html(
-											pixva_price( (int) $item['estimate']['min'] ) . ' — ' . pixva_price( (int) $item['estimate']['max'] )
-										);
-										?>
-										<?php esc_html_e( 'تومان', 'pixva' ); ?>
-									</span>
-									<small>
-										<?php
-										echo esc_html(
-											sprintf(
-												/* translators: 1: سایز مرجع، 2: زمان تعمیر */
-												__( 'برآورد %1$s اینچ LED — %2$s', 'pixva' ),
-												function_exists( 'pixva_fa_num' ) ? pixva_fa_num( $ref_size ) : $ref_size,
-												'' !== $item['days'] ? $item['days'] : __( 'پس از عیب‌یابی در محل', 'pixva' )
-											)
-										);
-										?>
-									</small>
-								</p>
-							<?php endif; ?>
-
-							<a class="pixva-seo__cta" href="<?php echo esc_url( add_query_arg( 'problem', rawurlencode( (string) $item['problem'] ), $cta_url ) ); ?>">
-								<?php echo esc_html( $cta_text ); ?>
-							</a>
-						</article>
+						<details class="bx-sym__item" id="<?php echo esc_attr( $item['id'] ); ?>">
+							<summary>
+								<span class="bx-sym__icon">
+									<?php echo pixva_icon( isset( $item['icon'] ) ? $item['icon'] : 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								</span>
+								<span><?php echo esc_html( $item['title'] ); ?></span>
+								<svg class="bx-sym__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+							</summary>
+							<div class="bx-sym__body">
+								<span class="bx-fault-view__cause"><?php echo esc_html( $item['cause'] ); ?></span>
+								<p class="bx-fault-view__body"><?php echo esc_html( $item['body'] ); ?></p>
+								<ul class="bx-fault-checks">
+									<?php foreach ( (array) $item['checks'] as $check ) : ?>
+										<li><?php echo esc_html( $check ); ?></li>
+									<?php endforeach; ?>
+								</ul>
+								<p class="bx-fault-warning"><?php echo esc_html( $item['warning'] ); ?></p>
+								<div class="bx-fault-actions">
+									<a class="bx-btn bx-btn--accent bx-btn--sm" href="<?php echo esc_url( $cta_url ); ?>"><?php echo esc_html( $cta_text ); ?></a>
+									<a class="bx-btn bx-btn--ghost bx-btn--sm" href="<?php echo esc_url( $diagnose ); ?>"><?php esc_html_e( 'پیگیری پرونده تعمیر', 'pixva' ); ?></a>
+								</div>
+							</div>
+						</details>
 					<?php endforeach; ?>
 				</div>
-
-				<footer class="pixva-seo__foot">
-					<p>
-						<?php esc_html_e( 'تشخیص قطعی نیازمند بازدید در محل است؛ عیب‌یابی و برآورد هزینه پیش از شروع تعمیر به شما اعلام می‌شود.', 'pixva' ); ?>
-					</p>
-					<a class="pixva-seo__link" href="<?php echo esc_url( $diagnose ); ?>">
-						<?php esc_html_e( 'پیگیری پرونده تعمیر', 'pixva' ); ?>
-					</a>
-				</footer>
 			</div>
 
 			<?php
@@ -813,11 +770,10 @@ if ( ! function_exists( 'pixva_price_table_schema' ) ) {
 
 if ( ! function_exists( 'pixva_render_price_calculator' ) ) {
 	/**
-	 * رندر جدول متنی شفاف قیمت با فیلتر سریع برند و سایز.
+	 * رندر جدول شفاف قیمت با پوسته بنتو (لایه ۴٫۰٫۰).
 	 *
-	 * جدول پیش‌فرض کاملاً سمت سرور رندر می‌شود (ایندکس بدون JS) و تغییر فیلتر
-	 * با یک واکشی سبک به اندپوینت داخلی انجام می‌شود؛ هیچ کتابخانه سنگینی
-	 * بارگذاری نمی‌گردد.
+	 * رندر اولیه کامل سمت سرور است؛ فیلتر قرصی/سایز با REST سبک
+	 * pixva/v1/price-table به‌روز می‌شود (بدون کتابخانه بیرونی).
 	 *
 	 * @param array<string, mixed> $settings تنظیمات.
 	 * @return void
@@ -866,110 +822,104 @@ if ( ! function_exists( 'pixva_render_price_calculator' ) ) {
 		$rows     = pixva_price_table_matrix( $default_brand, $default_size );
 		$brand_fa = isset( $brands[ $default_brand ]['fa'] ) ? $brands[ $default_brand ]['fa'] : $default_brand;
 		$warranty = function_exists( 'pixva_warranty_days' ) ? (int) pixva_warranty_days() : 180;
+		$fa       = function_exists( 'pixva_fa_num' ) ? 'pixva_fa_num' : 'strval';
 
 		// اسکریپت سبک فیلتر جدول (بدون هیچ کتابخانه بیرونی).
 		pixva_seo_cro_assets();
 		?>
-		<section class="pixva-seo pixva-pricetable" id="price-table"
+		<section class="bx-module bx-price-module" id="price-table"
 			data-price-active-brand="<?php echo esc_attr( $default_brand ); ?>"
 			data-price-active-size="<?php echo esc_attr( $default_size ); ?>">
-			<div class="pixva-container">
-				<header class="pixva-seo__head">
-					<h2><?php echo esc_html( $title ); ?></h2>
-					<p><?php echo esc_html( $subtitle ); ?></p>
+			<div class="bx-wrap">
+				<header class="bx-module__head">
+					<p class="bx-eyebrow"><?php esc_html_e( 'نرخ‌نامه شفاف', 'pixva' ); ?></p>
+					<h2 class="bx-module__title"><?php echo esc_html( $title ); ?></h2>
+					<p class="bx-module__lead"><?php echo esc_html( $subtitle ); ?></p>
 				</header>
 
-				<div class="pixva-pricetable__filters" data-price-filters>
-					<label class="pixva-pricetable__filter">
-						<span><?php esc_html_e( 'برند تلویزیون', 'pixva' ); ?></span>
-						<select name="brand" data-price-brand>
+				<div class="bx-surface bx-cell--pricing" data-bx-price>
+					<div class="bx-price-toolbar">
+						<div class="bx-price-pills" role="group" aria-label="<?php esc_attr_e( 'فیلتر سریع برند', 'pixva' ); ?>">
 							<?php foreach ( $brands as $key => $brand ) : ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $default_brand, $key ); ?>>
-									<?php echo esc_html( $brand['fa'] . ' (' . $brand['en'] . ')' ); ?>
-								</option>
+								<button type="button" class="bx-price-pill<?php echo $default_brand === $key ? ' is-active' : ''; ?>"
+									data-bx-price-pill="<?php echo esc_attr( $key ); ?>"
+									aria-pressed="<?php echo $default_brand === $key ? 'true' : 'false'; ?>">
+									<?php echo esc_html( $brand['fa'] ); ?>
+								</button>
 							<?php endforeach; ?>
-						</select>
-					</label>
+						</div>
 
-					<label class="pixva-pricetable__filter">
-						<span><?php esc_html_e( 'سایز صفحه', 'pixva' ); ?></span>
-						<select name="size" data-price-size>
-							<?php foreach ( $sizes as $size ) : ?>
-								<option value="<?php echo esc_attr( $size ); ?>" <?php selected( $default_size, $size ); ?>>
-									<?php echo esc_html( ( function_exists( 'pixva_fa_num' ) ? pixva_fa_num( $size ) : $size ) . ' ' . __( 'اینچ', 'pixva' ) ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</label>
-
-					<?php
-					/*
-					 * فیلتر قرصی برند (لایه ۲٫۱٫۰): کلیک روی هر قرص همان
-					 * <select data-price-brand> را به‌روز می‌کند تا بدون JS هم
-					 * جدول سمت سرور درست بماند و رفتار فیلتر یکی باشد.
-					 * ویژگی data-price-pill عمداً با data-price-brand فرق دارد
-					 * تا انتخابگر option در JS دوباره دچار تداخل نشود.
-					 */
-					?>
-					<div class="pixva-pricetable__pills" data-price-pills="brand" role="group" aria-label="<?php esc_attr_e( 'فیلتر سریع برند', 'pixva' ); ?>">
-						<?php foreach ( $brands as $key => $brand ) : ?>
-							<button
-								type="button"
-								class="px-pill<?php echo $default_brand === $key ? ' is-active' : ''; ?>"
-								data-price-pill="<?php echo esc_attr( $key ); ?>"
-								aria-pressed="<?php echo $default_brand === $key ? 'true' : 'false'; ?>">
-								<?php echo esc_html( $brand['fa'] ); ?>
-							</button>
-						<?php endforeach; ?>
+						<div class="bx-price-toolbar__selects">
+							<label class="bx-price-size" for="bx-price-brand-<?php echo esc_attr( $default_brand ); ?>">
+								<?php esc_html_e( 'برند:', 'pixva' ); ?>
+								<select class="bx-select" id="bx-price-brand-<?php echo esc_attr( $default_brand ); ?>" name="brand" data-bx-price-brand>
+									<?php foreach ( $brands as $key => $brand ) : ?>
+										<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $default_brand, $key ); ?>>
+											<?php echo esc_html( $brand['fa'] . ' (' . $brand['en'] . ')' ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</label>
+							<label class="bx-price-size" for="bx-price-size-<?php echo esc_attr( $default_size ); ?>">
+								<?php esc_html_e( 'سایز:', 'pixva' ); ?>
+								<select class="bx-select" id="bx-price-size-<?php echo esc_attr( $default_size ); ?>" name="size" data-bx-price-size>
+									<?php foreach ( $sizes as $size ) : ?>
+										<option value="<?php echo esc_attr( $size ); ?>" <?php selected( $default_size, $size ); ?>>
+											<?php echo esc_html( $fa( (string) $size ) . ' ' . __( 'اینچ', 'pixva' ) ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</label>
+						</div>
 					</div>
 
-					<p class="pixva-pricetable__live" data-price-status role="status" aria-live="polite"></p>
-				</div>
+					<p class="bx-price-status" data-bx-price-status role="status" aria-live="polite"></p>
 
-				<div class="pixva-pricetable__wrap">
-					<table class="pixva-pricetable__table" data-price-table>
-						<caption>
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: برند، 2: سایز */
-									__( 'نرخ‌نامه تعمیر تلویزیون %1$s — %2$s اینچ (تومان)', 'pixva' ),
-									$brand_fa,
-									function_exists( 'pixva_fa_num' ) ? pixva_fa_num( $default_size ) : $default_size
-								)
-							);
-							?>
-						</caption>
-						<thead>
-							<tr>
-								<th scope="col"><?php esc_html_e( 'خدمت تعمیراتی', 'pixva' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'حداقل هزینه', 'pixva' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'حداکثر هزینه', 'pixva' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'زمان تحویل', 'pixva' ); ?></th>
-							</tr>
-						</thead>
-						<tbody data-price-body>
-							<?php pixva_price_table_rows_html( $rows ); ?>
-						</tbody>
-					</table>
-				</div>
+					<div class="bx-price-tablewrap">
+						<table class="bx-price-table" data-bx-price-table>
+							<caption data-bx-price-caption>
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: 1: برند، 2: سایز */
+										__( 'نرخ‌نامه تعمیر تلویزیون %1$s — %2$s اینچ (تومان)', 'pixva' ),
+										$brand_fa,
+										$fa( $default_size )
+									)
+								);
+								?>
+							</caption>
+							<thead>
+								<tr>
+									<th scope="col"><?php esc_html_e( 'خدمت تعمیراتی', 'pixva' ); ?></th>
+									<th scope="col"><?php esc_html_e( 'حداقل هزینه', 'pixva' ); ?></th>
+									<th scope="col"><?php esc_html_e( 'حداکثر هزینه', 'pixva' ); ?></th>
+									<th scope="col"><?php esc_html_e( 'زمان تحویل', 'pixva' ); ?></th>
+								</tr>
+							</thead>
+							<tbody data-bx-price-rows>
+								<?php pixva_price_table_rows_html( $rows ); ?>
+							</tbody>
+						</table>
+					</div>
 
-				<p class="pixva-pricetable__note">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %s: روز */
-							__( 'همه مبالغ شامل قطعه فابریک، اجرت تخصصی و %s روز گارانتی کتبی است؛ عیب‌یابی و برآورد قطعی پیش از شروع تعمیر اعلام می‌شود.', 'pixva' ),
-							function_exists( 'pixva_fa_num' ) ? pixva_fa_num( (string) $warranty ) : $warranty
-						)
-					);
-					?>
-				</p>
+					<p class="bx-price-quote">
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %s: روز */
+								__( 'همه مبالغ شامل قطعه فابریک، اجرت تخصصی و %s روز گارانتی کتبی است؛ عیب‌یابی و برآورد قطعی پیش از شروع تعمیر اعلام می‌شود.', 'pixva' ),
+								$fa( (string) $warranty )
+							)
+						);
+						?>
+					</p>
 
-				<div class="pixva-pricetable__actions">
-					<a class="pixva-seo__cta" href="<?php echo esc_url( function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' ) ); ?>">
-						<?php esc_html_e( 'استعلام دقیق قیمت با مدل دستگاه', 'pixva' ); ?>
-					</a>
+					<div class="bx-fault-actions">
+						<a class="bx-btn bx-btn--primary bx-btn--sm" href="<?php echo esc_url( function_exists( 'pixva_page_url' ) ? pixva_page_url( 'calculator' ) : home_url( '/' ) ); ?>">
+							<?php esc_html_e( 'استعلام دقیق قیمت با مدل دستگاه', 'pixva' ); ?>
+						</a>
+					</div>
 				</div>
 			</div>
 
@@ -985,7 +935,7 @@ if ( ! function_exists( 'pixva_render_price_calculator' ) ) {
 
 if ( ! function_exists( 'pixva_price_table_rows_html' ) ) {
 	/**
-	 * چاپ ردیف‌های جدول قیمت (مشترک بین رندر اولیه و پاسخ REST).
+	 * چاپ ردیف‌های جدول قیمت با پوسته بنتو (مشترک بین رندر اولیه و REST).
 	 *
 	 * @param array<int, array<string, mixed>> $rows ردیف‌ها.
 	 * @return void
@@ -996,7 +946,7 @@ if ( ! function_exists( 'pixva_price_table_rows_html' ) ) {
 				?>
 				<tr data-service="<?php echo esc_attr( (string) $row['service'] ); ?>">
 					<th scope="row"><?php echo esc_html( (string) $row['label'] ); ?></th>
-					<td colspan="2" class="pixva-pricetable__quote">
+					<td colspan="2" class="bx-price-quotecell">
 						<?php esc_html_e( 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.', 'pixva' ); ?>
 					</td>
 					<td><?php echo esc_html( (string) $row['days'] ); ?></td>
@@ -1007,10 +957,10 @@ if ( ! function_exists( 'pixva_price_table_rows_html' ) ) {
 			?>
 			<tr data-service="<?php echo esc_attr( (string) $row['service'] ); ?>">
 				<th scope="row"><?php echo esc_html( (string) $row['label'] ); ?></th>
-				<td data-min="<?php echo esc_attr( (string) $row['min'] ); ?>">
+				<td class="bx-price-num" data-min="<?php echo esc_attr( (string) $row['min'] ); ?>">
 					<?php echo esc_html( pixva_price( (int) $row['min'] ) ); ?>
 				</td>
-				<td data-max="<?php echo esc_attr( (string) $row['max'] ); ?>">
+				<td class="bx-price-num" data-max="<?php echo esc_attr( (string) $row['max'] ); ?>">
 					<?php echo esc_html( pixva_price( (int) $row['max'] ) ); ?>
 				</td>
 				<td><?php echo esc_html( (string) $row['days'] ); ?></td>
@@ -1211,7 +1161,7 @@ if ( ! function_exists( 'pixva_trust_feature_items' ) ) {
 
 if ( ! function_exists( 'pixva_render_trust_features' ) ) {
 	/**
-	 * رندر بخش چهار اصل کلیدی اعتماد (سریع، خوانا، بدون انیمیشن سنگین).
+	 * رندر چهار اصل کلیدی اعتماد با پوسته بنتو (لایه ۴٫۰٫۰).
 	 *
 	 * @param array<string, mixed> $settings تنظیمات.
 	 * @return void
@@ -1228,24 +1178,25 @@ if ( ! function_exists( 'pixva_render_trust_features' ) ) {
 			__( 'چهار اصل که در هر پرونده تعمیر، از بازدید تا گارانتی، بدون استثنا رعایت می‌شود.', 'pixva' )
 		);
 		?>
-		<section class="pixva-seo pixva-trust" id="trust-features">
-			<div class="pixva-container">
-				<header class="pixva-seo__head">
-					<h2><?php echo esc_html( $title ); ?></h2>
-					<p><?php echo esc_html( $subtitle ); ?></p>
+		<section class="bx-module bx-trust-module" id="trust-features">
+			<div class="bx-wrap">
+				<header class="bx-module__head">
+					<p class="bx-eyebrow"><?php esc_html_e( 'اعتماد', 'pixva' ); ?></p>
+					<h2 class="bx-module__title"><?php echo esc_html( $title ); ?></h2>
+					<p class="bx-module__lead"><?php echo esc_html( $subtitle ); ?></p>
 				</header>
 
-				<ul class="pixva-trust__grid">
+				<div class="bx-trust">
 					<?php foreach ( $items as $item ) : ?>
-						<li class="pixva-trust__item" id="<?php echo esc_attr( $item['id'] ); ?>">
-							<span class="pixva-trust__icon" aria-hidden="true">
+						<div class="bx-trust__item bx-reveal" id="<?php echo esc_attr( $item['id'] ); ?>">
+							<span class="bx-trust__icon">
 								<?php echo pixva_icon( isset( $item['icon'] ) ? $item['icon'] : 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</span>
-							<h3><?php echo esc_html( $item['title'] ); ?></h3>
-							<p><?php echo esc_html( $item['text'] ); ?></p>
-						</li>
+							<h3 class="bx-trust__title"><?php echo esc_html( $item['title'] ); ?></h3>
+							<p class="bx-trust__text"><?php echo esc_html( $item['text'] ); ?></p>
+						</div>
 					<?php endforeach; ?>
-				</ul>
+				</div>
 			</div>
 		</section>
 		<?php
@@ -1258,17 +1209,15 @@ if ( ! function_exists( 'pixva_render_trust_features' ) ) {
 
 if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 	/**
-	 * رندر فرم دو فیلدی اعزام فوری تکنسین (۱۰۰٪ ریسپانسیو و بدون JS سنگین).
+	 * رندر فرم اعزام فوری با پوسته بنتو (لایه ۴٫۰٫۰).
+	 *
+	 * قرارداد داده‌ای REST بدون تغییر می‌ماند (phone/details/brand/source/
+	 * nonce/pixva_hp)؛ فقط نشانه‌گذاری و کلاس‌ها تازه شده‌اند.
 	 *
 	 * @param array<string, mixed> $settings تنظیمات.
 	 * @return void
 	 */
 	function pixva_render_express_booking( $settings = array() ) {
-		/*
-		 * وارینت card (لایه ۲٫۱٫۰): همان فرم دو فیلدی در قالب کارت elevated
-		 * برای ستون کناری هیرو؛ شناسه بخش و منبع ثبت درخواست جدا می‌شود تا
-		 * دو فرم در یک صفحه بدون تداخل id رندر شوند.
-		 */
 		$variant    = isset( $settings['variant'] ) ? (string) $settings['variant'] : '';
 		$section_id = isset( $settings['section_id'] ) && '' !== $settings['section_id'] ? (string) $settings['section_id'] : 'express-booking';
 
@@ -1285,30 +1234,28 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 		$control = function_exists( 'pixva_control_options' ) ? (array) pixva_control_options() : array();
 		$hours   = isset( $control['hub_eta_hours'] ) && '' !== $control['hub_eta_hours'] ? (string) $control['hub_eta_hours'] : __( '۲ ساعت', 'pixva' );
 
-		/*
-		 * انتخاب‌گر برند پویا (لایه ۳٫۰٫۰): در وارینت کارت هیرو پیش‌فرض روشن
-		 * است و با settings['brand_selector'] در هر جای دیگر هم فعال می‌شود.
-		 * اختیاری است؛ اگر پر نشود برند از متن آزاد تشخیص داده می‌شود.
-		 */
-		$show_brand   = 'card' === $variant || ! empty( $settings['brand_selector'] );
-		$brands       = function_exists( 'pixva_brand_catalog' ) ? (array) pixva_brand_catalog() : array();
-		$brand_label  = isset( $settings['brand_label'] ) && '' !== $settings['brand_label'] ? $settings['brand_label'] : (string) pixva_option( 'pixva_express_brand_label', __( 'برند تلویزیون', 'pixva' ) );
+		// انتخاب‌گر برند پویا: در وارینت کارت پیش‌فرض روشن است.
+		$show_brand  = 'card' === $variant || ! empty( $settings['brand_selector'] );
+		$brands      = function_exists( 'pixva_brand_catalog' ) ? (array) pixva_brand_catalog() : array();
+		$brand_label = isset( $settings['brand_label'] ) && '' !== $settings['brand_label'] ? $settings['brand_label'] : (string) pixva_option( 'pixva_express_brand_label', __( 'برند تلویزیون', 'pixva' ) );
+		$id_suffix   = sanitize_html_class( $section_id );
 
 		pixva_seo_cro_assets();
 		?>
-		<section class="pixva-seo pixva-express<?php echo 'card' === $variant ? ' pixva-express--card' : ''; ?>" id="<?php echo esc_attr( $section_id ); ?>">
-			<div class="pixva-container">
-				<header class="pixva-seo__head">
-					<h2><?php echo esc_html( $title ); ?></h2>
-					<p><?php echo esc_html( $subtitle ); ?></p>
-				</header>
+		<section class="bx-module bx-express-module<?php echo 'card' === $variant ? ' bx-express-module--card' : ''; ?>" id="<?php echo esc_attr( $section_id ); ?>">
+			<div class="bx-wrap">
+				<div class="bx-express">
+					<header>
+						<p class="bx-eyebrow"><?php esc_html_e( 'کمتر از یک دقیقه', 'pixva' ); ?></p>
+						<h2 class="bx-express__title"><?php echo esc_html( $title ); ?></h2>
+						<p class="bx-express__lead"><?php echo esc_html( $subtitle ); ?></p>
+					</header>
 
-				<form class="pixva-express__form" data-express-form novalidate>
-					<div class="pixva-express__fields">
+					<form data-bx-express novalidate>
 						<?php if ( $show_brand && ! empty( $brands ) ) : ?>
-							<label class="pixva-express__field pixva-express__field--brand">
-								<span><?php echo esc_html( $brand_label ); ?></span>
-								<select name="brand" data-express-brand>
+							<div class="bx-field">
+								<label class="bx-field__label" for="bx-express-brand-<?php echo esc_attr( $id_suffix ); ?>"><?php echo esc_html( $brand_label ); ?></label>
+								<select class="bx-select" id="bx-express-brand-<?php echo esc_attr( $id_suffix ); ?>" name="brand" data-bx-express-brand>
 									<option value=""><?php esc_html_e( 'انتخاب کنید (اختیاری — از متن شرح هم تشخیص داده می‌شود)', 'pixva' ); ?></option>
 									<?php foreach ( $brands as $brand_key => $brand ) : ?>
 										<option value="<?php echo esc_attr( $brand_key ); ?>">
@@ -1316,51 +1263,43 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 										</option>
 									<?php endforeach; ?>
 								</select>
-							</label>
+							</div>
 						<?php endif; ?>
 
-						<label class="pixva-express__field">
-							<span><?php echo esc_html( $phone_label ); ?> <em aria-hidden="true">*</em></span>
-							<input
-								type="tel"
-								name="phone"
-								dir="ltr"
-								inputmode="numeric"
-								autocomplete="tel"
-								placeholder="09xxxxxxxxx"
-								pattern="09[0-9]{9}"
-								required
-								data-express-required="phone">
-						</label>
-
-						<label class="pixva-express__field pixva-express__field--wide">
-							<span><?php echo esc_html( $details_label ); ?> <em aria-hidden="true">*</em></span>
-							<input
-								type="text"
-								name="details"
-								autocomplete="off"
+						<div class="bx-field">
+							<label class="bx-field__label" for="bx-express-details-<?php echo esc_attr( $id_suffix ); ?>">
+								<?php echo esc_html( $details_label ); ?> <em aria-hidden="true">*</em>
+							</label>
+							<textarea class="bx-textarea" id="bx-express-details-<?php echo esc_attr( $id_suffix ); ?>" name="details" rows="3"
 								placeholder="<?php echo esc_attr( __( 'مثلاً: سامسونگ ۵۵ اینچ — صدا دارد ولی تصویر ندارد', 'pixva' ) ); ?>"
-								required
-								data-express-required="details">
-						</label>
-					</div>
+								required data-bx-express-details></textarea>
+						</div>
 
-					<!-- تله ضدربات: ربات‌ها این فیلد را پر می‌کنند. -->
-					<p class="pixva-express__hp" aria-hidden="true">
-						<label>
-							<span><?php esc_html_e( 'این فیلد را خالی بگذارید', 'pixva' ); ?></label>
-							<input type="text" name="pixva_hp" value="" tabindex="-1" autocomplete="off">
-						</label>
-					</p>
+						<div class="bx-field">
+							<label class="bx-field__label" for="bx-express-phone-<?php echo esc_attr( $id_suffix ); ?>">
+								<?php echo esc_html( $phone_label ); ?> <em aria-hidden="true">*</em>
+							</label>
+							<input class="bx-input" id="bx-express-phone-<?php echo esc_attr( $id_suffix ); ?>" type="tel" name="phone"
+								dir="ltr" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx"
+								pattern="09[0-9]{9}" required data-bx-express-phone>
+						</div>
 
-					<input type="hidden" name="source" value="<?php echo esc_attr( isset( $settings['source'] ) ? $settings['source'] : 'home' ); ?>">
-					<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'pixva_express_booking' ) ); ?>" data-express-nonce>
+						<!-- تله ضدربات: ربات‌ها این فیلد را پر می‌کنند. -->
+						<p class="bx-honeypot" aria-hidden="true">
+							<label>
+								<span><?php esc_html_e( 'این فیلد را خالی بگذارید', 'pixva' ); ?></span>
+								<input type="text" name="pixva_hp" value="" tabindex="-1" autocomplete="off">
+							</label>
+						</p>
 
-					<div class="pixva-express__actions">
-						<button type="submit" class="pixva-express__submit" data-express-submit>
+						<input type="hidden" name="source" value="<?php echo esc_attr( isset( $settings['source'] ) ? $settings['source'] : 'home' ); ?>">
+						<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'pixva_express_booking' ) ); ?>" data-bx-express-nonce>
+
+						<button type="submit" class="bx-btn bx-btn--accent bx-btn--block" data-bx-express-submit>
 							<?php echo esc_html( $cta ); ?>
 						</button>
-						<p class="pixva-express__hint">
+
+						<p class="bx-field__hint">
 							<?php
 							echo esc_html(
 								sprintf(
@@ -1371,10 +1310,10 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 							);
 							?>
 						</p>
-					</div>
 
-					<p class="pixva-express__msg" data-express-msg role="status" aria-live="polite" hidden></p>
-				</form>
+						<p class="bx-msg" data-bx-express-msg role="status" aria-live="polite"></p>
+					</form>
+				</div>
 			</div>
 		</section>
 		<?php
@@ -1547,8 +1486,15 @@ if ( ! function_exists( 'pixva_rest_express_booking' ) ) {
 		// لایه ۳٫۰٫۰: برند صریحِ انتخاب‌شده در فرم بر تشخیص از متن آزاد اولویت دارد.
 		$brand_param = sanitize_key( (string) $request->get_param( 'brand' ) );
 		$brand       = ( '' !== $brand_param && isset( $brands[ $brand_param ] ) ) ? $brand_param : pixva_express_detect_brand( $details );
-		$problem     = pixva_express_detect_problem( $details );
-		$size        = pixva_express_size_from_text( $details );
+
+		/*
+		 * لایه ۴٫۰٫۰: موتور رزرو بنتو خدمت و سایز را صریح می‌فرستد؛ مقدار
+		 * صریحِ معتبر بر تشخیص از متن آزاد اولویت دارد (فرم‌های قدیمی سالم).
+		 */
+		$service_param = sanitize_key( (string) $request->get_param( 'service' ) );
+		$size_param    = sanitize_key( (string) $request->get_param( 'size' ) );
+		$problem       = ( '' !== $service_param && in_array( $service_param, pixva_price_table_services(), true ) ) ? $service_param : pixva_express_detect_problem( $details );
+		$size          = ( '' !== $size_param && in_array( $size_param, pixva_price_table_sizes(), true ) ) ? $size_param : pixva_express_size_from_text( $details );
 		$problems = function_exists( 'pixva_problem_catalog' ) ? (array) pixva_problem_catalog() : array();
 
 		$brand_label   = isset( $brands[ $brand ] ) ? $brands[ $brand ]['fa'] : __( 'برند نامشخص', 'pixva' );
@@ -1639,6 +1585,8 @@ if ( ! function_exists( 'pixva_rest_express_booking' ) ) {
 					'code'     => $code,
 					'order_id' => $order_id,
 					'brand'    => $brand_label,
+					'service'  => $problem,
+					'size'     => $size,
 					'problem'  => $problem_label,
 					'estimate' => $estimate_text,
 					'message'  => sprintf(
@@ -1734,7 +1682,7 @@ if ( ! function_exists( 'pixva_seo_cro_needed' ) ) {
 
 		$content = (string) pixva_cinematic_content_markers();
 
-		foreach ( array( 'pixva_symptom_guide', 'pixva_price_calculator', 'pixva_trust_features', 'pixva_express_booking', 'data-express-form', 'data-price-filters' ) as $marker ) {
+		foreach ( array( 'pixva_symptom_guide', 'pixva_price_calculator', 'pixva_trust_features', 'pixva_express_booking', 'data-bx-express', 'data-bx-price' ) as $marker ) {
 			if ( false !== strpos( $content, $marker ) ) {
 				return true;
 			}

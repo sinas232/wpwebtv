@@ -123,6 +123,22 @@ function pixva_default_section_order() {
 	return implode( ',', array_keys( pixva_home_sections() ) );
 }
 
+if ( ! function_exists( 'pixva_sanitize_cta_link' ) ) {
+	/**
+	 * اعتبارسنجی لینک CTA: لنگر درون‌صفحه‌ای (#id) یا نشانی کامل.
+	 *
+	 * @param mixed $value مقدار ورودی.
+	 * @return string
+	 */
+	function pixva_sanitize_cta_link( $value ) {
+		$value = trim( (string) $value );
+		if ( preg_match( '/^#[A-Za-z0-9_-]+$/', $value ) ) {
+			return $value;
+		}
+		return (string) esc_url_raw( $value );
+	}
+}
+
 /**
  * اعتبارسنجی و sanitize ترتیب سکشن‌ها.
  *
@@ -1003,12 +1019,12 @@ function pixva_customize_register( $wp_customize ) {
 		$wp_customize->add_control( $pixva_key, $pixva_args );
 	}
 
-	/* ------- برند و پویاسازی (لایه ۳٫۰٫۰ / Master Prompt v13) ------- */
+	/* ------- برند و پویاسازی (لایه ۴٫۰٫۰ / Master Prompt v14 — Bento) ------- */
 	$wp_customize->add_section(
 		'pixva_brand',
 		array(
-			'title'       => esc_html__( 'پیکسوا: برند، رنگ و هویت (لایه ۳٫۰٫۰)', 'pixva' ),
-			'description' => esc_html__( 'لوگوها (اصلی/تیره/موبایل)، رنگ برند، ساعات کاری و کلید CTA هدر؛ همه‌جا پویا اعمال می‌شود.', 'pixva' ),
+			'title'       => esc_html__( 'پیکسوا: برند، رنگ و هویت (لایه ۴٫۰٫۰)', 'pixva' ),
+			'description' => esc_html__( 'لوگوها (اصلی/تیره/موبایل)، رنگ برند ایندیگو، رنگ لهجه تبدیل (زمرد)، لینک و کلیدهای CTA و ساعات کاری؛ همه‌جا پویا اعمال می‌شود.', 'pixva' ),
 			'priority'    => 38,
 		)
 	);
@@ -1035,7 +1051,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_brand_color',
 		array(
-			'default'           => '#2563EB',
+			'default'           => '#4F46E5',
 			'sanitize_callback' => 'sanitize_hex_color',
 		)
 	);
@@ -1046,7 +1062,7 @@ function pixva_customize_register( $wp_customize ) {
 			array(
 				'label'       => esc_html__( 'رنگ اصلی برند', 'pixva' ),
 				'section'     => 'pixva_brand',
-				'description' => esc_html__( 'پیش‌فرض: آبی الکتریک #2563EB — روی همه دکمه‌ها، لینک‌ها و توکن‌های طراحی اعمال می‌شود.', 'pixva' ),
+				'description' => esc_html__( 'پیش‌فرض: ایندیگوی الکتریک #4F46E5 — روی همه دکمه‌ها، لینک‌ها و توکن‌های بنتو اعمال می‌شود.', 'pixva' ),
 			)
 		)
 	);
@@ -1054,7 +1070,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_brand_color_hover',
 		array(
-			'default'           => '#1D4ED8',
+			'default'           => '#4338CA',
 			'sanitize_callback' => 'sanitize_hex_color',
 		)
 	);
@@ -1066,6 +1082,58 @@ function pixva_customize_register( $wp_customize ) {
 				'label'   => esc_html__( 'رنگ برند در حالت hover/فعال', 'pixva' ),
 				'section' => 'pixva_brand',
 			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_accent_color',
+		array(
+			'default'           => '#10B981',
+			'sanitize_callback' => 'sanitize_hex_color',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Color_Control(
+			$wp_customize,
+			'pixva_accent_color',
+			array(
+				'label'       => esc_html__( 'رنگ لهجه تبدیل (زمرد)', 'pixva' ),
+				'section'     => 'pixva_brand',
+				'description' => esc_html__( 'پیش‌فرض: زمرد #10B981 — رنگ محرک‌های تبدیل (دکمه رزرو، داک موبایل و وضعیت‌های موفقیت).', 'pixva' ),
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_hero_cta_link',
+		array(
+			'default'           => '#booking',
+			'sanitize_callback' => 'pixva_sanitize_cta_link',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_hero_cta_link',
+		array(
+			'label'       => esc_html__( 'لینک CTA اصلی (هیرو و جمع‌بندی)', 'pixva' ),
+			'section'     => 'pixva_brand',
+			'type'        => 'text',
+			'description' => esc_html__( 'لنگر درون‌صفحه‌ای مثل #booking یا نشانی کامل؛ داک موبایل صفحه اصلی هم به آن می‌رود.', 'pixva' ),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_hero_cta_label',
+		array(
+			'default'           => 'شروع رزرو فوری',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_hero_cta_label',
+		array(
+			'label'   => esc_html__( 'متن دکمه CTA اصلی', 'pixva' ),
+			'section' => 'pixva_brand',
+			'type'    => 'text',
 		)
 	);
 

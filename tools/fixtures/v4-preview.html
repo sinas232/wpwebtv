@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa" class="js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#4F46E5">
+<title>پیکسوا — fixture لایه ۴٫۰٫۰ (Bento)</title>
+<link rel="stylesheet" href="../../pixva/assets/css/seo-cro.css">
+<script>
+/* پیکربندی‌های درون‌خطی که در وردپرس با wp_localize_script چاپ می‌شوند. */
+var pixvaBento = {
+	restUrl: '/wp-json/pixva/v1',
+	nonce: 'bento-nonce-1',
+	homeUrl: 'http://localhost/',
+	i18n: {
+		loading: 'در حال پردازش…',
+		updating: 'در حال به‌روزرسانی نرخ‌نامه…',
+		error: 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.',
+		needPhone: 'برای هماهنگی اعزام، شماره موبایل الزامی است.',
+		badPhone: 'شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷).',
+		needDetails: 'شرح کوتاه مشکل را بنویسید (حداقل ۳ نویسه).',
+		needCode: 'کد پیگیری و شماره همراه هر دو لازم است.',
+		toman: 'تومان',
+		estimateWait: 'پس از انتخاب برند و سایز',
+		daysPrefix: 'مدت تعمیر: %s',
+		minute: 'دقیقه',
+		panelQuote: 'تعویض کامل پنل خارج از نرخ‌نامه است؛ پس از بازدید، امکان‌سنجی و قیمت اعلام می‌شود.',
+		approved: 'نرخ مصوب',
+		afterVisit: 'پس از بازدید',
+		resultStatus: 'وضعیت پرونده',
+		resultDevice: 'دستگاه',
+		resultWarranty: 'گارانتی',
+		resultEstimate: 'برآورد',
+		resultCode: 'کد پیگیری'
+	}
+};
+var pixvaSeoCro = {
+	restUrl: '/wp-json/pixva/v1',
+	nonce: 'bento-nonce-1',
+	homeUrl: 'http://localhost/',
+	i18n: pixvaBento.i18n
+};
+var pixvaTheme = { ajaxUrl: '/wp-admin/admin-ajax.php', nonce: {}, i18n: { loading: '…', error: 'خطا', menuOpen: 'باز کردن منو', menuClose: 'بستن منو', sent: 'ارسال شد' } };
+
+/* شبیه‌ساز REST پیکسوا (pixva/v1) با شمارنده فراخوانی‌ها. */
+window.__pixvaCalls = { price: 0, express: 0, dispatch: 0, track: 0 };
+window.__pixvaLastExpress = null;
+
+(function () {
+	function rows(brandFa, base) {
+		return [
+			{ service: 'backlight', label: 'تعمیر بک‌لایت', min: base, max: base + 600000, min_label: '۱٬۲۰۰٬۰۰۰', max_label: '۱٬۸۰۰٬۰۰۰', days: '۲ تا ۴ روز', panel_replacement: false },
+			{ service: 'powerboard', label: 'تعمیر برد پاور', min: base, max: base + 400000, min_label: '۹۰۰٬۰۰۰', max_label: '۱٬۳۰۰٬۰۰۰', days: '۱ تا ۳ روز', panel_replacement: false },
+			{ service: 'panel', label: 'تعمیر پنل', min: 0, max: 0, min_label: '', max_label: '', days: 'پس از بازدید', panel_replacement: true }
+		];
+	}
+	function ok(payload) {
+		return { ok: true, status: 200, json: function () { return Promise.resolve(payload); } };
+	}
+	function err(status, message) {
+		return { ok: false, status: status, json: function () { return Promise.resolve({ code: 'x', message: message, data: { status: status } }); } };
+	}
+
+	window.fetch = function (url, options) {
+		var u = String(url);
+		var method = (options && options.method) || 'GET';
+
+		if (u.indexOf('/price-table') > -1) {
+			window.__pixvaCalls.price += 1;
+			var brand = /brand=([a-z]+)/.exec(u);
+			var size = /size=([0-9]+)/.exec(u);
+			var brandKey = brand ? brand[1] : 'samsung';
+			var sizeKey = size ? size[1] : '55';
+			var fa = brandKey === 'sony' ? 'سونی' : (brandKey === 'lg' ? 'ال‌جی' : 'سامسونگ');
+			return Promise.resolve(ok({
+				success: true,
+				data: {
+					brand: brandKey,
+					brand_label: fa,
+					size: sizeKey,
+					currency: 'تومان',
+					caption: 'نرخ‌نامه تعمیر تلویزیون ' + fa + ' — ' + sizeKey + ' اینچ (تومان)',
+					status_label: fa + ' — ' + sizeKey + ' اینچ',
+					quote_label: 'تعویض کامل پنل خارج از نرخ‌نامه است.',
+					rows: rows(fa, brandKey === 'samsung' ? 1200000 : 1100000)
+				}
+			}));
+		}
+
+		if (u.indexOf('/express-booking') > -1 && method === 'POST') {
+			window.__pixvaCalls.express += 1;
+			var body = JSON.parse(options.body);
+			window.__pixvaLastExpress = body;
+			if (body.pixva_hp) {
+				return Promise.resolve(err(400, 'ارسال ناموفق؛ لطفاً دوباره تلاش کنید.'));
+			}
+			if (!body.nonce) {
+				return Promise.resolve(err(403, 'کلید امنیتی منقضی شده.'));
+			}
+			if (!/^09[0-9]{9}$/.test(body.phone)) {
+				return Promise.resolve(err(400, 'شماره موبایل معتبر نیست.'));
+			}
+			return Promise.resolve(ok({
+				success: true,
+				data: {
+					code: 'PX-40001',
+					order_id: 4001,
+					brand: 'سامسونگ',
+					service: body.service || '',
+					size: body.size || '',
+					problem: 'تعمیر بک‌لایت',
+					estimate: '۱٬۲۰۰٬۰۰۰ — ۱٬۸۰۰٬۰۰۰ تومان',
+					message: 'درخواست شما با کد پیگیری PX-40001 ثبت شد. تکنسین به‌زودی تماس می‌گیرد.'
+				}
+			}));
+		}
+
+		if (u.indexOf('/dispatch-live') > -1) {
+			window.__pixvaCalls.dispatch += 1;
+			return Promise.resolve(ok({
+				code: 'DEMO',
+				status: 'assigned',
+				statusLabel: 'در مسیر مشتری',
+				technician: { id: 0, name: 'تعمیرکار شیفت امروز', phone: '', skill: 'بک‌لایت، پنل و برد اصلی' },
+				eta: 18,
+				progress: 0.42,
+				moving: true,
+				simulated: true,
+				demo: true,
+				refresh: 60,
+				updatedAt: '12:30:00',
+				device: { brand: 'Samsung', model: 'نمایش دمو ۵۵ اینچ' }
+			}));
+		}
+
+		if (u.indexOf('/track') > -1) {
+			window.__pixvaCalls.track += 1;
+			var code = /code=([^&]*)/.exec(u);
+			var phone = /phone=([^&]*)/.exec(u);
+			var codeVal = code ? decodeURIComponent(code[1]) : '';
+			var phoneVal = phone ? decodeURIComponent(phone[1]) : '';
+			if (!codeVal || !/^09[0-9]{9}$/.test(phoneVal)) {
+				return Promise.resolve(err(400, 'کد پیگیری و شماره همراه هر دو لازم است.'));
+			}
+			if (codeVal !== 'PX-123') {
+				return Promise.resolve(err(404, 'پرونده‌ای با این کد پیگیری و شماره همراه یافت نشد.'));
+			}
+			return Promise.resolve(ok({
+				success: true,
+				found: true,
+				code: 'PX-123',
+				status: 'delivered',
+				statusLabel: 'تحویل شد',
+				estimate: '۲٬۰۰۰٬۰۰۰ تومان',
+				order: {
+					device: 'سامسونگ UE55',
+					problem: 'تعمیر بک‌لایت',
+					warranty: 'گارانتی کتبی ۱۸۰ روزه تا ۱۴۰۵-۰۶-۰۱'
+				}
+			}));
+		}
+
+		return Promise.resolve(err(404, 'route not mocked: ' + u));
+	};
+}());
+</script>
+</head>
+<body class="pixva-theme pixva-bento pixva-home">
+<a class="skip-link" href="#content">پرش به محتوا</a>
+
+<div class="bx-topline">
+	<div class="bx-wrap bx-topline__inner">
+		<p class="bx-topline__item"><span>اعزام تکنسین زیر ۲ ساعت | گارانتی کتبی | قطعات فابریک</span></p>
+		<p class="bx-topline__item bx-topline__item--hours"><span>شنبه تا پنجشنبه ۹ تا ۲۰ | اعزام اورژانسی زیر ۲ ساعت</span></p>
+	</div>
+</div>
+
+<header class="bx-header" data-bx-header>
+	<div class="bx-navpill">
+		<a class="bx-navpill__logo" href="http://localhost/" rel="home"><span class="bx-logo-desktop"><img src="../../pixva/assets/images/logo-mark.svg" alt="پیکسوا"></span><span class="bx-logo-mobile"><img src="../../pixva/assets/images/logo-mark.svg" alt="پیکسوا"></span></a>
+		<nav class="bx-navpill__nav" aria-label="ناوبری اصلی">
+			<ul class="bx-nav" data-bx-nav>
+				<li><a class="bx-nav-link" href="/hub/ai-diagnostics/"><span>عیب‌یابی هوشمند</span></a></li>
+				<li><a class="bx-nav-link" href="/hub/pricing-calculator/"><span>محاسبه‌گر نرخ</span></a></li>
+				<li><a class="bx-nav-link" href="/hub/tracking-warranty/"><span>پیگیری و گارانتی</span></a></li>
+			</ul>
+		</nav>
+		<div class="bx-navpill__actions">
+			<a class="bx-call-chip" href="tel:+982191000000"><span>۰۲۱-۹۱۰۰۰۰۰۰</span></a>
+			<a class="bx-btn bx-btn--accent bx-btn--sm" href="#booking"><span>رزرو فوری</span></a>
+			<button type="button" class="bx-burger" data-bx-burger aria-expanded="false" aria-controls="bx-drawer" aria-label="باز کردن منو">≡</button>
+		</div>
+	</div>
+</header>
+
+<div id="bx-drawer" class="bx-drawer" data-bx-drawer aria-hidden="true" aria-label="منوی تمام‌صفحه">
+	<div class="bx-drawer__head">
+		<img src="../../pixva/assets/images/logo-mark.svg" alt="پیکسوا">
+		<button type="button" class="bx-drawer__close" data-bx-drawer-close aria-label="بستن منو">✕</button>
+	</div>
+	<div class="bx-drawer__body">
+		<nav aria-label="هاب‌های تخصصی">
+			<p class="bx-drawer__label">هاب‌های تخصصی</p>
+			<ul class="bx-drawer__links">
+				<li><a class="bx-drawer__link" href="/hub/ai-diagnostics/"><span>عیب‌یابی هوشمند<small>هوش مصنوعی</small></span></a></li>
+				<li><a class="bx-drawer__link" href="/hub/pricing-calculator/"><span>محاسبه‌گر نرخ<small>نرخ‌نامه</small></span></a></li>
+			</ul>
+		</nav>
+		<div class="bx-drawer__actions">
+			<a class="bx-btn bx-btn--accent" href="#booking"><span>رزرو فوری</span></a>
+			<a class="bx-btn bx-btn--on-dark" href="tel:+982191000000"><span>۰۲۱-۹۱۰۰۰۰۰۰</span></a>
+		</div>
+		<p class="bx-drawer__note">شنبه تا پنجشنبه ۹ تا ۲۰ | اعزام اورژانسی زیر ۲ ساعت</p>
+	</div>
+</div>
+
+<main id="content" class="bx-main" data-bx-front>
+
+	<section class="bx-hero" id="hero" data-bx-hero>
+		<div class="bx-wrap bx-hero__inner">
+			<span class="bx-hero__badge"><span class="bx-badge-dot" aria-hidden="true"></span><span>مرکز فوق‌تخصصی خدمات و تعمیرات</span></span>
+			<h1 class="bx-hero__title">تعمیر فوق‌تخصصی تلویزیون، در محل شما</h1>
+			<p class="bx-hero__lead">پنل، بک‌لایت، برد پاور و مین‌برد با قطعات فابریک؛ عیب‌یابی شفاف و گارانتی کتبی.</p>
+			<ul class="bx-microtrust">
+				<li class="bx-microtrust__item"><span>گارانتی کتبی ۱۸۰ روزه</span></li>
+				<li class="bx-microtrust__item bx-microtrust__item--warn"><span>اعزام تکنسین زیر ۲ ساعت</span></li>
+				<li class="bx-microtrust__item bx-microtrust__item--brand"><span>بدون هزینه پنهان پیش از تعمیر</span></li>
+			</ul>
+			<div class="bx-hero__actions">
+				<a class="bx-btn bx-btn--primary" href="#booking"><span>شروع رزرو فوری</span></a>
+				<a class="bx-btn bx-btn--ghost" href="tel:+982191000000"><span>تماس با کارشناس</span></a>
+			</div>
+
+			<div class="bx-booking" id="booking" data-bx-booking data-brand="samsung" data-size="55" data-service="backlight">
+				<div class="bx-tabs" role="tablist" aria-label="موتور رزرو تعاملی">
+					<button type="button" class="bx-tab is-active" role="tab" id="bx-tab-book" aria-selected="true" aria-controls="bx-panel-book" data-bx-tab="book"><span>رزرو تعمیرکار</span></button>
+					<button type="button" class="bx-tab" role="tab" id="bx-tab-price" aria-selected="false" aria-controls="bx-panel-price" data-bx-tab="price"><span>قیمت فوری</span></button>
+					<button type="button" class="bx-tab" role="tab" id="bx-tab-track" aria-selected="false" aria-controls="bx-panel-track" data-bx-tab="track"><span>پیگیری و گارانتی</span></button>
+				</div>
+
+				<div class="bx-panel is-active" role="tabpanel" id="bx-panel-book" aria-labelledby="bx-tab-book" data-bx-panel="book">
+					<form class="bx-booking__form" data-bx-booking-form novalidate>
+						<input type="hidden" name="nonce" value="bento-nonce-1">
+						<input type="hidden" name="source" value="bento-hero">
+						<label class="bx-honeypot" for="bx-hp-hero"><span>این فیلد را خالی بگذارید</span><input type="text" id="bx-hp-hero" name="pixva_hp" tabindex="-1" autocomplete="off"></label>
+						<div class="bx-form-row">
+							<div class="bx-field">
+								<label class="bx-field__label" for="bx-brand">برند تلویزیون</label>
+								<select class="bx-select" id="bx-brand" name="brand" data-bx-brand>
+									<option value="samsung" selected>سامسونگ</option>
+									<option value="lg">ال‌جی</option>
+									<option value="sony">سونی</option>
+								</select>
+							</div>
+							<div class="bx-field">
+								<label class="bx-field__label" for="bx-size">سایز صفحه (اینچ)</label>
+								<select class="bx-select" id="bx-size" name="size" data-bx-size>
+									<option value="43">۴۳</option>
+									<option value="55" selected>۵۵</option>
+									<option value="65">۶۵</option>
+								</select>
+							</div>
+						</div>
+						<div class="bx-field">
+							<label class="bx-field__label" for="bx-service">نوع ایراد / خدمت</label>
+							<select class="bx-select" id="bx-service" name="service" data-bx-service>
+								<option value="backlight" selected>تعمیر بک‌لایت</option>
+								<option value="powerboard">تعمیر برد پاور</option>
+								<option value="panel">تعمیر پنل</option>
+							</select>
+						</div>
+						<div class="bx-estimate" data-bx-estimate aria-live="polite">
+							<span class="bx-estimate__label">برآورد زنده نرخ‌نامه</span>
+							<span class="bx-estimate__value" data-bx-estimate-value>۱٬۲۰۰٬۰۰۰ — ۱٬۸۰۰٬۰۰۰ تومان</span>
+							<span class="bx-estimate__days" data-bx-estimate-days>مدت تعمیر: ۲ تا ۴ روز</span>
+						</div>
+						<div class="bx-field">
+							<label class="bx-field__label" for="bx-details">شرح کوتاه مشکل</label>
+							<textarea class="bx-textarea" id="bx-details" name="details" rows="3" data-bx-details required></textarea>
+						</div>
+						<div class="bx-field">
+							<label class="bx-field__label" for="bx-phone">شماره موبایل</label>
+							<input class="bx-input" id="bx-phone" name="phone" type="tel" inputmode="numeric" dir="ltr" data-bx-phone required>
+						</div>
+						<button type="submit" class="bx-btn bx-btn--accent bx-btn--block" data-bx-submit><span>ثبت درخواست اعزام فوری</span></button>
+						<p class="bx-msg" data-bx-booking-msg role="status" aria-live="polite"></p>
+						<div class="bx-booking__foot">
+							<span>ثبت بدون پیش‌پرداخت</span>
+							<span>شنبه تا پنجشنبه ۹ تا ۲۰</span>
+						</div>
+					</form>
+				</div>
+
+				<div class="bx-panel" role="tabpanel" id="bx-panel-price" aria-labelledby="bx-tab-price" data-bx-panel="price" hidden>
+					<div class="bx-form-row">
+						<div class="bx-field"><label class="bx-field__label" for="bx-q-brand">برند</label>
+							<select class="bx-select" id="bx-q-brand" data-bx-quote-brand>
+								<option value="samsung">سامسونگ</option><option value="lg">ال‌جی</option><option value="sony">سونی</option>
+							</select>
+						</div>
+						<div class="bx-field"><label class="bx-field__label" for="bx-q-size">سایز (اینچ)</label>
+							<select class="bx-select" id="bx-q-size" data-bx-quote-size>
+								<option value="43">۴۳</option><option value="55">۵۵</option><option value="65">۶۵</option>
+							</select>
+						</div>
+					</div>
+					<div class="bx-price-tablewrap">
+						<table class="bx-price-table"><thead><tr><th>خدمت</th><th>بازه قیمت (تومان)</th><th>مدت</th></tr></thead><tbody data-bx-quote-rows></tbody></table>
+					</div>
+					<p class="bx-msg" data-bx-quote-msg role="status" aria-live="polite"></p>
+				</div>
+
+				<div class="bx-panel" role="tabpanel" id="bx-panel-track" aria-labelledby="bx-tab-track" data-bx-panel="track" hidden>
+					<form class="bx-lookup__form" data-bx-lookup-form="hero" novalidate>
+						<div class="bx-form-row">
+							<div class="bx-field"><label class="bx-field__label" for="bx-track-code">کد پیگیری</label><input class="bx-input" id="bx-track-code" name="code" type="text" dir="ltr" data-bx-track-code required></div>
+							<div class="bx-field"><label class="bx-field__label" for="bx-track-phone">شماره همراه پرونده</label><input class="bx-input" id="bx-track-phone" name="phone" type="tel" dir="ltr" data-bx-track-phone required></div>
+						</div>
+						<button type="submit" class="bx-btn bx-btn--primary bx-btn--block"><span>استعلام وضعیت و گارانتی</span></button>
+						<p class="bx-msg" data-bx-lookup-msg role="status" aria-live="polite"></p>
+						<div class="bx-lookup__result" data-bx-lookup-result></div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="bx-section bx-section--tight" id="bento" aria-label="کاوشگر خدمات و ابزارها">
+		<div class="bx-wrap">
+			<div class="bx-bento" data-bx-bento>
+
+				<article class="bx-cell bx-cell--fault bx-col-8 bx-reveal" id="fault-explorer" data-bx-fault>
+					<header class="bx-cell__head">
+						<span class="bx-cell__icon"></span>
+						<div>
+							<p class="bx-eyebrow">عیب‌یابی هوشمند</p>
+							<h2 class="bx-cell__title">نشانه را انتخاب کنید؛ تشخیص فنی را ببینید</h2>
+						</div>
+					</header>
+					<div class="bx-fault-chips" role="listbox" aria-label="نشانه‌های خرابی" data-bx-fault-chips>
+						<button type="button" class="bx-fault-chip is-active" role="option" aria-selected="true" data-bx-fault-chip="no-picture-backlight"><span>صدا دارد ولی تصویر ندارد</span></button>
+						<button type="button" class="bx-fault-chip" role="option" aria-selected="false" data-bx-fault-chip="vertical-horizontal-lines"><span>خطوط عمودی یا افقی</span></button>
+						<button type="button" class="bx-fault-chip" role="option" aria-selected="false" data-bx-fault-chip="no-power-blink"><span>روشن نمی‌شود</span></button>
+					</div>
+					<article class="bx-fault-view" data-bx-fault-view="no-picture-backlight">
+						<h3 class="bx-fault-view__title">تلویزیون صدا دارد ولی تصویر ندارد؛ علت چیست؟</h3>
+						<span class="bx-fault-view__cause">خاموش‌شدن یا سوختن ریسه‌های LED بک‌لایت</span>
+						<p class="bx-fault-view__body">در بیشتر موارد پنل سالم است و ریسه‌های بک‌لایت سوخته‌اند.</p>
+						<ul class="bx-fault-checks"><li>با چراغ‌قوه گوشی از زاویه مایل بتابانید.</li></ul>
+						<p class="bx-fault-warning">پنل را خودتان باز نکنید.</p>
+						<div class="bx-fault-actions"><button type="button" class="bx-btn bx-btn--accent bx-btn--sm" data-bx-fault-book="صدا دارد ولی تصویر ندارد"><span>رزرو تعمیر این ایراد</span></button></div>
+					</article>
+					<article class="bx-fault-view" data-bx-fault-view="vertical-horizontal-lines" hidden>
+						<h3 class="bx-fault-view__title">خطوط عمودی یا افقی روی صفحه نشانه چیست؟</h3>
+						<span class="bx-fault-view__cause">قطع شدن فلت‌های COF یا ایراد برد T-Con</span>
+						<p class="bx-fault-view__body">خطوط ثابت عمودی از قطع اتصال فلت‌ها می‌آید.</p>
+						<ul class="bx-fault-checks"><li>عکس تمام‌سفید و تمام‌مشکی پخش کنید.</li></ul>
+						<p class="bx-fault-warning">بیش از سه خط پهن نیاز به بندینگ کامل دارد.</p>
+						<div class="bx-fault-actions"><button type="button" class="bx-btn bx-btn--accent bx-btn--sm" data-bx-fault-book="خطوط عمودی یا افقی"><span>رزرو تعمیر این ایراد</span></button></div>
+					</article>
+					<article class="bx-fault-view" data-bx-fault-view="no-power-blink" hidden>
+						<h3 class="bx-fault-view__title">تلویزیون روشن نمی‌شود؛ علت چیست؟</h3>
+						<span class="bx-fault-view__cause">خرابی برد پاور یا نوسان برق</span>
+						<p class="bx-fault-view__body">اگر LED استندبای چشمک می‌زند برد پاور متهم اصلی است.</p>
+						<ul class="bx-fault-checks"><li>پریز دیگری را امتحان کنید.</li></ul>
+						<p class="bx-fault-warning">خازن‌های بادکرده را لمس نکنید.</p>
+						<div class="bx-fault-actions"><button type="button" class="bx-btn bx-btn--accent bx-btn--sm" data-bx-fault-book="روشن نمی‌شود"><span>رزرو تعمیر این ایراد</span></button></div>
+					</article>
+				</article>
+
+				<article class="bx-cell bx-cell--dispatch bx-cell--dark bx-col-4 bx-reveal" id="dispatch-tracker" data-bx-dispatch>
+					<header class="bx-cell__head">
+						<span class="bx-cell__icon"></span>
+						<div><p class="bx-eyebrow bx-eyebrow--dark">اعزام زنده</p><h2 class="bx-cell__title">لحظه‌به‌لحظه تا رسیدن تکنسین</h2></div>
+						<span class="bx-live-dot">زنده</span>
+					</header>
+					<div class="bx-dispatch__radar" aria-hidden="true"><span class="bx-dispatch__tech"></span></div>
+					<p class="bx-dispatch__eta"><b data-bx-dispatch-eta>—</b><span>دقیقه تا رسیدن</span></p>
+					<div class="bx-track">
+						<span class="bx-track__bar"><i data-bx-dispatch-progress></i></span>
+						<span class="bx-track__meta"><span class="bx-track__status" data-bx-dispatch-status>در حال اتصال…</span><span data-bx-dispatch-updated></span></span>
+					</div>
+					<div class="bx-dispatch__who"><b data-bx-dispatch-tech>تکنسین شیفت</b><span data-bx-dispatch-skill></span></div>
+					<p class="bx-dispatch__note">نمایش زنده سامانه اعزام (حالت دمو).</p>
+				</article>
+
+				<article class="bx-cell bx-cell--warranty bx-col-4 bx-reveal" id="warranty-lookup" data-bx-warranty>
+					<header class="bx-cell__head">
+						<span class="bx-cell__icon"></span>
+						<div><p class="bx-eyebrow">گارانتی دیجیتال</p><h2 class="bx-cell__title">استعلام اعتبار گارانتی</h2></div>
+					</header>
+					<form class="bx-lookup__form" data-bx-lookup-form="cell" novalidate>
+						<div class="bx-field"><label class="bx-field__label" for="bx-w-code">کد پیگیری</label><input class="bx-input" id="bx-w-code" name="code" type="text" dir="ltr" data-bx-track-code required></div>
+						<div class="bx-field"><label class="bx-field__label" for="bx-w-phone">شماره همراه</label><input class="bx-input" id="bx-w-phone" name="phone" type="tel" dir="ltr" data-bx-track-phone required></div>
+						<button type="submit" class="bx-btn bx-btn--primary bx-btn--block"><span>استعلام گارانتی</span></button>
+						<p class="bx-msg" data-bx-lookup-msg role="status" aria-live="polite"></p>
+						<div class="bx-lookup__result" data-bx-lookup-result></div>
+					</form>
+				</article>
+
+				<article class="bx-cell bx-cell--pricing bx-col-8 bx-reveal" id="pricing-compare" data-bx-pricing data-brand="samsung" data-size="55">
+					<header class="bx-cell__head">
+						<span class="bx-cell__icon"></span>
+						<div><p class="bx-eyebrow">نرخ‌نامه شفاف ۱۴۰۵</p><h2 class="bx-cell__title">مقایسه قیمت تعمیر به تفکیک برند</h2></div>
+					</header>
+					<div class="bx-price-toolbar">
+						<div class="bx-price-pills" role="group" aria-label="انتخاب برند">
+							<button type="button" class="bx-price-pill is-active" data-bx-price-pill="samsung" aria-pressed="true">سامسونگ</button>
+							<button type="button" class="bx-price-pill" data-bx-price-pill="lg" aria-pressed="false">ال‌جی</button>
+							<button type="button" class="bx-price-pill" data-bx-price-pill="sony" aria-pressed="false">سونی</button>
+						</div>
+						<label class="bx-price-size" for="bx-p-size">سایز:
+							<select class="bx-select" id="bx-p-size" data-bx-price-size><option value="43">۴۳</option><option value="55" selected>۵۵</option><option value="65">۶۵</option></select>
+						</label>
+					</div>
+					<div class="bx-price-tablewrap">
+						<table class="bx-price-table">
+							<caption class="bx-sr" data-bx-price-caption>نرخ‌نامه تعمیر تلویزیون سامسونگ — ۵۵ اینچ (تومان)</caption>
+							<thead><tr><th>خدمت</th><th>بازه قیمت (تومان)</th><th>مدت تعمیر</th><th>یادداشت</th></tr></thead>
+							<tbody data-bx-price-rows>
+								<tr data-service="backlight"><td><strong>تعمیر بک‌لایت</strong></td><td class="bx-price-num">۱٬۲۰۰٬۰۰۰ — ۱٬۸۰۰٬۰۰۰</td><td>۲ تا ۴ روز</td><td><span class="bx-price-tag">نرخ مصوب</span></td></tr>
+								<tr data-service="panel"><td><strong>تعمیر پنل</strong></td><td class="bx-price-num">—</td><td>پس از بازدید</td><td><span class="bx-price-tag bx-price-tag--warn">پس از بازدید</span></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<p class="bx-price-quote" data-bx-price-quote>تعویض کامل پنل خارج از نرخ‌نامه است.</p>
+					<p class="bx-msg" data-bx-price-msg role="status" aria-live="polite"></p>
+				</article>
+
+			</div>
+		</div>
+	</section>
+
+	<section class="bx-section bx-section--tight" aria-label="برندهای تحت پوشش">
+		<div class="bx-wrap">
+			<p class="bx-eyebrow bx-eyebrow--center">پوشش کامل برندها</p>
+			<div class="bx-brands bx-u-gap">
+				<span class="bx-brand-chip">سامسونگ <small>Samsung</small></span>
+				<span class="bx-brand-chip">ال‌جی <small>LG</small></span>
+				<span class="bx-brand-chip">سونی <small>Sony</small></span>
+			</div>
+		</div>
+	</section>
+
+	<section class="bx-closer" aria-label="درخواست تعمیر">
+		<div class="bx-wrap">
+			<div class="bx-closer__card bx-reveal">
+				<div>
+					<p class="bx-eyebrow bx-eyebrow--dark">همین حالا شروع کنید</p>
+					<h2 class="bx-closer__title">تلویزیون را امروز به کارگاه بسپارید</h2>
+					<p class="bx-closer__lead">ثبت درخواست کمتر از یک دقیقه طول می‌کشد.</p>
+				</div>
+				<div class="bx-closer__actions">
+					<a class="bx-btn bx-btn--accent" href="#booking"><span>شروع رزرو فوری</span></a>
+					<a class="bx-btn bx-btn--on-dark" href="tel:+982191000000"><span>۰۲۱-۹۱۰۰۰۰۰۰</span></a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+</main>
+
+<footer class="bx-footer">
+	<div class="bx-wrap bx-footer__grid">
+		<section class="bx-footer__col bx-footer__brand">
+			<img src="../../pixva/assets/images/logo-mark.svg" alt="پیکسوا">
+			<p>مرکز فوق‌تخصصی تعمیر تلویزیون و نمایشگر.</p>
+			<div class="bx-footer__cert"><span><span>گارانتی کتبی ۱۸۰ روزه خدمات</span></span></div>
+			<div class="bx-socials"><a href="https://instagram.com/example" target="_blank" rel="noopener noreferrer">اینستاگرام</a></div>
+		</section>
+		<section class="bx-footer__col">
+			<h2>هاب‌های تخصصی</h2>
+			<ul class="bx-footer__links"><li><a href="/hub/ai-diagnostics/"><span><strong>عیب‌یابی هوشمند</strong><small>ابزار ۱ تا ۱۰</small></span></a></li></ul>
+		</section>
+		<section class="bx-footer__col">
+			<h2>تماس اورژانسی</h2>
+			<div class="bx-footer__contact">
+				<a href="tel:+982191000000"><span>۰۲۱-۹۱۰۰۰۰۰۰</span></a>
+				<p><span>شنبه تا پنجشنبه ۹ تا ۲۰ — اعزام اورژانسی زیر ۲ ساعت</span></p>
+				<address><span>تهران، خیابان جمهوری، پاساژ علاءالدین، طبقه ۴</span></address>
+			</div>
+		</section>
+		<section class="bx-footer__col">
+			<h2>اعتماد و استعلام اصالت</h2>
+			<div class="bx-trust-row"></div>
+			<div class="bx-qr" data-pixva-qr data-qr-value="/tracking/">
+				<span class="bx-qr__code" data-qr-target aria-hidden="true"></span>
+				<p><strong>استعلام گارانتی با QR</strong><span>کد پیگیری و شماره همراه را وارد کنید.</span><a href="/tracking/">باز کردن صفحه پیگیری</a></p>
+			</div>
+		</section>
+	</div>
+	<div class="bx-wrap bx-footer__base">
+		<p class="bx-copyright">© تمامی حقوق برای مرکز تخصصی تعمیرات پیکسوا محفوظ است.</p>
+		<p>نسخه ۴٫۰٫۰ — نرخ‌نامه مصوب بازار ۱۴۰۵</p>
+	</div>
+</footer>
+
+<nav class="bx-dock" aria-label="نوار اقدام سریع موبایل">
+	<a href="tel:+982191000000" class="bx-dock__item"><span>تماس</span></a>
+	<a href="#booking" class="bx-dock__item bx-dock__item--cta"><span>درخواست تعمیرکار</span></a>
+	<a href="/tracking/" class="bx-dock__item"><span>پیگیری</span></a>
+	<a href="https://wa.me/989120000000" target="_blank" rel="noopener noreferrer" class="bx-dock__item"><span>واتساپ</span></a>
+</nav>
+
+<script src="../../pixva/assets/js/bento.js"></script>
+<script src="../../pixva/assets/js/seo-cro.js"></script>
+</body>
+</html>

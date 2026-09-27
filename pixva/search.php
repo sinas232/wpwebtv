@@ -1,6 +1,8 @@
 <?php
 /**
- * نتایج جستجو
+ * قالب نتایج جستجو — نسخه ۴٫۰٫۰ (Bento)
+ *
+ * جایگاه search-results با Theme Builder المنتور قابل بازنویسی است.
  *
  * @package Pixva
  */
@@ -10,66 +12,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
-$query = get_search_query();
->
-<main id="content">
-	<?php
-	// لایه ۳٫۰٫۰: جایگاه search-results با Theme Builder المنتور قابل بازنویسی است.
-	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'search-results' ) ) :
-	?>
-	<?php
-	pixva_page_hero(
-		sprintf(
-			/* translators: %s: عبارت جستجو */
-			__( 'نتایج «%s»', 'pixva' ),
-			$query
-		),
-		sprintf(
-			/* translators: %s: تعداد نتیجه */
-			__( '%s مورد پیدا شد.', 'pixva' ),
-			pixva_fa_num( (string) $GLOBALS['wp_query']->found_posts )
-		)
-	);
-	?>
-	<div class="pixva-container pixva-content">
-		<div class="pixva-layout">
-		<div class="pixva-layout__main">
-		<div class="pixva-search px-u-search-gap"><?php get_search_form(); ?></div>
-		<?php if ( have_posts() ) : ?>
-			<?php
-			while ( have_posts() ) :
-				the_post();
-				$pixva_type_obj = get_post_type_object( (string) get_post_type() );
-				?>
-				<article <?php post_class( 'pixva-card pixva-result' ); ?>>
-					<a href="<?php the_permalink(); ?>">
-						<?php
-						if ( has_post_thumbnail() ) {
-							the_post_thumbnail( 'pixva-card' );
-						} else {
-							echo '<span class="pixva-result__ph"></span>';
-						}
-						?>
-					</a>
-					<div>
-						<span class="pixva-kicker"><?php echo esc_html( $pixva_type_obj instanceof WP_Post_Type ? $pixva_type_obj->labels->singular_name : '' ); ?></span>
-						<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
-						<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
-					</div>
-				</article>
-			<?php endwhile; ?>
-			<?php pixva_pagination(); ?>
-		<?php else : ?>
-			<div class="pixva-notice pixva-notice--info">
-				<p><?php esc_html_e( 'چیزی پیدا نشد. عبارت کوتاه‌تری امتحان کنید یا مستقیم هزینه را برآورد کنید.', 'pixva' ); ?></p>
+
+if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'search-results' ) ) :
+	/* translators: %s: عبارت جستجو */
+	$pixva_search_title = sprintf( __( 'نتایج جستجو برای «%s»', 'pixva' ), get_search_query() );
+?>
+
+<main id="content" class="bx-page">
+	<div class="bx-wrap">
+		<header class="bx-page__head">
+			<p class="bx-eyebrow bx-eyebrow--center"><?php echo esc_html( sprintf( /* translators: %s: تعداد */ __( '%s نتیجه', 'pixva' ), function_exists( 'pixva_fa_num' ) ? pixva_fa_num( (string) $GLOBALS['wp_query']->found_posts ) : $GLOBALS['wp_query']->found_posts ) ); ?></p>
+			<h1 class="bx-page__title"><?php echo esc_html( $pixva_search_title ); ?></h1>
+			<div class="bx-u-gap">
+				<?php get_search_form(); ?>
 			</div>
-			<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'error-codes' ) ); ?>"><?php esc_html_e( 'جستجو در کدهای خطا', 'pixva' ); ?></a>
+		</header>
+
+		<?php if ( have_posts() ) : ?>
+			<div class="bx-cards">
+				<?php
+				while ( have_posts() ) :
+					the_post();
+					get_template_part( 'template-parts/card', 'post' );
+				endwhile;
+				?>
+			</div>
+			<nav class="bx-pagination" aria-label="<?php esc_attr_e( 'صفحه‌بندی', 'pixva' ); ?>">
+				<?php
+				echo wp_kses_post(
+					paginate_links(
+						array(
+							'type'      => 'list',
+							'mid_size'  => 1,
+							'prev_text' => '‹',
+							'next_text' => '›',
+						)
+					)
+				);
+				?>
+			</nav>
+		<?php else : ?>
+			<div class="bx-surface bx-empty">
+				<span class="bx-empty__icon"><?php echo pixva_bento_icons( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+				<h2><?php esc_html_e( 'نتیجه‌ای پیدا نشد', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'عبارت دیگری را امتحان کنید یا مستقیماً از هاب‌های تخصصی ابزار مناسب را باز کنید.', 'pixva' ); ?></p>
+			</div>
 		<?php endif; ?>
-		</div>
-		<?php get_sidebar(); ?>
-		</div>
 	</div>
-	<?php endif; /* پایان جایگاه search-results — لایه ۳٫۰٫۰ */ ?>
 </main>
+
 <?php
+endif;
+
 get_footer();

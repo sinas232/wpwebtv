@@ -1,6 +1,11 @@
 <?php
 /**
- * پرونده اصلی قالب پیکسوا: بارگذاری بخش‌ها، ثبت ویژگی‌ها و صف‌گذاری دارایی‌ها
+ * پیکسوا — پرونده اصلی قالب (نسخه ۴٫۰٫۰ / Bento & SaaS)
+ *
+ * معماری ماژولار و تمیز:
+ * ۱) ثابت‌ها           ۲) نقشه ماژول‌ها (آرایه‌محور)   ۳) بارگذاری تنبل المنتور
+ * ۴) راه‌اندازی قالب   ۵) دارایی‌ها (بدون jQuery، همه Vanilla و defer)
+ * ۶) گیت‌های صف‌گذاری مشروط   ۷) ابزارهای کمکی و فیلترهای هسته
  *
  * @package Pixva
  * @since   1.0.0
@@ -10,59 +15,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // خروج مستقیم غیرمجاز.
 }
 
-/*
- * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
- */
-define( 'PIXVA_VERSION', '3.0.0' );
-define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
+/* ==========================================================================
+ * ۱) ثابت‌ها
+ * ======================================================================= */
+
+define( 'PIXVA_VERSION', '4.0.0' );
+define( 'PIXVA_SPEC_VERSION', '26.0' ); // مستر اسپک «2026 Bento Luxury Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
-/*
- * ---------------------------------------------------------------------------
- * ۱) بارگذاری بخش‌های داخلی قالب
- * ---------------------------------------------------------------------------
- */
-require_once PIXVA_DIR . '/inc/security.php';
-require_once PIXVA_DIR . '/inc/pricing-engine.php';
-require_once PIXVA_DIR . '/inc/custom-post-types.php';
-require_once PIXVA_DIR . '/inc/meta-boxes.php';
-require_once PIXVA_DIR . '/inc/cinematic.php';
-require_once PIXVA_DIR . '/inc/ai-diagnose.php';
-require_once PIXVA_DIR . '/inc/ai-handler.php';
-require_once PIXVA_DIR . '/inc/sms-handler.php';
-require_once PIXVA_DIR . '/inc/host-fix.php';
-require_once PIXVA_DIR . '/inc/seo-cro.php';
-require_once PIXVA_DIR . '/inc/corporate-ui.php';
-require_once PIXVA_DIR . '/inc/tracker-map.php';
-require_once PIXVA_DIR . '/inc/theme-options.php';
-require_once PIXVA_DIR . '/inc/home-seed.php';
-require_once PIXVA_DIR . '/inc/control-center.php';
-require_once PIXVA_DIR . '/inc/admin-settings.php';
-require_once PIXVA_DIR . '/inc/hubs.php';
-require_once PIXVA_DIR . '/inc/tool-data.php';
-require_once PIXVA_DIR . '/inc/tools-registry.php';
-require_once PIXVA_DIR . '/inc/tool-renderers.php';
-require_once PIXVA_DIR . '/inc/ai-bot.php';
-require_once PIXVA_DIR . '/inc/interactive-tools.php';
-require_once PIXVA_DIR . '/inc/rest-api.php';
-require_once PIXVA_DIR . '/inc/roles-and-cron.php';
-require_once PIXVA_DIR . '/inc/shortcodes.php';
-require_once PIXVA_DIR . '/inc/nav-menu.php';
-require_once PIXVA_DIR . '/inc/fault-simulator.php';
-require_once PIXVA_DIR . '/inc/ajax-handlers.php';
-require_once PIXVA_DIR . '/inc/crm-engine.php';
-require_once PIXVA_DIR . '/inc/crm-wizard.php';
-require_once PIXVA_DIR . '/inc/crm-warranty.php';
-require_once PIXVA_DIR . '/inc/crm-technician.php';
-require_once PIXVA_DIR . '/inc/crm-dispatcher.php';
-require_once PIXVA_DIR . '/inc/blog-ecosystem.php';
-require_once PIXVA_DIR . '/inc/schema-markup.php';
-require_once PIXVA_DIR . '/inc/pwa.php';
-require_once PIXVA_DIR . '/inc/template-tags.php';
-require_once PIXVA_DIR . '/inc/setup.php';
-require_once PIXVA_DIR . '/inc/activation.php';
+/* ==========================================================================
+ * ۲) نقشه ماژول‌ها — بارگذاری آرایه‌محور به‌جای فهرست دستی require
+ * ======================================================================= */
 
+if ( ! function_exists( 'pixva_module_map' ) ) {
+	/**
+	 * فهرست ماژول‌های داخلی قالب (به ترتیب وابستگی).
+	 *
+	 * @return array<int, string>
+	 */
+	function pixva_module_map() {
+		// ترتیب بارگذاری وابستگی‌های include-time را حفظ می‌کند (دقیقاً ترتیب تاریخی قالب).
+		$modules = array(
+			'security',
+			'pricing-engine',
+			'custom-post-types',
+			'meta-boxes',
+			'cinematic',
+			'ai-diagnose',
+			'ai-handler',
+			'sms-handler',
+			'host-fix',
+			'seo-cro',
+			'corporate-ui',
+			'bento-ui',
+			'tracker-map',
+			'theme-options',
+			'home-seed',
+			'control-center',
+			'admin-settings',
+			'hubs',
+			'tool-data',
+			'tools-registry',
+			'tool-renderers',
+			'ai-bot',
+			'interactive-tools',
+			'rest-api',
+			'roles-and-cron',
+			'shortcodes',
+			'nav-menu',
+			'fault-simulator',
+			'ajax-handlers',
+			'crm-engine',
+			'crm-wizard',
+			'crm-warranty',
+			'crm-technician',
+			'crm-dispatcher',
+			'blog-ecosystem',
+			'schema-markup',
+			'pwa',
+			'template-tags',
+			'setup',
+			'activation',
+		);
+
+		/**
+		 * فیلتر نقشه ماژول‌های قالب.
+		 *
+		 * @param array<int, string> $modules ماژول‌ها (بدون پسوند .php).
+		 */
+		return (array) apply_filters( 'pixva_module_map', $modules );
+	}
+}
+
+if ( ! function_exists( 'pixva_load_modules' ) ) {
+	/**
+	 * بارگذاری همه ماژول‌ها از نقشه (فقط پرونده‌های خواندنی).
+	 *
+	 * @return void
+	 */
+	function pixva_load_modules() {
+		foreach ( pixva_module_map() as $module ) {
+			$path = PIXVA_DIR . '/inc/' . $module . '.php';
+			if ( is_readable( $path ) ) {
+				require_once $path;
+			}
+		}
+	}
+}
+pixva_load_modules();
+
+/*
+ * ماژول‌های المنتور فقط پس از بارگذاری کامل خود المنتور include می‌شوند تا در
+ * نصب‌های بدون المنتور (یا هنگام به‌روزرسانی افزونه) خطای fatal رخ ندهد.
+ */
 if ( ! function_exists( 'pixva_elementor_section_files' ) ) {
 	/**
 	 * فهرست پرونده‌های ویجت سکشن در inc/widgets (مرتب‌شده، بدون پرونده محافظ).
@@ -85,13 +131,9 @@ if ( ! function_exists( 'pixva_elementor_section_files' ) ) {
 	}
 }
 
-/*
- * ماژول‌های المنتور فقط پس از بارگذاری کامل خود المنتور include می‌شوند تا در
- * نصب‌های بدون المنتور (یا هنگام به‌روزرسانی افزونه) خطای fatal رخ ندهد.
- */
 if ( ! function_exists( 'pixva_load_elementor_modules' ) ) {
 	/**
-	 * بارگذاری مشروط پرونده‌های ادغام المنتور.
+	 * بارگذاری مشروط پرونده‌های ادغام المنتور (Theme Builder + ویجت‌ها).
 	 *
 	 * @return void
 	 */
@@ -100,19 +142,13 @@ if ( ! function_exists( 'pixva_load_elementor_modules' ) ) {
 			return;
 		}
 
-		$modules = array(
-			'/inc/elementor-support.php',
-			'/inc/elementor-widgets.php',
-		);
-
-		foreach ( $modules as $module ) {
+		foreach ( array( '/inc/elementor-support.php', '/inc/elementor-widgets.php' ) as $module ) {
 			$path = PIXVA_DIR . $module;
 			if ( is_readable( $path ) ) {
 				require_once $path;
 			}
 		}
 
-		// ویجت‌های سکشن (پوشه inc/widgets): هر پرونده یک کلاس ویجت المنتور است.
 		foreach ( pixva_elementor_section_files() as $file ) {
 			require_once $file;
 		}
@@ -120,12 +156,10 @@ if ( ! function_exists( 'pixva_load_elementor_modules' ) ) {
 	add_action( 'elementor/loaded', 'pixva_load_elementor_modules', 5 );
 }
 
+/* ==========================================================================
+ * ۳) راه‌اندازی اولیه قالب
+ * ======================================================================= */
 
-/*
- * ---------------------------------------------------------------------------
- * ۲) راه‌اندازی اولیه قالب
- * ---------------------------------------------------------------------------
- */
 if ( ! function_exists( 'pixva_setup' ) ) {
 	/**
 	 * ثبت پشتیبانی‌ها، منوها و اندازه تصاویر قالب.
@@ -133,7 +167,6 @@ if ( ! function_exists( 'pixva_setup' ) ) {
 	 * @return void
 	 */
 	function pixva_setup() {
-		// بارگذاری ترجمه (زبان پیش‌فرض فارسی است اما قالب translation-ready می‌ماند).
 		load_theme_textdomain( 'pixva', PIXVA_DIR . '/languages' );
 
 		add_theme_support( 'title-tag' );
@@ -167,7 +200,6 @@ if ( ! function_exists( 'pixva_setup' ) ) {
 			)
 		);
 
-		// منوهای قالب.
 		register_nav_menus(
 			array(
 				'primary' => esc_html__( 'منوی اصلی هدر', 'pixva' ),
@@ -175,7 +207,6 @@ if ( ! function_exists( 'pixva_setup' ) ) {
 			)
 		);
 
-		// اندازه تصاویر اختصاصی.
 		add_image_size( 'pixva-card', 640, 420, true );
 		add_image_size( 'pixva-wide', 1280, 640, true );
 		add_image_size( 'pixva-ba', 1200, 675, true );
@@ -190,58 +221,45 @@ add_action( 'after_setup_theme', 'pixva_setup' );
  */
 $GLOBALS['content_width'] = 1240;
 
-/*
- * ---------------------------------------------------------------------------
- * ۳) صف‌گذاری سبک‌ها و اسکریپت‌ها (بدون jQuery، همه Vanilla JS)
- * ---------------------------------------------------------------------------
- */
+/* ==========================================================================
+ * ۴) دارایی‌ها — سامانه طراحی بنتو سراسری است (ویجت‌ها توکن‌ها را می‌گیرند)
+ * ======================================================================= */
+
 if ( ! function_exists( 'pixva_assets' ) ) {
 	/**
-	 * ثبت و صف‌گذاری دارایی‌های فرانت‌اند.
+	 * ثبت و صف‌گذاری دارایی‌های فرانت‌اند (بدون jQuery، همه Vanilla JS).
 	 *
 	 * @return void
 	 */
 	function pixva_assets() {
-		/*
-		 * style.css پایه است و rtl.css توسط هسته (locale_stylesheet) به‌صورت مکمل بارگذاری می‌شود.
-		 * از حالت replace استفاده نمی‌کنیم؛ آن حالت به‌دنبال style-rtl.css می‌گردد و style.css را حذف می‌کند.
-		 */
-		wp_enqueue_style( 'pixva-style', get_stylesheet_uri(), array(), PIXVA_VERSION );
+		$defer = array(
+			'in_footer' => true,
+			'strategy'  => 'defer',
+		);
 
+		/* ----- سبک‌ها ----- */
+		wp_enqueue_style( 'pixva-style', get_stylesheet_uri(), array(), PIXVA_VERSION );
 		wp_enqueue_style( 'pixva-main', PIXVA_URI . '/assets/css/main.css', array( 'pixva-style' ), PIXVA_VERSION );
 
-		// سبک کامپوننت‌ها تنها در صفحاتی که به آن نیاز دارند بارگذاری می‌شود.
 		if ( pixva_needs_components_css() ) {
 			wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
 		}
 
-		/*
-		 * لایه طراحی ۲۰۲۶ (Calm Premium) همیشه آخرین لایه است تا توکن‌ها، هدر شیشه‌ای،
-		 * مگامنو، فوتر سرمه‌ای و انیمیشن‌های جدید بر قواعد قدیمی کامپوننت‌ها اولویت داشته باشند.
-		 */
+		// لایه محتوای داخلی/هاب‌ها (تایپوگرافی مقاله‌ها و ابزارهای قدیمی‌تر).
 		wp_enqueue_style( 'pixva-2026', PIXVA_URI . '/assets/css/pixva-2026.css', array( 'pixva-main' ), PIXVA_VERSION );
 
 		/*
-		 * سامانه طراحی سازمانی (لایه ۲٫۱٫۰): آخرین لایه CSS سایت — توکن‌های
-		 * اسلیت/آبی، کانتینر ۱۲۰۰px، کارت JetEngine، هدر ۷۰px، هیروی دوستونی،
-		 * گریدهای auto-fit، جدول زبرا با فیلتر قرصی، فوتر سازمانی و نوار موبایل.
-		 * فقط وقتی کلید رابط سازمانی روشن است بارگذاری می‌شود.
+		 * سامانه طراحی بنتو (لایه ۴٫۰٫۰): آخرین لایه CSS و سراسری — توکن‌های
+		 * ابسیدین/ایندیگو/زمرد، ناوبری قرصی شناور، هیروی مرکزی، گرید ۱۲ ستونه،
+		 * داک موبایل و پوشش‌های JetEngine. همیشه بارگذاری می‌شود تا ویجت‌های
+		 * المنتور و قالب‌های Theme Builder همان توکن‌ها را به ارث ببرند.
 		 */
-		if ( ! function_exists( 'pixva_corporate_ui_mode' ) || pixva_corporate_ui_mode() ) {
+		if ( pixva_corporate_ui_mode() ) {
 			wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );
 		}
 
-		wp_enqueue_script(
-			'pixva-main',
-			PIXVA_URI . '/assets/js/main.js',
-			array(),
-			PIXVA_VERSION,
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
-		);
-
+		/* ----- اسکریپت‌های سراسری ----- */
+		wp_enqueue_script( 'pixva-main', PIXVA_URI . '/assets/js/main.js', array(), PIXVA_VERSION, $defer );
 		wp_localize_script(
 			'pixva-main',
 			'pixvaTheme',
@@ -263,30 +281,18 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			)
 		);
 
-		// موتور حرکت: ظهور هنگام اسکرول، موج نوری کلیک، هاور مغناطیسی و اسکرول نرم.
-		wp_enqueue_script(
-			'pixva-motion',
-			PIXVA_URI . '/assets/js/motion.js',
-			array(),
-			PIXVA_VERSION,
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
-		);
+		// موتور بنتو (لایه ۴٫۰٫۰): هدر قرصی، دروئر، موتور رزرو و کاوشگر.
+		wp_enqueue_script( 'pixva-bento', PIXVA_URI . '/assets/js/bento.js', array(), PIXVA_VERSION, $defer );
+		if ( function_exists( 'pixva_bento_localize' ) ) {
+			wp_localize_script( 'pixva-bento', 'pixvaBento', pixva_bento_localize() );
+		}
 
-		// اسکریپت ابزارها فقط در صفحه‌هایی که واقعاً ابزار/سیمولاتور دارند بارگذاری می‌شود (سرعت).
+		// موتور حرکت: ظهور هنگام اسکرول، موج نوری کلیک و اسکرول نرم.
+		wp_enqueue_script( 'pixva-motion', PIXVA_URI . '/assets/js/motion.js', array(), PIXVA_VERSION, $defer );
+
+		/* ----- اسکریپت‌های مشروط (سرعت) ----- */
 		if ( pixva_needs_tools_js() ) {
-			wp_enqueue_script(
-				'pixva-tools',
-				PIXVA_URI . '/assets/js/interactive-tools.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-tools', PIXVA_URI . '/assets/js/interactive-tools.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 
 			wp_localize_script(
 				'pixva-tools',
@@ -319,86 +325,29 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 			);
 		}
 
-		// کتابخانه تولید QR (فقط در صفحه‌هایی که کارت QR گارانتی دارند).
 		if ( pixva_needs_qrcode_js() ) {
-			wp_enqueue_script(
-				'pixva-qrcode',
-				PIXVA_URI . '/assets/js/vendor/qrcode-generator.js',
-				array(),
-				'2.0.4',
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-qrcode', PIXVA_URI . '/assets/js/vendor/qrcode-generator.js', array(), '2.0.4', $defer );
 		}
 
 		if ( pixva_needs_calculator_js() ) {
-			wp_enqueue_script(
-				'pixva-calculator',
-				PIXVA_URI . '/assets/js/calculator.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-calculator', PIXVA_URI . '/assets/js/calculator.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 		}
 
 		if ( is_page_template( 'page-templates/page-tracking.php' ) ) {
-			wp_enqueue_script(
-				'pixva-tracker',
-				PIXVA_URI . '/assets/js/tracker.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-tracker', PIXVA_URI . '/assets/js/tracker.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 		}
 
-		// موتور اتوماسیون CRM: جادوگر سفارش، پنل تعمیرکار/دیسپچ، هولوگرام و چاپ فاکتور.
 		if ( pixva_needs_crm_js() ) {
-			wp_enqueue_script(
-				'pixva-crm',
-				PIXVA_URI . '/assets/js/crm-engine.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
-
+			wp_enqueue_script( 'pixva-crm', PIXVA_URI . '/assets/js/crm-engine.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 			wp_localize_script( 'pixva-crm', 'pixvaCrm', pixva_crm_localize() );
 		}
 
 		if ( pixva_needs_before_after_js() ) {
-			wp_enqueue_script(
-				'pixva-before-after',
-				PIXVA_URI . '/assets/js/before-after.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-before-after', PIXVA_URI . '/assets/js/before-after.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 		}
 
 		if ( is_singular( 'post' ) ) {
-			wp_enqueue_script(
-				'pixva-toc',
-				PIXVA_URI . '/assets/js/toc.js',
-				array( 'pixva-main' ),
-				PIXVA_VERSION,
-				array(
-					'in_footer' => true,
-					'strategy'  => 'defer',
-				)
-			);
+			wp_enqueue_script( 'pixva-toc', PIXVA_URI . '/assets/js/toc.js', array( 'pixva-main' ), PIXVA_VERSION, $defer );
 		}
 
 		if ( is_singular() && comments_open() && get_comments_number() ) {
@@ -419,12 +368,13 @@ if ( ! function_exists( 'pixva_preload_font' ) ) {
 	}
 }
 
+/* ==========================================================================
+ * ۵) گیت‌های صف‌گذاری مشروط
+ * ======================================================================= */
+
 if ( ! function_exists( 'pixva_needs_tools_js' ) ) {
 	/**
 	 * آیا صفحه جاری به اسکریپت ابزارهای تعاملی نیاز دارد؟
-	 *
-	 * بارگذاری شرایطی interactive-tools.js (بیش از ۲۴۰۰ خط) باعث می‌شود صفحه‌های
-	 * متنی و مجله بدون اسکریپت اضافه رندر شوند و LCP زیر ۱٫۵ ثانیه بماند.
 	 *
 	 * @return bool
 	 */
@@ -433,7 +383,6 @@ if ( ! function_exists( 'pixva_needs_tools_js' ) ) {
 			return false;
 		}
 
-		// صفحه اصلی (هیرو با سیمولاتور زنده تشخیص عیب) و قالب‌های ابزارمحور.
 		$templates = array(
 			'page-templates/page-client-hub.php',
 			'page-templates/page-hub-ai.php',
@@ -447,9 +396,8 @@ if ( ! function_exists( 'pixva_needs_tools_js' ) ) {
 			'page-templates/page-b2b.php',
 		);
 
-		$needed = is_front_page() || is_home() || is_page_template( $templates );
+		$needed = is_home() || is_page_template( $templates );
 
-		// محتوای نوشته/برگه (شامل JSON المنتور) که ابزار یا ویجت پیکسوا دارد.
 		if ( ! $needed && is_singular() ) {
 			$current = get_post();
 
@@ -483,8 +431,7 @@ if ( ! function_exists( 'pixva_needs_components_css' ) ) {
 	 */
 	function pixva_needs_components_css() {
 		return (
-			is_front_page()
-			|| is_singular( 'post' )
+			is_singular( 'post' )
 			|| is_singular( 'tv_services' )
 			|| is_singular( 'tv_brands' )
 			|| is_singular( 'repair_cases' )
@@ -524,8 +471,7 @@ if ( ! function_exists( 'pixva_needs_calculator_js' ) ) {
 	 */
 	function pixva_needs_calculator_js() {
 		return (
-			is_front_page()
-			|| is_page_template( 'page-templates/page-calculator.php' )
+			is_page_template( 'page-templates/page-calculator.php' )
 			|| is_singular( 'tv_services' )
 			|| is_singular( 'tv_brands' )
 		);
@@ -540,8 +486,7 @@ if ( ! function_exists( 'pixva_needs_before_after_js' ) ) {
 	 */
 	function pixva_needs_before_after_js() {
 		return (
-			is_front_page()
-			|| is_singular( 'repair_cases' )
+			is_singular( 'repair_cases' )
 			|| is_page_template(
 				array(
 					'page-templates/page-about.php',
@@ -563,16 +508,14 @@ if ( ! function_exists( 'pixva_needs_qrcode_js' ) ) {
 			return false;
 		}
 
-		// کارت QR استعلام گارانتی در فوتر همه صفحه‌های عمومی نمایش داده می‌شود.
 		return (bool) apply_filters( 'pixva_needs_qrcode_js', (bool) pixva_option( 'pixva_footer_qr_enabled', true ) );
 	}
 }
 
-/*
- * ---------------------------------------------------------------------------
- * ۴) ابزارهای کمکی قالب
- * ---------------------------------------------------------------------------
- */
+/* ==========================================================================
+ * ۶) ابزارهای کمکی و فیلترهای هسته
+ * ======================================================================= */
+
 if ( ! function_exists( 'pixva_fa_num' ) ) {
 	/**
 	 * تبدیل ارقام لاتین به فارسی.
@@ -613,7 +556,7 @@ if ( ! function_exists( 'pixva_price' ) ) {
 
 if ( ! function_exists( 'pixva_heading_ids' ) ) {
 	/**
-	 * افزودن id یکتا به سرتیترهای H2 تا H4 محتوا (برای TOC و لینک‌دهی).
+	 * افزودن id یکتا به سرتیترهای H2 تا H4 محتوا (برای لینک‌دهی).
 	 *
 	 * @param string $content محتوای مقاله.
 	 * @return string
@@ -635,61 +578,13 @@ if ( ! function_exists( 'pixva_heading_ids' ) ) {
 				if ( '' === $slug ) {
 					$slug = 'section';
 				}
-				return sprintf( '<%1$s id="%2$s"%3$s>%4$s</%1$s>', $tag, esc_attr( $slug ), $attrs, $text );
+				return sprintf( '<%1$s id="%2$s"%3$s>%4$s</%1$s>', $tag, $slug, $attrs, $text );
 			},
 			$content
 		);
 	}
 }
 add_filter( 'the_content', 'pixva_heading_ids', 5 );
-
-if ( ! function_exists( 'pixva_build_toc' ) ) {
-	/**
-	 * ساخت جدول محتوا از سرتیترهای H2/H3 مقاله (خروجی سمت سرور برای سئو).
-	 *
-	 * @param string $content محتوای مقاله.
-	 * @return string HTML فهرست یا رشته خالی.
-	 */
-	function pixva_build_toc( $content ) {
-		if ( ! preg_match_all( '/<h([23]) id="([^"]+)"[^>]*>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER ) ) {
-			return '';
-		}
-		$items = '';
-		foreach ( $matches as $m ) {
-			$level  = (int) $m[1];
-			$id     = esc_attr( $m[2] );
-			$title  = wp_strip_all_tags( $m[3] );
-			$items .= sprintf(
-				'<li class="pixva-toc__item pixva-toc__item--l%1$d"><a href="#%2$s">%3$s</a></li>',
-				$level,
-				$id,
-				esc_html( $title )
-			);
-		}
-		if ( '' === $items ) {
-			return '';
-		}
-		$reading = function_exists( 'pixva_reading_time_label' ) ? pixva_reading_time_label() : '';
-		ob_start();
-		?>
-		<nav class="pixva-toc pixva-toc--floating pixva-glass" aria-label="<?php esc_attr_e( 'فهرست مطالب مقاله', 'pixva' ); ?>" data-pixva-toc>
-			<span class="pixva-toc__progress" aria-hidden="true"><i class="pixva-toc__progress-bar" data-toc-progress></i></span>
-			<button type="button" class="pixva-toc__toggle" aria-expanded="true" aria-controls="pixva-toc-list">
-				<span class="pixva-toc__title"><?php esc_html_e( 'فهرست مطالب', 'pixva' ); ?></span>
-				<span class="pixva-toc__chevron" aria-hidden="true"></span>
-			</button>
-			<p class="pixva-toc__meta">
-				<span><?php echo esc_html( sprintf( /* translators: %s: تعداد سرفصل */ __( '%s سرفصل', 'pixva' ), pixva_fa_num( (string) count( $matches ) ) ) ); ?></span>
-				<?php if ( '' !== $reading ) : ?><span><?php echo esc_html( $reading ); ?></span><?php endif; ?>
-			</p>
-			<ul id="pixva-toc-list" class="pixva-toc__list">
-				<?php echo wp_kses_post( $items ); ?>
-			</ul>
-		</nav>
-		<?php
-		return (string) ob_get_clean();
-	}
-}
 
 /**
  * قالب فارسی است؛ حتی پیش از نصب بسته زبان، جهت سند راست‌چین می‌ماند.
@@ -707,14 +602,9 @@ add_filter( 'language_attributes', 'pixva_force_rtl_attributes' );
 
 if ( ! function_exists( 'pixva_body_classes' ) ) {
 	/**
-	 * کلاس‌های کمکی بدنه.
+	 * کلاس‌های کمکی بدنه (فیلتر آرایه‌امن: push + return آرایه).
 	 *
-	 * فیلتر body_class آرایه می‌گیرد و باید آرایه برگرداند. اگر فیلتری پیش از
-	 * این (یا افزونه‌ای) ورودی را به رشته تبدیل کرده باشد، push روی رشته خطای
-	 * «Cannot use a scalar value as an array» می‌دهد؛ بنابراین ورودی همیشه به
-	 * آرایه نرمال می‌شود و خروجی هم آرایه یکتا برمی‌گردد.
-	 *
-	 * @param mixed $classes کلاس‌های موجود (آرایه از وردپرس).
+	 * @param mixed $classes کلاس‌های موجود.
 	 * @return array<int, string>
 	 */
 	function pixva_body_classes( $classes ) {
@@ -723,6 +613,7 @@ if ( ! function_exists( 'pixva_body_classes' ) ) {
 		}
 
 		$classes[] = 'pixva-theme';
+		$classes[] = 'pixva-bento';
 		if ( is_front_page() ) {
 			$classes[] = 'pixva-home';
 		}
@@ -769,7 +660,7 @@ add_filter( 'excerpt_more', 'pixva_excerpt_more' );
 
 if ( ! function_exists( 'pixva_widget_sidebars' ) ) {
 	/**
-	 * ثبت ناحیه ابزارک (فقط سایدبار وبلاگ).
+	 * ثبت نواحی ابزارک.
 	 *
 	 * @return void
 	 */

@@ -901,10 +901,6 @@ html[dir="rtl"] .pixva-drawer {
 }
 
 @media (max-width: 768px) {
-	body {
-		padding-bottom: calc(72px + env(safe-area-inset-bottom));
-	}
-
 	.pixva-topbar__hours {
 		display: none;
 	}
@@ -1082,45 +1078,8 @@ select.pixva-input,
 	justify-content: center;
 }
 
-/* نوار دسترسی سریع شیشه‌ای ۴ دکمه در موبایل */
-.pixva-mobile-dock {
-	display: none;
-}
-
 @media (max-width: 768px) {
-	.pixva-mobile-dock {
-		display: flex;
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 60px;
-		background: rgba(255, 255, 255, 0.92);
-		backdrop-filter: blur(16px);
-		border-top: 1px solid #DCEAEE;
-		z-index: 9998;
-		justify-content: space-around;
-		align-items: center;
-		padding-inline: 8px;
-		box-shadow: 0 -4px 16px rgba(18, 59, 74, 0.05);
-	}
-
-	.pixva-mobile-dock__item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		font-size: 11px;
-		font-weight: 700;
-		color: #3D5A66;
-		text-decoration: none;
-		gap: 2px;
-	}
-
-	.pixva-mobile-dock__item.is-cta {
-		color: #E0A458;
-	}
-
-	/* تبدیل اتوماتیک جداول نرخ‌نامه به کارت‌های پشته‌ای در موبایل */
+	/* تبدیل اتوماتیک جداول نرخ‌نامه به کارت‌های پسته‌ای در موبایل */
 	.pixva-rates-table thead {
 		display: none;
 	}

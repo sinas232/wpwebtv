@@ -1,24 +1,23 @@
-/**
- * ماژول سئو و تبدیل پیکسوا — لایه ۲٫۰٫۰ (Master Prompt v11).
- *
- * فقط دو کار سبک و ضروری:
- *  ۱) فیلتر سریع جدول شفاف قیمت (برند/سایز) با یک واکشی به اندپوینت داخلی.
- *  ۲) ارسال فرم یک‌مرحله‌ای اعزام فوری تکنسین با اعتبارسنجی شماره ۰۹xx.
- *
- * هیچ کتابخانه بیرونی، انیمیشن اسکرول یا قفل‌کننده‌ای بارگذاری نمی‌شود.
- * هر دو بخش بدون JS هم کار می‌کنند (جدول سمت سرور رندر شده و متن کامل است).
- *
- * @package Pixva
- * @since   2.0.0
+/*!
+ * Pixva SEO/CRO Modules — لایه ۴٫۰٫۰ (پوسته بنتو)
+ * رفتار ماژول‌های رندرشده در هاب‌ها و ویجت‌های المنتور:
+ * - فرم اعزام فوری [data-bx-express] (REST pixva/v1/express-booking)
+ * - جدول قیمت پویا [data-bx-price] (REST pixva/v1/price-table)
+ * ۱۰۰٪ Vanilla JS — بدون jQuery و بدون کتابخانه بیرونی.
  */
 (function (window, document) {
 	'use strict';
 
-	var cfg = window.pixvaSeoCro || {};
+	var cfg = window.pixvaSeoCro || { restUrl: '/wp-json/pixva/v1', i18n: {} };
 	var i18n = cfg.i18n || {};
+	var restBase = String(cfg.restUrl || '').replace(/\/$/, '');
 
 	function qs(selector, root) {
 		return (root || document).querySelector(selector);
+	}
+
+	function qsa(selector, root) {
+		return Array.prototype.slice.call((root || document).querySelectorAll(selector));
 	}
 
 	function text(el, value) {
@@ -28,37 +27,48 @@
 	}
 
 	function normalizePhone(value) {
-		var digits = String(value || '').replace(/[^\d]/g, '');
-		if (digits.indexOf('0098') === 0) {
-			digits = '0' + digits.slice(4);
-		} else if (digits.indexOf('98') === 0 && digits.length > 10) {
-			digits = '0' + digits.slice(2);
-		} else if (digits.charAt(0) !== '0' && digits.length === 10) {
-			digits = '0' + digits;
+		var raw = String(value || '')
+			.replace(/[۰-۹]/g, function (d) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); })
+			.replace(/[٠-٩]/g, function (d) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); })
+			.replace(/[^0-9]/g, '');
+
+		if (raw.indexOf('98') === 0 && raw.length === 12) {
+			raw = '0' + raw.slice(2);
 		}
-		return digits;
+		if (raw.indexOf('9') === 0 && raw.length === 10) {
+			raw = '0' + raw;
+		}
+		return raw;
+	}
+
+	function say(el, message, kind) {
+		if (!el) {
+			return;
+		}
+		el.textContent = message || '';
+		el.classList.toggle('is-visible', Boolean(message));
+		el.classList.toggle('bx-msg--ok', kind === 'ok');
+		el.classList.toggle('bx-msg--err', kind === 'err');
 	}
 
 	/* ------------------------------------------------------------------
-	 * ۱) فیلتر جدول قیمت
-	 * --------------------------------------------------------------- */
-	function initPriceTable(section) {
-		var brandSel = qs('[data-price-brand]', section);
-		var sizeSel = qs('[data-price-size]', section);
-		var body = qs('[data-price-body]', section);
-		var table = qs('[data-price-table]', section);
-		var status = qs('[data-price-status]', section);
+	 * جدول قیمت پویا (ماژول نرخ‌نامه با پوسته بنتو)
+	 * ---------------------------------------------------------------- */
+	function initPriceModule(section) {
+		var brandSel = qs('[data-bx-price-brand]', section);
+		var sizeSel = qs('[data-bx-price-size]', section);
+		var body = qs('[data-bx-price-rows]', section);
+		var caption = qs('[data-bx-price-caption]', section);
+		var status = qs('[data-bx-price-status]', section);
+		var pills = qsa('[data-bx-price-pill]', section);
 
-		if (!brandSel || !sizeSel || !body || !table || !window.fetch) {
+		if (!brandSel || !sizeSel || !body) {
 			return;
 		}
 
-		var busy = false;
-
-		function renderRows(rows, meta) {
-			body.innerHTML = '';
-
-			rows.forEach(function (row) {
+		function renderRows(rows) {
+			body.textContent = '';
+			(rows || []).forEach(function (row) {
 				var tr = document.createElement('tr');
 				tr.setAttribute('data-service', row.service || '');
 
@@ -67,248 +77,189 @@
 				th.textContent = row.label || '';
 				tr.appendChild(th);
 
-				if (row.panel_replacement || !row.min) {
-					var tdQuote = document.createElement('td');
-					tdQuote.setAttribute('colspan', '2');
-					tdQuote.className = 'pixva-pricetable__quote';
-					tdQuote.textContent = (meta && meta.quote_label) || i18n.panelQuote || '';
-					tr.appendChild(tdQuote);
-				} else {
-					var tdMin = document.createElement('td');
-					tdMin.setAttribute('data-min', String(row.min));
-					tdMin.textContent = row.min_label || '';
-					tr.appendChild(tdMin);
+				var tdMin = document.createElement('td');
+				tdMin.className = 'bx-price-num';
+				var tdMax = document.createElement('td');
+				tdMax.className = 'bx-price-num';
 
-					var tdMax = document.createElement('td');
-					tdMax.setAttribute('data-max', String(row.max));
+				if (row.panel_replacement || !row.min) {
+					tdMin.setAttribute('colspan', '2');
+					tdMin.className = 'bx-price-quotecell';
+					tdMin.textContent = i18n.panelQuote || '';
+					tr.appendChild(tdMin);
+				} else {
+					tdMin.textContent = row.min_label || '';
 					tdMax.textContent = row.max_label || '';
+					tr.appendChild(tdMin);
 					tr.appendChild(tdMax);
 				}
 
 				var tdDays = document.createElement('td');
-				tdDays.textContent = row.days || '';
+				tdDays.textContent = row.days || '—';
 				tr.appendChild(tdDays);
 
 				body.appendChild(tr);
 			});
+		}
 
-			// عنوان جدول از رشته ترجمه‌شده سمت سرور ساخته می‌شود (بدون متن سخت‌کد).
-			var caption = qs('caption', table);
-			if (caption && meta && meta.caption) {
-				caption.textContent = meta.caption;
-			}
+		function syncPills() {
+			pills.forEach(function (pill) {
+				var on = pill.getAttribute('data-bx-price-pill') === brandSel.value;
+				pill.classList.toggle('is-active', on);
+				pill.setAttribute('aria-pressed', on ? 'true' : 'false');
+			});
 		}
 
 		function update() {
-			if (busy) {
-				return;
-			}
-
 			var brand = brandSel.value;
 			var size = sizeSel.value;
-			if (!brand || !size) {
-				return;
-			}
+			section.setAttribute('data-price-active-brand', brand);
+			section.setAttribute('data-price-active-size', size);
+			syncPills();
+			text(status, i18n.updating || '');
 
-			busy = true;
-			section.classList.add('is-updating');
-			text(status, i18n.updating || 'در حال به‌روزرسانی جدول قیمت…');
-
-			var url = (cfg.restUrl || '/wp-json/pixva/v1') + '/price-table?brand=' +
-				encodeURIComponent(brand) + '&size=' + encodeURIComponent(size);
-
-			window.fetch(url, {
-				method: 'GET',
-				credentials: 'same-origin',
-				headers: { Accept: 'application/json' }
+			window.fetch(restBase + '/price-table?brand=' + encodeURIComponent(brand) + '&size=' + encodeURIComponent(size), {
+				credentials: 'same-origin'
 			}).then(function (response) {
-				return response.json();
-			}).then(function (payload) {
-				busy = false;
-				section.classList.remove('is-updating');
-
-				if (!payload || !payload.success || !payload.data || !payload.data.rows) {
-					text(status, i18n.error || 'خطا در دریافت نرخ‌نامه.');
-					return;
-				}
-
-				renderRows(payload.data.rows, payload.data);
-				text(status, payload.data.status_label || '');
-				section.setAttribute('data-price-active-brand', brand);
-				section.setAttribute('data-price-active-size', size);
-			}).catch(function () {
-				busy = false;
-				section.classList.remove('is-updating');
-				text(status, i18n.error || 'خطا در ارتباط با سرور؛ جدول قبلی نگه داشته شد.');
+				return response.json().then(function (payload) {
+					if (!response.ok || !payload || !payload.data) {
+						throw new Error(payload && payload.message ? payload.message : (i18n.error || ''));
+					}
+					return payload.data;
+				});
+			}).then(function (data) {
+				renderRows(data.rows);
+				text(caption, data.caption || '');
+				text(status, data.status_label || '');
+			}).catch(function (error) {
+				text(status, error && error.message ? error.message : (i18n.error || ''));
 			});
 		}
 
-		/* --- فیلتر قرصی برند (لایه ۲٫۱٫۰): همگام با <select> --- */
-		var pills = section.querySelectorAll('[data-price-pill]');
-
-		function syncPills() {
-			Array.prototype.forEach.call(pills, function (pill) {
-				var active = pill.getAttribute('data-price-pill') === brandSel.value;
-				pill.classList.toggle('is-active', active);
-				pill.setAttribute('aria-pressed', active ? 'true' : 'false');
-			});
-		}
-
-		Array.prototype.forEach.call(pills, function (pill) {
+		pills.forEach(function (pill) {
 			pill.addEventListener('click', function () {
-				var value = pill.getAttribute('data-price-pill');
-				if (!value || value === brandSel.value) {
-					return;
-				}
-				brandSel.value = value;
-				syncPills();
+				brandSel.value = pill.getAttribute('data-bx-price-pill');
 				update();
 			});
 		});
 
-		brandSel.addEventListener('change', function () {
-			syncPills();
-			update();
-		});
+		brandSel.addEventListener('change', update);
 		sizeSel.addEventListener('change', update);
+		syncPills();
 	}
 
 	/* ------------------------------------------------------------------
-	 * ۲) فرم اعزام فوری تکنسین
-	 * --------------------------------------------------------------- */
+	 * فرم اعزام فوری (ماژول express با پوسته بنتو)
+	 * ---------------------------------------------------------------- */
 	function initExpressForm(form) {
-		if (form.getAttribute('data-express-bound') === '1' || !window.fetch) {
-			return;
-		}
-		form.setAttribute('data-express-bound', '1');
-
-		var msg = qs('[data-express-msg]', form);
-		var submit = qs('[data-express-submit]', form);
-		var phone = qs('[name="phone"]', form);
-		var details = qs('[name="details"]', form);
-		var nonceField = qs('[data-express-nonce]', form);
-
-		function say(message, kind) {
-			if (!msg) {
-				return;
-			}
-			msg.hidden = false;
-			msg.textContent = message;
-			msg.className = 'pixva-express__msg is-' + (kind || 'info');
-		}
+		var phone = qs('[data-bx-express-phone]', form);
+		var details = qs('[data-bx-express-details]', form);
+		var brandSel = qs('[data-bx-express-brand]', form);
+		var submit = qs('[data-bx-express-submit]', form);
+		var msg = qs('[data-bx-express-msg]', form);
 
 		function markField(field, invalid) {
-			if (!field) {
-				return;
-			}
-			if (invalid) {
-				field.classList.add('is-invalid');
-				field.focus();
-			} else {
-				field.classList.remove('is-invalid');
+			if (field) {
+				field.classList.toggle('is-invalid', Boolean(invalid));
 			}
 		}
 
 		if (phone) {
 			phone.addEventListener('input', function () {
-				if (/^09[0-9]{9}$/.test(normalizePhone(phone.value))) {
-					markField(phone, false);
-				}
+				markField(phone, false);
+			});
+		}
+		if (details) {
+			details.addEventListener('input', function () {
+				markField(details, false);
 			});
 		}
 
 		form.addEventListener('submit', function (event) {
 			event.preventDefault();
+			say(msg, '', '');
 
 			var phoneValue = normalizePhone(phone ? phone.value : '');
+			var detailsValue = details ? String(details.value || '').trim() : '';
 
 			if (!phoneValue) {
+				say(msg, i18n.needPhone || '', 'err');
 				markField(phone, true);
-				say(i18n.needPhone || 'برای هماهنگی اعزام، شماره موبایل الزامی است.', 'error');
+				if (phone) { phone.focus(); }
 				return;
 			}
-
 			if (!/^09[0-9]{9}$/.test(phoneValue)) {
+				say(msg, i18n.badPhone || '', 'err');
 				markField(phone, true);
-				say(i18n.badPhone || 'شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷).', 'error');
+				if (phone) { phone.focus(); }
 				return;
 			}
-
 			markField(phone, false);
 
-			if (!details || String(details.value).trim().length < 3) {
+			if (detailsValue.length < 3) {
+				say(msg, i18n.needDetails || '', 'err');
 				markField(details, true);
-				say(i18n.needDetails || 'برند و مشکل دستگاه را کوتاه بنویسید.', 'error');
+				if (details) { details.focus(); }
 				return;
 			}
 			markField(details, false);
 
-			var body = new window.FormData(form);
-			if (phone) {
-				body.set('phone', phoneValue);
-			}
-			if (nonceField && !body.get('nonce')) {
-				body.set('nonce', nonceField.value || '');
-			} else if (!body.get('nonce')) {
-				body.set('nonce', cfg.nonce || '');
-			}
+			var honeypot = qs('input[name="pixva_hp"]', form);
+			var sourceInput = qs('input[name="source"]', form);
+			var body = {
+				phone: phoneValue,
+				details: detailsValue,
+				brand: brandSel ? brandSel.value : '',
+				source: sourceInput ? sourceInput.value : 'home',
+				nonce: cfg.nonce || '',
+				pixva_hp: honeypot ? honeypot.value : ''
+			};
 
 			if (submit) {
-				submit.disabled = true;
+				submit.classList.add('is-busy');
+				submit.setAttribute('disabled', 'disabled');
 			}
-			say(i18n.sending || 'در حال ثبت درخواست…', 'busy');
+			say(msg, i18n.sending || '', '');
 
-			window.fetch((cfg.restUrl || '/wp-json/pixva/v1') + '/express-booking', {
+			window.fetch(restBase + '/express-booking', {
 				method: 'POST',
-				body: body,
-				headers: { 'X-Pixva-Nonce': (nonceField && nonceField.value) || cfg.nonce || '' },
-				credentials: 'same-origin'
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
 			}).then(function (response) {
-				return response.json().then(function (data) {
-					return { ok: response.ok, data: data };
+				return response.json().then(function (payload) {
+					if (!response.ok || !payload || !payload.success) {
+						throw new Error(payload && payload.message ? payload.message : (i18n.error || ''));
+					}
+					return payload.data || {};
 				});
-			}).then(function (result) {
-				var payload = result.data || {};
-				var info = payload.data || payload;
-
-				if (result.ok && payload.success) {
-					form.classList.add('is-done');
-					if (details) {
-						details.value = '';
-					}
-					say(info.message || ('درخواست ثبت شد. کد پیگیری: ' + (info.code || '')), 'success');
-					form.setAttribute('data-express-code', info.code || '');
-				} else {
-					say((payload.message || i18n.error || 'خطا در ثبت درخواست؛ دوباره تلاش کنید.'), 'error');
-					if (submit) {
-						submit.disabled = false;
-					}
-				}
-			}).catch(function () {
-				say(i18n.error || 'خطا در ارتباط با سرور؛ دوباره تلاش کنید.', 'error');
+			}).then(function (data) {
 				if (submit) {
-					submit.disabled = false;
+					submit.classList.remove('is-busy');
 				}
+				var line = data.message || '';
+				if (data.estimate) {
+					line += ' — ' + data.estimate;
+				}
+				say(msg, line, 'ok');
+				form.reset();
+			}).catch(function (error) {
+				if (submit) {
+					submit.classList.remove('is-busy');
+					submit.removeAttribute('disabled');
+				}
+				say(msg, error && error.message ? error.message : (i18n.error || ''), 'err');
 			});
 		});
 	}
 
-	/* ------------------------------------------------------------------
-	 * راه‌اندازی
-	 * --------------------------------------------------------------- */
 	function scan(root) {
 		var scope = root || document;
-
-		var price = qs('.pixva-pricetable', scope);
-		if (price) {
-			initPriceTable(price);
-		}
-
-		Array.prototype.forEach.call(scope.querySelectorAll('[data-express-form]'), initExpressForm);
+		qsa('[data-bx-price]', scope).forEach(initPriceModule);
+		qsa('[data-bx-express]', scope).forEach(initExpressForm);
 	}
 
 	function boot() {
-		document.documentElement.classList.add('pixva-seo-js');
 		scan(document);
 	}
 
@@ -318,9 +269,13 @@
 		boot();
 	}
 
-	window.pixvaSeoCroScan = scan;
-
 	document.addEventListener('elementor/frontend/init', function () {
-		scan(document);
+		if (window.elementorFrontend && window.elementorFrontend.hooks) {
+			window.elementorFrontend.hooks.addAction('frontend/element_ready/global', function ($scope) {
+				if ($scope && $scope[0]) {
+					scan($scope[0]);
+				}
+			});
+		}
 	});
 }(window, document));

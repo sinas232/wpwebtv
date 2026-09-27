@@ -1,6 +1,9 @@
 <?php
 /**
- * برگه عمومی
+ * قالب برگه — نسخه ۴٫۰٫۰ (Bento)
+ *
+ * جایگاه page با Theme Builder المنتور قابل بازنویسی است؛ در غیر این صورت
+ * سربرگ متمرکز + سطح مقاله سفید رندر می‌شود.
  *
  * @package Pixva
  */
@@ -10,33 +13,40 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
+
+if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'page' ) ) :
 ?>
-<main id="content">
-	<?php
-	// لایه ۳٫۰٫۰: جایگاه page با Theme Builder المنتور قابل بازنویسی است.
-	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'page' ) ) :
-	?>
+
+<main id="content" class="bx-page">
 	<?php
 	while ( have_posts() ) :
 		the_post();
-		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
 		?>
-		<div class="pixva-container pixva-content pixva-layout pixva-layout--page">
-		<article <?php post_class( 'pixva-entry entry-content' ); ?>>
-			<?php the_content(); ?>
+		<div class="bx-wrap">
+			<header class="bx-page__head">
+				<h1 class="bx-page__title"><?php the_title(); ?></h1>
+			</header>
+
+			<article <?php post_class( 'bx-article' ); ?>>
+				<?php
+				if ( has_post_thumbnail() ) {
+					the_post_thumbnail( 'pixva-wide' );
+				}
+				the_content();
+				wp_link_pages();
+				?>
+			</article>
+
 			<?php
-			wp_link_pages(
-				array(
-					'before' => '<nav class="pixva-pagination">',
-					'after'  => '</nav>',
-				)
-			);
+			if ( comments_open() || get_comments_number() ) {
+				comments_template();
+			}
 			?>
-		</article>
-		<?php get_sidebar(); ?>
 		</div>
 	<?php endwhile; ?>
-	<?php endif; /* پایان جایگاه page — لایه ۳٫۰٫۰ */ ?>
 </main>
+
 <?php
+endif;
+
 get_footer();

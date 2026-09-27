@@ -1,6 +1,10 @@
 <?php
 /**
- * مقاله وبلاگ: مشخصات عیب‌یابی، فهرست، CTA، FAQ و مطالب مرتبط
+ * قالب نوشته یگانه — نسخه ۴٫۰٫۰ (Bento)
+ *
+ * پوسته تازه: سربرگ متمرکز با تراشه دسته و متادیتا، مقاله روی سطح سفید
+ * سایه‌دار و باند CTA پایانی. جایگاه single با Theme Builder المنتور
+ * قابل بازنویسی است.
  *
  * @package Pixva
  */
@@ -10,58 +14,68 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
+
+if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'single' ) ) :
 ?>
-<main id="content">
-	<?php
-	// لایه ۳٫۰٫۰: جایگاه single با Theme Builder المنتور قابل بازنویسی است.
-	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'single' ) ) :
-	?>
+
+<main id="content" class="bx-page">
 	<?php
 	while ( have_posts() ) :
 		the_post();
-		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
+		$pixva_cats = get_the_category();
 		?>
-		<div class="pixva-container pixva-content pixva-layout pixva-layout--post">
-		<article <?php post_class( 'pixva-entry' ); ?>>
-			<?php pixva_entry_meta( get_the_ID() ); ?>
-			<?php pixva_share_bar( get_the_ID() ); ?>
-			<?php pixva_diagnostics_box( get_the_ID() ); ?>
-			<?php
-			$content = apply_filters( 'the_content', get_the_content() );
-			echo pixva_build_toc( $content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo pixva_inject_cta( $content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			wp_link_pages(
-				array(
-					'before' => '<nav class="pixva-pagination" aria-label="' . esc_attr__( 'صفحات مطلب', 'pixva' ) . '">',
-					'after'  => '</nav>',
-				)
-			);
-			?>
-			<footer class="pixva-entry-footer">
-				<?php the_tags( '', '', '' ); ?>
-				<?php pixva_share_bar( get_the_ID() ); ?>
-			</footer>
-			<?php
-			$faq = pixva_current_faq_items();
-			if ( ! empty( $faq ) ) :
+		<div class="bx-wrap">
+			<header class="bx-page__head">
+				<?php if ( ! empty( $pixva_cats ) ) : ?>
+					<a class="bx-chip" href="<?php echo esc_url( get_category_link( $pixva_cats[0] ) ); ?>"><?php echo esc_html( $pixva_cats[0]->name ); ?></a>
+				<?php endif; ?>
+				<h1 class="bx-page__title"><?php the_title(); ?></h1>
+				<p class="bx-page__meta">
+					<span><?php echo pixva_bento_icons( 'clock' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html( get_the_date() ); ?></span>
+					<span><?php echo pixva_bento_icons( 'tech' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php the_author(); ?></span>
+					<?php if ( function_exists( 'pixva_reading_time_label' ) && pixva_reading_time_label() ) : ?>
+						<span><?php echo pixva_bento_icons( 'book' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html( pixva_reading_time_label() ); ?></span>
+					<?php endif; ?>
+				</p>
+			</header>
+
+			<article <?php post_class( 'bx-article' ); ?>>
+				<?php
+				if ( has_post_thumbnail() ) {
+					the_post_thumbnail( 'pixva-wide' );
+				}
+				the_content();
+				wp_link_pages();
 				?>
-				<section class="pixva-related">
-					<h2><?php esc_html_e( 'سوالات متداول همین خرابی', 'pixva' ); ?></h2>
-					<?php pixva_render_faq( $faq, 'post-faq' ); ?>
-				</section>
-			<?php endif; ?>
-			<?php pixva_author_box(); ?>
-			<?php pixva_related_posts( get_the_ID() ); ?>
+			</article>
+
+			<aside class="bx-obsidian bx-article-cta">
+				<p><?php echo esc_html( (string) pixva_option( 'pixva_single_cta_text', __( 'نیاز به تشخیص فوری دارید؟ تکنسین امروز اعزام می‌شود.', 'pixva' ) ) ); ?></p>
+				<span class="bx-closer__actions">
+					<a class="bx-btn bx-btn--accent bx-btn--sm" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>">
+						<?php echo pixva_bento_icons( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></span>
+					</a>
+					<?php $pixva_phone = function_exists( 'pixva_support_phone' ) ? pixva_support_phone() : ''; ?>
+					<?php if ( '' !== $pixva_phone ) : ?>
+						<a class="bx-btn bx-btn--on-dark bx-btn--sm" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>">
+							<?php echo pixva_bento_icons( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<span><?php echo esc_html( pixva_fa_num( $pixva_phone ) ); ?></span>
+						</a>
+					<?php endif; ?>
+				</span>
+			</aside>
+
 			<?php
 			if ( comments_open() || get_comments_number() ) {
 				comments_template();
 			}
 			?>
-		</article>
-		<?php get_sidebar(); ?>
 		</div>
 	<?php endwhile; ?>
-	<?php endif; /* پایان جایگاه single — لایه ۳٫۰٫۰ */ ?>
 </main>
+
 <?php
+endif;
+
 get_footer();

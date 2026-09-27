@@ -1,6 +1,9 @@
 <?php
 /**
- * آرشیو عمومی
+ * قالب آرشیو — نسخه ۴٫۰٫۰ (Bento)
+ *
+ * گرید کارت‌های هم‌ارتفاع auto-fit با پوسته بنتو. جایگاه archive با
+ * Theme Builder المنتور قابل بازنویسی است.
  *
  * @package Pixva
  */
@@ -11,47 +14,54 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 
-$archive_title = wp_strip_all_tags( get_the_archive_title() );
-$archive_desc  = wp_strip_all_tags( (string) get_the_archive_description() );
-if ( is_post_type_archive( 'tv_services' ) ) {
-	$archive_title = __( 'خدمات تخصصی تعمیر', 'pixva' );
-	$archive_desc  = __( 'هر خدمت مسیر عیب‌یابی، قطعه و گارانتی خودش را دارد.', 'pixva' );
-} elseif ( is_post_type_archive( 'tv_brands' ) ) {
-	$archive_title = __( 'تعمیر بر اساس برند', 'pixva' );
-	$archive_desc  = __( 'شاسی، برد و الگوی چشمک هر برند جدا بررسی می‌شود.', 'pixva' );
-} elseif ( is_post_type_archive( 'repair_cases' ) ) {
-	$archive_title = __( 'نمونه‌کارهای واقعی', 'pixva' );
-	$archive_desc  = __( 'قبل و بعد تعمیر، قطعه تعویضی و زمان صرف‌شده.', 'pixva' );
-}
+if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'archive' ) ) :
 ?>
-<main id="content">
-	<?php
-	// لایه ۳٫۰٫۰: جایگاه archive با Theme Builder المنتور قابل بازنویسی است.
-	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'archive' ) ) :
-	?>
-	<?php pixva_page_hero( $archive_title, $archive_desc ); ?>
-	<div class="pixva-container pixva-content">
-		<div class="pixva-layout">
-		<div class="pixva-layout__main">
+
+<main id="content" class="bx-page">
+	<div class="bx-wrap">
+		<header class="bx-page__head">
+			<p class="bx-eyebrow bx-eyebrow--center"><?php esc_html_e( 'آرشیو مطالب', 'pixva' ); ?></p>
+			<h1 class="bx-page__title"><?php the_archive_title(); ?></h1>
+			<?php
+			the_archive_description( '<p class="bx-hero__lead">', '</p>' );
+			?>
+		</header>
+
 		<?php if ( have_posts() ) : ?>
-			<div class="pixva-grid pixva-grid--3">
+			<div class="bx-cards">
 				<?php
 				while ( have_posts() ) :
 					the_post();
-					pixva_post_card();
+					get_template_part( 'template-parts/card', 'post' );
 				endwhile;
 				?>
 			</div>
-			<?php pixva_pagination(); ?>
+			<nav class="bx-pagination" aria-label="<?php esc_attr_e( 'صفحه‌بندی', 'pixva' ); ?>">
+				<?php
+				echo wp_kses_post(
+					paginate_links(
+						array(
+							'type'      => 'list',
+							'mid_size'  => 1,
+							'prev_text' => '‹',
+							'next_text' => '›',
+						)
+					)
+				);
+				?>
+			</nav>
 		<?php else : ?>
-			<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'موردی برای نمایش نیست. از پیشخوان یک مورد اضافه کنید یا به محاسبه‌گر برگردید.', 'pixva' ); ?></p>
-			<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه هزینه', 'pixva' ); ?></a>
+			<div class="bx-surface bx-empty">
+				<span class="bx-empty__icon"><?php echo pixva_bento_icons( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+				<h2><?php esc_html_e( 'موردی پیدا نشد', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'هنوز محتوایی در این بایگانی ثبت نشده است؛ از جستجو یا هاب‌های تخصصی استفاده کنید.', 'pixva' ); ?></p>
+				<?php get_search_form(); ?>
+			</div>
 		<?php endif; ?>
-		</div>
-		<?php get_sidebar(); ?>
-		</div>
 	</div>
-	<?php endif; /* پایان جایگاه archive — لایه ۳٫۰٫۰ */ ?>
 </main>
+
 <?php
+endif;
+
 get_footer();
