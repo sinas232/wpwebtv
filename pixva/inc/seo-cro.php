@@ -181,19 +181,71 @@ if ( ! function_exists( 'pixva_purge_heavy_scripts' ) ) {
 
 if ( ! function_exists( 'pixva_native_scroll_attrs' ) ) {
 	/**
-	 * کلاس‌های <html> برای اسکرول بومی و روان (بدون قفل، بدون پرش).
+	 * افزودن کلاس اسکرول بومی به <body>.
 	 *
-	 * @param string $classes کلاس‌های موجود.
-	 * @return string
+	 * فیلتر body_class در وردپرس همیشه «آرایه» می‌گیرد و باید «آرایه» برگرداند.
+	 * الحاق رشته به آرایه (مانند $classes . '...') خطای Array to string conversion
+	 * می‌دهد و چون body_class() خروجی را implode می‌کند، کل کلاس‌های بدنه
+	 * از بین می‌رود؛ بنابراین کلاس تازه فقط با push به آرایه افزوده می‌شود.
+	 *
+	 * @param mixed $classes کلاس‌های بدنه (ورودی ممکن است از فیلتر دیگر رشته باشد).
+	 * @return array<int, string>
 	 */
 	function pixva_native_scroll_attrs( $classes ) {
-		if ( ! pixva_performance_mode() ) {
+		// ورودی هرچه باشد، با آرایه کار می‌کنیم تا خطای نوع رخ ندهد.
+		if ( ! is_array( $classes ) ) {
+			$classes = array_filter( array_map( 'trim', explode( ' ', (string) $classes ) ), 'strlen' );
+		}
+
+		if ( ! function_exists( 'pixva_performance_mode' ) || ! pixva_performance_mode() ) {
 			return $classes;
 		}
 
-		return trim( $classes . ' pixva-native-scroll' );
+		if ( ! in_array( 'pixva-native-scroll', $classes, true ) ) {
+			$classes[] = 'pixva-native-scroll';
+		}
+
+		return $classes;
 	}
 	add_filter( 'body_class', 'pixva_native_scroll_attrs' );
+}
+
+if ( ! function_exists( 'pixva_html_classes' ) ) {
+	/**
+	 * کلاس‌های عنصر <html> (جایی که scroll-behavior واقعاً اثر می‌کند).
+	 *
+	 * فیلتر body_class فقط به <body> می‌رسد؛ برای اینکه اسکرول بومی روی عنصر
+	 * پیمایش‌گر سند اعمال شود، همان کلاس روی <html> هم چاپ می‌گردد.
+	 *
+	 * @return array<int, string>
+	 */
+	function pixva_html_classes() {
+		$classes = array( 'no-js' );
+
+		if ( function_exists( 'pixva_performance_mode' ) && pixva_performance_mode() ) {
+			$classes[] = 'pixva-native-scroll';
+		}
+
+		/**
+		 * فیلتر کلاس‌های <html>.
+		 *
+		 * @param array<int, string> $classes کلاس‌ها.
+		 */
+		$classes = (array) apply_filters( 'pixva_html_classes', $classes );
+
+		return array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ), 'strlen' ) ) );
+	}
+}
+
+if ( ! function_exists( 'pixva_html_class_attr' ) ) {
+	/**
+	 * مقدار آماده چاپ برای ویژگی class عنصر <html>.
+	 *
+	 * @return string
+	 */
+	function pixva_html_class_attr() {
+		return implode( ' ', pixva_html_classes() );
+	}
 }
 
 if ( ! function_exists( 'pixva_home_seo_section_settings' ) ) {

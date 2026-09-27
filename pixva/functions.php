@@ -698,10 +698,19 @@ if ( ! function_exists( 'pixva_body_classes' ) ) {
 	/**
 	 * کلاس‌های کمکی بدنه.
 	 *
-	 * @param array $classes کلاس‌های موجود.
-	 * @return array
+	 * فیلتر body_class آرایه می‌گیرد و باید آرایه برگرداند. اگر فیلتری پیش از
+	 * این (یا افزونه‌ای) ورودی را به رشته تبدیل کرده باشد، push روی رشته خطای
+	 * «Cannot use a scalar value as an array» می‌دهد؛ بنابراین ورودی همیشه به
+	 * آرایه نرمال می‌شود و خروجی هم آرایه یکتا برمی‌گردد.
+	 *
+	 * @param mixed $classes کلاس‌های موجود (آرایه از وردپرس).
+	 * @return array<int, string>
 	 */
 	function pixva_body_classes( $classes ) {
+		if ( ! is_array( $classes ) ) {
+			$classes = array();
+		}
+
 		$classes[] = 'pixva-theme';
 		if ( is_front_page() ) {
 			$classes[] = 'pixva-home';
@@ -715,7 +724,8 @@ if ( ! function_exists( 'pixva_body_classes' ) ) {
 				$classes[] = 'pixva-hub-' . sanitize_html_class( $hub );
 			}
 		}
-		return $classes;
+
+		return array_values( array_unique( array_filter( array_map( 'strval', $classes ), 'strlen' ) ) );
 	}
 }
 add_filter( 'body_class', 'pixva_body_classes' );

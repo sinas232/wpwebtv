@@ -11525,11 +11525,17 @@ html.pixva-cine-js .pixva-cine__bar i {
    ========================================================================== */
 
 /* --- اسکرول بومی: حتی اگر اسکریپتی قفل ایجاد کند، خنثی می‌شود --- */
-html.pixva-native-scroll {
+/* کلاس هم روی <html> (از pixva_html_classes) و هم روی <body> (از فیلتر
+   body_class) می‌نشیند؛ هر دو انتخابگر پوشش داده می‌شوند تا رفتار اسکرول
+   مستقل از اینکه کدام عنصر کلاس را حمل کند، یکسان بماند. */
+html.pixva-native-scroll,
+html.pixva-native-scroll body,
+body.pixva-native-scroll {
 	scroll-behavior: smooth;
 }
 
-html.pixva-native-scroll body {
+html.pixva-native-scroll body,
+body.pixva-native-scroll {
 	overflow: visible;
 	height: auto;
 }
@@ -12141,7 +12147,9 @@ html.pixva-native-scroll body {
 		scroll-behavior: auto;
 	}
 
-	html.pixva-native-scroll {
+	html.pixva-native-scroll,
+	html.pixva-native-scroll body,
+	body.pixva-native-scroll {
 		scroll-behavior: auto;
 	}
 }

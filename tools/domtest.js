@@ -1577,6 +1577,149 @@ async function v8Checks(window) {
 	check('v8: همه دارایی‌های دمو در DOM قابل دسترسی‌اند', $$('img[src$=".svg"]', cine).length === 5);
 }
 
+/* --------------------------------------------------------------------------
+ * ممیزی سراسری فیلترهای کلاس: هیچ callback متصل به فیلترهای «آرایه‌ای»
+ * (body_class / post_class / nav_menu_css_class) نباید ورودی آرایه را به رشته
+ * تبدیل کند؛ و فیلترهای «رشته‌ای» (admin_body_class / language_attributes)
+ * باید در برابر ورودی آرایه هم نوع خود را حفظ کنند.
+ * ----------------------------------------------------------------------- */
+function collectPhpFiles(dir) {
+	const out = [];
+	fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory()) {
+			out.push(...collectPhpFiles(full));
+		} else if (entry.name.endsWith('.php')) {
+			out.push(full);
+		}
+	});
+	return out;
+}
+
+function extractFunctionBody(source, name) {
+	const signature = source.indexOf('function ' + name + '(');
+	if (signature === -1) {
+		return null;
+	}
+	const open = source.indexOf('{', signature);
+	if (open === -1) {
+		return null;
+	}
+	let depth = 0;
+	for (let i = open; i < source.length; i += 1) {
+		if (source[i] === '{') { depth += 1; }
+		if (source[i] === '}') {
+			depth -= 1;
+			if (depth === 0) { return source.slice(open, i + 1); }
+		}
+	}
+	return null;
+}
+
+function classFilterAudit() {
+	const arrayFilters = ['body_class', 'post_class', 'nav_menu_css_class'];
+	const stringFilters = ['admin_body_class', 'language_attributes'];
+
+	const files = collectPhpFiles(theme);
+	const sources = new Map(files.map((file) => [file, fs.readFileSync(file, 'utf8')]));
+
+	const arrayHooks = [];
+	const stringHooks = [];
+
+	sources.forEach((source, file) => {
+		const re = /add_filter\(\s*'(body_class|post_class|nav_menu_css_class|admin_body_class|language_attributes)'\s*,\s*'([a-zA-Z0-9_]+)'/g;
+		let match = re.exec(source);
+		while (match) {
+			const record = { filter: match[1], callback: match[2], file: path.relative(theme, file) };
+			if (arrayFilters.indexOf(match[1]) > -1) { arrayHooks.push(record); } else { stringHooks.push(record); }
+			match = re.exec(source);
+		}
+	});
+
+	const findBody = (callback) => {
+		for (const [file, source] of sources.entries()) {
+			const body = extractFunctionBody(source, callback);
+			if (body) { return { body, file: path.relative(theme, file) }; }
+		}
+		return null;
+	};
+
+	check('ممیزی: همه فیلترهای کلاس پوسته پیدا شدند (' + (arrayHooks.length + stringHooks.length) + ' هوک)',
+		(arrayHooks.length + stringHooks.length) >= 3);
+
+	// ۱) فیلترهای آرایه‌ای: push + is_array + return آرایه، بدون الحاق رشته.
+	const arrayProblems = [];
+	arrayHooks.forEach((hook) => {
+		const found = findBody(hook.callback);
+		if (!found) { arrayProblems.push(hook.callback + ': تابع پیدا نشد'); return; }
+		const body = found.body;
+		const param = (body.match(/^\{\s*/) && /function\s+[a-zA-Z0-9_]+\(\s*\$([a-zA-Z0-9_]+)/.exec(body)) ? '' : '';
+		if (body.indexOf('is_array(') === -1) { arrayProblems.push(hook.callback + ': بدون نگهبان is_array'); }
+		if (!/\$[a-zA-Z0-9_]+\[\]\s*=/.test(body)) { arrayProblems.push(hook.callback + ': کلاس با push افزوده نمی‌شود'); }
+		if (/\$[a-zA-Z0-9_]+\s*\.=/.test(body)) { arrayProblems.push(hook.callback + ': الحاق رشته‌ای (. =) به آرایه'); }
+		if (/\$[a-zA-Z0-9_]+\s*\.\s*'/.test(body)) { arrayProblems.push(hook.callback + ': الحاق مستقیم رشته به آرایه'); }
+		if (!/return\s+(\$[a-zA-Z0-9_]+|array_values|array_unique|array_merge|array_filter|\(array\))\b/.test(body)) {
+			arrayProblems.push(hook.callback + ': خروجی آرایه نیست');
+		}
+		if (body.indexOf('trim(') > -1 && /return\s+trim\(/.test(body)) { arrayProblems.push(hook.callback + ': خروجی trim شده (رشته)'); }
+	});
+	check('ممیزی: هیچ فیلتر آرایه‌ای کلاس، آرایه را به رشته تبدیل نمی‌کند' + (arrayProblems.length ? ' → ' + arrayProblems.join(' | ') : ''),
+		arrayProblems.length === 0);
+
+	// ۲) فیلترهای رشته‌ای: خروجی رشته می‌ماند ولی در برابر آرایه هم امن است.
+	const stringProblems = [];
+	stringHooks.forEach((hook) => {
+		const found = findBody(hook.callback);
+		if (!found) { stringProblems.push(hook.callback + ': تابع پیدا نشد'); return; }
+		const body = found.body;
+		if (body.indexOf('is_array(') === -1 && hook.filter === 'admin_body_class') {
+			stringProblems.push(hook.callback + ': در برابر ورودی آرایه نگهبان ندارد');
+		}
+		if (!/return\s/.test(body)) { stringProblems.push(hook.callback + ': خروجی ندارد'); }
+	});
+	check('ممیزی: فیلترهای رشته‌ای (admin_body_class/language_attributes) در برابر ورودی آرایه امن‌اند' + (stringProblems.length ? ' → ' + stringProblems.join(' | ') : ''),
+		stringProblems.length === 0);
+
+	// ۳) الگوی مشخص این باگ در کل پوسته وجود نداشته باشد.
+	const concatOnClasses = [];
+	sources.forEach((source, file) => {
+		const rel = path.relative(theme, file);
+		source.split('\n').forEach((line, index) => {
+			// خط‌های توضیح (docblock/تک‌خطی) کد اجرایی نیستند و باید نادیده گرفته شوند.
+			const trimmed = line.trim();
+			if (trimmed.indexOf('*') === 0 || trimmed.indexOf('/*') === 0 || trimmed.indexOf('//') === 0) {
+				return;
+			}
+			if (/\$classes\s*\.\s*'/.test(line) || /\$classes\s*\.=/.test(line)) {
+				const inAdminStringFilter = rel.indexOf('crm-dispatcher.php') > -1;
+				if (!inAdminStringFilter) { concatOnClasses.push(rel + ':' + (index + 1)); }
+			}
+		});
+	});
+	check('ممیزی: هیچ الحاق رشته‌ای به $classes در فیلترهای فرانت‌اند باقی نمانده' + (concatOnClasses.length ? ' → ' + concatOnClasses.join(', ') : ''),
+		concatOnClasses.length === 0);
+
+	// ۴) کلاس اسکرول بومی هم روی <html> و هم روی <body> می‌نشیند.
+	const header = fs.readFileSync(path.join(theme, 'header.php'), 'utf8');
+	check('رفع باگ: کلاس اسکرول بومی با push به آرایه افزوده می‌شود', seoCroSource().indexOf("$classes[] = 'pixva-native-scroll';") > -1
+		&& seoCroSource().indexOf('if ( ! is_array( $classes ) ) {') > -1
+		&& seoCroSource().indexOf('return $classes;') > -1
+		&& seoCroSource().indexOf("trim( $classes . ' pixva-native-scroll' )") === -1);
+	check('رفع باگ: pixva_body_classes در functions.php ورودی را به آرایه نرمال می‌کند', funcsSource().indexOf('function pixva_body_classes( $classes ) {') > -1
+		&& funcsSource().indexOf('if ( ! is_array( $classes ) ) {') > -1
+		&& /function pixva_body_classes\([\s\S]*?array_values\( array_unique\(/.test(funcsSource()));
+	check('رفع باگ: <html> کلاس‌هایش از pixva_html_classes می‌آید (بدون class تکراری)', header.indexOf('pixva_html_class_attr()') > -1
+		&& header.indexOf('class="no-js"') === -1
+		&& seoCroSource().indexOf('function pixva_html_classes(') > -1
+		&& seoCroSource().indexOf("apply_filters( 'pixva_html_classes'") > -1);
+	check('رفع باگ: CSS اسکرول بومی هر دو عنصر html و body را پوشش می‌دهد', cssSource().indexOf('html.pixva-native-scroll') > -1
+		&& cssSource().indexOf('body.pixva-native-scroll') > -1);
+}
+
+const seoCroSource = () => fs.readFileSync(path.join(theme, 'inc/seo-cro.php'), 'utf8');
+const funcsSource = () => fs.readFileSync(path.join(theme, 'functions.php'), 'utf8');
+const cssSource = () => fs.readFileSync(path.join(theme, 'assets/css/pixva-2026.css'), 'utf8');
+
 async function v11Checks(window) {
 	const { document } = window;
 	const $ = (sel, root) => (root || document).querySelector(sel);
@@ -1589,6 +1732,9 @@ async function v11Checks(window) {
 	check('v11: هیچ قفل‌کننده اسکرول یا مدل سه‌بعدی بارگذاری نمی‌شود', ['gsap', 'ScrollTrigger', 'scrolltrigger', 'spline', 'cinematic', 'tracker-map', 'leaflet']
 		.every((lib) => scripts.every((src) => src.toLowerCase().indexOf(lib.toLowerCase()) === -1)));
 	check('v11: کلاس اسکرول بومی روی <html> نشسته است', document.documentElement.classList.contains('pixva-native-scroll'));
+	check('v11: کلاس اسکرول بومی از فیلتر body_class روی <body> هم نشسته (بدون شکستن سایر کلاس‌ها)', document.body.classList.contains('pixva-native-scroll')
+		&& document.body.classList.contains('pixva-theme') && document.body.classList.contains('home')
+		&& document.body.className.indexOf('Array') === -1 && document.body.className.indexOf('undefined') === -1);
 	check('v11: ماژول سئو/تبدیل در DOM آماده شده', document.documentElement.classList.contains('pixva-seo-js') === true);
 
 	/* --- ۲) ماژول ۳: چهار اصل اعتماد --- */
@@ -1876,6 +2022,9 @@ async function v11Checks(window) {
 		}
 		v8Dom.window.close();
 	}
+
+	// ممیزی سراسری فیلترهای کلاس (رفع باگ body_class).
+	classFilterAudit();
 
 	// هارنس لایه ۲٫۰٫۰ (پاک‌سازی سنگین‌ها + چهار ماژول سئو/تبدیل).
 	if (!fs.existsSync(v11Harness)) {

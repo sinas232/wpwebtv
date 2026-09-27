@@ -126,17 +126,31 @@ if ( ! function_exists( 'pixva_crm_admin_body_class' ) ) {
 	 * چون pixva-2026.css قواعد سراسری body دارد، این کلاس اجازه می‌دهد لایه ۲۷
 	 * همان قواعد را برای محیط پیشخوان خنثی کند (پس‌زمینه و تایپوگرافی وردپرس).
 	 *
-	 * @param string $classes کلاس‌های body.
+	 * توجه: فیلتر admin_body_class در وردپرس برخلاف body_class فرانت‌اند «رشته»
+	 * می‌گیرد و «رشته» برمی‌گرداند؛ با این حال اگر جایی آرایه هم رسید، بدون
+	 * خطای Array to string conversion به رشته نرمال می‌شود.
+	 *
+	 * @param mixed $classes کلاس‌های body پنل.
 	 * @return string
 	 */
 	function pixva_crm_admin_body_class( $classes ) {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$is_pixva_screen = $screen && false !== strpos( (string) $screen->id, 'pixva-dispatch' );
 
-		if ( $screen && false !== strpos( (string) $screen->id, 'pixva-dispatch' ) ) {
-			$classes .= ' pixva-crm-admin';
+		if ( is_array( $classes ) ) {
+			if ( $is_pixva_screen ) {
+				$classes[] = 'pixva-crm-admin';
+			}
+			return implode( ' ', array_unique( array_filter( array_map( 'strval', $classes ), 'strlen' ) ) );
 		}
 
-		return $classes;
+		$classes = trim( (string) $classes );
+
+		if ( ! $is_pixva_screen ) {
+			return $classes;
+		}
+
+		return '' === $classes ? 'pixva-crm-admin' : $classes . ' pixva-crm-admin';
 	}
 }
 add_filter( 'admin_body_class', 'pixva_crm_admin_body_class' );

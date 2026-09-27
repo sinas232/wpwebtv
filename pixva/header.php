@@ -25,7 +25,7 @@ $pixva_hours    = sprintf(
 );
 ?>
 <!DOCTYPE html>
-<html <?php language_attributes(); ?> class="no-js">
+<html <?php language_attributes(); ?> class="<?php echo esc_attr( function_exists( 'pixva_html_class_attr' ) ? pixva_html_class_attr() : 'no-js' ); ?>">
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
