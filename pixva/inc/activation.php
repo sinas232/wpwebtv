@@ -482,6 +482,18 @@ function pixva_maybe_upgrade() {
 		pixva_seed_home_elementor( false );
 	}
 
+	/*
+	 * ارتقا به ۱٫۸٫۰ (Master Prompt v9): سامانه عیب‌یابی کاملاً بومی شد و
+	 * وابستگی به ایجنت پایتون حذف گردید. کلیدهای سفارشی‌ساز قدیمی عامل بیرونی
+	 * پاک می‌شوند تا تنظیمات هوش مصنوعی فقط از مسیر جمینای (یک کلید مشترک با
+	 * چت‌بات) خوانده شود.
+	 */
+	if ( '' !== $stored_version && version_compare( $stored_version, '1.8.0', '<' )
+		&& (bool) apply_filters( 'pixva_drop_legacy_ai_agent_on_upgrade', true ) ) {
+		remove_theme_mod( 'pixva_ai_agent_url' );
+		remove_theme_mod( 'pixva_ai_agent_token' );
+	}
+
 	update_option( 'pixva_theme_version', $version );
 	update_option( 'pixva_spec_version', $spec );
 }

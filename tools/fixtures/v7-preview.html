@@ -147,9 +147,17 @@
 				json: function () {
 					return Promise.resolve({
 						ticket: 'PXV-AI-482913',
+						state: 'done',
+						engine: 'gemini',
 						verdict: 'خرابی بک‌لایت با احتمال بالا',
 						analysis: { summary: 'در ویدیو تاریکی موضعی نیمه پایین پنل دیده می‌شود؛ ریسه LED سمت چپ نیاز به تعویض دارد.' },
 						part: 'backlight',
+						fault_type: 'خرابی دیودهای بک‌لایت',
+						confidence: 92,
+						symptoms_detected: ['تاریکی موضعی نیمه پایین پنل', 'سایه روشن در تصویر سفید'],
+						estimated_cost_range: '۱,۲۰۰,۰۰۰ تا ۱,۸۰۰,۰۰۰ تومان',
+						repair_time: 'کمتر از ۴ ساعت (خدمات در محل)',
+						technical_note: 'ریسه LED سمت چپ سوخته و با تعویض ست کامل بک‌لایت برطرف می‌شود.',
 						createdAt: '۱۴۰۵/۰۷/۰۵ ۱۲:۳۰',
 						queueNote: 'پرونده در صف بررسی کارگاه ثبت شد.'
 					});
@@ -487,7 +495,11 @@
 			<span class="pixva-badge pixva-badge--success" data-ai-result-badge></span>
 			<h3 data-ai-result-title></h3>
 			<p data-ai-result-text></p>
+			<ul class="pixva-ai__symptoms" data-ai-result-symptoms hidden></ul>
 			<dl class="pixva-ai__meta">
+				<div data-ai-result-confidence-row hidden><dt>درصد اطمینان</dt><dd data-ai-result-confidence></dd></div>
+				<div data-ai-result-cost-row hidden><dt>بازه هزینه تعمیر</dt><dd data-ai-result-cost></dd></div>
+				<div data-ai-result-time-row hidden><dt>زمان تعمیر</dt><dd data-ai-result-time></dd></div>
 				<div><dt>کد پیگیری</dt><dd data-ai-result-code></dd></div>
 				<div><dt>زمان ثبت</dt><dd data-ai-result-date></dd></div>
 			</dl>

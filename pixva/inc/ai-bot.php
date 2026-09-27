@@ -33,12 +33,15 @@ if ( ! function_exists( 'pixva_ai_settings' ) ) {
 	function pixva_ai_settings() {
 		$options = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
 
-		$key = isset( $options['ai_gemini_key'] ) ? trim( (string) $options['ai_gemini_key'] ) : '';
+		// یک کلید برای کل قالب (لایه ۱٫۸٫۰): اولویت با کلید اختصاصی عیب‌یاب
+		// در سفارشی‌ساز/پنل بومی است و در نبود آن، کلید مرکز کنترل خوانده می‌شود.
+		$key = function_exists( 'pixva_ai_handler_key' ) ? pixva_ai_handler_key() : ( isset( $options['ai_gemini_key'] ) ? trim( (string) $options['ai_gemini_key'] ) : '' );
 		// کلید فقط سمت سرور استفاده می‌شود؛ هرگز در خروجی HTML چاپ نشود.
+		$model = function_exists( 'pixva_ai_handler_model' ) ? pixva_ai_handler_model() : ( ! empty( $options['ai_gemini_model'] ) ? sanitize_key( $options['ai_gemini_model'] ) : 'gemini-1.5-flash' );
 		return array(
 			'key'         => $key,
 			'endpoint'    => 'https://generativelanguage.googleapis.com/v1beta/models/',
-			'model'       => ! empty( $options['ai_gemini_model'] ) ? sanitize_key( $options['ai_gemini_model'] ) : 'gemini-1.5-flash',
+			'model'       => $model,
 			'system'      => ! empty( $options['ai_system_prompt'] ) ? (string) $options['ai_system_prompt'] : pixva_ai_default_prompt(),
 			'temperature' => isset( $options['ai_temperature'] ) && is_numeric( $options['ai_temperature'] ) ? max( 0, min( 1, (float) $options['ai_temperature'] ) ) : 0.25,
 			'max_tokens'  => isset( $options['ai_max_tokens'] ) && is_numeric( $options['ai_max_tokens'] ) ? max( 128, min( 2048, (int) $options['ai_max_tokens'] ) ) : 700,

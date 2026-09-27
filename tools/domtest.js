@@ -107,8 +107,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۱٫۷٫۰', /Version:\s*1\.7\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
+	check('style.css: نسخه ۱٫۸٫۰', /Version:\s*1\.8\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -613,6 +613,7 @@ function v7StaticChecks() {
 
 	const cinematic = read('inc/cinematic.php');
 	const aiPhp = read('inc/ai-diagnose.php');
+	const aiHandler = read('inc/ai-handler.php');
 	const mapPhp = read('inc/tracker-map.php');
 	const funcs = read('functions.php');
 	const support = read('inc/elementor-support.php');
@@ -630,7 +631,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۱٫۷٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.7.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
+	check('v7: نسخه پوسته ۱٫۸٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 1.8.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -679,12 +680,23 @@ function v7StaticChecks() {
 	check('v7: نام مستعار [pixva_tech_tracker]', shortcodes.indexOf("add_shortcode( 'pixva_tech_tracker'") > -1);
 
 	/* --- REST عیب‌یاب هوشمند --- */
-	check('v7: مسیر POST pixva/v1/ai-diagnose', aiPhp.indexOf("'pixva/v1'") > -1 && aiPhp.indexOf("'/ai-diagnose'") > -1 && aiPhp.indexOf("'methods'             => 'POST'") > -1);
+	check('v7: مسیر POST pixva/v1/ai-diagnose (بومی در ai-handler.php)', aiHandler.indexOf("'pixva/v1'") > -1 && aiHandler.indexOf("'/ai-diagnose'") > -1 && aiHandler.indexOf("'methods'             => 'POST'") > -1 && aiHandler.indexOf("'permission_callback' => 'pixva_ai_diagnose_permission'") > -1);
 	check('v7: نانس اختصاصی و هانی‌پات', aiPhp.indexOf("wp_verify_nonce( $nonce, 'pixva_ai_diagnose' )") > -1 && aiPhp.indexOf('pixva_hp') > -1);
 	check('v7: محدودسازی نرخ ۶ درخواست در ساعت', aiPhp.indexOf('pixva_ai_diagnose_rate_max') > -1 && aiPhp.indexOf('HOUR_IN_SECONDS') > -1);
 	check('v7: سقف حجم و نوع رسانه از تنظیم/فیلتر', aiPhp.indexOf('pixva_ai_diagnose_max_size') > -1 && aiPhp.indexOf('pixva_ai_diagnose_allowed_types') > -1 && aiPhp.indexOf('MB_IN_BYTES') > -1);
-	check('v7: ذخیره رسانه به‌عنوان پرونده صندوق ورودی', aiPhp.indexOf('pixva_inbox') > -1 && aiPhp.indexOf('_pixva_ai_') > -1);
-	check('v7: آماده اتصال عامل پایتون (آدرس + توکن از گزینه‌ها)', aiPhp.indexOf("pixva_option( 'pixva_ai_agent_url'") > -1 && aiPhp.indexOf("pixva_option( 'pixva_ai_agent_token'") > -1);
+	check('v7: ذخیره رسانه به‌عنوان پرونده صندوق ورودی', aiHandler.indexOf('pixva_inbox') > -1 && aiHandler.indexOf('_pixva_ai_') > -1 && aiPhp.indexOf('pixva_ai_diagnose_store_media') > -1);
+	check('v9: وابستگی به ایجنت پایتون کاملاً حذف شد', aiPhp.indexOf('pixva_ai_agent_request') === -1 && aiPhp.indexOf("pixva_option( 'pixva_ai_agent_url'") === -1 && aiHandler.indexOf('pixva_ai_agent') === -1);
+	check('v9: آپلود بومی فایل به Files API گوگل', aiHandler.indexOf('https://generativelanguage.googleapis.com/upload/v1beta/files') > -1 && aiHandler.indexOf("'X-Goog-Upload-Protocol'            => 'resumable'") > -1 && aiHandler.indexOf("'X-Goog-Upload-Command'             => 'start'") > -1 && aiHandler.indexOf('wp_remote_post') > -1);
+	check('v9: generateContent با کلید در هدر و خروجی JSON ساخت‌یافته', aiHandler.indexOf(':generateContent') > -1 && aiHandler.indexOf("'x-goog-api-key'") > -1 && aiHandler.indexOf("'responseMimeType' => 'application/json'") > -1 && aiHandler.indexOf('responseSchema') > -1);
+	check('v9: پرامپت مهندسی‌شده با شش کلید خروجی دقیق', ['fault_type', 'confidence', 'symptoms_detected', 'estimated_cost_range', 'repair_time', 'technical_note'].every((k) => aiHandler.indexOf(k) > -1));
+	check('v9: پاک‌سازی فایل موقت سمت گوگل پس از تحلیل', aiHandler.indexOf('function pixva_ai_handler_delete_file(') > -1 && aiHandler.indexOf("'method'  => 'DELETE'") > -1);
+	check('v9: کلید/مدل/سقف/پیش‌نویس از گزینه‌ها با fallback مرکز کنترل', aiHandler.indexOf("pixva_option( 'pixva_gemini_api_key'") > -1 && aiHandler.indexOf("pixva_option( 'pixva_gemini_model'") > -1 && aiHandler.indexOf("pixva_option( 'pixva_ai_max_file_size'") > -1 && aiHandler.indexOf("pixva_option( 'pixva_ai_auto_create_draft'") > -1 && aiHandler.indexOf('ai_gemini_key') > -1);
+	check('v9: یک کلید مشترک — چت‌بات ai-bot هم از کلید عیب‌یاب می‌افتد', read('inc/ai-bot.php').indexOf('pixva_ai_handler_key') > -1);
+	check('v9: تبدیل یک‌کلیکی به پرونده سفارش pixva_orders', aiHandler.indexOf('function pixva_ai_handler_convert(') > -1 && aiHandler.indexOf('pixva_create_order(') > -1 && aiHandler.indexOf("'_pixva_ai_status', 'converted'") > -1);
+	check('v9: زیرمنوی تاریخچه و تنظیمات عیب‌یاب AI در پیشخوان', aiHandler.indexOf("'pixva-ai-logs'") > -1 && aiHandler.indexOf("'pixva-ai-settings'") > -1 && aiHandler.indexOf('تاریخچه عیب‌یابی AI') > -1 && aiHandler.indexOf("add_action( 'admin_menu', 'pixva_ai_handler_admin_menu', 20 )") > -1);
+	check('v9: اکشن‌های پیشخوان با nonce و سطح دسترسی', aiHandler.indexOf("check_admin_referer( 'pixva_ai_convert' )") > -1 && aiHandler.indexOf("check_admin_referer( 'pixva_ai_save_settings', 'pixva_ai_save_nonce' )") > -1 && aiHandler.indexOf("check_ajax_referer( 'pixva_ai_test' )") > -1 && (aiHandler.match(/current_user_can\( 'manage_options' \)/g) || []).length >= 4);
+	check('v9: دکمه تست اتصال آنلاین و فیلد مخفی کلید', aiHandler.indexOf('pixva-ai-test') > -1 && aiHandler.indexOf("type=\"password\"") > -1 && aiHandler.indexOf('wp_ajax_pixva_ai_test') > -1);
+	check('v9: پاسخ بدون کلید = صف بررسی (بدون خطای ۵۰۰)', aiHandler.indexOf("'no_key'") > -1 && aiHandler.indexOf('pixva_ai_handler_configured()') > -1);
 	check('v7: کد پیگیری PXV-AI', aiPhp.indexOf('PXV-AI') > -1);
 
 	/* --- REST نقشه زنده --- */
@@ -706,13 +718,14 @@ function v7StaticChecks() {
 	/* --- سفارشی‌ساز --- */
 	check('v7: بخش سفارشی‌ساز سینمایی/نقشه', options.indexOf("'pixva_cinematic'") > -1 && options.indexOf('pixva_v7_fields') > -1);
 	['pixva_cdn_gsap', 'pixva_cdn_scrolltrigger', 'pixva_cdn_leaflet', 'pixva_cdn_leaflet_css', 'pixva_cdn_spline',
-		'pixva_ai_agent_url', 'pixva_ai_agent_token', 'pixva_ai_max_size',
+		'pixva_ai_max_size', 'pixva_gemini_api_key', 'pixva_gemini_model', 'pixva_ai_max_file_size', 'pixva_ai_auto_create_draft',
 		'pixva_map_origin_lat', 'pixva_map_origin_lng', 'pixva_map_origin_label', 'pixva_map_zones', 'pixva_map_dest_label',
 		'pixva_map_average_speed', 'pixva_map_refresh', 'pixva_map_provider', 'pixva_map_tiles', 'pixva_map_attribution',
 		'pixva_map_on_tracking', 'pixva_map_badge', 'pixva_map_title', 'pixva_map_subtitle'].forEach((key) => {
 		check('v7: گزینه سفارشی‌ساز ' + key, options.indexOf("'" + key + "'") > -1);
 	});
 	check('v7: پاک‌سازی مختصات و موتور نقشه', options.indexOf('function pixva_sanitize_coord(') > -1 && options.indexOf('function pixva_sanitize_map_provider(') > -1);
+	check('v9: بخش سفارشی‌ساز عیب‌یاب جمینای + پاک‌سازی مدل', options.indexOf("'pixva_ai_gemini'") > -1 && options.indexOf('function pixva_sanitize_gemini_model(') > -1 && options.indexOf("'pixva_gemini_api_key'") > -1 && options.indexOf("'pixva_ai_auto_create_draft'") > -1);
 
 	/* --- نقشه زنده داخل صفحه پیگیری سفارش --- */
 	const tracking = read('page-templates/page-tracking.php');
@@ -751,6 +764,7 @@ function v7StaticChecks() {
 
 	/* --- CSS لایه ۲۹ --- */
 	check('v7: CSS لایه ۲۹ وجود دارد', css.indexOf('۲۹) لایه سینمایی') > -1);
+	check('v9: CSS لایه ۳۱ کارت نتیجه ساخت‌یافته', css.indexOf('لایه ۳۱') > -1 && css.indexOf('.pixva-ai__symptoms') > -1 && css.indexOf('[data-ai-result-confidence]') > -1);
 	check('v7: CSS سینمایی (صحنه/لایه/نوار پیشرفت)', ['.pixva-cine__stage', '.pixva-cine__scene', '.pixva-cine__layer', '.pixva-cine__bar i', '.pixva-pin-spacer'].every((c) => css.indexOf(c) > -1));
 	check('v7: CSS سه‌بعدی (صحنه/هات‌اسپیت/کارت)', ['.pixva-3d__stage', '.pixva-3d__hot-dot', '.pixva-3d__panel', '.pixva-3d__tv'].every((c) => css.indexOf(c) > -1));
 	check('v7: CSS عیب‌یاب (گوی/حلقه/تحلیل/نتیجه)', ['.pixva-ai__orb', '.pixva-ai__ring', '.pixva-ai__scan', '.pixva-ai__result', '.pixva-ai__preview'].every((c) => css.indexOf(c) > -1));
@@ -890,6 +904,20 @@ async function v7Checks(window) {
 		&& $('[data-ai-result-code]', result).textContent === 'PXV-AI-482913'
 		&& $('[data-ai-result-date]', result).textContent.length > 0);
 	check('v7: CTA نتیجه به قطعه تشخیصی لینک شد', ($('[data-ai-result-cta]', result).getAttribute('href') || '').indexOf('problem=backlight') > -1);
+	/* --- کارت نتیجه ساخت‌یافته جمینای (لایه ۱٫۸٫۰ / v9) --- */
+	check('v9: عنوان = نوع ایراد فارسی از fault_type', $('[data-ai-result-title]', result).textContent.indexOf('خرابی دیودهای بک‌لایت') > -1);
+	check('v9: درصد اطمینان فارسی‌شده روی نشان و ردیف متا', $('[data-ai-result-badge]', result).textContent.indexOf('۹۲٪') > -1
+		&& $('[data-ai-result-confidence-row]', result).hidden === false
+		&& $('[data-ai-result-confidence]', result).textContent === '۹۲٪');
+	check('v9: فهرست علائم تشخیص‌داده‌شده ساخته شد', (function () {
+		const ul = $('[data-ai-result-symptoms]', result);
+		return ul.hidden === false && $$('li', ul).length === 3 && ul.textContent.indexOf('تاریکی موضعی') > -1;
+	})());
+	check('v9: بازه هزینه و زمان تعمیر نمایش داده شد', $('[data-ai-result-cost-row]', result).hidden === false
+		&& $('[data-ai-result-cost]', result).textContent.indexOf('تومان') > -1
+		&& $('[data-ai-result-time-row]', result).hidden === false
+		&& $('[data-ai-result-time]', result).textContent.indexOf('خدمات در محل') > -1);
+	check('v9: یادداشت فنی در متن نتیجه نشست', $('[data-ai-result-text]', result).textContent.indexOf('ریسه LED') > -1);
 	check('v7: جعبه تحلیل بسته و رسانه پاک شد', $('[data-ai-loading]', ai).hidden === true && ai.dataset.aiHasMedia === '0');
 
 	/* --- ۴) نقشه زنده تعمیرکار --- */
@@ -980,7 +1008,7 @@ function v8StaticChecks() {
 	});
 
 	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
-	check('v8: پوسته نسخه ۱٫۷٫۰ است', styleCss.indexOf('Version: 1.7.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.7.0' )") > -1);
+	check('v8: پوسته نسخه ۱٫۸٫۰ است', styleCss.indexOf('Version: 1.8.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '1.8.0' )") > -1);
 
 	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
 	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1
@@ -1173,6 +1201,7 @@ function v8StaticChecks() {
 	check('v8: چیدمان در ارتقا به ۱٫۷٫۰ نوشته می‌شود', activation.indexOf("version_compare( $stored_version, '1.7.0', '<' )") > -1
 		&& activation.indexOf('pixva_seed_home_elementor_on_upgrade') > -1);
 	check('v8: ارتقا فقط وقتی برگه خانه موجود باشد', activation.indexOf('pixva_home_page_id() > 0') > -1);
+	check('v9: پاک‌سازی کلیدهای ایجنت پایتون در ارتقا به ۱٫۸٫۰', activation.indexOf("version_compare( $stored_version, '1.8.0', '<' )") > -1 && activation.indexOf("remove_theme_mod( 'pixva_ai_agent_url' )") > -1 && activation.indexOf('pixva_drop_legacy_ai_agent_on_upgrade') > -1);
 
 	/* --- ۱۰) گزینه‌های سفارشی‌ساز لایه v8 --- */
 	const v8Keys = ['pixva_home_use_elementor', 'pixva_home_cine_badge', 'pixva_home_cine_title', 'pixva_home_cine_subtitle',

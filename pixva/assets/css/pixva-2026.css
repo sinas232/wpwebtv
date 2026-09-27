@@ -11382,3 +11382,78 @@ html.pixva-cine-js .pixva-cine__bar i {
 		break-inside: avoid;
 	}
 }
+
+/* ==========================================================================
+   لایه ۳۱ — کارت نتیجه ساخت‌یافته عیب‌یاب هوشمند (نسخه ۱٫۸٫۰ / v9)
+
+   خروجی بومی Gemini (نوع ایراد، درصد اطمینان، علائم، بازه هزینه، زمان
+   تعمیر و یادداشت فنی) روی کارت نئونی فرانت‌اند. فقط رنگ/فاصله؛ بدون
+   تغییر در متغیرهای ویجت و بدون هگز درون PHP.
+   ----------------------------------------------------------------------- */
+
+.pixva-ai__result .pixva-ai__meta div[hidden] {
+	display: none;
+}
+
+.pixva-ai__result [data-ai-result-confidence] {
+	font-weight: 800;
+	color: var(--ai-neon, #4ade80);
+	direction: ltr;
+	unicode-bidi: isolate;
+}
+
+.pixva-ai__result [data-ai-result-cost],
+.pixva-ai__result [data-ai-result-time] {
+	font-weight: 700;
+}
+
+.pixva-ai__symptoms {
+	list-style: none;
+	margin: 10px 0 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.pixva-ai__symptoms[hidden] {
+	display: none;
+}
+
+.pixva-ai__symptoms-head {
+	flex-basis: 100%;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.55);
+	margin-bottom: 2px;
+}
+
+.pixva-ai__symptoms li:not(.pixva-ai__symptoms-head) {
+	position: relative;
+	padding: 4px 10px 4px 22px;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	line-height: 1.5;
+	background: rgba(74, 222, 128, 0.10);
+	border: 1px solid rgba(74, 222, 128, 0.28);
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.pixva-ai__symptoms li:not(.pixva-ai__symptoms-head)::before {
+	content: "✓";
+	position: absolute;
+	inset-inline-start: 9px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 0.7rem;
+	font-weight: 900;
+	color: var(--ai-neon, #4ade80);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-ai__symptoms li {
+		animation: none;
+	}
+}

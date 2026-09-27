@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.7.0' );
+define( 'PIXVA_VERSION', '1.8.0' );
 define( 'PIXVA_SPEC_VERSION', '25.0' ); // مستر اسپک «2026 Calm Premium UI & Real AI Edition».
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
@@ -29,6 +29,7 @@ require_once PIXVA_DIR . '/inc/custom-post-types.php';
 require_once PIXVA_DIR . '/inc/meta-boxes.php';
 require_once PIXVA_DIR . '/inc/cinematic.php';
 require_once PIXVA_DIR . '/inc/ai-diagnose.php';
+require_once PIXVA_DIR . '/inc/ai-handler.php';
 require_once PIXVA_DIR . '/inc/tracker-map.php';
 require_once PIXVA_DIR . '/inc/theme-options.php';
 require_once PIXVA_DIR . '/inc/home-seed.php';

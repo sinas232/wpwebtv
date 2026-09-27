@@ -287,6 +287,16 @@
 			}
 
 			var data = payload.data || {};
+
+			// کلید تنظیم شده ولی جمینای خطا داد (HTTP 200 با state='error').
+			if ('error' === data.state) {
+				setState(section, 'error');
+				showError(section, data.message || i18n.error || '');
+				if (result) { result.hidden = true; }
+				if (section.pixvaAiMedia) { section.pixvaAiMedia.clear(); }
+				return;
+			}
+
 			setState(section, 'done');
 			showError(section, '');
 
@@ -299,21 +309,62 @@
 				var code = qs('[data-ai-result-code]', result);
 				var date = qs('[data-ai-result-date]', result);
 				var cta = qs('[data-ai-result-cta]', result);
+				var symptoms = qs('[data-ai-result-symptoms]', result);
+				var confRow = qs('[data-ai-result-confidence-row]', result);
+				var confEl = qs('[data-ai-result-confidence]', result);
+				var costRow = qs('[data-ai-result-cost-row]', result);
+				var costEl = qs('[data-ai-result-cost]', result);
+				var timeRow = qs('[data-ai-result-time-row]', result);
+				var timeEl = qs('[data-ai-result-time]', result);
 
-				if (badge) { badge.textContent = data.verdict ? (i18n.smart || i18n.done || '') : (i18n.done || ''); }
-				if (title) { title.textContent = data.verdict || (i18n.done || ''); }
+				var fault = data.fault_type || data.verdict || '';
+				var conf = parseInt(data.confidence, 10) || 0;
+				var noKey = 'no_key' === data.state;
+
+				if (title) { title.textContent = fault || (i18n.done || ''); }
+				if (badge) { badge.textContent = (!noKey && conf > 0) ? ((i18n.confidence || '') + ' ' + toFa(conf) + '٪') : (fault ? (i18n.smart || i18n.done || '') : (i18n.done || '')); }
 				if (text) {
-					var analysisText = '';
-					if (data.analysis && data.analysis.summary) { analysisText = data.analysis.summary; }
-					else if ('string' === typeof data.analysis) { analysisText = data.analysis; }
-					else if (data.message) { analysisText = data.message; }
-					text.textContent = analysisText || data.queueNote || '';
+					var noteText = '';
+					if (noKey) { noteText = i18n.noKey || data.message || data.queueNote || ''; }
+					else { noteText = data.technical_note || (data.analysis && data.analysis.summary) || ('string' === typeof data.analysis ? data.analysis : '') || data.message || data.queueNote || ''; }
+					text.textContent = noteText;
 				}
+
+				// فهرست علائم تشخیص‌داده‌شده در ویدیو/صدا.
+				if (symptoms) {
+					symptoms.replaceChildren();
+					var list = data.symptoms_detected || (data.analysis && data.analysis.symptoms_detected) || [];
+					if (!noKey && list && list.length) {
+						var head = document.createElement('li');
+						head.className = 'pixva-ai__symptoms-head';
+						head.textContent = i18n.symptoms || '';
+						symptoms.appendChild(head);
+						list.forEach(function (item) {
+							var li = document.createElement('li');
+							li.textContent = item;
+							symptoms.appendChild(li);
+						});
+						symptoms.hidden = false;
+					} else {
+						symptoms.hidden = true;
+					}
+				}
+
+				if (confRow) { confRow.hidden = noKey || conf <= 0; }
+				if (confEl && !noKey && conf > 0) { confEl.textContent = toFa(conf) + '٪'; }
+				if (costRow) { costRow.hidden = noKey || !data.estimated_cost_range; }
+				if (costEl && !noKey && data.estimated_cost_range) { costEl.textContent = data.estimated_cost_range; }
+				if (timeRow) { timeRow.hidden = noKey || !data.repair_time; }
+				if (timeEl && !noKey && data.repair_time) { timeEl.textContent = data.repair_time; }
+
 				if (code) { code.textContent = data.ticket || ''; }
 				if (date) { date.textContent = data.createdAt || ''; }
-				if (cta && data.part) {
-					var href = cta.getAttribute('href') || '';
-					cta.setAttribute('href', href + (href.indexOf('?') > -1 ? '&' : '?') + 'problem=' + encodeURIComponent(data.part));
+				if (cta) {
+					var problem = data.part || fault || '';
+					if (problem) {
+						var href = cta.getAttribute('href') || '';
+						cta.setAttribute('href', href + (href.indexOf('?') > -1 ? '&' : '?') + 'problem=' + encodeURIComponent(problem));
+					}
 				}
 				result.setAttribute('tabindex', '-1');
 				result.focus({ preventScroll: true });

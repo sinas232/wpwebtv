@@ -653,9 +653,7 @@ function pixva_customize_register( $wp_customize ) {
 		'pixva_cdn_leaflet'        => array( __( 'آدرس CDN کتابخانه Leaflet', 'pixva' ), 'text', '', __( 'فایل محلی: assets/js/vendor/leaflet.js — خالی = نقشه داخلی SVG پیکسوا (بدون درخواست بیرونی).', 'pixva' ) ),
 		'pixva_cdn_leaflet_css'    => array( __( 'آدرس CDN سبک Leaflet', 'pixva' ), 'text', '', __( 'فایل محلی: assets/css/vendor/leaflet.css', 'pixva' ) ),
 		'pixva_cdn_spline'         => array( __( 'آدرس ماژول Spline Viewer', 'pixva' ), 'text', 'https://unpkg.com/@splinetool/viewer@1.9.48/build/spline-viewer.js', __( 'به‌صورت تنبل و فقط در صفحه‌های دارای ویجت سه‌بعدی بارگذاری می‌شود.', 'pixva' ) ),
-		'pixva_ai_agent_url'       => array( __( 'آدرس عامل هوش مصنوعی (AI Agent)', 'pixva' ), 'text', '', __( 'مثلاً سرویس پایتون شما. اگر پر شود، رسانه و شرح خرابی به آن فرستاده می‌شود و پاسخ JSON (کلیدهای verdict/analysis/part) به کاربر نمایش می‌رسد.', 'pixva' ) ),
-		'pixva_ai_agent_token'     => array( __( 'توکن عامل هوش مصنوعی (Bearer)', 'pixva' ), 'text', '', __( 'فقط سمت سرور استفاده می‌شود و هرگز به مرورگر فرستاده نمی‌شود.', 'pixva' ) ),
-		'pixva_ai_max_size'        => array( __( 'سقف حجم فایل رسانه (مگابایت)', 'pixva' ), 'number', 64, __( 'بزرگ‌تر از سقف upload_max_filesize سرور اثر نمی‌کند.', 'pixva' ) ),
+		'pixva_ai_max_size'        => array( __( 'سقف حجم فایل رسانه (مگابایت) — سازگاری نسخه پیشین', 'pixva' ), 'number', 50, __( 'از لایه ۱٫۸٫۰ سقف اصلی در بخش «عیب‌یاب هوش مصنوعی (Gemini)» با کلید pixva_ai_max_file_size تنظیم می‌شود؛ این مقدار فقط fallback است.', 'pixva' ) ),
 		'pixva_map_origin_lat'     => array( __( 'نقشه: عرض جغرافیایی مبدأ (کارگاه)', 'pixva' ), 'coord', 35.6892, __( 'مبدأ مسیر زمانی که موقعیت تعمیرکار ثبت نشده باشد.', 'pixva' ) ),
 		'pixva_map_origin_lng'     => array( __( 'نقشه: طول جغرافیایی مبدأ (کارگاه)', 'pixva' ), 'coord', 51.3890, '' ),
 		'pixva_map_origin_label'   => array( __( 'نقشه: برچسب مبدأ', 'pixva' ), 'text', __( 'کارگاه مرکزی پیکسوا', 'pixva' ), '' ),
@@ -845,8 +843,100 @@ function pixva_customize_register( $wp_customize ) {
 
 		$wp_customize->add_control( $pixva_key, $pixva_args );
 	}
+
+	/* ------- عیب‌یاب هوش مصنوعی بومی با Google Gemini (لایه ۱٫۸٫۰ / Master Prompt v9) ------- */
+	$wp_customize->add_section(
+		'pixva_ai_gemini',
+		array(
+			'title'       => esc_html__( 'پیکسوا: عیب‌یاب هوش مصنوعی (Gemini)', 'pixva' ),
+			'description' => esc_html__( 'کلید API گوگل جمینای، مدل، سقف حجم فایل و ایجاد خودکار پیش‌نویس سفارش. این کلید با چت‌بات هوشمند پیکسوا مشترک است و فقط سمت سرور نگهداری می‌شود. دکمه «تست اتصال آنلاین» و فیلد مخفی‌شده کلید در پیشخوان ← پیکسوا ← عیب‌یاب AI (Gemini) قرار دارد.', 'pixva' ),
+			'priority'    => 37,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_gemini_api_key',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_gemini_api_key',
+		array(
+			'label'       => esc_html__( 'کلید API گوگل جمینای', 'pixva' ),
+			'section'     => 'pixva_ai_gemini',
+			'type'        => 'text',
+			'description' => esc_html__( 'کلید را از Google AI Studio بگیرید. برای امنیت، در پنل بومی پیشخوان به‌صورت مخفی و با دکمه تست اتصال مدیریت می‌شود.', 'pixva' ),
+			'input_attrs' => array( 'dir' => 'ltr', 'style' => 'font-family:monospace' ),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_gemini_model',
+		array(
+			'default'           => 'gemini-1.5-flash',
+			'sanitize_callback' => 'pixva_sanitize_gemini_model',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_gemini_model',
+		array(
+			'label'   => esc_html__( 'مدل جمینای', 'pixva' ),
+			'section' => 'pixva_ai_gemini',
+			'type'    => 'select',
+			'choices' => function_exists( 'pixva_ai_handler_models' ) ? pixva_ai_handler_models() : array( 'gemini-1.5-flash' => 'Gemini 1.5 Flash' ),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_ai_max_file_size',
+		array(
+			'default'           => 50,
+			'sanitize_callback' => 'absint',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_ai_max_file_size',
+		array(
+			'label'       => esc_html__( 'حداکثر حجم فایل آپلودی (مگابایت)', 'pixva' ),
+			'section'     => 'pixva_ai_gemini',
+			'type'        => 'number',
+			'description' => esc_html__( 'پیش‌فرض ۵۰ مگابایت.', 'pixva' ),
+			'input_attrs' => array( 'min' => 1, 'max' => 512, 'step' => 1 ),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_ai_auto_create_draft',
+		array(
+			'default'           => false,
+			'sanitize_callback' => 'pixva_sanitize_checkbox',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_ai_auto_create_draft',
+		array(
+			'label'       => esc_html__( 'ایجاد خودکار پیش‌نویس سفارش به محض تشخیص خطا', 'pixva' ),
+			'section'     => 'pixva_ai_gemini',
+			'type'        => 'checkbox',
+			'description' => esc_html__( 'یک پرونده pixva_orders از روی نتیجه عیب‌یابی ساخته می‌شود (قابل تبدیل نهایی در تاریخچه).', 'pixva' ),
+		)
+	);
 }
 add_action( 'customize_register', 'pixva_customize_register' );
+
+/**
+ * پاک‌سازی انتخاب مدل جمینای (فقط مدل‌های مجاز).
+ *
+ * @param string $model مدل.
+ * @return string
+ */
+function pixva_sanitize_gemini_model( $model ) {
+	$model    = sanitize_key( (string) $model );
+	$allowed  = function_exists( 'pixva_ai_handler_models' ) ? pixva_ai_handler_models() : array( 'gemini-1.5-flash' => '' );
+	return array_key_exists( $model, $allowed ) ? $model : 'gemini-1.5-flash';
+}
 
 /**
  * پاک‌سازی فیلد JSON (لایه‌ها و هات‌اسپیت‌های دمو).

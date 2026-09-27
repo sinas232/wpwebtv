@@ -454,7 +454,8 @@ if ( ! function_exists( 'pixva_cinematic_register_assets' ) ) {
 			array(
 				'restUrl' => esc_url_raw( rest_url( 'pixva/v1' ) ),
 				'nonce'   => wp_create_nonce( 'pixva_ai_diagnose' ),
-				'maxSize' => (int) apply_filters( 'pixva_ai_diagnose_max_size', (int) pixva_option( 'pixva_ai_max_size', 64 ) ),
+				'maxSize' => (int) apply_filters( 'pixva_ai_diagnose_max_size', function_exists( 'pixva_ai_handler_max_size' ) ? pixva_ai_handler_max_size() : (int) pixva_option( 'pixva_ai_max_size', 50 ) ),
+				'aiReady' => function_exists( 'pixva_ai_handler_configured' ) && pixva_ai_handler_configured(),
 				'logs'    => array(
 					esc_html__( 'دریافت بسته رسانه…', 'pixva' ),
 					esc_html__( 'استخراج فریم‌های کلیدی…', 'pixva' ),
@@ -480,6 +481,11 @@ if ( ! function_exists( 'pixva_cinematic_register_assets' ) ) {
 					'audioKind' => esc_html__( 'صدا', 'pixva' ),
 					'videoKind' => esc_html__( 'ویدیو', 'pixva' ),
 					'ticket'    => esc_html__( 'کد پیگیری درخواست', 'pixva' ),
+					'confidence' => esc_html__( 'درصد اطمینان', 'pixva' ),
+					'symptoms'  => esc_html__( 'علائم تشخیص‌داده‌شده', 'pixva' ),
+					'cost'      => esc_html__( 'بازه هزینه تعمیر', 'pixva' ),
+					'time'      => esc_html__( 'زمان تعمیر', 'pixva' ),
+					'noKey'     => esc_html__( 'سامانه عیب‌یابی هوشمند هنوز در پیشخوان فعال نشده است؛ درخواست شما در صف بررسی کارشناسان ثبت شد.', 'pixva' ),
 				),
 			)
 		);
@@ -1356,7 +1362,11 @@ if ( ! function_exists( 'pixva_render_ai_diagnose' ) ) {
 				<span class="pixva-badge pixva-badge--success" data-ai-result-badge></span>
 				<h3 data-ai-result-title></h3>
 				<p data-ai-result-text></p>
+				<ul class="pixva-ai__symptoms" data-ai-result-symptoms hidden></ul>
 				<dl class="pixva-ai__meta">
+					<div data-ai-result-confidence-row hidden><dt><?php esc_html_e( 'درصد اطمینان', 'pixva' ); ?></dt><dd data-ai-result-confidence></dd></div>
+					<div data-ai-result-cost-row hidden><dt><?php esc_html_e( 'بازه هزینه تعمیر', 'pixva' ); ?></dt><dd data-ai-result-cost></dd></div>
+					<div data-ai-result-time-row hidden><dt><?php esc_html_e( 'زمان تعمیر', 'pixva' ); ?></dt><dd data-ai-result-time></dd></div>
 					<div><dt><?php esc_html_e( 'کد پیگیری', 'pixva' ); ?></dt><dd data-ai-result-code></dd></div>
 					<div><dt><?php esc_html_e( 'زمان ثبت', 'pixva' ); ?></dt><dd data-ai-result-date></dd></div>
 				</dl>
