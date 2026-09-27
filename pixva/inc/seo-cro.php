@@ -1285,6 +1285,15 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 		$control = function_exists( 'pixva_control_options' ) ? (array) pixva_control_options() : array();
 		$hours   = isset( $control['hub_eta_hours'] ) && '' !== $control['hub_eta_hours'] ? (string) $control['hub_eta_hours'] : __( '۲ ساعت', 'pixva' );
 
+		/*
+		 * انتخاب‌گر برند پویا (لایه ۳٫۰٫۰): در وارینت کارت هیرو پیش‌فرض روشن
+		 * است و با settings['brand_selector'] در هر جای دیگر هم فعال می‌شود.
+		 * اختیاری است؛ اگر پر نشود برند از متن آزاد تشخیص داده می‌شود.
+		 */
+		$show_brand   = 'card' === $variant || ! empty( $settings['brand_selector'] );
+		$brands       = function_exists( 'pixva_brand_catalog' ) ? (array) pixva_brand_catalog() : array();
+		$brand_label  = isset( $settings['brand_label'] ) && '' !== $settings['brand_label'] ? $settings['brand_label'] : (string) pixva_option( 'pixva_express_brand_label', __( 'برند تلویزیون', 'pixva' ) );
+
 		pixva_seo_cro_assets();
 		?>
 		<section class="pixva-seo pixva-express<?php echo 'card' === $variant ? ' pixva-express--card' : ''; ?>" id="<?php echo esc_attr( $section_id ); ?>">
@@ -1296,6 +1305,20 @@ if ( ! function_exists( 'pixva_render_express_booking' ) ) {
 
 				<form class="pixva-express__form" data-express-form novalidate>
 					<div class="pixva-express__fields">
+						<?php if ( $show_brand && ! empty( $brands ) ) : ?>
+							<label class="pixva-express__field pixva-express__field--brand">
+								<span><?php echo esc_html( $brand_label ); ?></span>
+								<select name="brand" data-express-brand>
+									<option value=""><?php esc_html_e( 'انتخاب کنید (اختیاری — از متن شرح هم تشخیص داده می‌شود)', 'pixva' ); ?></option>
+									<?php foreach ( $brands as $brand_key => $brand ) : ?>
+										<option value="<?php echo esc_attr( $brand_key ); ?>">
+											<?php echo esc_html( isset( $brand['fa'] ) ? $brand['fa'] . ( isset( $brand['en'] ) ? ' (' . $brand['en'] . ')' : '' ) : $brand_key ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</label>
+						<?php endif; ?>
+
 						<label class="pixva-express__field">
 							<span><?php echo esc_html( $phone_label ); ?> <em aria-hidden="true">*</em></span>
 							<input
@@ -1519,10 +1542,13 @@ if ( ! function_exists( 'pixva_rest_express_booking' ) ) {
 		}
 
 		$source   = sanitize_key( (string) $request->get_param( 'source' ) );
-		$brand    = pixva_express_detect_brand( $details );
-		$problem  = pixva_express_detect_problem( $details );
-		$size     = pixva_express_size_from_text( $details );
 		$brands   = function_exists( 'pixva_brand_catalog' ) ? (array) pixva_brand_catalog() : array();
+
+		// لایه ۳٫۰٫۰: برند صریحِ انتخاب‌شده در فرم بر تشخیص از متن آزاد اولویت دارد.
+		$brand_param = sanitize_key( (string) $request->get_param( 'brand' ) );
+		$brand       = ( '' !== $brand_param && isset( $brands[ $brand_param ] ) ) ? $brand_param : pixva_express_detect_brand( $details );
+		$problem     = pixva_express_detect_problem( $details );
+		$size        = pixva_express_size_from_text( $details );
 		$problems = function_exists( 'pixva_problem_catalog' ) ? (array) pixva_problem_catalog() : array();
 
 		$brand_label   = isset( $brands[ $brand ] ) ? $brands[ $brand ]['fa'] : __( 'برند نامشخص', 'pixva' );

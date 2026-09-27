@@ -87,7 +87,7 @@ if ( ! function_exists( 'pixva_hero_trust_items' ) ) {
 			),
 			array(
 				'icon' => 'cert',
-				'text' => __( 'قطعات فابریک با هولوگرام اصالت و برآورد شفاف هزینه پیش از شروع تعمیر', 'pixva' ),
+				'text' => __( 'قطعات فابریک با هولوگرام اصالت؛ برآورد شفاف و بدون هزینه پنهان پیش از شروع تعمیر', 'pixva' ),
 			),
 		);
 
@@ -127,4 +127,115 @@ if ( ! function_exists( 'pixva_render_hero_booking' ) ) {
 			)
 		);
 	}
+}
+
+if ( ! function_exists( 'pixva_mobile_logo_html' ) ) {
+	/**
+	 * لوگوی موبایل (لایه ۳٫۰٫۰) — فقط وقتی از سفارشی‌ساز تنظیم شده باشد.
+	 *
+	 * در عرض ≤768px جای لوگوی اصلی را در هدر می‌گیرد (CSS).
+	 *
+	 * @return string
+	 */
+	function pixva_mobile_logo_html() {
+		$url = (string) pixva_option( 'pixva_logo_mobile', '' );
+		if ( '' === $url ) {
+			return '';
+		}
+
+		return sprintf(
+			'<img class="pixva-logo__img pixva-logo__img--mobile" src="%1$s" alt="%2$s" width="140" height="40">',
+			esc_url( $url ),
+			esc_attr( get_bloginfo( 'name' ) )
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_hex_to_rgb' ) ) {
+	/**
+	 * تبدیل hex به اجزای RGB (بدون وابستگی).
+	 *
+	 * @param string $hex رنگ hex.
+	 * @return array<int, int>
+	 */
+	function pixva_hex_to_rgb( $hex ) {
+		$hex = ltrim( (string) $hex, '#' );
+		if ( 3 === strlen( $hex ) ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+		if ( 6 !== strlen( $hex ) ) {
+			return array( 37, 99, 235 );
+		}
+		return array(
+			(int) hexdec( substr( $hex, 0, 2 ) ),
+			(int) hexdec( substr( $hex, 2, 2 ) ),
+			(int) hexdec( substr( $hex, 4, 2 ) ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pixva_corporate_colors_css' ) ) {
+	/**
+	 * خروجی رنگ برند پویا از سفارشی‌ساز روی توکن‌های :root (لایه ۳٫۰٫۰).
+	 *
+	 * فقط وقتی رنگ‌ها از پیش‌فرض تغییر کرده باشند CSS درون‌خطی چاپ می‌شود
+	 * تا هیچ بایت اضافی به صفحه تحمیل نشود.
+	 *
+	 * @return void
+	 */
+	function pixva_corporate_colors_css() {
+		if ( ! pixva_corporate_ui_mode() || ( ! wp_style_is( 'pixva-seo-cro', 'enqueued' ) && ! wp_style_is( 'pixva-seo-cro', 'done' ) ) ) {
+			return;
+		}
+
+		$brand_default = '#2563EB';
+		$hover_default = '#1D4ED8';
+
+		$brand = (string) pixva_option( 'pixva_brand_color', $brand_default );
+		$hover = (string) pixva_option( 'pixva_brand_color_hover', $hover_default );
+
+		/*
+		 * sanitize_hex_color ممکن است در فرانت‌اند بارگذاری نشده باشد
+		 * (همراه Customizer است)؛ با fallback امن اعتبارسنجی می‌شود.
+		 */
+		$pixva_hex_ok = static function ( $color ) {
+			if ( function_exists( 'sanitize_hex_color' ) ) {
+				return null !== sanitize_hex_color( $color );
+			}
+			return (bool) preg_match( '/^#([A-Fa-f0-9]{3}){1,2}$/', (string) $color );
+		};
+
+		if ( '' === $brand || ! $pixva_hex_ok( $brand ) ) {
+			$brand = $brand_default;
+		}
+		if ( '' === $hover || ! $pixva_hex_ok( $hover ) ) {
+			$hover = $hover_default;
+		}
+
+		$brand = strtoupper( $brand );
+		$hover = strtoupper( $hover );
+
+		if ( strtoupper( $brand_default ) === $brand && strtoupper( $hover_default ) === $hover ) {
+			return; // پیش‌فرض است؛ توکن‌های seo-cro.css کافی‌اند.
+		}
+
+		list( $r, $g, $b ) = pixva_hex_to_rgb( $brand );
+
+		$css = ':root{'
+			. '--px-brand:' . $brand . ';'
+			. '--px-brand-dark:' . $hover . ';'
+			. '--px-brand-ring:rgba(' . $r . ',' . $g . ',' . $b . ',0.35);'
+			. '--px-brand-soft:color-mix(in srgb,' . $brand . ' 8%,#FFFFFF);'
+			. '}';
+
+		/**
+		 * فیلتر CSS درون‌خطی رنگ برند.
+		 *
+		 * @param string $css   قواعد :root.
+		 * @param string $brand رنگ برند.
+		 * @param string $hover رنگ حالت hover.
+		 */
+		wp_add_inline_style( 'pixva-seo-cro', apply_filters( 'pixva_corporate_colors_css', $css, $brand, $hover ) );
+	}
+	add_action( 'wp_enqueue_scripts', 'pixva_corporate_colors_css', 30 );
 }

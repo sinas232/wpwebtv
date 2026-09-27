@@ -581,3 +581,79 @@ function pixva_elementor_editor_assets() {
 	);
 }
 add_action( 'elementor/editor/before_enqueue_scripts', 'pixva_elementor_editor_assets' );
+
+/* ==========================================================================
+ * لایه ۳٫۰٫۰ (Master Prompt v13) — پشتیبانی Elementor Theme Builder
+ *
+ * همه جایگاه‌های هسته (هدر، فوتر، single، page، archive، ۴۰۴ و نتایج
+ * جست‌وجو) ثبت می‌شوند تا مدیر بتواند هر کدام را با قالب‌های Theme Builder
+ * المنتور (در نسخه Pro یا افزونه‌های سازگار) بازنویسی کند؛ در غیر این صورت
+ * همان مارک‌آپ پیش‌فرض پوسته با سامانه طراحی سازمانی رندر می‌شود.
+ * ======================================================================= */
+
+if ( ! function_exists( 'pixva_register_theme_locations' ) ) {
+	/**
+	 * ثبت همه جایگاه‌های هسته Theme Builder برای المنتور.
+	 *
+	 * @param \ElementorPro\Modules\ThemeBuilder\Classes\Locations_Manager $locations_manager مدیر جایگاه‌ها.
+	 * @return void
+	 */
+	function pixva_register_theme_locations( $locations_manager ) {
+		if ( is_object( $locations_manager ) && method_exists( $locations_manager, 'register_all_core_location' ) ) {
+			$locations_manager->register_all_core_location();
+		}
+	}
+	add_action( 'elementor/theme/register_locations', 'pixva_register_theme_locations' );
+}
+
+if ( ! function_exists( 'pixva_elementor_location' ) ) {
+	/**
+	 * رندر جایگاه با قالب Theme Builder و گزارش موفقیت.
+	 *
+	 * الگوی استاندارد پوسته‌ها: اگر قالب المنتوری برای جایگاه وجود داشته
+	 * باشد چاپ می‌شود و true برمی‌گردد؛ در غیر این صورت false تا مارک‌آپ
+	 * پیش‌فرض پوسته رندر شود.
+	 *
+	 * @param string $location نام جایگاه (header/footer/single/page/archive/404/search-results).
+	 * @return bool
+	 */
+	function pixva_elementor_location( $location ) {
+		if ( ! did_action( 'elementor/loaded' ) || ! function_exists( 'elementor_theme_do_location' ) ) {
+			return false;
+		}
+
+		return (bool) elementor_theme_do_location( $location );
+	}
+}
+
+if ( ! function_exists( 'pixva_jetengine_active' ) ) {
+	/**
+	 * آیا JetEngine فعال است؟ (برای کلاس بدن و بارگذاری سازگار)
+	 *
+	 * @return bool
+	 */
+	function pixva_jetengine_active() {
+		return defined( 'JET_ENGINE_VERSION' ) || did_action( 'jet-engine/init' ) || class_exists( 'Jet_Engine' );
+	}
+}
+
+if ( ! function_exists( 'pixva_jetengine_body_class' ) ) {
+	/**
+	 * کلاس body برای حالت JetEngine تا لایه سازگاری هدف‌گیری شود.
+	 *
+	 * @param array<int, string> $classes کلاس‌ها.
+	 * @return array<int, string>
+	 */
+	function pixva_jetengine_body_class( $classes ) {
+		if ( ! is_array( $classes ) ) {
+			$classes = array();
+		}
+
+		if ( pixva_jetengine_active() ) {
+			$classes[] = 'pixva-jetengine-active';
+		}
+
+		return $classes;
+	}
+	add_filter( 'body_class', 'pixva_jetengine_body_class' );
+}

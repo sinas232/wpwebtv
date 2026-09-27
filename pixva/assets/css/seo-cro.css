@@ -1,83 +1,94 @@
 /* ==========================================================================
-   لایه ۳۴ — سامانه طراحی سازمانی پیکسوا (Corporate Design System v2.1.0)
+   لایه ۳۵ — سامانه طراحی «Clean Slate» پیکسوا (نسخه ۳٫۰٫۰ / Master Prompt v13)
 
-   Master Prompt v12: پورتال سازمانی تمیز، سریع و تبدیل‌محور با گریدهای
-   کارت هم‌ارتفاع (JetEngine-like)، سلسله‌مرتب بصری دقیق و عملکرد بی‌نقص
-   در همه صفحه‌ها. این پرونده آخرین لایه CSS پوسته است و توکن‌ها، کانتینر
-   متمرکز، کارت سازمانی، هدر چسبان ۷۰px، هیروی دوستونی، گریدهای auto-fit،
-   جدول قیمت زبرا با فیلتر قرصی، فوتر چهارستونه و نوار اقدام موبایل را
-   تعریف می‌کند. همه آیکون‌ها SVG بومی‌اند (بدون فونت آیکن بیرونی).
+   بازنویسی کامل از صفر: تجربه‌ای در سطح Stripe/Apple — پالت احساسی
+   (اعتماد/تخصص/پاکیزگی/مراقبت پریمیوم)، پانل‌های شیشه‌ای، سایه‌های لایه‌ای،
+   میکروانیمیشن‌های cubic-bezier، گریدهای JetEngine هم‌ارتفاع، هدر چسبان
+   شیشه‌ای ۷۰px، هیروی دوستونی CRO، جدول قیمت زبرا با تب‌های قرصی، فوتر
+   سازمانی و نوار اقدام ثابت موبایل. آخرین لایه CSS سایت؛ همه توکن‌ها در
+   :root تعریف شده‌اند تا ویجت‌های المنتور و listingهای JetEngine خودکار
+   آن‌ها را به ارث ببرند. همه آیکون‌ها SVG بومی‌اند (بدون فونت بیرونی).
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   ۱) توکن‌های طراحی سازمانی (Corporate Design Tokens)
+   ۱) توکن‌های طراحی احساسی (Emotional Design Tokens)
    -------------------------------------------------------------------------- */
 :root {
-	/* اسلیت‌های سازمانی */
+	/* بوم و سطوح — Ultra-clean slate */
+	--px-canvas: #F8FAFC;
+	--px-surface: #FFFFFF;
+	--px-line: #E2E8F0;
+	--px-line-strong: #CBD5E1;
+
+	/* اسلیت‌های متنی — کنتراست بالا */
+	--px-ink: #0F172A;
+	--px-body: #475569;
+	--px-muted: #64748B;
+	--px-faint: #94A3B8;
 	--px-slate-900: #0F172A;
 	--px-slate-800: #1E293B;
 	--px-slate-700: #334155;
-	--px-slate-600: #475569;
-	--px-slate-500: #64748B;
-	--px-slate-400: #94A3B8;
-	--px-slate-300: #CBD5E1;
-	--px-slate-200: #E2E8F0;
-	--px-slate-100: #F1F5F9;
 	--px-slate-50: #F8FAFC;
+	--px-slate-100: #F1F5F9;
+	--px-slate-200: #E2E8F0;
+	--px-slate-300: #CBD5E1;
 
-	/* آبی برند */
+	/* برند و لهجه‌های احساسی */
 	--px-brand: #2563EB;
 	--px-brand-dark: #1D4ED8;
 	--px-brand-soft: #EFF6FF;
 	--px-brand-ring: rgba(37, 99, 235, 0.35);
-
-	/* وضعیت‌ها */
+	--px-indigo: #6366F1;
+	--px-indigo-soft: #EEF2FF;
 	--px-success: #10B981;
 	--px-success-dark: #059669;
 	--px-success-soft: #ECFDF5;
-	--px-warning: #B45309;
-	--px-warning-soft: #FFFBEB;
+	--px-amber: #F59E0B;
+	--px-amber-soft: #FFFBEB;
 	--px-danger: #B91C1C;
 	--px-danger-soft: #FEF2F2;
 
-	/* سطوح */
-	--px-white: #FFFFFF;
-	--px-page-bg: #F8FAFC;
+	/* شیشه و شناوری */
+	--px-glass-bg: rgba(255, 255, 255, 0.85);
+	--px-glass-blur: blur(12px);
 
 	/* هندسه */
 	--px-header-h: 70px;
 	--px-container: 1200px;
 	--px-gutter: 20px;
 	--px-radius: 16px;
+	--px-radius-lg: 20px;
 	--px-radius-sm: 10px;
 	--px-radius-pill: 999px;
+	--px-card-pad: 24px;
+	--px-booking-pad: 28px;
 
-	/* سایه‌ها */
-	--px-shadow-card: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
-	--px-shadow-lift: 0 12px 32px -8px rgba(15, 23, 42, 0.14);
+	/* سایه‌های لایه‌ای (Layered Elevation) */
+	--px-shadow-card: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
+	--px-shadow-hover: 0 12px 32px -6px rgba(15, 23, 42, 0.12);
 	--px-shadow-hero: 0 24px 60px -18px rgba(15, 23, 42, 0.22);
 	--px-shadow-header: 0 4px 16px -4px rgba(15, 23, 42, 0.08);
 
-	/* حرکت */
-	--px-tr: all 0.25s ease;
+	/* حرکت — یک منحنی واحد برای همه میکروانیمیشن‌ها */
+	--px-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	--px-tr: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-	/* مقیاس تایپوگرافی سازمانی (تناسب خودکار با موبایل) */
-	--px-fs-h1: clamp(1.7rem, 1.15rem + 2.4vw, 2.6rem);
+	/* تایپوگرافی */
+	--px-fs-h1: clamp(1.75rem, 1.15rem + 2.5vw, 2.7rem);
 	--px-fs-h2: clamp(1.35rem, 1rem + 1.6vw, 2rem);
 	--px-fs-h3: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
-	--px-fs-h4: 1rem;
 	--px-fs-body: 1rem;
 	--px-fs-small: 0.875rem;
 	--px-fs-tiny: 0.78rem;
 	--px-lh-body: 1.9;
 
-	/* ارتفاع‌های کنترل */
+	/* کنترل‌ها */
 	--px-input-h: 48px;
 	--px-touch-min: 44px;
 }
 
 /* --------------------------------------------------------------------------
-   ۲) پایه سراسری: بدون اسکرول افقی، زمینه و رنگ متن سازمانی
+   ۲) پایه سراسری — بوم تمیز، بدون اسکرول افقی
    -------------------------------------------------------------------------- */
 html {
 	overflow-x: hidden;
@@ -86,8 +97,8 @@ html {
 
 body {
 	overflow-x: clip;
-	background: var(--px-page-bg);
-	color: var(--px-slate-700);
+	background: var(--px-canvas);
+	color: var(--px-body);
 }
 
 img,
@@ -100,7 +111,7 @@ svg {
 
 ::selection {
 	background: var(--px-brand);
-	color: var(--px-white);
+	color: #FFFFFF;
 }
 
 :focus-visible {
@@ -109,7 +120,7 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۳) کانتینر متمرکز (.px-container)
+   ۳) کانتینر متمرکز
    -------------------------------------------------------------------------- */
 .px-container,
 .pixva-container {
@@ -125,15 +136,15 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۴) تایپوگرافی سازمانی
+   ۴) تایپوگرافی با کنتراست بالا
    -------------------------------------------------------------------------- */
 #content h1,
 .px-hero h1 {
 	font-size: var(--px-fs-h1);
-	line-height: 1.45;
+	line-height: 1.42;
 	font-weight: 800;
-	color: var(--px-slate-900);
-	letter-spacing: -0.01em;
+	color: var(--px-ink);
+	letter-spacing: -0.015em;
 }
 
 #content h2,
@@ -142,7 +153,8 @@ svg {
 	font-size: var(--px-fs-h2);
 	line-height: 1.5;
 	font-weight: 800;
-	color: var(--px-slate-900);
+	color: var(--px-ink);
+	letter-spacing: -0.01em;
 }
 
 #content h3,
@@ -150,11 +162,11 @@ svg {
 	font-size: var(--px-fs-h3);
 	line-height: 1.7;
 	font-weight: 700;
-	color: var(--px-slate-900);
+	color: var(--px-ink);
 }
 
 #content h4 {
-	font-size: var(--px-fs-h4);
+	font-size: 1rem;
 	font-weight: 700;
 	color: var(--px-slate-800);
 }
@@ -162,48 +174,70 @@ svg {
 #content p {
 	font-size: var(--px-fs-body);
 	line-height: var(--px-lh-body);
+	color: var(--px-body);
 }
 
 #content a:not(.pixva-btn):not(.px-btn) {
 	color: var(--px-brand);
 	text-underline-offset: 3px;
+	transition: var(--px-tr);
 }
 
 #content a:not(.pixva-btn):not(.px-btn):hover {
 	color: var(--px-brand-dark);
 }
 
+/* برچسب ابرو (Eyebrow) — لهجه ایندیگو پیش از عنوان بخش‌ها */
+.px-eyebrow {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-block-end: 0.5rem;
+	color: var(--px-indigo);
+	font-size: var(--px-fs-tiny);
+	font-weight: 800;
+	letter-spacing: 0.06em;
+}
+
+.px-eyebrow::before {
+	content: "";
+	width: 22px;
+	height: 2px;
+	border-radius: 2px;
+	background: linear-gradient(90deg, var(--px-brand), var(--px-indigo));
+}
+
 /* --------------------------------------------------------------------------
-   ۵) کارت سازمانی (JetEngine Card Primitive)
+   ۵) کارت پریمیوم (JetEngine Card Primitive)
    -------------------------------------------------------------------------- */
 .px-card {
 	border: 1px solid #E2E8F0;
 	border-radius: 16px;
 	background: #FFFFFF;
-	box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
+	box-shadow: var(--px-shadow-card);
 	padding: 24px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	height: 100%;
-	transition: all 0.25s ease;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .px-card:hover {
-	border-color: var(--px-slate-300);
-	box-shadow: var(--px-shadow-lift);
-	transform: translateY(-3px);
+	border-color: var(--px-line-strong);
+	box-shadow: var(--px-shadow-hover);
+	transform: translateY(-4px);
 }
 
-/* یکسان‌سازی کارت‌های موجود پوسته با بدنه کارت سازمانی */
+/* یکسان‌سازی کارت‌های پوسته با بدنه پریمیوم */
 .pixva-symptom__card,
 .pixva-trust__item,
 .pixva-service-card,
 .pixva-advantage,
 .pixva-card {
-	border: 1px solid var(--px-slate-200);
+	border: 1px solid var(--px-line);
 	border-radius: var(--px-radius);
-	background: var(--px-white);
+	background: var(--px-surface);
 	box-shadow: var(--px-shadow-card);
 	transition: var(--px-tr);
 }
@@ -213,13 +247,23 @@ svg {
 .pixva-service-card:hover,
 .pixva-advantage:hover,
 .pixva-card:hover {
-	border-color: var(--px-slate-300);
-	box-shadow: var(--px-shadow-lift);
-	transform: translateY(-3px);
+	border-color: var(--px-line-strong);
+	box-shadow: var(--px-shadow-hover);
+	transform: translateY(-4px);
+}
+
+/* پانل شیشه‌ای شناور (Glassmorphism) */
+.px-glass {
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid rgba(226, 232, 240, 0.9);
+	border-radius: var(--px-radius-lg);
+	box-shadow: var(--px-shadow-hover);
 }
 
 /* --------------------------------------------------------------------------
-   ۶) دکمه‌های سازمانی
+   ۶) دکمه‌ها — یک منحنی حرکت، کنتراست بالا
    -------------------------------------------------------------------------- */
 .px-btn,
 .pixva-btn {
@@ -228,7 +272,7 @@ svg {
 	justify-content: center;
 	gap: 0.5rem;
 	min-height: var(--px-touch-min);
-	padding: 0.7rem 1.4rem;
+	padding: 0.7rem 1.5rem;
 	border-radius: var(--px-radius-pill);
 	border: 1px solid transparent;
 	font-family: inherit;
@@ -244,8 +288,8 @@ svg {
 .pixva-btn--cta,
 .pixva-btn--orange,
 .pixva-btn--gradient {
-	background: var(--px-brand);
-	color: var(--px-white);
+	background: linear-gradient(135deg, var(--px-brand) 0%, var(--px-indigo) 130%);
+	color: #FFFFFF;
 	box-shadow: 0 6px 18px -6px var(--px-brand-ring);
 }
 
@@ -254,15 +298,15 @@ svg {
 .pixva-btn--orange:hover,
 .pixva-btn--gradient:hover {
 	background: var(--px-brand-dark);
-	color: var(--px-white);
-	transform: translateY(-1px);
-	box-shadow: 0 10px 24px -8px var(--px-brand-ring);
+	color: #FFFFFF;
+	transform: translateY(-2px);
+	box-shadow: 0 12px 26px -8px var(--px-brand-ring);
 }
 
 .px-btn--outline,
 .pixva-btn--ghost-dark {
-	background: var(--px-white);
-	border-color: var(--px-slate-300);
+	background: var(--px-surface);
+	border-color: var(--px-line-strong);
 	color: var(--px-slate-800);
 }
 
@@ -271,16 +315,18 @@ svg {
 	border-color: var(--px-brand);
 	color: var(--px-brand);
 	background: var(--px-brand-soft);
+	transform: translateY(-2px);
 }
 
 .px-btn--success {
 	background: var(--px-success);
-	color: var(--px-white);
+	color: #FFFFFF;
 }
 
 .px-btn--success:hover {
 	background: var(--px-success-dark);
-	color: var(--px-white);
+	color: #FFFFFF;
+	transform: translateY(-2px);
 }
 
 .px-btn svg,
@@ -291,7 +337,7 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۷) هدر سازمانی چسبان (۷۰ پیکسل)
+   ۷) هدر چسبان شیشه‌ای ۷۰ پیکسلی
    -------------------------------------------------------------------------- */
 .pixva-topbar {
 	background: var(--px-slate-900);
@@ -311,17 +357,18 @@ svg {
 .pixva-header--glass {
 	position: sticky;
 	top: 0;
-	z-index: 60;
-	background: rgba(255, 255, 255, 0.92);
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
-	border-bottom: 1px solid var(--px-slate-200);
+	z-index: 999;
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	background: rgba(255, 255, 255, 0.85);
+	border-bottom: 1px solid var(--px-line);
 	box-shadow: none;
+	transition: var(--px-tr);
 }
 
 .pixva-header.is-scrolled {
-	background: rgba(255, 255, 255, 0.97);
-	border-bottom-color: var(--px-slate-200);
+	background: rgba(255, 255, 255, 0.94);
+	border-bottom-color: var(--px-line);
 	box-shadow: var(--px-shadow-header);
 }
 
@@ -342,7 +389,12 @@ svg {
 
 .pixva-logo__text strong,
 .pixva-logo {
-	color: var(--px-slate-900);
+	color: var(--px-ink);
+}
+
+/* لوگوی موبایل: فقط وقتی از سفارشی‌ساز تنظیم شده باشد */
+.pixva-logo__img--mobile {
+	display: none;
 }
 
 .pixva-header__actions {
@@ -356,8 +408,10 @@ svg {
 	align-items: center;
 	gap: 0.4rem;
 	min-height: var(--px-touch-min);
-	padding: 0.35rem 0.75rem;
+	padding: 0.35rem 0.85rem;
 	border-radius: var(--px-radius-pill);
+	border: 1px solid var(--px-line);
+	background: var(--px-surface);
 	color: var(--px-slate-800);
 	font-weight: 700;
 	font-size: 0.92rem;
@@ -366,17 +420,13 @@ svg {
 }
 
 .pixva-header-phone:hover {
+	border-color: var(--px-brand);
 	background: var(--px-brand-soft);
 	color: var(--px-brand);
 }
 
 .pixva-header-cta.pixva-btn--cta {
-	background: var(--px-brand);
 	min-height: 44px;
-}
-
-.pixva-header-cta.pixva-btn--cta:hover {
-	background: var(--px-brand-dark);
 }
 
 .pixva-burger {
@@ -385,14 +435,20 @@ svg {
 	justify-content: center;
 	width: var(--px-touch-min);
 	height: var(--px-touch-min);
-	border: 1px solid var(--px-slate-200);
+	border: 1px solid var(--px-line);
 	border-radius: 12px;
-	background: var(--px-white);
+	background: var(--px-surface);
 	color: var(--px-slate-800);
 	cursor: pointer;
+	transition: var(--px-tr);
 }
 
-/* دروئر موبایل: هدف لمسی و سلسله‌مراتب تمیز */
+.pixva-burger:hover {
+	border-color: var(--px-brand);
+	color: var(--px-brand);
+}
+
+/* دروئر موبایل: کاملاً لمسی (≥44px) */
 .pixva-drawer a,
 .pixva-drawer button,
 .pixva-drawer-nav__toggle {
@@ -404,15 +460,17 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۸) هیروی سازمانی دوستونی (px-hero)
+   ۸) هیروی دوستونی پریمیوم
    -------------------------------------------------------------------------- */
 .pixva-hero.px-hero {
 	position: relative;
-	padding-block: clamp(2rem, 5vw, 3.75rem);
+	padding-block: clamp(2.25rem, 5vw, 4rem);
 	background:
-		radial-gradient(60rem 30rem at 85% -10%, var(--px-brand-soft), transparent 60%),
-		linear-gradient(180deg, var(--px-white) 0%, var(--px-slate-50) 100%);
-	color: var(--px-slate-700);
+		radial-gradient(48rem 26rem at 88% -12%, var(--px-indigo-soft), transparent 62%),
+		radial-gradient(40rem 24rem at 4% 108%, var(--px-brand-soft), transparent 58%),
+		radial-gradient(30rem 18rem at 60% 120%, var(--px-success-soft), transparent 60%),
+		linear-gradient(180deg, #FFFFFF 0%, var(--px-canvas) 100%);
+	color: var(--px-body);
 	overflow: clip;
 }
 
@@ -439,19 +497,22 @@ svg {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
-	padding: 0.3rem 0.8rem;
-	border: 1px solid var(--px-slate-200);
+	padding: 0.32rem 0.85rem;
+	border: 1px solid var(--px-line);
 	border-radius: var(--px-radius-pill);
-	background: var(--px-white);
-	color: var(--px-slate-600);
+	backdrop-filter: var(--px-glass-blur);
+	-webkit-backdrop-filter: var(--px-glass-blur);
+	background: var(--px-glass-bg);
+	color: var(--px-slate-700);
 	font-size: var(--px-fs-tiny);
 	font-weight: 700;
+	box-shadow: var(--px-shadow-card);
 }
 
 .px-hero__badge svg {
 	width: 15px;
 	height: 15px;
-	color: var(--px-brand);
+	color: var(--px-indigo);
 }
 
 .px-hero h1 {
@@ -461,7 +522,7 @@ svg {
 .px-hero__lead {
 	margin: 0;
 	max-width: 34em;
-	color: var(--px-slate-600);
+	color: var(--px-body);
 	font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.08rem);
 	line-height: 2;
 }
@@ -469,8 +530,8 @@ svg {
 .px-hero__checks {
 	display: flex;
 	flex-direction: column;
-	gap: 0.65rem;
-	margin: 0.25rem 0 0;
+	gap: 0.7rem;
+	margin: 0.35rem 0 0;
 	padding: 0;
 	list-style: none;
 }
@@ -478,7 +539,7 @@ svg {
 .px-hero__checks li {
 	display: flex;
 	align-items: flex-start;
-	gap: 0.6rem;
+	gap: 0.65rem;
 	color: var(--px-slate-800);
 	font-size: 0.97rem;
 	font-weight: 600;
@@ -492,10 +553,11 @@ svg {
 	flex: 0 0 auto;
 	width: 24px;
 	height: 24px;
-	margin-top: 0.3rem;
+	margin-top: 0.32rem;
 	border-radius: 50%;
 	background: var(--px-success-soft);
 	color: var(--px-success-dark);
+	box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.25);
 }
 
 .px-hero__check-ico svg {
@@ -512,12 +574,12 @@ svg {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.75rem;
-	margin-top: 0.5rem;
+	margin-top: 0.6rem;
 }
 
 .px-hero__actions .px-btn {
 	min-height: var(--px-input-h);
-	padding-inline: 1.6rem;
+	padding-inline: 1.7rem;
 	font-size: 1rem;
 }
 
@@ -526,8 +588,8 @@ svg {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.4rem 1.25rem;
-	margin: 0;
-	color: var(--px-slate-500);
+	margin: 0.25rem 0 0;
+	color: var(--px-muted);
 	font-size: var(--px-fs-small);
 }
 
@@ -548,7 +610,7 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۹) کارت فرم اعزام فوری (وارینت card داخل هیرو)
+   ۹) کارت فرم رزرو — elevated، پدینگ ۲۸px، بدون کشیدگی
    -------------------------------------------------------------------------- */
 .pixva-express.pixva-express--card {
 	padding: 0;
@@ -565,7 +627,7 @@ svg {
 }
 
 .pixva-express--card .pixva-seo__head h2 {
-	font-size: clamp(1.1rem, 1rem + 0.6vw, 1.35rem);
+	font-size: clamp(1.12rem, 1rem + 0.6vw, 1.4rem);
 }
 
 .pixva-express--card .pixva-seo__head p {
@@ -575,22 +637,22 @@ svg {
 
 .pixva-express--card .pixva-express__form {
 	max-width: none;
-	padding: clamp(1.1rem, 3vw, 1.75rem);
-	border: 1px solid var(--px-slate-200);
-	border-radius: var(--px-radius);
-	background: var(--px-white);
+	padding: 28px;
+	border: 1px solid var(--px-line);
+	border-radius: var(--px-radius-lg);
+	background: var(--px-surface);
 	box-shadow: var(--px-shadow-hero);
 	position: relative;
+	overflow: hidden;
 }
 
 .pixva-express--card .pixva-express__form::before {
 	content: "";
 	position: absolute;
 	inset-block-start: 0;
-	inset-inline: 24px;
+	inset-inline: 0;
 	height: 4px;
-	border-radius: 0 0 6px 6px;
-	background: linear-gradient(90deg, var(--px-brand), var(--px-success));
+	background: linear-gradient(90deg, var(--px-brand), var(--px-indigo) 55%, var(--px-success));
 }
 
 .pixva-express--card .pixva-express__fields {
@@ -600,7 +662,7 @@ svg {
 .pixva-express--card .pixva-express__submit {
 	width: 100%;
 	min-height: 52px;
-	font-size: 1.02rem;
+	font-size: 1.03rem;
 }
 
 .pixva-express--card .pixva-express__actions {
@@ -613,21 +675,36 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۱۰) فرم اعزام فوری: ورودی‌های ۴۸ پیکسلی سازمانی
+   ۱۰) فرم اعزام فوری — ورودی ۴۸px و انتخاب برند پویا
    -------------------------------------------------------------------------- */
-.pixva-express__field input {
+.pixva-express__field input,
+.pixva-express__field select {
 	height: var(--px-input-h);
 	min-height: var(--px-input-h);
+	width: 100%;
 	padding: 0 0.9rem;
-	border: 1px solid var(--px-slate-300);
+	border: 1px solid var(--px-line-strong);
 	border-radius: var(--px-radius-sm);
-	background: var(--px-white);
-	color: var(--px-slate-900);
+	background: var(--px-surface);
+	color: var(--px-ink);
+	font-family: inherit;
 	font-size: 1rem;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	transition: border-color 0.25s var(--px-ease), box-shadow 0.25s var(--px-ease);
 }
 
-.pixva-express__field input:focus-visible {
+.pixva-express__field select {
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(45deg, transparent 50%, var(--px-muted) 50%), linear-gradient(135deg, var(--px-muted) 50%, transparent 50%);
+	background-position: calc(0% + 18px) calc(50% + 1px), calc(0% + 24px) calc(50% + 1px);
+	background-size: 6px 6px, 6px 6px;
+	background-repeat: no-repeat;
+	padding-inline-end: 2.4rem;
+}
+
+.pixva-express__field input:focus-visible,
+.pixva-express__field select:focus-visible {
 	outline: none;
 	border-color: var(--px-brand);
 	box-shadow: 0 0 0 3px var(--px-brand-ring);
@@ -638,14 +715,26 @@ svg {
 	background: var(--px-danger-soft);
 }
 
+/* انتخاب‌گر برند در چیدمان غیرکارتی سراسری می‌شود */
+.pixva-express__field--brand {
+	grid-column: 1 / -1;
+}
+
 .pixva-express__submit {
-	background: var(--px-brand);
+	background: linear-gradient(135deg, var(--px-brand) 0%, var(--px-indigo) 130%);
+	color: #FFFFFF;
 	min-height: var(--px-input-h);
+	border: 0;
+	border-radius: var(--px-radius-pill);
+	box-shadow: 0 8px 20px -6px var(--px-brand-ring);
+	transition: var(--px-tr);
 }
 
 .pixva-express__submit:hover:not(:disabled),
 .pixva-express__submit:focus-visible {
 	background: var(--px-brand-dark);
+	transform: translateY(-2px);
+	box-shadow: 0 12px 28px -8px var(--px-brand-ring);
 }
 
 .pixva-express__msg.is-success {
@@ -654,19 +743,28 @@ svg {
 	border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
+.pixva-express__msg.is-busy,
+.pixva-express__msg.is-info {
+	background: var(--px-indigo-soft);
+	color: var(--px-indigo);
+	border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
 /* --------------------------------------------------------------------------
-   ۱۱) گریدهای کارت سازمانی (JetEngine-style Listing Grids)
+   ۱۱) گریدهای لیستینگ هم‌ارتفاع (JetEngine-style Equal-Height Grids)
    -------------------------------------------------------------------------- */
+.px-listing-grid,
 .pixva-symptom__grid,
 .pixva-trust__grid,
 .pixva-home-services .pixva-grid--4,
 .pixva-advantages {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	gap: clamp(0.9rem, 2vw, 1.25rem);
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 24px;
 	align-items: stretch;
 }
 
+.px-listing-grid > *,
 .pixva-symptom__card,
 .pixva-trust__item,
 .pixva-service-card,
@@ -683,23 +781,25 @@ svg {
 	margin-block-start: auto;
 }
 
-/* آیکن کارت علائم (SVG بومی) */
+/* آیکن کارت علائم — SVG بومی با لهجه برند */
 .pixva-symptom__icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 46px;
-	height: 46px;
-	margin-block-end: 0.35rem;
+	width: 48px;
+	height: 48px;
+	margin-block-end: 0.5rem;
 	border-radius: 14px;
 	background: var(--px-brand-soft);
 	color: var(--px-brand);
+	box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.14);
 	transition: var(--px-tr);
 }
 
 .pixva-symptom__card:hover .pixva-symptom__icon {
-	background: var(--px-brand);
-	color: var(--px-white);
+	background: linear-gradient(135deg, var(--px-brand), var(--px-indigo));
+	color: #FFFFFF;
+	transform: scale(1.06);
 }
 
 .pixva-symptom__icon svg {
@@ -713,17 +813,28 @@ svg {
 }
 
 .pixva-trust__icon {
-	background: var(--px-brand-soft);
-	color: var(--px-brand);
+	background: var(--px-indigo-soft);
+	color: var(--px-indigo);
+	box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.16);
+}
+
+.pixva-trust__item:hover .pixva-trust__icon {
+	background: linear-gradient(135deg, var(--px-indigo), var(--px-brand));
+	color: #FFFFFF;
 }
 
 .pixva-symptom__cause {
-	border-inline-start-color: var(--px-brand);
-	background: var(--px-brand-soft);
+	border-inline-start-color: var(--px-indigo);
+	background: var(--px-indigo-soft);
+	color: var(--px-slate-800);
+}
+
+.pixva-symptom__cost span {
+	color: var(--px-brand-dark);
 }
 
 /* --------------------------------------------------------------------------
-   ۱۲) جدول قیمت: زبرا، فیلتر قرصی، بدون سرریز افقی
+   ۱۲) جدول قیمت — تب قرصی، زبرا، بدون اسکرول افقی صفحه
    -------------------------------------------------------------------------- */
 .pixva-pricetable__filters {
 	align-items: flex-end;
@@ -734,11 +845,12 @@ svg {
 	height: var(--px-touch-min);
 	min-height: var(--px-touch-min);
 	padding: 0 1rem;
-	border: 1px solid var(--px-slate-300);
+	border: 1px solid var(--px-line-strong);
 	border-radius: var(--px-radius-pill);
-	background: var(--px-white);
+	background: var(--px-surface);
 	color: var(--px-slate-800);
 	font-weight: 600;
+	transition: var(--px-tr);
 }
 
 .pixva-pricetable__filter select:focus-visible {
@@ -760,11 +872,11 @@ svg {
 	align-items: center;
 	justify-content: center;
 	min-height: var(--px-touch-min);
-	padding: 0.45rem 1.1rem;
-	border: 1px solid var(--px-slate-200);
+	padding: 0.45rem 1.15rem;
+	border: 1px solid var(--px-line);
 	border-radius: var(--px-radius-pill);
-	background: var(--px-white);
-	color: var(--px-slate-600);
+	background: var(--px-surface);
+	color: var(--px-slate-700);
 	font-family: inherit;
 	font-size: var(--px-fs-small);
 	font-weight: 700;
@@ -772,49 +884,51 @@ svg {
 	cursor: pointer;
 	transition: var(--px-tr);
 	white-space: nowrap;
+	box-shadow: var(--px-shadow-card);
 }
 
 .px-pill:hover {
 	border-color: var(--px-brand);
 	color: var(--px-brand);
 	background: var(--px-brand-soft);
+	transform: translateY(-2px);
 }
 
 .px-pill.is-active {
-	background: var(--px-brand);
-	border-color: var(--px-brand);
-	color: var(--px-white);
-	box-shadow: 0 6px 16px -6px var(--px-brand-ring);
+	background: linear-gradient(135deg, var(--px-brand), var(--px-indigo));
+	border-color: transparent;
+	color: #FFFFFF;
+	box-shadow: 0 8px 20px -6px var(--px-brand-ring);
 }
 
 .pixva-pricetable__wrap {
-	border: 1px solid var(--px-slate-200);
+	border: 1px solid var(--px-line);
 	border-radius: var(--px-radius);
-	background: var(--px-white);
+	background: var(--px-surface);
 	box-shadow: var(--px-shadow-card);
 	overflow-x: auto;
 	max-width: 100%;
 }
 
 .pixva-pricetable__table caption {
-	background: var(--px-white);
-	border-block-end: 1px solid var(--px-slate-200);
-	color: var(--px-slate-900);
+	background: var(--px-surface);
+	border-block-end: 1px solid var(--px-line);
+	color: var(--px-ink);
 }
 
 .pixva-pricetable__table thead th {
 	background: var(--px-slate-900);
-	color: var(--px-white);
+	color: #FFFFFF;
 	border-block-end: 0;
 	font-size: var(--px-fs-small);
 }
 
-.pixva-pricetable__table thead th:first-child {
-	border-start-start-radius: 0;
-}
-
 .pixva-pricetable__table tbody tr:nth-child(even) {
 	background: var(--px-slate-50);
+}
+
+.pixva-pricetable__table tbody tr {
+	transition: background-color 0.25s var(--px-ease);
 }
 
 .pixva-pricetable__table tbody tr:hover {
@@ -823,48 +937,50 @@ svg {
 
 .pixva-pricetable__table th,
 .pixva-pricetable__table td {
-	border-block-end: 1px solid var(--px-slate-200);
+	border-block-end: 1px solid var(--px-line);
 }
 
 .pixva-pricetable__table tbody th {
-	color: var(--px-slate-900);
+	color: var(--px-ink);
 }
 
 .pixva-pricetable__note {
-	color: var(--px-slate-500);
+	color: var(--px-muted);
 }
 
 .pixva-pricetable .pixva-seo__cta {
-	background: var(--px-brand);
 	min-height: var(--px-touch-min);
 }
 
-.pixva-pricetable .pixva-seo__cta:hover {
-	background: var(--px-brand-dark);
-}
-
 /* --------------------------------------------------------------------------
-   ۱۳) بخش‌های سئو: پوسته سازمانی روشن
+   ۱۳) بخش‌های سئو — توکن‌های نگاشت‌شده به پالت v3
    -------------------------------------------------------------------------- */
 .pixva-seo {
 	--seo-accent: #2563EB;
 	--seo-accent-soft: #EFF6FF;
 	--seo-line: #E2E8F0;
 	--seo-ink: #0F172A;
-	--seo-body: #334155;
+	--seo-body: #475569;
 	--seo-muted: #64748B;
 	--seo-bg: #FFFFFF;
 	--seo-alt: #F8FAFC;
+	--seo-warn: #B45309;
+	--seo-warn-soft: #FFFBEB;
+	--seo-ok: #059669;
+	--seo-ok-soft: #ECFDF5;
+	--seo-err: #B91C1C;
+	--seo-err-soft: #FEF2F2;
 	--seo-radius: 16px;
 }
 
 .pixva-seo:nth-of-type(even) {
-	background: var(--px-slate-50);
+	background: var(--px-canvas);
 }
 
 .pixva-seo__cta {
 	min-height: var(--px-touch-min);
 	background: var(--px-brand);
+	transition: var(--px-tr);
 }
 
 .pixva-seo__cta:hover,
@@ -877,23 +993,23 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۱۴) بخش‌های عمومی پوسته (مزیت‌ها، نمونه‌کار، خدمات، نظرات)
+   ۱۴) بخش‌های عمومی پوسته
    -------------------------------------------------------------------------- */
 .pixva-section {
 	padding-block: clamp(2.25rem, 5vw, 3.75rem);
 }
 
 .pixva-section--alt {
-	background: var(--px-white);
-	border-block: 1px solid var(--px-slate-200);
+	background: var(--px-surface);
+	border-block: 1px solid var(--px-line);
 }
 
 .pixva-section-head h2 {
-	color: var(--px-slate-900);
+	color: var(--px-ink);
 }
 
 .pixva-section-head p {
-	color: var(--px-slate-500);
+	color: var(--px-muted);
 }
 
 .pixva-badge {
@@ -905,13 +1021,93 @@ svg {
 	color: var(--px-brand-dark);
 }
 
+.pixva-badge--accent {
+	background: var(--px-indigo-soft);
+	color: var(--px-indigo);
+}
+
 .pixva-badge--success {
 	background: var(--px-success-soft);
 	color: var(--px-success-dark);
 }
 
 /* --------------------------------------------------------------------------
-   ۱۵) صفحه‌های داخلی: مقاله، بایگانی و جست‌وجو ارث‌برنده کیت سازمانی
+   ۱۵) سازگاری JetEngine — Listing Itemها کیت سازمانی را به ارث می‌برند
+   --------------------------------------------------------------------------
+   مدیر می‌تواند در تنظیمات Listing Item جت‌انجین کلاس px-jet-card (یا یکی از
+   وارینت‌ها) را به آیتم بدهد؛ همچنین خروجی پیش‌فرض jet-listing-item بدون
+   هیچ تنظیمی داخل گریدهای پوسته هم‌ارتفاع و سالم می‌ماند. قواعد
+   Dynamic Visibility جت‌انجین عنصر را کامل حذف می‌کنند، بنابراین گرید
+   auto-fit بدون جای خالی می‌شکند.                                          */
+.px-jet-card,
+.jet-listing-item .px-jet-card,
+.jet-engine-listing-item.px-jet-card {
+	border: 1px solid var(--px-line);
+	border-radius: var(--px-radius);
+	background: var(--px-surface);
+	box-shadow: var(--px-shadow-card);
+	padding: var(--px-card-pad);
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-width: 0;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.px-jet-card:hover {
+	border-color: var(--px-line-strong);
+	box-shadow: var(--px-shadow-hover);
+	transform: translateY(-4px);
+}
+
+.px-jet-card h2,
+.px-jet-card h3,
+.px-jet-card h4 {
+	color: var(--px-ink);
+	margin-block-start: 0;
+}
+
+.px-jet-card p {
+	color: var(--px-body);
+	font-size: var(--px-fs-small);
+	line-height: var(--px-lh-body);
+}
+
+.px-jet-card .px-jet-card__footer,
+.px-jet-card .jet-listing-item__footer {
+	margin-block-start: auto;
+	padding-block-start: 0.9rem;
+}
+
+.px-jet-card--service {
+	border-block-start: 3px solid var(--px-brand);
+}
+
+.px-jet-card--symptom {
+	border-block-start: 3px solid var(--px-indigo);
+}
+
+.px-jet-card--price {
+	border-block-start: 3px solid var(--px-amber);
+}
+
+.px-jet-card--testimonial {
+	border-block-start: 3px solid var(--px-success);
+	background: linear-gradient(180deg, var(--px-surface) 0%, var(--px-slate-50) 100%);
+}
+
+.px-listing-grid .jet-listing-item,
+.pixva-grid .jet-listing-item {
+	display: flex;
+	min-width: 0;
+}
+
+.px-listing-grid .jet-listing-item > * {
+	flex: 1 1 auto;
+}
+
+/* --------------------------------------------------------------------------
+   ۱۶) صفحه‌های داخلی — ارث‌بری کیت سازمانی
    -------------------------------------------------------------------------- */
 .pixva-entry {
 	max-width: 100%;
@@ -919,16 +1115,16 @@ svg {
 
 .pixva-entry h2,
 .pixva-entry h3 {
-	color: var(--px-slate-900);
+	color: var(--px-ink);
 	line-height: 1.7;
 }
 
 .pixva-entry blockquote {
 	margin-block: 1.25rem;
 	padding: 0.9rem 1.2rem;
-	border-inline-start: 4px solid var(--px-brand);
+	border-inline-start: 4px solid var(--px-indigo);
 	border-radius: var(--px-radius-sm);
-	background: var(--px-brand-soft);
+	background: var(--px-indigo-soft);
 	color: var(--px-slate-800);
 }
 
@@ -942,13 +1138,13 @@ svg {
 .pixva-entry table th,
 .pixva-entry table td {
 	padding: 0.65rem 0.85rem;
-	border: 1px solid var(--px-slate-200);
+	border: 1px solid var(--px-line);
 	text-align: start;
 }
 
 .pixva-entry table thead th {
 	background: var(--px-slate-900);
-	color: var(--px-white);
+	color: #FFFFFF;
 	border-color: var(--px-slate-800);
 }
 
@@ -961,7 +1157,6 @@ svg {
 	max-width: 100%;
 }
 
-/* کارت‌های بایگانی و جست‌وجو */
 .pixva-posts-grid .pixva-card,
 .pixva-archive .pixva-card,
 .pixva-search .pixva-card {
@@ -978,9 +1173,9 @@ svg {
 	justify-content: center;
 	min-width: var(--px-touch-min);
 	min-height: var(--px-touch-min);
-	border: 1px solid var(--px-slate-200);
+	border: 1px solid var(--px-line);
 	border-radius: 12px;
-	background: var(--px-white);
+	background: var(--px-surface);
 	color: var(--px-slate-700);
 	font-weight: 700;
 	text-decoration: none;
@@ -991,11 +1186,12 @@ svg {
 .page-numbers:hover {
 	background: var(--px-brand);
 	border-color: var(--px-brand);
-	color: var(--px-white);
+	color: #FFFFFF;
+	box-shadow: 0 6px 16px -6px var(--px-brand-ring);
 }
 
 /* --------------------------------------------------------------------------
-   ۱۶) فوتر سازمانی چهارستونه
+   ۱۷) فوتر سازمانی چهارستونه
    -------------------------------------------------------------------------- */
 .pixva-footer {
 	background: var(--px-slate-900);
@@ -1012,14 +1208,14 @@ svg {
 
 .pixva-footer__col h2 {
 	margin-block: 0 0.9rem;
-	color: var(--px-white);
+	color: #FFFFFF;
 	font-size: 1rem;
 	font-weight: 800;
 }
 
 .pixva-footer__col p,
 .pixva-footer__col address {
-	color: var(--px-slate-400);
+	color: var(--px-faint);
 	font-size: var(--px-fs-small);
 	line-height: 2;
 }
@@ -1038,7 +1234,7 @@ svg {
 .pixva-footer__links a:hover,
 .pixva-footer__emergency a:hover,
 .pixva-socials a:hover {
-	color: var(--px-white);
+	color: #FFFFFF;
 }
 
 .pixva-footer__cert span {
@@ -1068,17 +1264,17 @@ svg {
 	gap: 0.5rem;
 	padding-block: 1rem;
 	border-top: 1px solid var(--px-slate-800);
-	color: var(--px-slate-400);
+	color: var(--px-faint);
 	font-size: var(--px-fs-small);
 }
 
 .pixva-copyright {
 	margin: 0;
-	color: var(--px-slate-400);
+	color: var(--px-faint);
 }
 
 /* --------------------------------------------------------------------------
-   ۱۷) نوار اقدام ثابت موبایل (Fixed Bottom Action Bar)
+   ۱۸) نوار اقدام ثابت موبایل (Bottom Sticky Action Bar)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
 	.pixva-mobile-dock:not(.pixva-mobile-dock--static) {
@@ -1092,11 +1288,11 @@ svg {
 		padding-block: 6px;
 		padding-inline: 8px;
 		padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-		background: rgba(255, 255, 255, 0.97);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
-		border-top: 1px solid var(--px-slate-200);
-		box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.08);
+		background: rgba(255, 255, 255, 0.92);
+		border-top: 1px solid var(--px-line);
+		box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.1);
 		justify-content: space-around;
 		align-items: center;
 	}
@@ -1109,9 +1305,9 @@ svg {
 		gap: 2px;
 		min-width: var(--px-touch-min);
 		min-height: var(--px-touch-min);
-		padding: 0.2rem 0.5rem;
+		padding: 0.2rem 0.55rem;
 		border-radius: 12px;
-		color: var(--px-slate-600);
+		color: var(--px-slate-700);
 		font-size: 11px;
 		font-weight: 700;
 		text-decoration: none;
@@ -1123,8 +1319,8 @@ svg {
 	}
 
 	.pixva-mobile-dock__item.is-cta {
-		color: var(--px-white);
-		background: var(--px-brand);
+		color: #FFFFFF;
+		background: linear-gradient(135deg, var(--px-brand), var(--px-indigo));
 		box-shadow: 0 6px 16px -6px var(--px-brand-ring);
 	}
 
@@ -1133,14 +1329,23 @@ svg {
 		height: 20px;
 	}
 
-	/* محتوا زیر نوار ثابت پنهان نماند (هم‌اندازه با مقدار پایه main.css) */
+	/* محتوا زیر نوار ثابت پنهان نماند */
 	body:not(.pixva-dock-off) {
 		padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+	}
+
+	/* لوگوی موبایل سفارشی جای لوگوی اصلی را می‌گیرد */
+	.pixva-logo__img--mobile {
+		display: inline-block;
+	}
+
+	.pixva-logo-link .pixva-logo__img:not(.pixva-logo__img--mobile) {
+		display: none;
 	}
 }
 
 /* --------------------------------------------------------------------------
-   ۱۸) واکنش‌گرایی هیرو و گریدها
+   ۱۹) واکنش‌گرایی هیرو و گریدها
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
 	.px-hero__grid {
@@ -1162,12 +1367,12 @@ svg {
 		min-height: 62px;
 	}
 
-	.pixva-header-phone span {
+	.pixva-header-phone span[data-phone-text] {
 		display: none;
 	}
 
 	.pixva-header-phone {
-		padding: 0.35rem;
+		padding: 0.35rem 0.5rem;
 	}
 
 	.px-hero__actions .px-btn {
@@ -1189,6 +1394,10 @@ svg {
 		padding: 18px;
 	}
 
+	.pixva-express--card .pixva-express__form {
+		padding: 20px;
+	}
+
 	.pixva-pricetable__pills {
 		flex-wrap: nowrap;
 		overflow-x: auto;
@@ -1203,7 +1412,7 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
-   ۱۹) ابزارک‌های چیدمان (جایگزین style درون‌خطی در قالب‌ها)
+   ۲۰) ابزارک‌های چیدمان (جایگزین style درون‌خطی)
    -------------------------------------------------------------------------- */
 .px-u-center-block {
 	text-align: center;
@@ -1218,11 +1427,20 @@ svg {
 	max-width: 860px;
 }
 
+.px-u-center-flex {
+	justify-content: center;
+}
+
+.px-u-search-gap {
+	margin-bottom: 1.2rem;
+}
+
 /* --------------------------------------------------------------------------
-   ۲۰) احترام به کاهش حرکت
+   ۲۱) احترام به کاهش حرکت
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
 	.px-card,
+	.px-jet-card,
 	.pixva-symptom__card,
 	.pixva-trust__item,
 	.pixva-service-card,
@@ -1230,16 +1448,25 @@ svg {
 	.pixva-card,
 	.px-btn,
 	.pixva-btn,
-	.px-pill {
+	.px-pill,
+	.pixva-header,
+	.pixva-symptom__icon,
+	.pixva-trust__icon {
 		transition: none;
 	}
 
 	.px-card:hover,
+	.px-jet-card:hover,
 	.pixva-symptom__card:hover,
 	.pixva-trust__item:hover,
 	.pixva-service-card:hover,
 	.pixva-advantage:hover,
-	.pixva-card:hover {
+	.pixva-card:hover,
+	.px-pill:hover {
+		transform: none;
+	}
+
+	.pixva-symptom__card:hover .pixva-symptom__icon {
 		transform: none;
 	}
 }

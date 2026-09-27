@@ -1003,6 +1003,105 @@ function pixva_customize_register( $wp_customize ) {
 		$wp_customize->add_control( $pixva_key, $pixva_args );
 	}
 
+	/* ------- برند و پویاسازی (لایه ۳٫۰٫۰ / Master Prompt v13) ------- */
+	$wp_customize->add_section(
+		'pixva_brand',
+		array(
+			'title'       => esc_html__( 'پیکسوا: برند، رنگ و هویت (لایه ۳٫۰٫۰)', 'pixva' ),
+			'description' => esc_html__( 'لوگوها (اصلی/تیره/موبایل)، رنگ برند، ساعات کاری و کلید CTA هدر؛ همه‌جا پویا اعمال می‌شود.', 'pixva' ),
+			'priority'    => 38,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_logo_mobile',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'pixva_logo_mobile',
+			array(
+				'label'       => esc_html__( 'لوگوی موبایل (عرض ≤۷۶۸ جای لوگوی اصلی را می‌گیرد)', 'pixva' ),
+				'section'     => 'pixva_brand',
+				'description' => esc_html__( 'خالی بگذارید تا همان لوگوی اصلی/تیره نمایش داده شود.', 'pixva' ),
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_brand_color',
+		array(
+			'default'           => '#2563EB',
+			'sanitize_callback' => 'sanitize_hex_color',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Color_Control(
+			$wp_customize,
+			'pixva_brand_color',
+			array(
+				'label'       => esc_html__( 'رنگ اصلی برند', 'pixva' ),
+				'section'     => 'pixva_brand',
+				'description' => esc_html__( 'پیش‌فرض: آبی الکتریک #2563EB — روی همه دکمه‌ها، لینک‌ها و توکن‌های طراحی اعمال می‌شود.', 'pixva' ),
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_brand_color_hover',
+		array(
+			'default'           => '#1D4ED8',
+			'sanitize_callback' => 'sanitize_hex_color',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Color_Control(
+			$wp_customize,
+			'pixva_brand_color_hover',
+			array(
+				'label'   => esc_html__( 'رنگ برند در حالت hover/فعال', 'pixva' ),
+				'section' => 'pixva_brand',
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_header_cta_enabled',
+		array(
+			'default'           => true,
+			'sanitize_callback' => 'pixva_sanitize_checkbox',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_header_cta_enabled',
+		array(
+			'label'   => esc_html__( 'نمایش دکمه CTA در هدر', 'pixva' ),
+			'section' => 'pixva_brand',
+			'type'    => 'checkbox',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'pixva_working_hours',
+		array(
+			'default'           => 'شنبه تا پنجشنبه ۹ تا ۲۰',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
+	$wp_customize->add_control(
+		'pixva_working_hours',
+		array(
+			'label'       => esc_html__( 'ساعات کاری', 'pixva' ),
+			'section'     => 'pixva_brand',
+			'type'        => 'text',
+			'description' => esc_html__( 'در نوار بالای هدر و هیرو نمایش داده می‌شود.', 'pixva' ),
+		)
+	);
+
 	/* ------- معماری سئو و تبدیل (لایه ۲٫۰٫۰ / Master Prompt v11) ------- */
 	$wp_customize->add_section(
 		'pixva_seo_cro',

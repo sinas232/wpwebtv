@@ -11,8 +11,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 $query = get_search_query();
-?>
+>
 <main id="content">
+	<?php
+	// لایه ۳٫۰٫۰: جایگاه search-results با Theme Builder المنتور قابل بازنویسی است.
+	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'search-results' ) ) :
+	?>
 	<?php
 	pixva_page_hero(
 		sprintf(
@@ -30,7 +34,7 @@ $query = get_search_query();
 	<div class="pixva-container pixva-content">
 		<div class="pixva-layout">
 		<div class="pixva-layout__main">
-		<div class="pixva-search" style="margin-bottom:1.2rem"><?php get_search_form(); ?></div>
+		<div class="pixva-search px-u-search-gap"><?php get_search_form(); ?></div>
 		<?php if ( have_posts() ) : ?>
 			<?php
 			while ( have_posts() ) :
@@ -65,6 +69,7 @@ $query = get_search_query();
 		<?php get_sidebar(); ?>
 		</div>
 	</div>
+	<?php endif; /* پایان جایگاه search-results — لایه ۳٫۰٫۰ */ ?>
 </main>
 <?php
 get_footer();

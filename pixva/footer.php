@@ -35,7 +35,14 @@ if ( is_front_page() ) {
 	}
 }
 $pixva_dock_booking_text = (string) pixva_option( 'pixva_dock_booking_text', __( 'درخواست تعمیرکار', 'pixva' ) );
+
+/*
+ * لایه ۳٫۰٫۰: جایگاه footer با Theme Builder المنتور قابل بازنویسی است؛
+ * نوار اقدام موبایل و چت‌بات همیشه از پوسته رندر می‌شوند (بیرون جایگاه).
+ */
+$pixva_footer_from_builder = function_exists( 'pixva_elementor_location' ) && pixva_elementor_location( 'footer' );
 ?>
+<?php if ( ! $pixva_footer_from_builder ) : ?>
 <footer class="pixva-footer">
 	<?php if ( is_active_sidebar( 'footer-widgets' ) ) : ?>
 		<div class="pixva-container pixva-footer__widgets">
@@ -123,6 +130,7 @@ $pixva_dock_booking_text = (string) pixva_option( 'pixva_dock_booking_text', __(
 		<p><?php echo esc_html( sprintf( __( 'نسخه %s — نرخ‌نامه مصوب بازار ۱۴۰۵', 'pixva' ), pixva_fa_num( PIXVA_VERSION ) ) ); ?></p>
 	</div>
 </footer>
+<?php endif; /* پایان جایگاه footer — لایه ۳٫۰٫۰ */ ?>
 
 <nav class="pixva-mobile-dock" aria-label="<?php esc_attr_e( 'نوار دسترسی سریع موبایل', 'pixva' ); ?>">
 	<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>" class="pixva-mobile-dock__item">

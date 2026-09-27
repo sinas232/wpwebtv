@@ -15,12 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 $pixva_phone    = pixva_support_phone();
 $pixva_cta_text = (string) pixva_option( 'pixva_header_cta_text', __( 'استعلام سریع قیمت', 'pixva' ) );
 $pixva_cta_url  = (string) pixva_option( 'pixva_header_cta_url', pixva_page_url( 'calculator' ) );
+$pixva_cta_on   = (bool) pixva_option( 'pixva_header_cta_enabled', true );
 $pixva_topbar   = (string) pixva_option( 'pixva_topbar_text', __( 'اعزام تکنسین در تهران زیر ۲ ساعت | گارانتی کتبی ۱۸۰ روزه | قطعات فابریک با هولوگرام اصالت', 'pixva' ) );
 $pixva_control  = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
 $pixva_eta      = isset( $pixva_control['hub_eta_hours'] ) ? $pixva_control['hub_eta_hours'] : '۲ ساعت';
+$pixva_days     = (string) pixva_option( 'pixva_working_hours', __( 'شنبه تا پنجشنبه ۹ تا ۲۰', 'pixva' ) );
 $pixva_hours    = sprintf(
-	/* translators: %s: بازه زمانی اعزام */
-	__( 'شنبه تا پنجشنبه ۹ تا ۲۰ | اعزام اورژانسی زیر %s', 'pixva' ),
+	/* translators: 1: روزهای کاری، 2: بازه زمانی اعزام */
+	__( '%1$s | اعزام اورژانسی زیر %2$s', 'pixva' ),
+	$pixva_days,
 	$pixva_eta
 );
 ?>
@@ -29,7 +32,7 @@ $pixva_hours    = sprintf(
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#123B4A">
+	<meta name="theme-color" content="<?php echo esc_attr( (string) pixva_option( 'pixva_brand_color', '#2563EB' ) ); ?>">
 	<script>document.documentElement.className = document.documentElement.className.replace( /\bno-js\b/, 'js' );</script>
 	<link rel="profile" href="https://gmpg.org/xfn/11">
 	<?php pixva_preload_font(); ?>
@@ -38,6 +41,15 @@ $pixva_hours    = sprintf(
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link" href="#content"><?php esc_html_e( 'پرش به محتوا', 'pixva' ); ?></a>
+
+<?php
+/*
+ * لایه ۳٫۰٫۰: اگر قالب Theme Builder المنتور برای جایگاه header وجود داشته
+ * باشد، همان چاپ می‌شود؛ در غیر این صورت هدر پیش‌فرض سازمانی پوسته رندر
+ * می‌شود (بدون شکستن wp_head/body_class و هوک‌های حیاتی).
+ */
+if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'header' ) ) :
+?>
 
 <?php if ( pixva_option( 'pixva_topbar_enabled', true ) ) : ?>
 	<div class="pixva-topbar">
@@ -58,6 +70,12 @@ $pixva_hours    = sprintf(
 	<div class="pixva-container pixva-header__inner">
 		<a class="pixva-logo-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
 			<?php pixva_the_logo( 'dark' ); ?>
+			<?php
+			// لوگوی موبایل (لایه ۳٫۰٫۰): فقط اگر از سفارشی‌ساز تنظیم شده باشد.
+			if ( function_exists( 'pixva_mobile_logo_html' ) ) {
+				echo pixva_mobile_logo_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			}
+			?>
 		</a>
 
 		<?php pixva_render_mega_menu( 'mega' ); ?>
@@ -67,10 +85,12 @@ $pixva_hours    = sprintf(
 				<?php echo pixva_icon( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<span data-phone-text><?php echo esc_html( pixva_fa_num( $pixva_phone ) ); ?></span>
 			</a>
-			<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-btn--shimmer pixva-header-cta" href="<?php echo esc_url( $pixva_cta_url ); ?>">
-				<?php echo pixva_icon( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<span><?php echo esc_html( $pixva_cta_text ); ?></span>
-			</a>
+			<?php if ( $pixva_cta_on ) : ?>
+				<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-btn--shimmer pixva-header-cta" href="<?php echo esc_url( $pixva_cta_url ); ?>">
+					<?php echo pixva_icon( 'bolt' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<span><?php echo esc_html( $pixva_cta_text ); ?></span>
+				</a>
+			<?php endif; ?>
 			<button type="button" class="pixva-burger" data-pixva-burger aria-expanded="false" aria-controls="pixva-drawer" aria-label="<?php esc_attr_e( 'باز کردن منو', 'pixva' ); ?>">
 				<?php echo pixva_icon( 'menu' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</button>
@@ -105,3 +125,5 @@ $pixva_hours    = sprintf(
 		<a class="pixva-btn pixva-btn--ghost-dark" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></a>
 	</div>
 </div>
+
+<?php endif; /* پایان جایگاه header — لایه ۳٫۰٫۰ */ ?>

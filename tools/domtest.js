@@ -109,8 +109,8 @@ function staticChecks() {
 	check('سرعت: اسکریپت‌ها با defer', (functions.match(/'strategy'  => 'defer'/g) || []).length >= 5);
 
 	const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-	check('style.css: نسخه ۲٫۱٫۰', /Version:\s*2\.1\.0/.test(style));
-	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
+	check('style.css: نسخه ۳٫۰٫۰', /Version:\s*3\.0\.0/.test(style));
+	check('functions.php: PIXVA_VERSION هم‌نسخه با style.css', functions.indexOf("define( 'PIXVA_VERSION', '3.0.0' )") > -1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -644,7 +644,7 @@ function v7StaticChecks() {
 	const toolsJs = read('assets/js/interactive-tools.js');
 
 	/* --- نسخه و بارگذاری ماژول‌ها --- */
-	check('v7: نسخه پوسته ۲٫۱٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 2.1.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
+	check('v7: نسخه پوسته ۳٫۰٫۰ (style.css + PIXVA_VERSION)', styleCss.indexOf('Version: 3.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '3.0.0' )") > -1);
 	check('v7: سه ماژول تازه در functions.php', ['inc/cinematic.php', 'inc/ai-diagnose.php', 'inc/tracker-map.php'].every((f) => funcs.indexOf(f) > -1));
 
 	/* --- رندر مشترک و بارگذاری شرایطی --- */
@@ -1204,7 +1204,7 @@ function v8StaticChecks() {
 	});
 
 	check('v8: home-seed.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/home-seed.php';") > -1);
-	check('v8: پوسته نسخه ۲٫۱٫۰ است', styleCss.indexOf('Version: 2.1.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
+	check('v8: پوسته نسخه ۳٫۰٫۰ است', styleCss.indexOf('Version: 3.0.0') > -1 && funcs.indexOf("define( 'PIXVA_VERSION', '3.0.0' )") > -1);
 
 	/* --- ۲) پیش‌فرض‌های لایه‌های دمو --- */
 	check('v8: نگاشت پنج لایه دمو با گزینه جایگزینی', cinematic.indexOf('function pixva_cinematic_demo_images(') > -1
@@ -1916,10 +1916,10 @@ function v12StaticChecks() {
 	check('v12: توکن ارتفاع هدر ۷۰ پیکسل و اعمال آن', corpCss.indexOf('--px-header-h: 70px') > -1
 		&& corpCss.indexOf('min-height: var(--px-header-h)') > -1);
 	check('v12: کارت JetEngine دقیقاً با بدنه خواسته‌شده', ['border: 1px solid #E2E8F0', 'border-radius: 16px', 'background: #FFFFFF',
-		'box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06)', 'padding: 24px', 'display: flex', 'flex-direction: column',
-		'justify-content: space-between', 'height: 100%', 'transition: all 0.25s ease'].every((d) => corpCss.indexOf(d) > -1)
+		'box-shadow: var(--px-shadow-card)', 'padding: 24px', 'display: flex', 'flex-direction: column',
+		'justify-content: space-between', 'height: 100%', 'transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'].every((d) => corpCss.indexOf(d) > -1)
 		&& corpCss.indexOf('.px-card {') > -1);
-	check('v12: گرید equal-height با repeat(auto-fit, minmax(260px, 1fr))', corpCss.indexOf('repeat(auto-fit, minmax(260px, 1fr))') > -1
+	check('v12: گرید equal-height با repeat(auto-fit, minmax(280px, 1fr))', corpCss.indexOf('repeat(auto-fit, minmax(280px, 1fr))') > -1
 		&& ['.pixva-symptom__grid', '.pixva-trust__grid'].every((g) => corpCss.indexOf(g) > -1));
 	check('v12: ورودی فرم اعزام ۴۸ پیکسل', corpCss.indexOf('--px-input-h: 48px') > -1 && corpCss.indexOf('height: var(--px-input-h)') > -1);
 	check('v12: حداقل هدف لمسی ۴۴ پیکسل', corpCss.indexOf('--px-touch-min: 44px') > -1 && corpCss.indexOf('min-height: var(--px-touch-min)') > -1);
@@ -1938,8 +1938,8 @@ function v12StaticChecks() {
 
 	/* ۲) سیم‌کشی در functions.php */
 	const funcs = read('functions.php');
-	check('v12: CSS سازمانی پس از pixva-2026 با نسخه ۲٫۱٫۰ صف می‌شود', funcs.indexOf("wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );") > -1
-		&& funcs.indexOf("define( 'PIXVA_VERSION', '2.1.0' )") > -1);
+	check('v12: CSS سازمانی پس از pixva-2026 با نسخه قالب صف می‌شود', funcs.indexOf("wp_enqueue_style( 'pixva-seo-cro', PIXVA_URI . '/assets/css/seo-cro.css', array( 'pixva-2026' ), PIXVA_VERSION );") > -1
+		&& funcs.indexOf("define( 'PIXVA_VERSION', '3.0.0' )") > -1);
 	check('v12: لایه سازمانی فقط با کلید روشن صف می‌شود', funcs.indexOf('pixva_corporate_ui_mode()') > -1);
 	check('v12: corporate-ui.php در functions.php بارگذاری می‌شود', funcs.indexOf("require_once PIXVA_DIR . '/inc/corporate-ui.php';") > -1);
 
@@ -1994,7 +1994,7 @@ function v12StaticChecks() {
 	const support = read('inc/elementor-support.php');
 	check('v12: ویرایشگر المنتور هم طراحی سازمانی را می‌بیند', support.indexOf("wp_enqueue_style( 'pixva-seo-cro'") > -1);
 	const styleCss = read('style.css');
-	check('v12: style.css نسخه ۲٫۱٫۰ با توضیح لایه سازمانی', styleCss.indexOf('Version: 2.1.0') > -1 && styleCss.indexOf('Master Prompt v12') > -1);
+	check('v12: style.css نسخه ۳٫۰٫۰ با توضیح لایه سازمانی', styleCss.indexOf('Version: 3.0.0') > -1 && styleCss.indexOf('Master Prompt v12') > -1);
 }
 
 async function v12Checks(window) {
@@ -2097,9 +2097,9 @@ async function v12Checks(window) {
 		&& !!$('.pixva-pricetable__wrap'));
 
 	/* ۶) فوتر و نوار اقدام موبایل */
-	check('v12: فوتر چهارستونه با کپی‌رایت و نسخه ۲٫۱٫۰', $$('.pixva-footer__grid .pixva-footer__col').length === 4
+	check('v12: فوتر چهارستونه با کپی‌رایت و نسخه قالب', $$('.pixva-footer__grid .pixva-footer__col').length === 4
 		&& $('.pixva-copyright').textContent.indexOf('پیکسوا') > -1
-		&& $('.pixva-footer__base').textContent.indexOf('۲٫۱٫۰') > -1);
+		&& $('.pixva-footer__base').textContent.indexOf('۳٫۰٫۰') > -1);
 	check('v12: داک موبایل چهار اقدام با تماس و درخواست تعمیرکار', $$('.pixva-mobile-dock__item').length === 4
 		&& attr($('.pixva-mobile-dock__item'), 'href').indexOf('tel:') === 0
 		&& attr($('.pixva-mobile-dock__item.is-cta'), 'href') === '#hero-booking'
@@ -2110,6 +2110,122 @@ async function v12Checks(window) {
 	check('v12: همه بخش‌های سئو کانتینر متمرکز دارند و گرید هیرو هم کانتینر است', $$('.pixva-seo > .pixva-container').length >= 4
 		&& $('.px-hero__grid').classList.contains('pixva-container'));
 	check('v12: بدون قفل اسکرول یا کتابخانه بیرونی در صفحه', $$('[data-scroll-pin], .pin-spacer, spline-viewer, [data-pixva-cine]').length === 0);
+}
+
+/* ------------------------------------------------------------------ *
+ * لایه ۳٫۰٫۰ (Master Prompt v13) — چارچوب Clean Slate
+ * ------------------------------------------------------------------ */
+function v13StaticChecks() {
+	const read = (rel) => fs.readFileSync(path.join(theme, rel), 'utf8');
+
+	/* ۱) سامانه طراحی احساسی v3 */
+	const css = read('assets/css/seo-cro.css');
+	check('v13: CSS سازمانی زیر ۵۰ کیلوبایت', Buffer.byteLength(css, 'utf8') < 50 * 1024);
+	check('v13: لهجه‌های احساسی کهربایی و ایندیگو در توکن‌ها', css.indexOf('#F59E0B') > -1 && css.indexOf('#6366F1') > -1);
+	check('v13: پانل شیشه‌ای blur(12px) با زمینه rgba', css.indexOf('blur(12px)') > -1 && css.indexOf('rgba(255, 255, 255, 0.85)') > -1 && css.indexOf('.px-glass') > -1);
+	check('v13: سایه‌های لایه‌ای دقیقاً مطابق اسپک', css.indexOf('--px-shadow-card: 0 4px 20px -4px rgba(15, 23, 42, 0.05)') > -1
+		&& css.indexOf('--px-shadow-hover: 0 12px 32px -6px rgba(15, 23, 42, 0.12)') > -1);
+	check('v13: منحنی حرکت واحد cubic-bezier', css.indexOf('cubic-bezier(0.16, 1, 0.3, 1)') > -1 && css.indexOf('--px-ease') > -1);
+	check('v13: گرید لیستینگ gap 24 و align-items stretch', css.indexOf('gap: 24px') > -1 && css.indexOf('align-items: stretch') > -1);
+	check('v13: کارت رزرو پدینگ ۲۸ پیکسل', css.indexOf('padding: 28px') > -1);
+	check('v13: نوار اقدام موبایل z-index بالاتر از ۹۹۹', /z-index:\s*999/.test(css) && /position:\s*fixed/.test(css));
+	check('v13: برچسب ابرو و لوگوی موبایل در CSS', css.indexOf('.px-eyebrow') > -1 && css.indexOf('.pixva-logo__img--mobile') > -1);
+
+	/* ۲) لایه سازگاری JetEngine */
+	check('v13: کلاس‌های سازگار JetEngine (کارت + گرید + واریانت‌ها)', ['.px-jet-card', '.px-listing-grid', '.jet-listing-item',
+		'.px-jet-card--service', '.px-jet-card--symptom', '.px-jet-card--price', '.px-jet-card--testimonial'].every((c) => css.indexOf(c) > -1));
+	const support = read('inc/elementor-support.php');
+	check('v13: کلاس body برای JetEngine فعال با گارد آرایه', support.indexOf('function pixva_jetengine_active(') > -1
+		&& support.indexOf("add_filter( 'body_class', 'pixva_jetengine_body_class' )") > -1
+		&& support.indexOf("$classes[] = 'pixva-jetengine-active';") > -1);
+
+	/* ۳) Elementor Theme Builder */
+	check('v13: ثبت همه جایگاه‌های هسته Theme Builder', support.indexOf('function pixva_register_theme_locations(') > -1
+		&& support.indexOf('register_all_core_location()') > -1
+		&& support.indexOf("add_action( 'elementor/theme/register_locations', 'pixva_register_theme_locations' )") > -1);
+	check('v13: کمکی pixva_elementor_location با بازگشت امن', support.indexOf('function pixva_elementor_location(') > -1
+		&& support.indexOf('elementor_theme_do_location( $location )') > -1
+		&& support.indexOf("did_action( 'elementor/loaded' )") > -1);
+	check('v13: جایگاه header در هدر پوسته گیت شده', read('header.php').indexOf("pixva_elementor_location( 'header' )") > -1);
+	check('v13: جایگاه footer در فوتر پوسته گیت شده', read('footer.php').indexOf("pixva_elementor_location( 'footer' )") > -1);
+	check('v13: جایگاه single/page گیت شده‌اند', read('single.php').indexOf("pixva_elementor_location( 'single' )") > -1
+		&& read('page.php').indexOf("pixva_elementor_location( 'page' )") > -1);
+	check('v13: جایگاه archive در archive.php و index.php گیت شده', read('archive.php').indexOf("pixva_elementor_location( 'archive' )") > -1
+		&& read('index.php').indexOf("pixva_elementor_location( 'archive' )") > -1);
+	check('v13: جایگاه 404 و نتایج جست‌وجو گیت شده‌اند', read('404.php').indexOf("pixva_elementor_location( '404' )") > -1
+		&& read('search.php').indexOf("pixva_elementor_location( 'search-results' )") > -1);
+
+	/* ۴) انتخاب‌گر برند پویا در فرم اعزام */
+	const seoCro = read('inc/seo-cro.php');
+	check('v13: select برند با name=brand خارج از شمار فیلدهای اجباری', seoCro.indexOf('<select name="brand" data-express-brand>') > -1
+		&& (seoCro.match(/name="(phone|details|source|nonce|pixva_hp)"/g) || []).length === 5);
+	check('v13: انتخاب‌گر برند در وارینت کارت پیش‌فرض روشن است', seoCro.indexOf("$show_brand   = 'card' === $variant || ! empty( $settings['brand_selector'] );") > -1);
+	check('v13: برند صریح در REST بر تشخیص متنی اولویت دارد', seoCro.indexOf("$request->get_param( 'brand' )") > -1
+		&& seoCro.indexOf("isset( $brands[ $brand_param ] )") > -1 && seoCro.indexOf('pixva_express_detect_brand( $details )') > -1);
+	check('v13: لیبل انتخاب‌گر برند گزینه‌محور است', seoCro.indexOf("'pixva_express_brand_label'") > -1);
+
+	/* ۵) برندینگ پویا از پیشخوان */
+	const corp = read('inc/corporate-ui.php');
+	check('v13: لوگوی موبایل فقط وقتی تنظیم شده باشد رندر می‌شود', corp.indexOf('function pixva_mobile_logo_html(') > -1
+		&& corp.indexOf("pixva_option( 'pixva_logo_mobile', '' )") > -1 && corp.indexOf('pixva-logo__img--mobile') > -1);
+	check('v13: رنگ برند پویا با خروجی :root درون‌خطی', corp.indexOf('function pixva_corporate_colors_css(') > -1
+		&& corp.indexOf("wp_add_inline_style( 'pixva-seo-cro'") > -1 && corp.indexOf('sanitize_hex_color') > -1
+		&& corp.indexOf("add_action( 'wp_enqueue_scripts', 'pixva_corporate_colors_css', 30 )") > -1);
+	check('v13: در رنگ پیش‌فرض هیچ CSS اضافی چاپ نمی‌شود', corp.indexOf("if ( strtoupper( $brand_default ) === $brand && strtoupper( $hover_default ) === $hover ) {") > -1
+		&& corp.indexOf('function pixva_hex_to_rgb(') > -1);
+	const options = read('inc/theme-options.php');
+	check('v13: بخش سفارشی‌ساز برند با لوگو/رنگ/ساعات/CTA', options.indexOf("'pixva_brand'") > -1
+		&& options.indexOf("'pixva_logo_mobile'") > -1 && options.indexOf("'pixva_brand_color'") > -1
+		&& options.indexOf("'pixva_brand_color_hover'") > -1 && options.indexOf("'pixva_header_cta_enabled'") > -1
+		&& options.indexOf("'pixva_working_hours'") > -1 && options.indexOf('WP_Customize_Color_Control') > -1);
+	const header = read('header.php');
+	check('v13: هدر از کلید CTA و ساعات کاری و لوگوی موبایل پیروی می‌کند', header.indexOf("pixva_option( 'pixva_header_cta_enabled', true )") > -1
+		&& header.indexOf("pixva_option( 'pixva_working_hours'") > -1 && header.indexOf('pixva_mobile_logo_html()') > -1);
+	check('v13: فهرست اعتماد هیرو «بدون هزینه پنهان» دارد', corp.indexOf('بدون هزینه پنهان') > -1);
+	const styleCss = read('style.css');
+	check('v13: style.css لایه ۳٫۰٫۰ را توضیح می‌دهد', styleCss.indexOf('Version: 3.0.0') > -1 && styleCss.indexOf('Master Prompt v13') > -1
+		&& styleCss.indexOf('Clean Slate') > -1);
+	check('v13: هیچ style درون‌خطی در قالب‌های اصلی نمانده', ['front-page.php', '404.php', 'search.php', 'header.php', 'footer.php']
+		.every((f) => read(f).indexOf('style="') === -1));
+}
+
+async function v13Checks(window) {
+	const { document } = window;
+	const $ = (sel, root) => (root || document).querySelector(sel);
+	const $$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+
+	/* انتخاب‌گر برند پویا در کارت هیرو */
+	const heroCard = $('#hero-booking');
+	const brandSel = $('[data-express-brand]', heroCard);
+	check('v13: کارت هیرو انتخاب‌گر برند پویا دارد', !!brandSel && brandSel.tagName === 'SELECT'
+		&& brandSel.getAttribute('name') === 'brand'
+		&& brandSel.querySelectorAll('option').length >= 3
+		&& brandSel.querySelector('option').value === '');
+	check('v13: فرم بخش مستقل بدون انتخاب‌گر برند می‌ماند (پیش‌فرض v11)', !!$('#express-booking')
+		&& ! $('[data-express-brand]', $('#express-booking')));
+
+	/* ارسال دوم با برند صریح */
+	const heroForm = $('[data-express-form]', heroCard);
+	const heroDetails = $('input[name="details"]', heroForm);
+	const heroMsg = $('[data-express-msg]', heroForm);
+	const before = window.__pixvaCalls.express;
+
+	brandSel.value = 'sony';
+	heroDetails.value = '۶۵ اینچ — روی لوگو گیر کرده';
+	heroForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+	await wait(60);
+	check('v13: برند انتخاب‌شده در بدنه درخواست ثبت می‌شود', window.__pixvaCalls.express === before + 1
+		&& window.__pixvaExpressBody.get('brand') === 'sony'
+		&& window.__pixvaExpressBody.get('source') === 'hero'
+		&& heroMsg.classList.contains('is-success'));
+
+	/* ساختار سازمانی v3 بدون رگرسیون */
+	check('v13: هیرو همچنان دوستونی با فهرست اعتماد سه‌گانه', $$('.px-hero__grid > *').length === 2
+		&& $$('.px-hero__checks li').length === 3);
+	check('v13: داک موبایل با CTA درخواست تعمیرکار زنده است', $$('.pixva-mobile-dock__item').length === 4
+		&& $('.pixva-mobile-dock__item.is-cta').getAttribute('href') === '#hero-booking');
+	check('v13: تب‌های قرصی قیمت پس از v3 هم همگام‌اند', $('[data-price-pill="sony"]').classList.contains('is-active')
+		&& $('[data-price-brand]').value === 'sony');
 }
 
 (async function main() {
@@ -2273,6 +2389,7 @@ async function v12Checks(window) {
 
 	// هارنس لایه ۲٫۱٫۰ (پورتال سازمانی: هیروی دوستونی + کارت رزرو + فیلتر قرصی).
 	v12StaticChecks();
+	v13StaticChecks();
 	if (!fs.existsSync(v12Harness)) {
 		failures.push('هارنس tools/fixtures/v12-preview.html پیدا نشد');
 		failed += 1;
@@ -2294,6 +2411,7 @@ async function v12Checks(window) {
 		await wait(240);
 
 		await v12Checks(v12Dom.window);
+		await v13Checks(v12Dom.window);
 
 		check('v12: بدون خطای jsdom در کنسول (' + v12Errors.length + ')', v12Errors.length === 0);
 		if (v12Errors.length) {

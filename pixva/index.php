@@ -12,6 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 ?>
 <main id="content">
+	<?php
+	// لایه ۳٫۰٫۰: جایگاه archive با Theme Builder المنتور قابل بازنویسی است.
+	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'archive' ) ) :
+	?>
 	<?php pixva_page_hero( wp_strip_all_tags( get_the_archive_title() ), wp_strip_all_tags( (string) get_the_archive_description() ) ); ?>
 	<div class="pixva-container pixva-content">
 		<div class="pixva-layout">
@@ -33,6 +37,7 @@ get_header();
 			<?php get_sidebar(); ?>
 		</div>
 	</div>
+	<?php endif; /* پایان جایگاه archive — لایه ۳٫۰٫۰ */ ?>
 </main>
 <?php
 get_footer();

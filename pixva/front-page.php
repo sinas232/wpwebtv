@@ -257,6 +257,7 @@ function pixva_home_hero_corporate() {
 
 	$warranty = function_exists( 'pixva_warranty_days' ) ? pixva_warranty_days() : 180;
 	$trust    = function_exists( 'pixva_hero_trust_items' ) ? pixva_hero_trust_items() : array();
+	$days     = (string) pixva_option( 'pixva_working_hours', __( 'شنبه تا پنجشنبه ۹ تا ۲۰', 'pixva' ) );
 
 	$call_label = (string) pixva_option(
 		'pixva_hero_call_text',
@@ -309,7 +310,15 @@ function pixva_home_hero_corporate() {
 				<p class="px-hero__meta">
 					<span>
 						<?php echo pixva_icon( 'clock' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-						<?php esc_html_e( 'شنبه تا پنجشنبه ۹ تا ۲۰ — پاسخ‌گویی اورژانسی همه‌روزه', 'pixva' ); ?>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %s: ساعات کاری */
+								__( '%s — پاسخ‌گویی اورژانسی همه‌روزه', 'pixva' ),
+								$days
+							)
+						);
+						?>
 					</span>
 					<span>
 						<?php echo pixva_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

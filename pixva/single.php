@@ -13,6 +13,10 @@ get_header();
 ?>
 <main id="content">
 	<?php
+	// لایه ۳٫۰٫۰: جایگاه single با Theme Builder المنتور قابل بازنویسی است.
+	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'single' ) ) :
+	?>
+	<?php
 	while ( have_posts() ) :
 		the_post();
 		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
@@ -57,6 +61,7 @@ get_header();
 		<?php get_sidebar(); ?>
 		</div>
 	<?php endwhile; ?>
+	<?php endif; /* پایان جایگاه single — لایه ۳٫۰٫۰ */ ?>
 </main>
 <?php
 get_footer();

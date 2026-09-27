@@ -25,6 +25,10 @@ if ( is_post_type_archive( 'tv_services' ) ) {
 }
 ?>
 <main id="content">
+	<?php
+	// لایه ۳٫۰٫۰: جایگاه archive با Theme Builder المنتور قابل بازنویسی است.
+	if ( ! function_exists( 'pixva_elementor_location' ) || ! pixva_elementor_location( 'archive' ) ) :
+	?>
 	<?php pixva_page_hero( $archive_title, $archive_desc ); ?>
 	<div class="pixva-container pixva-content">
 		<div class="pixva-layout">
@@ -47,6 +51,7 @@ if ( is_post_type_archive( 'tv_services' ) ) {
 		<?php get_sidebar(); ?>
 		</div>
 	</div>
+	<?php endif; /* پایان جایگاه archive — لایه ۳٫۰٫۰ */ ?>
 </main>
 <?php
 get_footer();
