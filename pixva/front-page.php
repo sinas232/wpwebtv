@@ -57,7 +57,7 @@ function pixva_home_hero() {
 					<?php echo esc_html( pixva_fa_num( $pretty ) ); ?>
 				</a>
 				<div class="px-hero__actions">
-					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'repair' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
 					<a class="pixva-btn px-btn--ghost" href="#tools"><?php esc_html_e( 'استعلام هزینه', 'pixva' ); ?></a>
 				</div>
 				<dl class="px-metrics">
@@ -66,8 +66,8 @@ function pixva_home_hero() {
 						<dd><?php echo esc_html( pixva_fa_num( '180' ) . ' ' . __( 'روز', 'pixva' ) ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'تجربه تعمیر', 'pixva' ); ?></dt>
-						<dd><?php echo esc_html( pixva_fa_num( '12' ) . ' ' . __( 'سال', 'pixva' ) ); ?></dd>
+						<dt><?php esc_html_e( 'برآورد', 'pixva' ); ?></dt>
+						<dd><?php esc_html_e( 'قبل از تعویض قطعه', 'pixva' ); ?></dd>
 					</div>
 					<div>
 						<dt><?php esc_html_e( 'پوشش تهران', 'pixva' ); ?></dt>
@@ -86,27 +86,18 @@ function pixva_home_hero() {
  * @return void
  */
 function pixva_home_problems() {
-	$items = array(
-		array( 'key' => 'powerboard', 'icon' => 'bolt', 'title' => __( 'روشن نمی‌شود', 'pixva' ), 'text' => __( 'اول تغذیه و چشمک پاور. برد پاور را خودتان باز نکنید.', 'pixva' ) ),
-		array( 'key' => 'backlight', 'icon' => 'sun', 'title' => __( 'تصویر ندارد', 'pixva' ), 'text' => __( 'صدا هست و صفحه سیاه است؟ معمولاً بک‌لایت است، نه تعویض پنل.', 'pixva' ) ),
-		array( 'key' => 'no_sound', 'icon' => 'sound', 'title' => __( 'صدا ندارد', 'pixva' ), 'text' => __( 'برد صدا، فلت اسپیکر یا تنظیم پنل. اول همان مسیر تست می‌شود.', 'pixva' ) ),
-		array( 'key' => 'backlight', 'icon' => 'sun', 'title' => __( 'تصویر تاریک است', 'pixva' ), 'text' => __( 'هاله یا تاریکی موضعی را جدا از خط پنل بررسی می‌کنیم.', 'pixva' ) ),
-		array( 'key' => 'panel', 'icon' => 'panel', 'title' => __( 'خطوط روی تصویر', 'pixva' ), 'text' => __( 'اگر شیشه سالم باشد، بندینگ مسیر ارزان‌تر و قابل ضمانت است.', 'pixva' ) ),
-		array( 'key' => 'powerboard', 'icon' => 'bolt', 'title' => __( 'خاموش و روشن می‌شود', 'pixva' ), 'text' => __( 'قطع و وصل تصویر یا دستگاه، از تغذیه و مین‌برد جدا تست می‌شود.', 'pixva' ) ),
-		array( 'key' => 'panel', 'icon' => 'panel', 'title' => __( 'پیکسل سوخته', 'pixva' ), 'text' => __( 'با تستر رنگ مشخص می‌شود پیکسل است یا نور پس‌زمینه.', 'pixva' ) ),
-		array( 'key' => 'mainboard', 'icon' => 'cpu', 'title' => __( 'HDMI یا اینترنت', 'pixva' ), 'text' => __( 'ورودی، وای‌فای و پردازش تصویر قبل از تعویض برد بررسی می‌شود.', 'pixva' ) ),
-	);
+	$items = pixva_finder_items();
 	?>
 	<section class="pixva-section" id="problems">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'علائم رایج', 'pixva' ); ?></span>
 				<h2><?php esc_html_e( 'مشکل تلویزیونت چیه؟', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'مشکل را انتخاب کن تا مستقیم به برآورد همان خرابی بروی. عدد روی سرور حساب می‌شود.', 'pixva' ); ?></p>
+				<p><?php esc_html_e( 'مشکل را انتخاب کن تا سریع‌تر راهنمایی‌ات کنیم.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--4">
 				<?php foreach ( $items as $item ) : ?>
-					<a class="pixva-card px-problem" href="<?php echo esc_url( add_query_arg( 'problem', $item['key'], home_url( '/' ) ) ); ?>#tools">
+					<a class="pixva-card px-problem" href="<?php echo esc_url( pixva_problem_url( $item['key'] ) ); ?>">
 						<span class="px-ico"><?php echo pixva_icon( $item['icon'] ); ?></span>
 						<h3><?php echo esc_html( $item['title'] ); ?></h3>
 						<p><?php echo esc_html( $item['text'] ); ?></p>
@@ -254,7 +245,7 @@ function pixva_home_brands() {
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'برندها', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'از سامسونگ و سونی تا اسنوا و جی‌پلاس', 'pixva' ); ?></h2>
+				<h2><?php esc_html_e( 'تلویزیونت چه برندی است؟', 'pixva' ); ?></h2>
 			</div>
 			<div class="pixva-grid pixva-grid--4">
 				<?php if ( ! empty( $posts ) ) : ?>
@@ -314,22 +305,63 @@ function pixva_home_why() {
  * @return void
  */
 function pixva_home_testimonials() {
+	$items = pixva_testimonials();
 	?>
-	<section class="pixva-section">
+	<section class="pixva-section" id="reviews">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
-				<span class="pixva-badge"><?php esc_html_e( 'از زبان مشتری', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'تعمیر را با نتیجه می‌سنجیم', 'pixva' ); ?></h2>
+				<span class="pixva-badge"><?php esc_html_e( 'نظر مشتری', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'فقط نظر تأییدشده', 'pixva' ); ?></h2>
 			</div>
-			<div class="pixva-grid pixva-grid--3">
-				<?php foreach ( pixva_testimonials() as $item ) : ?>
-					<blockquote class="pixva-card pixva-quote">
-						<div class="pixva-stars" aria-hidden="true">★★★★★</div>
-						<p><?php echo esc_html( $item['quote'] ); ?></p>
-						<footer><strong><?php echo esc_html( $item['name'] ); ?></strong> · <?php echo esc_html( $item['role'] ); ?></footer>
-					</blockquote>
-				<?php endforeach; ?>
+			<?php if ( ! $items ) : ?>
+				<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'نظر تأییدشده‌ای هنوز منتشر نشده. بعد از تعمیر واقعی، همین‌جا می‌آید.', 'pixva' ); ?></p>
+			<?php else : ?>
+				<div class="pixva-grid pixva-grid--3">
+					<?php foreach ( $items as $item ) : ?>
+						<blockquote class="pixva-card pixva-quote">
+							<p><?php echo esc_html( $item['quote'] ); ?></p>
+							<footer><strong><?php echo esc_html( $item['name'] ); ?></strong><?php echo ! empty( $item['device'] ) ? ' · ' . esc_html( $item['device'] ) : ''; ?></footer>
+						</blockquote>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * نمونه‌کار واقعی. اگر عکسی نباشد، کارت ساختگی نشان داده نمی‌شود.
+ *
+ * @return void
+ */
+function pixva_home_portfolio() {
+	$posts = get_posts(
+		array(
+			'post_type'      => 'repair_cases',
+			'posts_per_page' => 3,
+			'no_found_rows'  => true,
+		)
+	);
+	?>
+	<section class="pixva-section pixva-section--alt" id="portfolio">
+		<div class="pixva-container">
+			<div class="pixva-section-head">
+				<span class="pixva-badge"><?php esc_html_e( 'نمونه‌کار', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'تعمیرهایی که واقعاً انجام شده', 'pixva' ); ?></h2>
 			</div>
+			<?php if ( ! $posts ) : ?>
+				<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'نمونه‌کار واقعی هنوز در این بخش منتشر نشده.', 'pixva' ); ?></p>
+			<?php else : ?>
+				<div class="pixva-grid pixva-grid--3">
+					<?php foreach ( $posts as $case ) : ?>
+						<a class="pixva-card" href="<?php echo esc_url( get_permalink( $case ) ); ?>">
+							<h3><?php echo esc_html( get_the_title( $case ) ); ?></h3>
+							<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $case ), 18 ) ); ?></p>
+						</a>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 		</div>
 	</section>
 	<?php
@@ -496,13 +528,18 @@ function pixva_home_tools() {
 			</div>
 			<div class="px-tools__shell" data-px-tools>
 				<div class="px-tools__nav" role="tablist" aria-label="<?php esc_attr_e( 'ابزارها', 'pixva' ); ?>">
-					<button type="button" role="tab" data-tool="calc" class="is-on" aria-selected="true"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="diagnosis" class="is-on" aria-selected="true"><?php esc_html_e( 'تشخیص', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="calc" aria-selected="false"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></button>
 					<button type="button" role="tab" data-tool="rgb" aria-selected="false"><?php esc_html_e( 'تستر پیکسل', 'pixva' ); ?></button>
 					<button type="button" role="tab" data-tool="errors" aria-selected="false"><?php esc_html_e( 'کد خطا', 'pixva' ); ?></button>
 					<button type="button" role="tab" data-tool="track" aria-selected="false"><?php esc_html_e( 'پیگیری', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="warranty" aria-selected="false"><?php esc_html_e( 'گارانتی', 'pixva' ); ?></button>
 					<button type="button" role="tab" data-tool="sim" aria-selected="false"><?php esc_html_e( 'شبیه‌ساز', 'pixva' ); ?></button>
 				</div>
-				<div class="px-tools__pane is-on" data-pane="calc" id="pricing">
+				<div class="px-tools__pane is-on" data-pane="diagnosis">
+					<?php pixva_render_diagnosis(); ?>
+				</div>
+				<div class="px-tools__pane" data-pane="calc" id="pricing" hidden>
 					<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
 				</div>
 				<div class="px-tools__pane" data-pane="rgb" hidden>
@@ -547,6 +584,11 @@ function pixva_home_tools() {
 						<button class="pixva-btn pixva-btn--primary" type="submit"><?php esc_html_e( 'پیگیری', 'pixva' ); ?></button>
 					</form>
 					<p class="px-more"><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'اگر کد ندارید، با کارگاه تماس بگیرید', 'pixva' ); ?></a></p>
+				</div>
+				<div class="px-tools__pane" data-pane="warranty" hidden>
+					<h3><?php esc_html_e( 'گارانتی همین پرونده', 'pixva' ); ?></h3>
+					<p><?php esc_html_e( 'اگر برگه ثبت شده باشد، تاریخ پایان را می‌بینید. در غیر این صورت چیزی ساخته نمی‌شود.', 'pixva' ); ?></p>
+					<?php pixva_render_warranty_form(); ?>
 				</div>
 				<div class="px-tools__pane" data-pane="sim" hidden>
 					<div class="pixva-card pixva-simulator-card" data-tv-simulator>

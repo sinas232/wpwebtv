@@ -16,10 +16,10 @@ $pixva_calc  = pixva_page_url( 'calculator' );
 	<div class="pixva-container px-close__inner">
 		<div>
 			<p class="px-kicker"><?php esc_html_e( 'پیکسوا · علاءالدین', 'pixva' ); ?></p>
-			<h2><?php esc_html_e( 'تلویزیونت هنوز مشکل داره؟ بگذار متخصص بررسی‌اش کند.', 'pixva' ); ?></h2>
+			<h2><?php esc_html_e( 'تلویزیونت هنوز مشکل داره؟ بگذار متخصص‌ها بررسی‌اش کنند.', 'pixva' ); ?></h2>
 		</div>
 		<div class="px-close__actions">
-			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
+			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'repair' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
 			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
 		</div>
 	</div>
@@ -115,7 +115,7 @@ $pixva_calc  = pixva_page_url( 'calculator' );
 		<?php echo pixva_icon( 'phone' ); ?>
 		<span><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></span>
 	</a>
-	<a href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>" class="pixva-mobile-dock__item is-cta">
+	<a href="<?php echo esc_url( pixva_page_url( 'repair' ) ); ?>" class="pixva-mobile-dock__item is-cta">
 		<?php echo pixva_icon( 'bolt' ); ?>
 		<span><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></span>
 	</a>

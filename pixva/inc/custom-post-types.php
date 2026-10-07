@@ -453,12 +453,16 @@ function pixva_render_case_meta_box( $post ) {
  */
 function pixva_order_statuses() {
 	return array(
-		'received'  => esc_html__( 'دریافت دستگاه', 'pixva' ),
-		'diagnosed' => esc_html__( 'عیب‌یابی اولیه', 'pixva' ),
-		'parts'     => esc_html__( 'تامین قطعه', 'pixva' ),
+		'new'       => esc_html__( 'درخواست ثبت شد', 'pixva' ),
+		'received'  => esc_html__( 'دستگاه دریافت شد', 'pixva' ),
+		'diagnosed' => esc_html__( 'عیب‌یابی', 'pixva' ),
+		'waiting'   => esc_html__( 'منتظر تأیید شما', 'pixva' ),
+		'parts'     => esc_html__( 'تأمین قطعه', 'pixva' ),
 		'repairing' => esc_html__( 'در حال تعمیر', 'pixva' ),
-		'testing'   => esc_html__( 'تست نهایی', 'pixva' ),
+		'testing'   => esc_html__( 'کنترل کیفیت', 'pixva' ),
 		'ready'     => esc_html__( 'آماده تحویل', 'pixva' ),
+		'delivered' => esc_html__( 'تحویل شد', 'pixva' ),
+		'cancelled' => esc_html__( 'لغو شد', 'pixva' ),
 	);
 }
 
@@ -708,12 +712,12 @@ if ( ! function_exists( 'pixva_create_order' ) ) {
 				'meta_input'  => array(
 					'_pixva_order_code'     => $code,
 					'_pixva_order_phone'    => pixva_normalize_mobile( $data['phone'] ),
-					'_pixva_order_status'   => 'received',
+						'_pixva_order_status'   => 'new',
 					'_pixva_order_brand'    => sanitize_text_field( $data['brand'] ),
 					'_pixva_order_model'    => sanitize_text_field( $data['model'] ),
 					'_pixva_order_problem'  => sanitize_text_field( $data['problem'] ),
 					'_pixva_order_estimate' => sanitize_text_field( $data['estimate'] ),
-					'_pixva_order_steps'    => wp_json_encode( array( 'received' => time() ) ),
+						'_pixva_order_steps'    => wp_json_encode( array( 'new' => time() ) ),
 				),
 			),
 			true

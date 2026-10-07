@@ -4,6 +4,10 @@
    ========================================================================== */
 
 :root {
+	--px-deep: #071521;
+	--px-success: #00a86b;
+	--px-warning: #f59e0b;
+	--px-error: #ef4444;
 	--px-navy: #0b1c2e;
 	--px-navy-2: #0a2540;
 	--px-accent: #ff5c35;
@@ -31,6 +35,13 @@
 	--radius-md: 12px;
 	--radius-lg: 16px;
 	--header-h: 72px;
+	--space-2: 16px;
+	--space-3: 24px;
+	--space-4: 32px;
+	--space-6: 48px;
+	--space-8: 64px;
+	--motion-ui: 220ms;
+	--ease-out: cubic-bezier(0.33, 1, 0.68, 1);
 	--shadow-sm: var(--px-shadow);
 	--shadow-md: var(--px-shadow);
 	--shadow-lg: var(--px-shadow-lg);
@@ -904,6 +915,77 @@ a:hover {
 	.px-close__inner {
 		flex-direction: column;
 		align-items: stretch;
+	}
+}
+
+.pixva-header.is-compact {
+	background: rgba(255, 255, 255, 0.96);
+}
+
+.pixva-header.is-compact .pixva-header__inner {
+	min-height: 60px;
+}
+
+.px-wizard {
+	display: grid;
+	gap: 1.25rem;
+	max-width: 760px;
+}
+
+.px-wizard__progress {
+	color: var(--px-muted);
+	font-size: 0.85rem;
+}
+
+.px-wizard .pixva-choice-grid button,
+.px-wizard [data-choice] {
+	border: 1px solid var(--px-line);
+	background: #fff;
+	border-radius: 12px;
+	min-height: 48px;
+	padding: 0.7rem 0.9rem;
+	color: var(--px-navy);
+	transition: transform var(--motion-ui) var(--ease-out), border-color var(--motion-ui) var(--ease-out);
+}
+
+.px-wizard [data-choice].is-on {
+	border-color: var(--px-accent);
+	color: var(--px-accent);
+}
+
+.px-wizard__nav,
+.px-split,
+.px-account,
+.px-desk {
+	display: grid;
+	gap: 0.8rem;
+}
+
+.px-split {
+	grid-template-columns: 1fr 1fr;
+}
+
+.px-order-list {
+	display: grid;
+	gap: 0.7rem;
+	margin: 1rem 0;
+	padding: 0;
+	list-style: none;
+}
+
+.px-order-list li,
+.px-desk .pixva-card {
+	display: grid;
+	gap: 0.35rem;
+}
+
+.pixva-notice--success {
+	color: var(--px-success);
+}
+
+@media (max-width: 720px) {
+	.px-split {
+		grid-template-columns: 1fr;
 	}
 }
 

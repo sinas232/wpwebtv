@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.6.0' );
+define( 'PIXVA_VERSION', '1.7.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -38,6 +38,7 @@ require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
 require_once PIXVA_DIR . '/inc/activation.php';
+require_once PIXVA_DIR . '/inc/platform.php';
 
 /*
  * ---------------------------------------------------------------------------
@@ -156,6 +157,17 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 		}
 
 		wp_enqueue_script(
+			'pixva-platform',
+			PIXVA_URI . '/assets/js/platform.js',
+			array( 'pixva-main' ),
+			PIXVA_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
+
+		wp_enqueue_script(
 			'pixva-main',
 			PIXVA_URI . '/assets/js/main.js',
 			array(),
@@ -177,6 +189,8 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 					'tracking'   => wp_create_nonce( 'pixva_tracking_nonce' ),
 					'contact'    => wp_create_nonce( 'pixva_contact_nonce' ),
 				),
+				'repairUrl' => pixva_page_url( 'repair' ),
+				'phone'     => preg_replace( '/\D+/', '', pixva_support_phone() ),
 				'i18n'    => array(
 					'loading'   => esc_html__( 'در حال پردازش…', 'pixva' ),
 					'error'     => esc_html__( 'خطایی رخ داد؛ دوباره تلاش کنید.', 'pixva' ),

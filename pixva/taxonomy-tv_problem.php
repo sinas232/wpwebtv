@@ -17,6 +17,13 @@ $desc       = $pixva_term instanceof WP_Term && $pixva_term->description ? $pixv
 <main id="content">
 	<?php pixva_page_hero( $name, $desc ); ?>
 	<div class="pixva-container pixva-content">
+		<?php
+		$guide = pixva_problem_guidance( $pixva_term instanceof WP_Term ? $pixva_term->slug : '' );
+		?>
+		<div class="pixva-grid pixva-grid--2">
+			<article class="pixva-card"><h2><?php esc_html_e( 'چه چیزی را خودتان ببینید', 'pixva' ); ?></h2><p><?php echo esc_html( $guide['check'] ); ?></p></article>
+			<article class="pixva-card"><h2><?php esc_html_e( 'چه کاری نکنید', 'pixva' ); ?></h2><p><?php echo esc_html( $guide['avoid'] ); ?></p></article>
+		</div>
 		<div class="pixva-cta-box">
 			<div>
 				<h2><?php echo esc_html( sprintf( /* translators: %s: نام خرابی */ __( 'هزینه تعمیر «%s» را برآورد کنید', 'pixva' ), $name ) ); ?></h2>

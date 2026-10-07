@@ -28,6 +28,7 @@ function pixva_home_sections() {
 		'process'       => esc_html__( 'فرآیند کار', 'pixva' ),
 		'why'           => esc_html__( 'چرا پیکسوا', 'pixva' ),
 		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'portfolio'     => esc_html__( 'نمونه‌کار', 'pixva' ),
 		'faq'           => esc_html__( 'سوالات متداول', 'pixva' ),
 		'blog'          => esc_html__( 'مجله', 'pixva' ),
 		'calculator'    => esc_html__( 'برآورد جدا (اگر ابزارها خاموش باشد)', 'pixva' ),
@@ -193,7 +194,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_header_cta_url',
 		array(
-			'default'           => '/contact/',
+			'default'           => '/repair/',
 			'sanitize_callback' => 'esc_url_raw',
 		)
 	);
@@ -517,7 +518,7 @@ function pixva_option( $key, $default = '' ) {
  * @return void
  */
 function pixva_migrate_home_ia() {
-	if ( '1.6.0' === get_option( 'pixva_ia_version' ) ) {
+	if ( '1.7.0' === get_option( 'pixva_ia_version' ) ) {
 		return;
 	}
 
@@ -556,10 +557,10 @@ function pixva_migrate_home_ia() {
 	}
 	$cta_url = (string) get_theme_mod( 'pixva_header_cta_url', '' );
 	if ( '' === $cta_url || in_array( $cta_url, array( '/contact/', '/calculator/' ), true ) ) {
-		set_theme_mod( 'pixva_header_cta_url', '/contact/' );
+		set_theme_mod( 'pixva_header_cta_url', '/repair/' );
 	}
 
-	update_option( 'pixva_ia_version', '1.6.0', false );
+	update_option( 'pixva_ia_version', '1.7.0', false );
 }
 add_action( 'after_setup_theme', 'pixva_migrate_home_ia', 20 );
 

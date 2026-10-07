@@ -296,24 +296,8 @@ function pixva_default_faqs() {
  * @return array<int, array<string, string>>
  */
 function pixva_testimonials() {
-	$items = array(
-		array(
-			'quote' => __( 'خطوط عمودی ۵۵ اینچ سامسونگ را بدون تعویض پنل بستند. عصر همان روز تصویر یکدست شد و برگه گارانتی هم دادند.', 'pixva' ),
-			'name'  => __( 'مهدی ر.', 'pixva' ),
-			'role'  => __( 'تعمیر پنل، تهران', 'pixva' ),
-		),
-		array(
-			'quote' => __( 'چراغ پاور ال‌جی سه بار چشمک می‌زد. برد تغذیه تعمیر شد، نه تعویض کامل. هزینه از برآورد سایت کمتر درآمد.', 'pixva' ),
-			'name'  => __( 'سارا ک.', 'pixva' ),
-			'role'  => __( 'برد پاور، کرج', 'pixva' ),
-		),
-		array(
-			'quote' => __( 'پیگیری آنلاین واقعاً کار می‌کرد. از مرحله تأمین قطعه تا آماده تحویل را با همان کد پیامکی دیدم.', 'pixva' ),
-			'name'  => __( 'حمید ن.', 'pixva' ),
-			'role'  => __( 'تعویض بک‌لایت، تهران', 'pixva' ),
-		),
-	);
-	return apply_filters( 'pixva_testimonials', $items );
+	// نظر واقعی فقط از فیلتر یا محتوای منتشرشده می‌آید. نقل‌قول ساختگی نشان داده نمی‌شود.
+	return apply_filters( 'pixva_testimonials', array() );
 }
 
 /**
@@ -664,8 +648,9 @@ function pixva_fallback_menu() {
 		home_url( '/' )                             => __( 'خانه', 'pixva' ),
 		get_post_type_archive_link( 'tv_services' ) => __( 'خدمات', 'pixva' ),
 		get_post_type_archive_link( 'tv_brands' )   => __( 'برندها', 'pixva' ),
-		home_url( '/#problems' )                    => __( 'مشکلات', 'pixva' ),
-		home_url( '/#tools' )                       => __( 'ابزارها', 'pixva' ),
+		pixva_page_url( 'problems' )                => __( 'مشکلات', 'pixva' ),
+		pixva_page_url( 'diagnosis' )               => __( 'ابزارها', 'pixva' ),
+		get_post_type_archive_link( 'repair_cases' ) => __( 'نمونه‌کارها', 'pixva' ),
 		pixva_blog_url()                            => __( 'مقالات', 'pixva' ),
 	);
 	echo '<nav class="pixva-nav" aria-label="' . esc_attr__( 'منوی اصلی', 'pixva' ) . '"><ul class="pixva-nav__list">';

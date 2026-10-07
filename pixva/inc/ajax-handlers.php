@@ -199,6 +199,13 @@ function pixva_ajax_submit_order() {
 	if ( '' !== $name ) {
 		update_post_meta( (int) $result['id'], '_pixva_order_name', $name );
 	}
+	update_post_meta( (int) $result['id'], '_pixva_order_location', sanitize_key( pixva_get_post_var( 'location' ) ) );
+	update_post_meta( (int) $result['id'], '_pixva_order_time', sanitize_text_field( pixva_get_post_var( 'preferred_time' ) ) );
+	update_post_meta( (int) $result['id'], '_pixva_order_notes', sanitize_textarea_field( pixva_get_post_var( 'notes' ) ) );
+	if ( is_user_logged_in() ) {
+		update_post_meta( (int) $result['id'], '_pixva_order_user', get_current_user_id() );
+		update_user_meta( get_current_user_id(), 'pixva_phone', $phone );
+	}
 
 	pixva_notify_admin(
 		sprintf(
