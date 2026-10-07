@@ -1,0 +1,401 @@
+/* صحنه سه‌بعدی فوتر پیکسوا — تعمیر زنده تلویزیون */
+
+@font-face {
+	font-family: Vazirmatn;
+	src: url("../fonts/vazirmatn-variable.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+.pixva-footer {
+	background: #070b14;
+	color: #cbd5e1;
+	padding-top: 0;
+}
+
+.pixva-stage {
+	position: relative;
+	min-height: clamp(680px, 86vh, 940px);
+	padding-top: 6.54vw;
+	isolation: isolate;
+	overflow: hidden;
+	color: #f8fafc;
+	background: #070b14;
+	font-family: Vazirmatn, Tahoma, sans-serif;
+	font-weight: 400;
+	font-synthesis: none;
+}
+
+.pixva-stage--full {
+	min-height: 100svh;
+}
+
+.pixva-stage__seam {
+	position: absolute;
+	inset-inline: 0;
+	top: 0;
+	height: 2px;
+	z-index: 3;
+	pointer-events: none;
+	background: linear-gradient(90deg, #0284c7, #22d3ee 46%, #f97316);
+}
+
+.pixva-stage__scene {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+}
+
+.pixva-stage__scene canvas {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.pixva-stage a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.pixva-stage a:focus-visible {
+	outline: 2px solid #22d3ee;
+	outline-offset: 4px;
+}
+
+.pixva-stage__info {
+	position: relative;
+	z-index: 1;
+	margin-inline-start: 6.4vw;
+	width: 26vw;
+}
+
+.pixva-stage__tag {
+	display: inline-flex;
+	align-items: center;
+	height: 1.9vw;
+	min-height: 28px;
+	padding: 0.35vw 0.72vw;
+	border-radius: 100px;
+	background: #f7f8fa;
+	color: #080909;
+	font-size: max(13px, 0.86vw);
+	font-weight: 400;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.pixva-stage__headline {
+	display: block;
+	margin: 1.35vw 0 0;
+	color: #f8fafc;
+	font-family: Vazirmatn, Tahoma, sans-serif;
+	font-weight: 900;
+	font-size: clamp(22px, 2.15vw, 40px);
+	line-height: 1.35;
+	letter-spacing: 0;
+}
+
+.pixva-stage__nav {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.82vw;
+	margin-top: 1.35vw;
+	font-size: clamp(15px, 1.05vw, 18px);
+	line-height: 1.45;
+}
+
+.pixva-stage__nav a {
+	transition: color 0.18s ease;
+}
+
+.pixva-stage__nav a:hover {
+	color: #67e8f9;
+}
+
+.pixva-stage__logo {
+	position: absolute;
+	left: 50%;
+	top: 6.54vw;
+	z-index: 1;
+	transform: translateX(-50%);
+	color: #fff;
+}
+
+.pixva-stage .pixva-logo__mark {
+	border-radius: 12px;
+	box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.55);
+}
+
+.pixva-stage__contact {
+	position: absolute;
+	inset-inline-start: 68vw;
+	top: 6.54vw;
+	z-index: 1;
+	width: 26vw;
+}
+
+.pixva-stage__links {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin-top: 1.35vw;
+	gap: 0.15vw;
+}
+
+.pixva-stage__links span {
+	font-family: Vazirmatn, Tahoma, sans-serif;
+	font-weight: 900;
+	font-size: clamp(22px, 2.05vw, 36px);
+	line-height: 1.35;
+	color: #f8fafc;
+	white-space: nowrap;
+}
+
+.pixva-stage__note {
+	max-width: 34ch;
+	margin: 1.05vw 0 0;
+	color: #cbd5e1;
+	font-size: clamp(12px, 0.78vw, 15px);
+	line-height: 1.7;
+}
+
+.pixva-stage__actions {
+	display: flex;
+	align-items: center;
+	gap: 1.35vw;
+	margin-top: 1.45vw;
+}
+
+.pixva-stage__actions a {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.71vw;
+	height: 1.71vw;
+	min-width: 32px;
+	min-height: 32px;
+	color: #f8fafc;
+	transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.pixva-stage__actions a:hover {
+	color: #67e8f9;
+	transform: translateY(-1px);
+}
+
+.pixva-stage__actions .pixva-icon,
+.pixva-stage__actions svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.pixva-stage__phone {
+	display: inline-block;
+	margin-top: 0.95vw;
+	color: #f8fafc;
+	font-size: clamp(14px, 1.05vw, 20px);
+	font-weight: 400;
+	letter-spacing: 0.02em;
+}
+
+.pixva-stage__phone:hover {
+	color: #67e8f9;
+}
+
+.pixva-stage__hint {
+	position: absolute;
+	left: 50%;
+	bottom: 4.6vh;
+	z-index: 1;
+	margin: 0;
+	transform: translateX(-50%);
+	color: rgba(248, 250, 252, 0.62);
+	font-size: max(12px, 0.82vw);
+	line-height: 1.4;
+	white-space: nowrap;
+	pointer-events: none;
+	transition: opacity 0.6s ease;
+}
+
+.pixva-stage__hint.is-hidden {
+	opacity: 0;
+}
+
+.pixva-stage .screen-reader-text {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+}
+
+.pixva-footer__dock {
+	background:
+		radial-gradient(640px 180px at 80% 0%, rgba(6, 182, 212, 0.08), transparent 70%),
+		#070b14;
+	border-top: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.pixva-footer__dock .pixva-footer__grid {
+	padding-top: 2.2rem;
+}
+
+.pixva-footer__dock h2,
+.pixva-footer__dock h3 {
+	color: #f8fafc;
+}
+
+.pixva-footer__dock p,
+.pixva-footer .pixva-muted {
+	color: #94a3b8;
+}
+
+.pixva-footer__dock a {
+	color: #e2e8f0;
+}
+
+.pixva-footer__dock a:hover {
+	color: #67e8f9;
+}
+
+@media (max-width: 700px) {
+	.pixva-stage,
+	.pixva-stage--full {
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+		min-height: 0;
+		padding: 36px 24px 0;
+		background: #070b14;
+	}
+
+	.pixva-stage__logo {
+		position: static;
+		order: 0;
+		align-self: flex-start;
+		width: auto;
+		max-width: 78%;
+		transform: none;
+		margin-bottom: 4px;
+	}
+
+	.pixva-stage__info {
+		order: 1;
+		width: 100%;
+		margin: 0;
+	}
+
+	.pixva-stage__contact {
+		position: static;
+		order: 2;
+		width: 100%;
+		inset: auto;
+	}
+
+	.pixva-stage__tag {
+		height: 30px;
+		padding: 6px 11px;
+		font-size: 14px;
+	}
+
+	.pixva-stage__headline,
+	.pixva-stage__links span {
+		font-size: clamp(22px, 6.3vw, 30px);
+		line-height: 1.4;
+		white-space: normal;
+	}
+
+	.pixva-stage__headline,
+	.pixva-stage__links {
+		margin-top: 16px;
+	}
+
+	.pixva-stage__nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0 24px;
+		margin-top: 16px;
+		font-size: 16px;
+		line-height: 1.4;
+	}
+
+	.pixva-stage__nav a {
+		display: flex;
+		align-items: center;
+		min-height: 44px;
+	}
+
+	.pixva-stage__note {
+		max-width: 36ch;
+		margin: 14px 0 0;
+		font-size: 14px;
+		line-height: 1.7;
+	}
+
+	.pixva-stage__actions {
+		gap: 8px;
+		margin-top: 16px;
+	}
+
+	.pixva-stage__actions a {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		min-height: 44px;
+	}
+
+	.pixva-stage__actions a:first-child {
+		margin-inline-start: -8px;
+	}
+
+	.pixva-stage__actions svg,
+	.pixva-stage__actions .pixva-icon {
+		width: 28px;
+		height: 28px;
+	}
+
+	.pixva-stage__phone {
+		margin-top: 8px;
+		font-size: 18px;
+	}
+
+	.pixva-stage__hint {
+		display: none;
+	}
+
+	.pixva-stage__scene {
+		position: relative;
+		inset: auto;
+		order: 3;
+		z-index: auto;
+		flex: none;
+		align-self: center;
+		width: calc(100% + 48px);
+		aspect-ratio: 4 / 3;
+		margin-top: -8px;
+	}
+
+	.pixva-stage__scene canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pixva-stage__hint,
+	.pixva-stage__nav a,
+	.pixva-stage__actions a {
+		transition: none;
+	}
+}

@@ -9,75 +9,124 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$pixva_phone = pixva_support_phone();
+$pixva_phone      = pixva_support_phone();
+$pixva_calc       = pixva_page_url( 'calculator' );
+$pixva_stage_nav  = array(
+	add_query_arg( 'problem', 'panel', $pixva_calc )      => __( 'پنل و بندینگ', 'pixva' ),
+	add_query_arg( 'problem', 'backlight', $pixva_calc )  => __( 'بک‌لایت', 'pixva' ),
+	add_query_arg( 'problem', 'mainboard', $pixva_calc )  => __( 'برد و پاور', 'pixva' ),
+	pixva_page_url( 'tracking' )                          => __( 'پیگیری دستگاه', 'pixva' ),
+);
+$pixva_stage_full = is_front_page() ? ' pixva-stage--full' : '';
 ?>
-<footer class="pixva-footer">
-	<div class="pixva-container pixva-footer__grid">
-		<section>
+<footer class="pixva-footer" aria-label="<?php esc_attr_e( 'فوتر', 'pixva' ); ?>">
+	<div class="pixva-stage<?php echo esc_attr( $pixva_stage_full ); ?>" data-pixva-stage>
+		<div class="pixva-stage__seam" aria-hidden="true"></div>
+		<div class="pixva-stage__scene" data-pixva-scene aria-hidden="true">
+			<canvas data-pixva-stage-canvas></canvas>
+		</div>
+		<p class="screen-reader-text"><?php esc_html_e( 'صحنه سه‌بعدی تعمیر تلویزیون. با حرکت نشانگر، مردمک تشخیص و نوک بندینگ به همان سو می‌چرخند.', 'pixva' ); ?></p>
+
+		<div class="pixva-stage__info">
+			<span class="pixva-stage__tag"><?php esc_html_e( 'تشخیص زنده', 'pixva' ); ?></span>
+			<p class="pixva-stage__headline"><?php esc_html_e( 'نگاهش با شماست', 'pixva' ); ?><br><?php esc_html_e( 'تعمیرش با ما', 'pixva' ); ?></p>
+			<nav class="pixva-stage__nav" aria-label="<?php esc_attr_e( 'خدمات تعمیر', 'pixva' ); ?>">
+				<?php foreach ( $pixva_stage_nav as $pixva_url => $pixva_label ) : ?>
+					<a href="<?php echo esc_url( $pixva_url ); ?>"><?php echo esc_html( $pixva_label ); ?></a>
+				<?php endforeach; ?>
+			</nav>
+		</div>
+
+		<a class="pixva-stage__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
 			<?php pixva_the_logo( 'light' ); ?>
-			<p><?php echo esc_html( get_bloginfo( 'description' ) ? get_bloginfo( 'description' ) : __( 'مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت و برد.', 'pixva' ) ); ?></p>
-			<div class="pixva-socials">
-				<?php foreach ( pixva_social_links() as $network => $item ) : ?>
-					<a href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $item['label'] ); ?></a>
-				<?php endforeach; ?>
-				<?php if ( ! pixva_social_links() ) : ?>
-					<span class="pixva-muted"><?php esc_html_e( 'لینک شبکه‌ها را از سفارشی‌ساز وارد کنید.', 'pixva' ); ?></span>
-				<?php endif; ?>
+		</a>
+
+		<div class="pixva-stage__contact">
+			<span class="pixva-stage__tag"><?php esc_html_e( 'کارگاه باز است', 'pixva' ); ?></span>
+			<div class="pixva-stage__links">
+				<span><?php esc_html_e( 'بیاوریدش', 'pixva' ); ?></span>
+				<span><?php esc_html_e( 'زنده برمی‌گردد*', 'pixva' ); ?></span>
 			</div>
-		</section>
+			<p class="pixva-stage__note"><?php esc_html_e( '*ضمانت کتبی ۱۸۰ روزه. اول بندینگ، آخر تعویض پنل.', 'pixva' ); ?></p>
+			<div class="pixva-stage__actions">
+				<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>" aria-label="<?php esc_attr_e( 'تماس با کارگاه', 'pixva' ); ?>"><?php echo pixva_icon( 'phone' ); ?></a>
+				<a href="<?php echo esc_url( pixva_whatsapp_url( __( 'سلام، برای تعمیر تلویزیون مشاوره می‌خواهم.', 'pixva' ) ) ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'واتساپ', 'pixva' ); ?>"><?php echo pixva_icon( 'whatsapp' ); ?></a>
+				<a href="<?php echo esc_url( $pixva_calc ); ?>" aria-label="<?php esc_attr_e( 'استعلام قیمت', 'pixva' ); ?>"><?php echo pixva_icon( 'bolt' ); ?></a>
+			</div>
+			<a class="pixva-stage__phone" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $pixva_phone ) ); ?></a>
+		</div>
 
-		<section>
-			<h2><?php esc_html_e( 'دسترسی سریع', 'pixva' ); ?></h2>
-			<?php
-			wp_nav_menu(
-				array(
-					'theme_location' => 'footer',
-					'container'      => false,
-					'menu_class'     => 'menu',
-					'fallback_cb'    => static function () {
-						echo '<ul class="menu">';
-						$links = array(
-							pixva_page_url( 'calculator' ) => __( 'محاسبه هزینه', 'pixva' ),
-							pixva_page_url( 'tracking' )   => __( 'پیگیری تعمیر', 'pixva' ),
-							pixva_page_url( 'error-codes' ) => __( 'کدهای خطا', 'pixva' ),
-							pixva_page_url( 'faq' )        => __( 'سوالات متداول', 'pixva' ),
-							pixva_page_url( 'about' )      => __( 'درباره پیکسوا', 'pixva' ),
-							pixva_page_url( 'contact' )    => __( 'تماس با ما', 'pixva' ),
-						);
-						foreach ( $links as $url => $label ) {
-							echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
-						}
-						echo '</ul>';
-					},
-					'depth'          => 1,
-				)
-			);
-			?>
-		</section>
-
-		<section>
-			<h2><?php esc_html_e( 'خدمات', 'pixva' ); ?></h2>
-			<ul>
-				<?php foreach ( pixva_service_fallbacks() as $service ) : ?>
-					<li><a href="<?php echo esc_url( add_query_arg( 'problem', $service['key'], pixva_page_url( 'calculator' ) ) ); ?>"><?php echo esc_html( $service['title'] ); ?></a></li>
-				<?php endforeach; ?>
-			</ul>
-		</section>
-
-		<section>
-			<h2><?php esc_html_e( 'کارگاه', 'pixva' ); ?></h2>
-			<ul class="pixva-info-list">
-				<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) ) ); ?></span></li>
-				<?php foreach ( pixva_footer_phones() as $phone ) : ?>
-					<li><?php echo pixva_icon( 'phone' ); ?><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $phone ) ); ?></a></li>
-				<?php endforeach; ?>
-			</ul>
-			<div class="pixva-trust-row"><?php pixva_trust_badges(); ?></div>
-		</section>
+		<p class="pixva-stage__hint" data-pixva-stage-hint><?php esc_html_e( 'نشانگر را حرکت دهید؛ مردمک و نوک بندینگ دنبالتان می‌آیند', 'pixva' ); ?></p>
 	</div>
-	<div class="pixva-container pixva-footer__base">
-		<p class="pixva-copyright"><?php echo esc_html( (string) pixva_option( 'pixva_copyright', __( '© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.', 'pixva' ) ) ); ?></p>
-		<p><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?></p>
+
+	<div class="pixva-footer__dock">
+		<div class="pixva-container pixva-footer__grid">
+			<section>
+				<?php pixva_the_logo( 'light' ); ?>
+				<p><?php echo esc_html( get_bloginfo( 'description' ) ? get_bloginfo( 'description' ) : __( 'مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت و برد.', 'pixva' ) ); ?></p>
+				<div class="pixva-socials">
+					<?php foreach ( pixva_social_links() as $network => $item ) : ?>
+						<a href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $item['label'] ); ?></a>
+					<?php endforeach; ?>
+					<?php if ( ! pixva_social_links() ) : ?>
+						<span class="pixva-muted"><?php esc_html_e( 'لینک شبکه‌ها را از سفارشی‌ساز وارد کنید.', 'pixva' ); ?></span>
+					<?php endif; ?>
+				</div>
+			</section>
+
+			<section>
+				<h2><?php esc_html_e( 'دسترسی سریع', 'pixva' ); ?></h2>
+				<?php
+				wp_nav_menu(
+					array(
+						'theme_location' => 'footer',
+						'container'      => false,
+						'menu_class'     => 'menu',
+						'fallback_cb'    => static function () {
+							echo '<ul class="menu">';
+							$links = array(
+								pixva_page_url( 'calculator' ) => __( 'محاسبه هزینه', 'pixva' ),
+								pixva_page_url( 'tracking' )   => __( 'پیگیری تعمیر', 'pixva' ),
+								pixva_page_url( 'error-codes' ) => __( 'کدهای خطا', 'pixva' ),
+								pixva_page_url( 'faq' )        => __( 'سوالات متداول', 'pixva' ),
+								pixva_page_url( 'about' )      => __( 'درباره پیکسوا', 'pixva' ),
+								pixva_page_url( 'contact' )    => __( 'تماس با ما', 'pixva' ),
+							);
+							foreach ( $links as $url => $label ) {
+								echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
+							}
+							echo '</ul>';
+						},
+						'depth'          => 1,
+					)
+				);
+				?>
+			</section>
+
+			<section>
+				<h2><?php esc_html_e( 'خدمات', 'pixva' ); ?></h2>
+				<ul>
+					<?php foreach ( pixva_service_fallbacks() as $service ) : ?>
+						<li><a href="<?php echo esc_url( add_query_arg( 'problem', $service['key'], pixva_page_url( 'calculator' ) ) ); ?>"><?php echo esc_html( $service['title'] ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</section>
+
+			<section>
+				<h2><?php esc_html_e( 'کارگاه', 'pixva' ); ?></h2>
+				<ul class="pixva-info-list">
+					<li><?php echo pixva_icon( 'pin' ); ?><span><?php echo esc_html( (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) ) ); ?></span></li>
+					<?php foreach ( pixva_footer_phones() as $phone ) : ?>
+						<li><?php echo pixva_icon( 'phone' ); ?><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $phone ) ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+				<div class="pixva-trust-row"><?php pixva_trust_badges(); ?></div>
+			</section>
+		</div>
+		<div class="pixva-container pixva-footer__base">
+			<p class="pixva-copyright"><?php echo esc_html( (string) pixva_option( 'pixva_copyright', __( '© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.', 'pixva' ) ) ); ?></p>
+			<p><?php echo esc_html( pixva_fa_num( wp_date( 'Y' ) ) ); ?></p>
+		</div>
 	</div>
 </footer>
 
