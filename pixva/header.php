@@ -10,8 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $pixva_phone = pixva_support_phone();
-$pixva_cta   = (string) pixva_option( 'pixva_header_cta_text', __( 'برآورد هزینه', 'pixva' ) );
-$pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', pixva_page_url( 'calculator' ) );
+$pixva_cta   = (string) pixva_option( 'pixva_header_cta_text', __( 'درخواست تعمیر', 'pixva' ) );
+$pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', pixva_page_url( 'contact' ) );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>

@@ -847,7 +847,18 @@ a:hover {
 
 @media (max-width: 767px) {
 	.pixva-ai-trigger {
-		display: none !important;
+		display: inline-flex !important;
+		width: 46px;
+		height: 46px;
+	}
+
+	.pixva-ai-widget {
+		bottom: 78px;
+		left: 14px;
+	}
+
+	.pixva-mobile-dock__item.is-cta {
+		color: var(--px-accent) !important;
 	}
 
 	.pixva-ai-panel {

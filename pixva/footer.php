@@ -16,11 +16,11 @@ $pixva_calc  = pixva_page_url( 'calculator' );
 	<div class="pixva-container px-close__inner">
 		<div>
 			<p class="px-kicker"><?php esc_html_e( 'پیکسوا · علاءالدین', 'pixva' ); ?></p>
-			<h2><?php esc_html_e( 'هزینه را قبل از باز کردن دستگاه می‌بینید.', 'pixva' ); ?></h2>
+			<h2><?php esc_html_e( 'تلویزیونت هنوز مشکل داره؟ بگذار متخصص بررسی‌اش کند.', 'pixva' ); ?></h2>
 		</div>
 		<div class="px-close__actions">
-			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
-			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( $pixva_calc ); ?>"><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></a>
+			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
+			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
 		</div>
 	</div>
 </div>
@@ -113,20 +113,12 @@ $pixva_calc  = pixva_page_url( 'calculator' );
 <nav class="pixva-mobile-dock" aria-label="<?php esc_attr_e( 'نوار دسترسی سریع موبایل', 'pixva' ); ?>">
 	<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>" class="pixva-mobile-dock__item">
 		<?php echo pixva_icon( 'phone' ); ?>
-		<span><?php esc_html_e( 'تماس', 'pixva' ); ?></span>
+		<span><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></span>
 	</a>
-	<a href="<?php echo esc_url( $pixva_calc ); ?>" class="pixva-mobile-dock__item">
+	<a href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>" class="pixva-mobile-dock__item is-cta">
 		<?php echo pixva_icon( 'bolt' ); ?>
-		<span><?php esc_html_e( 'برآورد', 'pixva' ); ?></span>
+		<span><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></span>
 	</a>
-	<a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" class="pixva-mobile-dock__item">
-		<?php echo pixva_icon( 'search' ); ?>
-		<span><?php esc_html_e( 'پیگیری', 'pixva' ); ?></span>
-	</a>
-	<button type="button" class="pixva-mobile-dock__item" data-ai-toggle aria-expanded="false">
-		<?php echo pixva_icon( 'chat' ); ?>
-		<span><?php esc_html_e( 'تشخیص', 'pixva' ); ?></span>
-	</button>
 </nav>
 
 <?php

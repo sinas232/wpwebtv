@@ -148,18 +148,22 @@ function initTV(root) {
 		roughness: 0.4,
 	}), 0, -H / 2 + 0.02, 0.038);
 
-	const core = new THREE.Group();
-	tv.add(core);
-	addBox(core, W - 0.08, H - 0.1, 0.012, chassisMat, 0, 0, -0.01);
+	const backlight = new THREE.Group();
+	const mainboard = new THREE.Group();
+	const power = new THREE.Group();
+	const ports = new THREE.Group();
+	tv.add(backlight, mainboard, power, ports);
+	addBox(backlight, W - 0.08, H - 0.1, 0.01, chassisMat, 0, 0, -0.01);
 	for (let i = 0; i < 5; i += 1) {
-		addBox(core, W - 0.22, 0.012, 0.008, ledMat, 0, 0.28 - i * 0.14, -0.004);
+		addBox(backlight, W - 0.22, 0.012, 0.008, ledMat, 0, 0.28 - i * 0.14, 0.002);
 	}
-	const board = addBox(core, 0.62, 0.34, 0.012, pcbMat, 0.28, -0.12, -0.02);
-	addBox(core, 0.16, 0.1, 0.016, chipMat, 0.22, -0.08, -0.008);
-	addBox(core, 0.1, 0.07, 0.014, chipMat, 0.4, -0.16, -0.008);
-	addBox(core, 0.22, 0.018, 0.01, metal(0xc6a15a, 0.35, 0.7), 0.46, -0.24, -0.008);
-	addBox(core, 0.28, 0.02, 0.006, flexMat, -0.18, -0.3, -0.006);
-	board.matrixAutoUpdate = true;
+	addBox(mainboard, 0.52, 0.28, 0.014, pcbMat, 0.32, -0.08, -0.02);
+	addBox(mainboard, 0.14, 0.09, 0.016, chipMat, 0.26, -0.04, -0.006);
+	addBox(mainboard, 0.08, 0.06, 0.014, chipMat, 0.42, -0.12, -0.006);
+	addBox(power, 0.34, 0.16, 0.014, metal(0x16324a, 0.5, 0.25), -0.42, -0.16, -0.02);
+	addBox(power, 0.08, 0.05, 0.02, chipMat, -0.4, -0.14, -0.004);
+	addBox(ports, 0.22, 0.018, 0.01, metal(0xc6a15a, 0.35, 0.7), 0.5, -0.28, -0.01);
+	addBox(ports, 0.34, 0.018, 0.006, flexMat, -0.08, -0.32, -0.008);
 
 	const cover = new THREE.Group();
 	tv.add(cover);
@@ -186,14 +190,21 @@ function initTV(root) {
 	let open = reduce ? 0.72 : 0;
 	let target = open;
 	let locked = false;
+	let aimX = 0;
+	let aimY = 0;
+	let parallaxX = 0;
+	let parallaxY = 0;
 	const clock = new THREE.Clock();
 
 	function applyOpen(amount) {
-		front.position.z = amount * 0.34;
-		core.position.z = -amount * 0.08;
-		cover.position.z = -0.02 - amount * 0.62;
-		cover.rotation.x = -amount * 0.42;
-		cover.rotation.y = amount * 0.18;
+		front.position.z = amount * 0.46;
+		backlight.position.z = amount * 0.1;
+		mainboard.position.z = -amount * 0.22;
+		power.position.z = -amount * 0.38;
+		ports.position.z = -amount * 0.52;
+		cover.position.z = -0.02 - amount * 0.72;
+		cover.rotation.x = -amount * 0.32;
+		cover.rotation.y = amount * 0.12;
 		led.material.emissiveIntensity = 0.35 + amount * 1.1;
 	}
 
@@ -209,6 +220,14 @@ function initTV(root) {
 		target = value;
 	}
 
+	root.addEventListener('pointermove', function (event) {
+		const box = root.getBoundingClientRect();
+		if (!box.width || !box.height) {
+			return;
+		}
+		aimX = ((event.clientX - box.left) / box.width - 0.5) * 0.16;
+		aimY = ((event.clientY - box.top) / box.height - 0.5) * 0.1;
+	});
 	root.addEventListener('pointerenter', function () {
 		if (!locked) {
 			setTarget(1);
@@ -254,11 +273,17 @@ function initTV(root) {
 			return;
 		}
 		const t = clock.getElapsedTime();
-		open += (target - open) * 0.07;
+		open += (target - open) * 0.055;
 		applyOpen(open);
-		const sway = Math.sin(t * 0.35) * 0.12;
-		tv.rotation.y = 0.42 + t * 0.11 + sway * (1 - open) + open * 0.2;
-		tv.position.y = Math.sin(t * 0.6) * 0.012;
+		parallaxX += (aimX - parallaxX) * 0.06;
+		parallaxY += (aimY - parallaxY) * 0.06;
+		const rect = root.getBoundingClientRect();
+		const scroll = Math.min(1, Math.max(0, 1 - rect.top / window.innerHeight));
+		tv.rotation.y = 0.55 + Math.sin(t * 0.28) * 0.05 + parallaxX;
+		tv.rotation.x = parallaxY * 0.55;
+		tv.position.y = Math.sin(t * 0.55) * 0.018;
+		camera.position.z = 2.85 - scroll * 0.22;
+		camera.lookAt(look);
 		renderer.render(scene, camera);
 	});
 }

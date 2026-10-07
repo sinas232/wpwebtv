@@ -32,8 +32,8 @@ get_footer();
  * @return void
  */
 function pixva_home_hero() {
-	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل', 'pixva' ) );
-	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.', 'pixva' ) );
+	$title = (string) pixva_option( 'pixva_hero_title', __( 'تلویزیونت خراب شده؟ تخصصی تعمیرش می‌کنیم.', 'pixva' ) );
+	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'تشخیص دقیق، تعمیر تخصصی و گارانتی کتبی برای انواع تلویزیون. هزینه نهایی بعد از بررسی دستگاه نوشته می‌شود.', 'pixva' ) );
 	$phone = pixva_support_phone();
 	$raw   = preg_replace( '/\D+/', '', $phone );
 	$pretty = $phone;
@@ -50,15 +50,15 @@ function pixva_home_hero() {
 			</div>
 			<div class="px-hero__copy">
 				<p class="px-kicker"><?php esc_html_e( 'مرکز تخصصی پیکسوا · علاءالدین', 'pixva' ); ?></p>
-				<h1><?php echo esc_html( $title ); ?></h1>
+				<h1><?php echo wp_kses( str_replace( '؟ ', '؟<br>', $title ), array( 'br' => array() ) ); ?></h1>
 				<p class="px-lead"><?php echo esc_html( $lead ); ?></p>
 				<a class="px-phone" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>">
 					<small><?php esc_html_e( 'تماس مستقیم', 'pixva' ); ?></small>
 					<?php echo esc_html( pixva_fa_num( $pretty ) ); ?>
 				</a>
 				<div class="px-hero__actions">
-					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
-					<a class="pixva-btn px-btn--ghost" href="#tools"><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'contact' ) ); ?>"><?php esc_html_e( 'درخواست تعمیر', 'pixva' ); ?></a>
+					<a class="pixva-btn px-btn--ghost" href="#tools"><?php esc_html_e( 'استعلام هزینه', 'pixva' ); ?></a>
 				</div>
 				<dl class="px-metrics">
 					<div>
@@ -87,38 +87,22 @@ function pixva_home_hero() {
  */
 function pixva_home_problems() {
 	$items = array(
-		array(
-			'key'   => 'no_sound',
-			'icon'  => 'sound',
-			'title' => __( 'تصویر هست، صدا نیست', 'pixva' ),
-			'text'  => __( 'برد صدا، فلت اسپیکر یا تنظیم پنل. قبل از تعویض برد، همان مسیر تست می‌شود.', 'pixva' ),
-		),
-		array(
-			'key'   => 'backlight',
-			'icon'  => 'sun',
-			'title' => __( 'صدا هست، تصویر سیاه است', 'pixva' ),
-			'text'  => __( 'شایع‌ترین نشانه بک‌لایت. تعویض پنل اولین پیشنهاد نیست.', 'pixva' ),
-		),
-		array(
-			'key'   => 'panel',
-			'icon'  => 'panel',
-			'title' => __( 'خط عمودی یا افقی', 'pixva' ),
-			'text'  => __( 'اگر شیشه سالم باشد، بندینگ COF مسیر ارزان‌تر و قابل ضمانت است.', 'pixva' ),
-		),
-		array(
-			'key'   => 'powerboard',
-			'icon'  => 'bolt',
-			'title' => __( 'چراغ پاور چشمک می‌زند', 'pixva' ),
-			'text'  => __( 'تعداد چشمک را بشمارید. تغذیه ولتاژ خطرناک دارد؛ بازش نکنید.', 'pixva' ),
-		),
+		array( 'key' => 'powerboard', 'icon' => 'bolt', 'title' => __( 'روشن نمی‌شود', 'pixva' ), 'text' => __( 'اول تغذیه و چشمک پاور. برد پاور را خودتان باز نکنید.', 'pixva' ) ),
+		array( 'key' => 'backlight', 'icon' => 'sun', 'title' => __( 'تصویر ندارد', 'pixva' ), 'text' => __( 'صدا هست و صفحه سیاه است؟ معمولاً بک‌لایت است، نه تعویض پنل.', 'pixva' ) ),
+		array( 'key' => 'no_sound', 'icon' => 'sound', 'title' => __( 'صدا ندارد', 'pixva' ), 'text' => __( 'برد صدا، فلت اسپیکر یا تنظیم پنل. اول همان مسیر تست می‌شود.', 'pixva' ) ),
+		array( 'key' => 'backlight', 'icon' => 'sun', 'title' => __( 'تصویر تاریک است', 'pixva' ), 'text' => __( 'هاله یا تاریکی موضعی را جدا از خط پنل بررسی می‌کنیم.', 'pixva' ) ),
+		array( 'key' => 'panel', 'icon' => 'panel', 'title' => __( 'خطوط روی تصویر', 'pixva' ), 'text' => __( 'اگر شیشه سالم باشد، بندینگ مسیر ارزان‌تر و قابل ضمانت است.', 'pixva' ) ),
+		array( 'key' => 'powerboard', 'icon' => 'bolt', 'title' => __( 'خاموش و روشن می‌شود', 'pixva' ), 'text' => __( 'قطع و وصل تصویر یا دستگاه، از تغذیه و مین‌برد جدا تست می‌شود.', 'pixva' ) ),
+		array( 'key' => 'panel', 'icon' => 'panel', 'title' => __( 'پیکسل سوخته', 'pixva' ), 'text' => __( 'با تستر رنگ مشخص می‌شود پیکسل است یا نور پس‌زمینه.', 'pixva' ) ),
+		array( 'key' => 'mainboard', 'icon' => 'cpu', 'title' => __( 'HDMI یا اینترنت', 'pixva' ), 'text' => __( 'ورودی، وای‌فای و پردازش تصویر قبل از تعویض برد بررسی می‌شود.', 'pixva' ) ),
 	);
 	?>
 	<section class="pixva-section" id="problems">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'علائم رایج', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'علامت را بگویید، مسیر تعمیر مشخص است', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'هر کارت مستقیم به برآورد همان خرابی می‌رود. عدد روی سرور حساب می‌شود.', 'pixva' ); ?></p>
+				<h2><?php esc_html_e( 'مشکل تلویزیونت چیه؟', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'مشکل را انتخاب کن تا مستقیم به برآورد همان خرابی بروی. عدد روی سرور حساب می‌شود.', 'pixva' ); ?></p>
 			</div>
 			<div class="pixva-grid pixva-grid--4">
 				<?php foreach ( $items as $item ) : ?>
@@ -287,6 +271,37 @@ function pixva_home_brands() {
 						</a>
 					<?php endforeach; ?>
 				<?php endif; ?>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * چرا پیکسوا. فقط ادعاهای قابل دفاع، بدون آمار ساختگی.
+ *
+ * @return void
+ */
+function pixva_home_why() {
+	$points = array(
+		array( __( 'هزینه قبل از تعویض', 'pixva' ), __( 'بازه قیمت روی سرور حساب می‌شود. قطعه بدون تأیید شما عوض نمی‌شود.', 'pixva' ) ),
+		array( __( 'گارانتی کتبی ۱۸۰ روز', 'pixva' ), __( 'برای برد و بک‌لایت برگه کتبی می‌دهیم، نه یک جمله در گفتگو.', 'pixva' ) ),
+		array( __( 'کارگاه در علاءالدین', 'pixva' ), __( 'آدرس، تلفن و پیک تهران مشخص است. تعمیر گمنام نیست.', 'pixva' ) ),
+	);
+	?>
+	<section class="pixva-section" id="why">
+		<div class="pixva-container">
+			<div class="pixva-section-head">
+				<span class="pixva-badge"><?php esc_html_e( 'اعتماد', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'اینجا جای حدس نیست', 'pixva' ); ?></h2>
+			</div>
+			<div class="pixva-grid pixva-grid--3">
+				<?php foreach ( $points as $point ) : ?>
+					<article class="pixva-card">
+						<h3><?php echo esc_html( $point[0] ); ?></h3>
+						<p><?php echo esc_html( $point[1] ); ?></p>
+					</article>
+				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>

@@ -663,10 +663,10 @@ function pixva_fallback_menu() {
 	$items = array(
 		home_url( '/' )                             => __( 'خانه', 'pixva' ),
 		get_post_type_archive_link( 'tv_services' ) => __( 'خدمات', 'pixva' ),
-		pixva_page_url( 'calculator' )              => __( 'برآورد هزینه', 'pixva' ),
-		pixva_page_url( 'tracking' )                => __( 'پیگیری', 'pixva' ),
-		pixva_blog_url()                            => __( 'مجله', 'pixva' ),
-		pixva_page_url( 'contact' )                 => __( 'تماس', 'pixva' ),
+		get_post_type_archive_link( 'tv_brands' )   => __( 'برندها', 'pixva' ),
+		home_url( '/#problems' )                    => __( 'مشکلات', 'pixva' ),
+		home_url( '/#tools' )                       => __( 'ابزارها', 'pixva' ),
+		pixva_blog_url()                            => __( 'مقالات', 'pixva' ),
 	);
 	echo '<nav class="pixva-nav" aria-label="' . esc_attr__( 'منوی اصلی', 'pixva' ) . '"><ul class="pixva-nav__list">';
 	foreach ( $items as $url => $label ) {

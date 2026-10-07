@@ -19,15 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	return array(
-		'hero'          => esc_html__( 'هیرو اعتماد', 'pixva' ),
-		'problems'      => esc_html__( 'علائم رایج', 'pixva' ),
+		'hero'          => esc_html__( 'هیرو', 'pixva' ),
+		'problems'      => esc_html__( 'یابنده مشکل', 'pixva' ),
+		'brands'        => esc_html__( 'برندها', 'pixva' ),
 		'services'      => esc_html__( 'خدمات', 'pixva' ),
+		'tools'         => esc_html__( 'تشخیص، برآورد، تستر، پیگیری', 'pixva' ),
 		'before_after'  => esc_html__( 'نمونه قبل و بعد', 'pixva' ),
 		'process'       => esc_html__( 'فرآیند کار', 'pixva' ),
+		'why'           => esc_html__( 'چرا پیکسوا', 'pixva' ),
 		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
-		'tools'         => esc_html__( 'ابزارها: برآورد، تستر، کد خطا، پیگیری', 'pixva' ),
 		'faq'           => esc_html__( 'سوالات متداول', 'pixva' ),
-		'brands'        => esc_html__( 'برندها', 'pixva' ),
 		'blog'          => esc_html__( 'مجله', 'pixva' ),
 		'calculator'    => esc_html__( 'برآورد جدا (اگر ابزارها خاموش باشد)', 'pixva' ),
 		'errors'        => esc_html__( 'کد خطا جدا', 'pixva' ),
@@ -175,7 +176,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_header_cta_text',
 		array(
-			'default'           => 'برآورد هزینه',
+			'default'           => 'درخواست تعمیر',
 			'sanitize_callback' => 'sanitize_text_field',
 			'transport'         => 'postMessage',
 		)
@@ -192,7 +193,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_header_cta_url',
 		array(
-			'default'           => '/calculator/',
+			'default'           => '/contact/',
 			'sanitize_callback' => 'esc_url_raw',
 		)
 	);
@@ -456,7 +457,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_title',
 		array(
-			'default'           => 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل',
+			'default'           => 'تلویزیونت خراب شده؟ تخصصی تعمیرش می‌کنیم.',
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -516,7 +517,7 @@ function pixva_option( $key, $default = '' ) {
  * @return void
  */
 function pixva_migrate_home_ia() {
-	if ( '1.5.0' === get_option( 'pixva_ia_version' ) ) {
+	if ( '1.6.0' === get_option( 'pixva_ia_version' ) ) {
 		return;
 	}
 
@@ -530,10 +531,11 @@ function pixva_migrate_home_ia() {
 	$old_titles = array(
 		'',
 		'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی',
+		'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل',
 	);
 	$title = (string) get_theme_mod( 'pixva_hero_title', '' );
 	if ( in_array( $title, $old_titles, true ) ) {
-		set_theme_mod( 'pixva_hero_title', 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل' );
+		set_theme_mod( 'pixva_hero_title', 'تلویزیونت خراب شده؟ تخصصی تعمیرش می‌کنیم.' );
 	}
 
 	$old_leads = array(
@@ -541,22 +543,23 @@ function pixva_migrate_home_ia() {
 		'مرکز تخصصی پیکسوا با تجهیز کارگاهی پیشرفته، تعمیر پنل، بک‌لایت و بردهای OLED، QLED و LED را با قطعات فابریک و ضمانت کتبی ۶ ماهه انجام می‌دهد.',
 		'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.',
 		'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.',
+		'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.',
 	);
 	$lead = (string) get_theme_mod( 'pixva_hero_subtitle', '' );
 	if ( in_array( $lead, $old_leads, true ) ) {
-		set_theme_mod( 'pixva_hero_subtitle', 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.' );
+		set_theme_mod( 'pixva_hero_subtitle', 'تشخیص دقیق، تعمیر تخصصی و گارانتی کتبی برای انواع تلویزیون. هزینه نهایی بعد از بررسی دستگاه نوشته می‌شود.' );
 	}
 
 	$cta = (string) get_theme_mod( 'pixva_header_cta_text', '' );
-	if ( '' === $cta || 'درخواست مشاوره رایگان' === $cta ) {
-		set_theme_mod( 'pixva_header_cta_text', 'برآورد هزینه' );
+	if ( '' === $cta || in_array( $cta, array( 'درخواست مشاوره رایگان', 'برآورد هزینه' ), true ) ) {
+		set_theme_mod( 'pixva_header_cta_text', 'درخواست تعمیر' );
 	}
 	$cta_url = (string) get_theme_mod( 'pixva_header_cta_url', '' );
-	if ( '' === $cta_url || '/contact/' === $cta_url ) {
-		set_theme_mod( 'pixva_header_cta_url', '/calculator/' );
+	if ( '' === $cta_url || in_array( $cta_url, array( '/contact/', '/calculator/' ), true ) ) {
+		set_theme_mod( 'pixva_header_cta_url', '/contact/' );
 	}
 
-	update_option( 'pixva_ia_version', '1.5.0', false );
+	update_option( 'pixva_ia_version', '1.6.0', false );
 }
 add_action( 'after_setup_theme', 'pixva_migrate_home_ia', 20 );
 
