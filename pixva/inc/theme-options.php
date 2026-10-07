@@ -19,30 +19,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	return array(
-		'hero'          => esc_html__( 'هیرو (کارگاه و وعده تعمیر)', 'pixva' ),
-		'services'      => esc_html__( 'خدمات تخصصی کارگاه', 'pixva' ),
-		'process'       => esc_html__( 'مسیر پذیرش تا تحویل', 'pixva' ),
+		'hero'          => esc_html__( 'هیرو اعتماد', 'pixva' ),
+		'problems'      => esc_html__( 'علائم رایج', 'pixva' ),
+		'services'      => esc_html__( 'خدمات', 'pixva' ),
 		'before_after'  => esc_html__( 'نمونه قبل و بعد', 'pixva' ),
-		'calculator'    => esc_html__( 'برآورد هزینه', 'pixva' ),
-		'brands'        => esc_html__( 'برندها', 'pixva' ),
-		'errors'        => esc_html__( 'کدهای خطا و چشمک پاور', 'pixva' ),
+		'process'       => esc_html__( 'فرآیند کار', 'pixva' ),
 		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'tools'         => esc_html__( 'ابزارها: برآورد، تستر، کد خطا، پیگیری', 'pixva' ),
 		'faq'           => esc_html__( 'سوالات متداول', 'pixva' ),
-		'blog'          => esc_html__( 'مجله تخصصی', 'pixva' ),
-		'tv_simulator'  => esc_html__( 'شبیه‌ساز لمسی (ابزار جانبی)', 'pixva' ),
-		'screen_tester' => esc_html__( 'تستر پیکسل (ابزار جانبی)', 'pixva' ),
-		'dispatch_hub'  => esc_html__( 'هاب اعزام (ابزار جانبی)', 'pixva' ),
+		'brands'        => esc_html__( 'برندها', 'pixva' ),
+		'blog'          => esc_html__( 'مجله', 'pixva' ),
+		'calculator'    => esc_html__( 'برآورد جدا (اگر ابزارها خاموش باشد)', 'pixva' ),
+		'errors'        => esc_html__( 'کد خطا جدا', 'pixva' ),
+		'tv_simulator'  => esc_html__( 'شبیه‌ساز جدا', 'pixva' ),
+		'screen_tester' => esc_html__( 'تستر جدا', 'pixva' ),
+		'dispatch_hub'  => esc_html__( 'هاب اعزام جدا', 'pixva' ),
 	);
 }
 
 /**
- * ابزارهای جانبی در صفحه اصلی پیش‌فرض خاموش‌اند تا روایت کارگاه قطع نشود.
+ * ابزارهای تکراری پیش‌فرض خاموش‌اند؛ نسخه تمیزشان داخل سکشن tools است.
  *
  * @param string $key کلید سکشن.
  * @return bool
  */
 function pixva_section_is_default_on( $key ) {
-	return ! in_array( $key, array( 'tv_simulator', 'screen_tester', 'dispatch_hub' ), true );
+	return ! in_array( $key, array( 'calculator', 'errors', 'tv_simulator', 'screen_tester', 'dispatch_hub' ), true );
 }
 
 /**
@@ -445,7 +447,7 @@ function pixva_customize_register( $wp_customize ) {
 		'pixva_sections_order',
 		array(
 			'label'       => esc_html__( 'ترتیب سکشن‌ها (با ویرگول جدا کنید)', 'pixva' ),
-			'description' => esc_html__( 'کلیدهای مجاز: hero, services, process, before_after, calculator, brands, errors, testimonials, faq, blog, tv_simulator, screen_tester, dispatch_hub', 'pixva' ),
+			'description' => esc_html__( 'کلیدهای مجاز: hero, problems, services, before_after, process, testimonials, tools, faq, brands, blog', 'pixva' ),
 			'section'     => 'pixva_homepage',
 			'type'        => 'text',
 		)
@@ -470,7 +472,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_subtitle',
 		array(
-			'default'           => 'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.',
+			'default'           => 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.',
 			'sanitize_callback' => 'sanitize_textarea_field',
 		)
 	);
@@ -514,14 +516,16 @@ function pixva_option( $key, $default = '' ) {
  * @return void
  */
 function pixva_migrate_home_ia() {
-	if ( '1.4.0' === get_option( 'pixva_ia_version' ) ) {
+	if ( '1.5.0' === get_option( 'pixva_ia_version' ) ) {
 		return;
 	}
 
 	set_theme_mod( 'pixva_sections_order', pixva_default_section_order() );
-	foreach ( array( 'tv_simulator', 'screen_tester', 'dispatch_hub' ) as $key ) {
+	foreach ( array( 'calculator', 'errors', 'tv_simulator', 'screen_tester', 'dispatch_hub' ) as $key ) {
 		set_theme_mod( 'pixva_section_' . $key, false );
 	}
+	set_theme_mod( 'pixva_section_tools', true );
+	set_theme_mod( 'pixva_section_problems', true );
 
 	$old_titles = array(
 		'',
@@ -536,10 +540,11 @@ function pixva_migrate_home_ia() {
 		'',
 		'مرکز تخصصی پیکسوا با تجهیز کارگاهی پیشرفته، تعمیر پنل، بک‌لایت و بردهای OLED، QLED و LED را با قطعات فابریک و ضمانت کتبی ۶ ماهه انجام می‌دهد.',
 		'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.',
+		'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.',
 	);
 	$lead = (string) get_theme_mod( 'pixva_hero_subtitle', '' );
 	if ( in_array( $lead, $old_leads, true ) ) {
-		set_theme_mod( 'pixva_hero_subtitle', 'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.' );
+		set_theme_mod( 'pixva_hero_subtitle', 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.' );
 	}
 
 	$cta = (string) get_theme_mod( 'pixva_header_cta_text', '' );
@@ -551,7 +556,7 @@ function pixva_migrate_home_ia() {
 		set_theme_mod( 'pixva_header_cta_url', '/calculator/' );
 	}
 
-	update_option( 'pixva_ia_version', '1.4.0', false );
+	update_option( 'pixva_ia_version', '1.5.0', false );
 }
 add_action( 'after_setup_theme', 'pixva_migrate_home_ia', 20 );
 

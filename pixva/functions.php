@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.4.0' );
+define( 'PIXVA_VERSION', '1.5.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -134,8 +134,18 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 
 		if ( is_front_page() ) {
 			wp_enqueue_script(
-				'pixva-film',
-				PIXVA_URI . '/assets/js/film.js',
+				'pixva-tv',
+				PIXVA_URI . '/assets/js/tv-scene.js',
+				array(),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
+			wp_enqueue_script(
+				'pixva-tools-ui',
+				PIXVA_URI . '/assets/js/tools-ui.js',
 				array(),
 				PIXVA_VERSION,
 				array(

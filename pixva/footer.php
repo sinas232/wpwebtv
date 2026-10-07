@@ -15,17 +15,30 @@ $pixva_calc  = pixva_page_url( 'calculator' );
 <div class="px-close">
 	<div class="pixva-container px-close__inner">
 		<div>
-			<p class="px-kicker"><?php esc_html_e( 'کارگاه علاءالدین', 'pixva' ); ?></p>
-			<h2><?php esc_html_e( 'دستگاه را بیاورید. اول بندینگ، آخر تعویض پنل.', 'pixva' ); ?></h2>
+			<p class="px-kicker"><?php esc_html_e( 'پیکسوا · علاءالدین', 'pixva' ); ?></p>
+			<h2><?php esc_html_e( 'هزینه را قبل از باز کردن دستگاه می‌بینید.', 'pixva' ); ?></h2>
 		</div>
 		<div class="px-close__actions">
-			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></a>
-			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( $pixva_calc ); ?>"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></a>
+			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
+			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( $pixva_calc ); ?>"><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></a>
 		</div>
 	</div>
 </div>
 
 <footer class="pixva-footer" aria-label="<?php esc_attr_e( 'فوتر', 'pixva' ); ?>">
+	<div class="pixva-container px-map">
+		<iframe
+			title="<?php esc_attr_e( 'نقشه کارگاه پیکسوا در پاساژ علاءالدین', 'pixva' ); ?>"
+			loading="lazy"
+			referrerpolicy="no-referrer-when-downgrade"
+			src="https://www.openstreetmap.org/export/embed.html?bbox=51.412%2C35.690%2C51.430%2C35.700&amp;layer=mapnik&amp;marker=35.6948%2C51.4212"
+		></iframe>
+		<div class="px-map__card">
+			<p class="px-kicker"><?php esc_html_e( 'مراجعه حضوری', 'pixva' ); ?></p>
+			<p><?php echo esc_html( (string) pixva_option( 'pixva_workshop_address', __( 'تهران، خیابان جمهوری، خیابان ناصرخسرو، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲', 'pixva' ) ) ); ?></p>
+			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( 'پاساژ علاءالدین تهران' ) ); ?>"><?php esc_html_e( 'مسیر تا کارگاه', 'pixva' ); ?></a>
+		</div>
+	</div>
 	<div class="pixva-footer__dock">
 		<div class="pixva-container pixva-footer__grid">
 			<section>

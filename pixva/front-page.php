@@ -32,67 +32,103 @@ get_footer();
  * @return void
  */
 function pixva_home_hero() {
-	$title  = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل', 'pixva' ) );
-	$lead   = (string) pixva_option( 'pixva_hero_subtitle', __( 'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.', 'pixva' ) );
-	$phone  = pixva_support_phone();
-	$base   = trailingslashit( PIXVA_URI ) . 'assets/images/';
-	$frames = array(
-		array(
-			'src' => $base . 'bench-1.jpg',
-			'cap' => __( 'باز کردن قاب پشتی', 'pixva' ),
-		),
-		array(
-			'src' => $base . 'bench-2.jpg',
-			'cap' => __( 'بک‌لایت و بندینگ فلت', 'pixva' ),
-		),
-		array(
-			'src' => $base . 'bench-3.jpg',
-			'cap' => __( 'تست تصویر قبل از تحویل', 'pixva' ),
-		),
-	);
+	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل', 'pixva' ) );
+	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.', 'pixva' ) );
+	$phone = pixva_support_phone();
+	$raw   = preg_replace( '/\D+/', '', $phone );
+	$pretty = $phone;
+	if ( is_string( $raw ) && 11 === strlen( $raw ) && 0 === strpos( $raw, '021' ) ) {
+		$pretty = substr( $raw, 0, 3 ) . ' ' . substr( $raw, 3, 4 ) . ' ' . substr( $raw, 7 );
+	}
 	?>
 	<section class="px-hero" id="hero">
 		<div class="pixva-container px-hero__grid">
+			<div class="px-stage" data-pixva-tv-stage>
+				<div class="px-poster" aria-hidden="true"><div class="px-poster__set"></div></div>
+				<canvas data-pixva-tv aria-label="<?php esc_attr_e( 'تلویزیون سه‌بعدی. با اشاره، پنل جلو باز می‌شود و برد، بک‌لایت و کانکتورها دیده می‌شوند.', 'pixva' ); ?>"></canvas>
+				<p class="px-stage__hint" data-tv-hint hidden><?php esc_html_e( 'نشانگر را ببرید تا پنل باز شود', 'pixva' ); ?></p>
+			</div>
 			<div class="px-hero__copy">
-				<p class="px-kicker"><?php esc_html_e( 'کارگاه تخصصی · علاءالدین', 'pixva' ); ?></p>
+				<p class="px-kicker"><?php esc_html_e( 'مرکز تخصصی پیکسوا · علاءالدین', 'pixva' ); ?></p>
 				<h1><?php echo esc_html( $title ); ?></h1>
 				<p class="px-lead"><?php echo esc_html( $lead ); ?></p>
+				<a class="px-phone" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>">
+					<small><?php esc_html_e( 'تماس مستقیم', 'pixva' ); ?></small>
+					<?php echo esc_html( pixva_fa_num( $pretty ) ); ?>
+				</a>
 				<div class="px-hero__actions">
-					<a class="pixva-btn pixva-btn--cta" href="#pricing"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></a>
-					<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></a>
+					<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'تماس فوری', 'pixva' ); ?></a>
+					<a class="pixva-btn px-btn--ghost" href="#tools"><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></a>
 				</div>
-				<dl class="px-facts">
+				<dl class="px-metrics">
 					<div>
 						<dt><?php esc_html_e( 'گارانتی کتبی', 'pixva' ); ?></dt>
 						<dd><?php echo esc_html( pixva_fa_num( '180' ) . ' ' . __( 'روز', 'pixva' ) ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'سابقه کارگاه', 'pixva' ); ?></dt>
+						<dt><?php esc_html_e( 'تجربه تعمیر', 'pixva' ); ?></dt>
 						<dd><?php echo esc_html( pixva_fa_num( '12' ) . ' ' . __( 'سال', 'pixva' ) ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'پیک تهران', 'pixva' ); ?></dt>
+						<dt><?php esc_html_e( 'پوشش تهران', 'pixva' ); ?></dt>
 						<dd><?php esc_html_e( 'جمع‌آوری و تحویل', 'pixva' ); ?></dd>
 					</div>
 				</dl>
 			</div>
-			<figure class="px-film" data-pixva-film aria-label="<?php esc_attr_e( 'سه نما از تعمیر تلویزیون در کارگاه: باز کردن قاب، بندینگ بک‌لایت، تست تصویر', 'pixva' ); ?>">
-				<?php foreach ( $frames as $index => $frame ) : ?>
-					<img
-						src="<?php echo esc_url( $frame['src'] ); ?>"
-						alt=""
-						width="928"
-						height="1152"
-						<?php echo 0 === $index ? 'fetchpriority="high"' : ''; ?>
-					>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * مشکلات رایج، با مسیر کوتاه به برآورد.
+ *
+ * @return void
+ */
+function pixva_home_problems() {
+	$items = array(
+		array(
+			'key'   => 'no_sound',
+			'icon'  => 'sound',
+			'title' => __( 'تصویر هست، صدا نیست', 'pixva' ),
+			'text'  => __( 'برد صدا، فلت اسپیکر یا تنظیم پنل. قبل از تعویض برد، همان مسیر تست می‌شود.', 'pixva' ),
+		),
+		array(
+			'key'   => 'backlight',
+			'icon'  => 'sun',
+			'title' => __( 'صدا هست، تصویر سیاه است', 'pixva' ),
+			'text'  => __( 'شایع‌ترین نشانه بک‌لایت. تعویض پنل اولین پیشنهاد نیست.', 'pixva' ),
+		),
+		array(
+			'key'   => 'panel',
+			'icon'  => 'panel',
+			'title' => __( 'خط عمودی یا افقی', 'pixva' ),
+			'text'  => __( 'اگر شیشه سالم باشد، بندینگ COF مسیر ارزان‌تر و قابل ضمانت است.', 'pixva' ),
+		),
+		array(
+			'key'   => 'powerboard',
+			'icon'  => 'bolt',
+			'title' => __( 'چراغ پاور چشمک می‌زند', 'pixva' ),
+			'text'  => __( 'تعداد چشمک را بشمارید. تغذیه ولتاژ خطرناک دارد؛ بازش نکنید.', 'pixva' ),
+		),
+	);
+	?>
+	<section class="pixva-section" id="problems">
+		<div class="pixva-container">
+			<div class="pixva-section-head">
+				<span class="pixva-badge"><?php esc_html_e( 'علائم رایج', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'علامت را بگویید، مسیر تعمیر مشخص است', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'هر کارت مستقیم به برآورد همان خرابی می‌رود. عدد روی سرور حساب می‌شود.', 'pixva' ); ?></p>
+			</div>
+			<div class="pixva-grid pixva-grid--4">
+				<?php foreach ( $items as $item ) : ?>
+					<a class="pixva-card px-problem" href="<?php echo esc_url( add_query_arg( 'problem', $item['key'], home_url( '/' ) ) ); ?>#tools">
+						<span class="px-ico"><?php echo pixva_icon( $item['icon'] ); ?></span>
+						<h3><?php echo esc_html( $item['title'] ); ?></h3>
+						<p><?php echo esc_html( $item['text'] ); ?></p>
+					</a>
 				<?php endforeach; ?>
-				<figcaption class="px-film__caps" aria-hidden="true">
-					<?php foreach ( $frames as $index => $frame ) : ?>
-						<span><?php echo esc_html( pixva_fa_num( sprintf( '%02d', $index + 1 ) ) . '  ' . $frame['cap'] ); ?></span>
-					<?php endforeach; ?>
-				</figcaption>
-				<div class="px-film__progress" aria-hidden="true"><span></span><span></span><span></span></div>
-			</figure>
+			</div>
 		</div>
 	</section>
 	<?php
@@ -164,7 +200,7 @@ function pixva_home_services() {
 				<?php else : ?>
 					<?php foreach ( array_slice( pixva_service_fallbacks(), 0, 3 ) as $service ) : ?>
 						<a class="pixva-card pixva-service-card" href="<?php echo esc_url( add_query_arg( 'problem', $service['key'], pixva_page_url( 'calculator' ) ) ); ?>">
-							<?php echo pixva_icon( $service['icon'] ); ?>
+							<span class="px-ico"><?php echo pixva_icon( $service['icon'] ); ?></span>
 							<h3><?php echo esc_html( $service['title'] ); ?></h3>
 							<p><?php echo esc_html( $service['text'] ); ?></p>
 						</a>
@@ -316,9 +352,10 @@ function pixva_home_process() {
 				<h2><?php esc_html_e( 'از تماس تا تحویل، چهار مرحله شفاف', 'pixva' ); ?></h2>
 				<p><?php esc_html_e( 'دستگاه بی‌دلیل باز نمی‌شود و قطعه‌ای بدون تأیید شما عوض نمی‌شود.', 'pixva' ); ?></p>
 			</div>
-			<ol class="pixva-steps pixva-steps--home">
+			<ol class="px-flow">
 				<?php foreach ( $steps as $step ) : ?>
 					<li>
+						<span class="px-flow__mark" aria-hidden="true"></span>
 						<strong><?php echo esc_html( $step['title'] ); ?></strong>
 						<p><?php echo esc_html( $step['text'] ); ?></p>
 					</li>
@@ -420,6 +457,105 @@ function pixva_home_blog() {
 				<p class="pixva-notice pixva-notice--info"><?php esc_html_e( 'هنوز مقاله‌ای منتشر نشده است. اولین مطلب را از پیشخوان اضافه کنید.', 'pixva' ); ?></p>
 			<?php endif; ?>
 			<p style="text-align:center;margin-top:1.4rem"><a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_blog_url() ); ?>"><?php esc_html_e( 'همه مقاله‌ها', 'pixva' ); ?></a></p>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * ابزارهای تعاملی در یک پوسته اپ: برآورد، تستر، کد خطا، پیگیری، شبیه‌ساز.
+ *
+ * @return void
+ */
+function pixva_home_tools() {
+	$phone = pixva_support_phone();
+	$brands = pixva_brand_catalog();
+	$rows   = array_slice( pixva_error_code_catalog(), 0, 4 );
+	?>
+	<section class="pixva-section pixva-section--alt px-tools" id="tools">
+		<div class="pixva-container">
+			<div class="pixva-section-head">
+				<span class="pixva-badge"><?php esc_html_e( 'ابزارهای پیکسوا', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'قبل از آوردن دستگاه، خودتان ببینید', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'برآورد قیمت، تست پیکسل، کد چشمک و پیگیری تعمیر. همان ابزارها، در یک صفحه تمیز.', 'pixva' ); ?></p>
+			</div>
+			<div class="px-tools__shell" data-px-tools>
+				<div class="px-tools__nav" role="tablist" aria-label="<?php esc_attr_e( 'ابزارها', 'pixva' ); ?>">
+					<button type="button" role="tab" data-tool="calc" class="is-on" aria-selected="true"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="rgb" aria-selected="false"><?php esc_html_e( 'تستر پیکسل', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="errors" aria-selected="false"><?php esc_html_e( 'کد خطا', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="track" aria-selected="false"><?php esc_html_e( 'پیگیری', 'pixva' ); ?></button>
+					<button type="button" role="tab" data-tool="sim" aria-selected="false"><?php esc_html_e( 'شبیه‌ساز', 'pixva' ); ?></button>
+				</div>
+				<div class="px-tools__pane is-on" data-pane="calc" id="pricing">
+					<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
+				</div>
+				<div class="px-tools__pane" data-pane="rgb" hidden>
+					<div class="pixva-card pixva-rgb-tester" data-rgb-tester>
+						<div class="pixva-rgb-controls">
+							<button type="button" class="pixva-btn pixva-btn--ghost-dark" data-color="#ff0000"><?php esc_html_e( 'قرمز', 'pixva' ); ?></button>
+							<button type="button" class="pixva-btn pixva-btn--ghost-dark" data-color="#00ff00"><?php esc_html_e( 'سبز', 'pixva' ); ?></button>
+							<button type="button" class="pixva-btn pixva-btn--ghost-dark" data-color="#0000ff"><?php esc_html_e( 'آبی', 'pixva' ); ?></button>
+							<button type="button" class="pixva-btn pixva-btn--ghost-dark" data-color="#ffffff"><?php esc_html_e( 'سفید', 'pixva' ); ?></button>
+							<button type="button" class="pixva-btn pixva-btn--ghost-dark" data-color="#000000"><?php esc_html_e( 'مشکی', 'pixva' ); ?></button>
+							<button type="button" class="pixva-btn pixva-btn--cta" data-oled-cleaner><?php esc_html_e( 'چرخه احیای OLED', 'pixva' ); ?></button>
+						</div>
+						<div class="pixva-rgb-canvas" data-rgb-canvas style="background:#0B1C2E;min-height:180px;border-radius:12px;display:grid;place-items:center;">
+							<span style="color:#d7e0ea;"><?php esc_html_e( 'یک رنگ را انتخاب کنید تا پیکسل گیرکرده دیده شود.', 'pixva' ); ?></span>
+						</div>
+					</div>
+				</div>
+				<div class="px-tools__pane" data-pane="errors" hidden>
+					<div class="pixva-grid pixva-grid--2">
+						<?php foreach ( $rows as $row ) : ?>
+							<?php
+							$brand_name = isset( $brands[ $row['brand'] ] ) ? $brands[ $row['brand'] ]['fa'] : $row['brand'];
+							$blinks     = $row['blinks'] > 0
+								? pixva_fa_num( (string) $row['blinks'] ) . ' ' . __( 'چشمک', 'pixva' )
+								: $row['code'];
+							?>
+							<article class="pixva-card">
+								<p class="px-kicker"><?php echo esc_html( $brand_name . ' · ' . $blinks ); ?></p>
+								<h3><?php echo esc_html( $row['title'] ); ?></h3>
+								<p><?php echo esc_html( $row['symptom'] ); ?></p>
+							</article>
+						<?php endforeach; ?>
+					</div>
+					<p class="px-more"><a href="<?php echo esc_url( pixva_page_url( 'error-codes' ) ); ?>"><?php esc_html_e( 'پایگاه کامل کدهای خطا', 'pixva' ); ?></a></p>
+				</div>
+				<div class="px-tools__pane" data-pane="track" hidden>
+					<h3><?php esc_html_e( 'وضعیت تعمیر را همین حالا ببینید', 'pixva' ); ?></h3>
+					<p><?php esc_html_e( 'کد رهگیری و شماره همراهی که هنگام پذیرش ثبت شده را وارد کنید.', 'pixva' ); ?></p>
+					<form action="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" method="get" class="px-track">
+						<input class="pixva-input" type="text" name="code" placeholder="<?php esc_attr_e( 'کد رهگیری', 'pixva' ); ?>">
+						<input class="pixva-input" type="tel" name="phone" placeholder="<?php esc_attr_e( 'شماره همراه', 'pixva' ); ?>">
+						<button class="pixva-btn pixva-btn--primary" type="submit"><?php esc_html_e( 'پیگیری', 'pixva' ); ?></button>
+					</form>
+					<p class="px-more"><a href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'اگر کد ندارید، با کارگاه تماس بگیرید', 'pixva' ); ?></a></p>
+				</div>
+				<div class="px-tools__pane" data-pane="sim" hidden>
+					<div class="pixva-card pixva-simulator-card" data-tv-simulator>
+						<div class="pixva-sim-tv">
+							<div class="pixva-sim-screen">
+								<div class="pixva-sim-hotspot" data-part="backlight" style="top:25%;left:25%;"><span><?php esc_html_e( 'بک‌لایت', 'pixva' ); ?></span></div>
+								<div class="pixva-sim-hotspot" data-part="water" style="bottom:15%;left:50%;"><span><?php esc_html_e( 'فلت COF', 'pixva' ); ?></span></div>
+								<div class="pixva-sim-hotspot" data-part="mainboard" style="top:30%;right:15%;"><span><?php esc_html_e( 'مین‌برد', 'pixva' ); ?></span></div>
+								<div class="pixva-sim-hotspot" data-part="powerboard" style="bottom:25%;right:20%;"><span><?php esc_html_e( 'برد پاور', 'pixva' ); ?></span></div>
+								<div class="pixva-sim-display-msg" data-sim-screen-msg><p><?php esc_html_e( 'یک بخش را لمس کنید', 'pixva' ); ?></p></div>
+							</div>
+						</div>
+						<div class="pixva-sim-info">
+							<span class="pixva-badge" data-sim-tag><?php esc_html_e( 'آماده', 'pixva' ); ?></span>
+							<h3 data-sim-title><?php esc_html_e( 'عیب محتمل هر بخش را قبل از باز کردن ببینید', 'pixva' ); ?></h3>
+							<p data-sim-desc><?php esc_html_e( 'این شبیه‌ساز جای تشخیص نهایی کارگاه را نمی‌گیرد.', 'pixva' ); ?></p>
+							<div class="pixva-sim-price-box" data-sim-price-box hidden>
+								<span class="pixva-muted"><?php esc_html_e( 'کف قیمت قطعه و دستمزد', 'pixva' ); ?></span>
+								<strong data-sim-price></strong>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</section>
 	<?php
