@@ -3,109 +3,280 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>پیکسوا — صحنه سه‌بعدی تعمیر</title>
-	<meta name="description" content="فوتر سینمایی پیکسوا: تلویزیون بازشده، مردمک تشخیص و نوک بندینگ نشانگر را دنبال می‌کنند.">
+	<title>پیکسوا — تعمیر تلویزیون</title>
 	<link rel="icon" href="/pixva/assets/images/logo-mark.svg">
-	<link rel="stylesheet" href="/pixva/assets/css/stage.css">
-	<style>
-		html, body { margin: 0; background: #070b14; }
-		.pixva-container { width: min(100% - 2.5rem, 1240px); margin-inline: auto; }
-		.pixva-footer__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 1.5rem; }
-		.pixva-footer__grid h2 { margin: 0 0 0.7rem; font-size: 1.15rem; font-weight: 800; }
-		.pixva-footer__grid ul, .pixva-footer__grid .menu { list-style: none; margin: 0; padding: 0; }
-		.pixva-footer__grid li { margin-bottom: 0.4rem; }
-		.pixva-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: #fff; text-decoration: none; }
-		.pixva-logo__mark { width: 42px; height: 42px; }
-		.pixva-logo__text { display: flex; flex-direction: column; line-height: 1.15; }
-		.pixva-logo__text strong { font-size: 1.15rem; font-weight: 900; }
-		.pixva-logo__text small { color: #94a3b8; font-size: 0.72rem; }
-		.pixva-footer__base { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1.4rem; padding: 1rem 0 1.4rem; font-size: 0.9rem; }
-		.pixva-icon { display: inline-flex; width: 1.25em; height: 1.25em; }
-		.pixva-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-		@media (max-width: 900px) {
-			.pixva-footer__grid { grid-template-columns: 1fr 1fr; }
-		}
-		@media (max-width: 640px) {
-			.pixva-footer__grid, .pixva-footer__base { grid-template-columns: 1fr; display: grid; }
-		}
-	</style>
+	<link rel="stylesheet" href="/pixva/style.css">
+	<link rel="stylesheet" href="/pixva/assets/css/main.css">
+	<link rel="stylesheet" href="/pixva/assets/css/components.css">
+	<link rel="stylesheet" href="/pixva/assets/css/layout.css">
 </head>
 <body>
-	<footer class="pixva-footer" aria-label="فوتر">
-		<div class="pixva-stage pixva-stage--full" data-pixva-stage>
-			<div class="pixva-stage__seam" aria-hidden="true"></div>
-			<div class="pixva-stage__scene" data-pixva-scene aria-hidden="true">
-				<canvas data-pixva-stage-canvas></canvas>
-			</div>
-			<p class="screen-reader-text">صحنه سه‌بعدی تعمیر تلویزیون. با حرکت نشانگر، مردمک تشخیص و نوک بندینگ به همان سو می‌چرخند.</p>
-			<div class="pixva-stage__info">
-				<span class="pixva-stage__tag">تشخیص زنده</span>
-				<p class="pixva-stage__headline">نگاهش با شماست<br>تعمیرش با ما</p>
-				<nav class="pixva-stage__nav" aria-label="خدمات تعمیر">
-					<a href="/calculator/?problem=panel">پنل و بندینگ</a>
-					<a href="/calculator/?problem=backlight">بک‌لایت</a>
-					<a href="/calculator/?problem=mainboard">برد و پاور</a>
-					<a href="/tracking/">پیگیری دستگاه</a>
-				</nav>
-			</div>
-			<a class="pixva-stage__logo pixva-logo" href="/" rel="home">
-				<img class="pixva-logo__mark" src="/pixva/assets/images/logo-mark.svg" alt="" width="42" height="42">
-				<span class="pixva-logo__text"><strong>پیکسوا</strong><small>تعمیر تخصصی نمایشگر</small></span>
-			</a>
-			<div class="pixva-stage__contact">
-				<span class="pixva-stage__tag">کارگاه باز است</span>
-				<div class="pixva-stage__links">
-					<span>بیاوریدش</span>
-					<span>زنده برمی‌گردد*</span>
-				</div>
-				<p class="pixva-stage__note">*ضمانت کتبی ۱۸۰ روزه. اول بندینگ، آخر تعویض پنل.</p>
-				<div class="pixva-stage__actions">
-					<a href="tel:02191009990" aria-label="تماس با کارگاه"><span class="pixva-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h3.2l1.2 3-2 1.2a12.5 12.5 0 0 0 6 6l1.2-2 3 1.2V16a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5 7.7 2 2 0 0 1 7 3.5z"/></svg></span></a>
-					<a href="https://wa.me/989120000000" target="_blank" rel="noopener noreferrer" aria-label="واتساپ"><span class="pixva-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l1.2-3.4A8 8 0 1 1 8.4 18L5 19z"/><path d="M9 10c.2 2 2.2 3.6 4 4"/></svg></span></a>
-					<a href="/calculator/" aria-label="استعلام قیمت"><span class="pixva-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L5 14h7l-1 8 8-12h-7l1-8z"/></svg></span></a>
-				</div>
-				<a class="pixva-stage__phone" href="tel:02191009990">۰۲۱۹۱۰۰۹۹۹۰</a>
-			</div>
-			<p class="pixva-stage__hint" data-pixva-stage-hint>نشانگر را حرکت دهید؛ مردمک و نوک بندینگ دنبالتان می‌آیند</p>
+	<a class="skip-link" href="#content">پرش به محتوا</a>
+	<div class="pixva-topbar">
+		<div class="pixva-container pixva-topbar__inner">
+			<p class="pixva-topbar__text"><span>ارسال رایگان دستگاه در تهران | گارانتی ۱۸۰ روزه تعمیرات</span></p>
+			<p class="pixva-topbar__hours">شنبه تا پنجشنبه ۹ تا ۲۰</p>
 		</div>
-		<div class="pixva-footer__dock">
-			<div class="pixva-container pixva-footer__grid">
-				<section>
-					<span class="pixva-logo"><img class="pixva-logo__mark" src="/pixva/assets/images/logo-mark.svg" alt="" width="42" height="42"><span class="pixva-logo__text"><strong>پیکسوا</strong><small>تعمیر تخصصی نمایشگر</small></span></span>
-					<p>مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت و برد.</p>
-				</section>
-				<section>
-					<h2>دسترسی سریع</h2>
-					<ul>
-						<li><a href="/calculator/">محاسبه هزینه</a></li>
-						<li><a href="/tracking/">پیگیری تعمیر</a></li>
-						<li><a href="/error-codes/">کدهای خطا</a></li>
-						<li><a href="/contact/">تماس با ما</a></li>
-					</ul>
-				</section>
-				<section>
-					<h2>خدمات</h2>
-					<ul>
-						<li><a href="/calculator/?problem=backlight">تعویض بک‌لایت</a></li>
-						<li><a href="/calculator/?problem=panel">تعمیر پنل با دستگاه بندینگ</a></li>
-						<li><a href="/calculator/?problem=mainboard">تعمیر برد اصلی</a></li>
-						<li><a href="/calculator/?problem=powerboard">تعمیر برد پاور</a></li>
-					</ul>
-				</section>
-				<section>
-					<h2>کارگاه</h2>
-					<ul>
-						<li>تهران، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲</li>
-						<li><a href="tel:02191009990">۰۲۱۹۱۰۰۹۹۹۰</a></li>
-					</ul>
-				</section>
+	</div>
+
+	<header class="pixva-header">
+		<div class="pixva-container pixva-header__inner">
+			<a class="pixva-logo-link" href="#hero">
+				<span class="pixva-logo pixva-logo--light">
+					<img class="pixva-logo__mark" src="/pixva/assets/images/logo-mark.svg" alt="" width="42" height="42">
+					<span class="pixva-logo__text"><strong>پیکسوا</strong><small>تعمیر تخصصی نمایشگر</small></span>
+				</span>
+			</a>
+			<nav class="pixva-nav" aria-label="منوی اصلی">
+				<ul class="pixva-nav__list">
+					<li class="menu-item current-menu-item"><a href="#hero">خانه</a></li>
+					<li class="menu-item"><a href="#services">خدمات</a></li>
+					<li class="menu-item"><a href="#pricing">برآورد هزینه</a></li>
+					<li class="menu-item"><a href="#process">پیگیری</a></li>
+					<li class="menu-item"><a href="#journal">مجله</a></li>
+					<li class="menu-item"><a href="#content">تماس</a></li>
+				</ul>
+			</nav>
+			<div class="pixva-header__actions">
+				<a class="pixva-header-phone" href="tel:02191009990"><span>۰۲۱۹۱۰۰۹۹۹۰</span></a>
+				<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-header-cta" href="#pricing">برآورد هزینه</a>
+				<button type="button" class="pixva-burger" data-pixva-burger aria-expanded="false" aria-controls="pixva-drawer" aria-label="باز کردن منو">
+					<svg class="pixva-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h12"/></svg>
+				</button>
 			</div>
-			<div class="pixva-container pixva-footer__base">
-				<p>© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.</p>
-				<p>۱۴۰۵</p>
+		</div>
+	</header>
+
+	<div class="pixva-overlay" data-pixva-overlay></div>
+	<div id="pixva-drawer" class="pixva-drawer" data-pixva-drawer aria-hidden="true">
+		<div class="pixva-drawer__head">
+			<span class="pixva-logo"><img class="pixva-logo__mark" src="/pixva/assets/images/logo-mark.svg" alt="" width="42" height="42"><span class="pixva-logo__text"><strong>پیکسوا</strong></span></span>
+			<button type="button" class="pixva-burger" data-pixva-drawer-close aria-label="بستن منو">
+				<svg class="pixva-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+			</button>
+		</div>
+		<nav class="pixva-nav"><ul class="pixva-nav__list">
+			<li><a href="#hero">خانه</a></li>
+			<li><a href="#services">خدمات</a></li>
+			<li><a href="#pricing">برآورد هزینه</a></li>
+			<li><a href="#process">پیگیری</a></li>
+			<li><a href="#content">تماس</a></li>
+		</ul></nav>
+		<a class="pixva-btn pixva-btn--cta" href="tel:02191009990">تماس با کارگاه</a>
+	</div>
+
+	<main id="content">
+		<section class="px-hero" id="hero">
+			<div class="pixva-container px-hero__grid">
+				<div class="px-hero__copy">
+					<p class="px-kicker">کارگاه تخصصی · علاءالدین</p>
+					<h1>تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل</h1>
+					<p class="px-lead">قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.</p>
+					<div class="px-hero__actions">
+						<a class="pixva-btn pixva-btn--cta" href="#pricing">برآورد هزینه</a>
+						<a class="pixva-btn px-btn--ghost" href="tel:02191009990">تماس با کارگاه</a>
+					</div>
+					<dl class="px-facts">
+						<div><dt>گارانتی کتبی</dt><dd>۱۸۰ روز</dd></div>
+						<div><dt>سابقه کارگاه</dt><dd>۱۲ سال</dd></div>
+						<div><dt>پیک تهران</dt><dd>جمع‌آوری و تحویل</dd></div>
+					</dl>
+				</div>
+				<figure class="px-film" data-pixva-film aria-label="سه نما از تعمیر تلویزیون در کارگاه: باز کردن قاب، بندینگ بک‌لایت، تست تصویر">
+					<img src="/pixva/assets/images/bench-1.jpg" alt="" width="928" height="1152" fetchpriority="high">
+					<img src="/pixva/assets/images/bench-2.jpg" alt="" width="928" height="1152">
+					<img src="/pixva/assets/images/bench-3.jpg" alt="" width="928" height="1152">
+					<figcaption class="px-film__caps" aria-hidden="true">
+						<span>۰۱  باز کردن قاب پشتی</span>
+						<span>۰۲  بک‌لایت و بندینگ فلت</span>
+						<span>۰۳  تست تصویر قبل از تحویل</span>
+					</figcaption>
+					<div class="px-film__progress" aria-hidden="true"><span></span><span></span><span></span></div>
+				</figure>
 			</div>
+		</section>
+
+		<section class="pixva-section pixva-section--alt" id="services">
+			<div class="pixva-container">
+				<div class="pixva-section-head">
+					<span class="pixva-badge">خدمات</span>
+					<h2>تعمیر همان‌جایی که خرابی است</h2>
+					<p>پنل را بی‌دلیل تعویض نمی‌کنیم. اول مسیر ارزان‌تر و قابل ضمانت بررسی می‌شود.</p>
+				</div>
+				<div class="pixva-grid pixva-grid--3">
+					<a class="pixva-card pixva-service-card" href="#pricing">
+						<h3>تعویض بک‌لایت</h3>
+						<p>رفع تاریکی موضعی، هاله و خاموشی نور پس‌زمینه در پنل‌های LED و QLED.</p>
+					</a>
+					<a class="pixva-card pixva-service-card" href="#pricing">
+						<h3>تعمیر پنل با دستگاه بندینگ</h3>
+						<p>ترمیم خطوط عمودی و افقی با بندینگ COF، تا جایی که شیشه سالم باشد.</p>
+					</a>
+					<a class="pixva-card pixva-service-card" href="#pricing">
+						<h3>تعمیر برد اصلی</h3>
+						<p>عیب‌یابی مین‌برد، HDMI و بخش پردازش تصویر، قبل از پیشنهاد تعویض برد.</p>
+					</a>
+				</div>
+				<p class="px-more"><a href="#pricing">برآورد برای بقیه خرابی‌ها</a></p>
+			</div>
+		</section>
+
+		<section class="pixva-section" id="process">
+			<div class="pixva-container">
+				<div class="pixva-section-head">
+					<span class="pixva-badge">مسیر کار</span>
+					<h2>از تماس تا تحویل، چهار مرحله شفاف</h2>
+					<p>دستگاه بی‌دلیل باز نمی‌شود و قطعه‌ای بدون تأیید شما عوض نمی‌شود.</p>
+				</div>
+				<ol class="pixva-steps pixva-steps--home">
+					<li><strong>ثبت علائم</strong><p>برند، سایز، مدل و تعداد چشمک را بفرستید. ضربه یا آب‌خوردگی را همان اول بگویید.</p></li>
+					<li><strong>برآورد و نوبت</strong><p>بازه قیمت روی سرور حساب می‌شود. با ثبت شماره، کد پیگیری می‌گیرید.</p></li>
+					<li><strong>عیب‌یابی کارگاه</strong><p>تغذیه، بک‌لایت، مین‌برد و پنل جدا تست می‌شود. هزینه قطعی را قبل از تعویض تأیید می‌کنید.</p></li>
+					<li><strong>تست و گارانتی</strong><p>تحویل با الگوی رنگ، به‌همراه برگه ۱۸۰ روزه برای برد و بک‌لایت.</p></li>
+				</ol>
+			</div>
+		</section>
+
+		<section class="pixva-section pixva-section--alt">
+			<div class="pixva-container pixva-grid pixva-grid--2" style="align-items:center">
+				<div>
+					<span class="pixva-badge">نمونه واقعی</span>
+					<h2>یک پنل خط‌دار، بدون تعویض شیشه</h2>
+					<p class="pixva-muted">تصویر چپ وضعیت پذیرش است و تصویر راست خروجی تست نهایی کارگاه.</p>
+				</div>
+				<div class="pixva-grid pixva-grid--2">
+					<img src="/pixva/assets/images/panel-before.jpg" alt="پنل قبل از تعمیر" width="640" height="400">
+					<img src="/pixva/assets/images/panel-after.jpg" alt="پنل بعد از تعمیر" width="640" height="400">
+				</div>
+			</div>
+		</section>
+
+		<section class="pixva-section px-estimate" id="calculator">
+			<div class="pixva-container px-estimate__grid" id="pricing">
+				<div>
+					<span class="pixva-badge">برآورد</span>
+					<h2>هزینه را قبل از باز کردن دستگاه ببینید</h2>
+					<p>برند، سایز و نوع خرابی را انتخاب کنید. عدد روی سرور حساب می‌شود. اگر پنل باید عوض شود، همان‌جا نوشته می‌شود.</p>
+					<ul class="px-estimate__notes">
+						<li>اول بندینگ و بک‌لایت، آخر تعویض پنل</li>
+						<li>هزینه قطعی بعد از عیب‌یابی، با تأیید شما</li>
+						<li>گارانتی کتبی ۱۸۰ روز برای برد و بک‌لایت</li>
+					</ul>
+				</div>
+				<div class="px-estimate__form">
+					<ol class="pixva-calc__progress" aria-label="مراحل محاسبه">
+						<li class="is-current">برند</li>
+						<li>تکنولوژی و سایز</li>
+						<li>نوع مشکل</li>
+						<li>برآورد</li>
+					</ol>
+					<h3>برند تلویزیون را انتخاب کنید</h3>
+					<div class="pixva-choice-grid">
+						<button type="button" class="pixva-choice">سامسونگ</button>
+						<button type="button" class="pixva-choice">ال‌جی</button>
+						<button type="button" class="pixva-choice">سونی</button>
+						<button type="button" class="pixva-choice">اسنوا</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="pixva-section" id="journal">
+			<div class="pixva-container">
+				<div class="pixva-section-head">
+					<span class="pixva-badge">مجله</span>
+					<h2>قبل از آوردن دستگاه، علامت را بخوانید</h2>
+					<p>راهنمای کارگاه است، نه دفترچه سرویس. برد پاور ولتاژ خطرناک دارد.</p>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<div class="px-close">
+		<div class="pixva-container px-close__inner">
+			<div>
+				<p class="px-kicker">کارگاه علاءالدین</p>
+				<h2>دستگاه را بیاورید. اول بندینگ، آخر تعویض پنل.</h2>
+			</div>
+			<div class="px-close__actions">
+				<a class="pixva-btn pixva-btn--cta" href="tel:02191009990">تماس با کارگاه</a>
+				<a class="pixva-btn px-btn--ghost" href="#pricing">برآورد هزینه</a>
+			</div>
+		</div>
+	</div>
+
+	<footer class="pixva-footer" aria-label="فوتر">
+		<div class="pixva-container pixva-footer__grid">
+			<section>
+				<span class="pixva-logo">
+					<img class="pixva-logo__mark" src="/pixva/assets/images/logo-mark.svg" alt="" width="42" height="42">
+					<span class="pixva-logo__text"><strong>پیکسوا</strong><small>تعمیر تخصصی نمایشگر</small></span>
+				</span>
+				<p>مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت و برد.</p>
+			</section>
+			<section>
+				<h2>دسترسی سریع</h2>
+				<ul class="menu">
+					<li><a href="#pricing">محاسبه هزینه</a></li>
+					<li><a href="#process">پیگیری تعمیر</a></li>
+					<li><a href="#content">تماس با ما</a></li>
+				</ul>
+			</section>
+			<section>
+				<h2>خدمات</h2>
+				<ul>
+					<li><a href="#pricing">تعویض بک‌لایت</a></li>
+					<li><a href="#pricing">بندینگ پنل</a></li>
+					<li><a href="#pricing">برد اصلی و پاور</a></li>
+				</ul>
+			</section>
+			<section>
+				<h2>کارگاه</h2>
+				<ul>
+					<li>تهران، پاساژ علاءالدین، طبقه ۴، واحد ۴۱۲</li>
+					<li><a href="tel:02191009990">۰۲۱۹۱۰۰۹۹۹۰</a></li>
+				</ul>
+			</section>
+		</div>
+		<div class="pixva-container pixva-footer__base">
+			<p>© تمامی حقوق برای مرکز تخصصی پیکسوا محفوظ است.</p>
+			<p>۱۴۰۵</p>
 		</div>
 	</footer>
-	<script src="/pixva/assets/js/stage.js"></script>
+
+	<nav class="pixva-mobile-dock" aria-label="نوار دسترسی سریع موبایل">
+		<a class="pixva-mobile-dock__item" href="tel:02191009990"><span>تماس</span></a>
+		<a class="pixva-mobile-dock__item" href="#pricing"><span>برآورد</span></a>
+		<a class="pixva-mobile-dock__item" href="#process"><span>پیگیری</span></a>
+		<button type="button" class="pixva-mobile-dock__item" data-ai-toggle aria-expanded="false"><span>تشخیص</span></button>
+	</nav>
+
+	<div class="pixva-ai-widget" data-pixva-ai-bot>
+		<button type="button" class="pixva-ai-trigger" aria-expanded="false" aria-label="باز کردن تشخیص کارگاه" data-ai-toggle>
+			<span class="pixva-ai-trigger__pulse"></span>
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 3.5V15H7.5A2.5 2.5 0 0 1 5 12.5z"/></svg>
+			<span class="pixva-ai-trigger__badge">عیب‌یابی</span>
+		</button>
+		<div class="pixva-ai-panel" data-ai-panel hidden>
+			<header class="pixva-ai-header">
+				<div>
+					<span class="pixva-badge">تشخیص کارگاه</span>
+					<h4>بپرسید، قبل از آوردن دستگاه</h4>
+				</div>
+				<button type="button" class="pixva-ai-close" data-ai-close aria-label="بستن">✕</button>
+			</header>
+			<div class="pixva-ai-messages" data-ai-messages>
+				<div class="pixva-ai-msg pixva-ai-msg--bot"><p>برند و علامت را بنویسید. مثلاً تصویر هست و صدا نیست، یا چراغ پاور چشمک می‌زند.</p></div>
+			</div>
+			<form class="pixva-ai-input-form" data-ai-form>
+				<input class="pixva-ai-input" data-ai-input type="text" placeholder="علامت خرابی">
+				<button type="submit" class="pixva-btn pixva-btn--cta">بفرست</button>
+			</form>
+		</div>
+	</div>
+
+	<script src="/pixva/assets/js/main.js" defer></script>
+	<script src="/pixva/assets/js/film.js" defer></script>
+	<script src="/pixva/assets/js/interactive-tools.js" defer></script>
 </body>
 </html>

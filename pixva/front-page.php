@@ -32,40 +32,67 @@ get_footer();
  * @return void
  */
 function pixva_home_hero() {
-	$title = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی', 'pixva' ) );
-	$lead  = (string) pixva_option( 'pixva_hero_subtitle', __( 'مرکز تخصصی پیکسوا با تجهیز کارگاهی پیشرفته، تعمیر پنل، بک‌لایت و بردهای OLED، QLED و LED را با قطعات فابریک و ضمانت کتبی ۶ ماهه انجام می‌دهد.', 'pixva' ) );
+	$title  = (string) pixva_option( 'pixva_hero_title', __( 'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل', 'pixva' ) );
+	$lead   = (string) pixva_option( 'pixva_hero_subtitle', __( 'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.', 'pixva' ) );
+	$phone  = pixva_support_phone();
+	$base   = trailingslashit( PIXVA_URI ) . 'assets/images/';
+	$frames = array(
+		array(
+			'src' => $base . 'bench-1.jpg',
+			'cap' => __( 'باز کردن قاب پشتی', 'pixva' ),
+		),
+		array(
+			'src' => $base . 'bench-2.jpg',
+			'cap' => __( 'بک‌لایت و بندینگ فلت', 'pixva' ),
+		),
+		array(
+			'src' => $base . 'bench-3.jpg',
+			'cap' => __( 'تست تصویر قبل از تحویل', 'pixva' ),
+		),
+	);
 	?>
-	<section class="pixva-hero pixva-hero--light">
-		<div class="pixva-container pixva-hero__grid">
-			<div class="pixva-hero__content">
-				<div class="pixva-hero__badges">
-					<span class="pixva-badge pixva-badge--brand"><?php esc_html_e( 'کارگاه تخصصی بندینگ و برد', 'pixva' ); ?></span>
-					<span class="pixva-badge pixva-badge--success"><?php esc_html_e( 'ضمانت ۶ ماهه کتبی', 'pixva' ); ?></span>
-					<span class="pixva-badge pixva-badge--accent"><?php esc_html_e( 'قطعات فابریک', 'pixva' ); ?></span>
-				</div>
+	<section class="px-hero" id="hero">
+		<div class="pixva-container px-hero__grid">
+			<div class="px-hero__copy">
+				<p class="px-kicker"><?php esc_html_e( 'کارگاه تخصصی · علاءالدین', 'pixva' ); ?></p>
 				<h1><?php echo esc_html( $title ); ?></h1>
-				<p class="pixva-hero__lead"><?php echo esc_html( $lead ); ?></p>
-				<div class="pixva-hero__actions">
-					<a class="pixva-btn pixva-btn--cta pixva-btn--bolt" href="#quick-calc"><?php esc_html_e( 'استعلام سریع قیمت', 'pixva' ); ?></a>
-					<a class="pixva-btn pixva-btn--ghost-dark" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری وضعیت دستگاه', 'pixva' ); ?></a>
+				<p class="px-lead"><?php echo esc_html( $lead ); ?></p>
+				<div class="px-hero__actions">
+					<a class="pixva-btn pixva-btn--cta" href="#pricing"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></a>
+					<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( pixva_tel_href( $phone ) ); ?>"><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></a>
 				</div>
-				<div class="pixva-stats">
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '180' ) ); ?></strong><span><?php esc_html_e( 'روز گارانتی کتبی', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '12+' ) ); ?></strong><span><?php esc_html_e( 'سال سابقه کارگاهی', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php echo esc_html( pixva_fa_num( '8000+' ) ); ?></strong><span><?php esc_html_e( 'دستگاه تعمیرشده', 'pixva' ); ?></span></div>
-					<div class="pixva-stat"><strong><?php esc_html_e( 'تهران', 'pixva' ); ?></strong><span><?php esc_html_e( 'پیک جمع‌آوری و تحویل', 'pixva' ); ?></span></div>
-				</div>
-			</div>
-			<div class="pixva-hero__calculator" id="quick-calc">
-				<div class="pixva-hero__calc-card">
-					<div class="pixva-hero__calc-header">
-						<span class="pixva-badge pixva-badge--pulse"><?php esc_html_e( 'محاسبه‌گر آنلاین نرخ ۱۴۰۵', 'pixva' ); ?></span>
-						<h3><?php esc_html_e( 'استعلام فوری هزینه تعمیر', 'pixva' ); ?></h3>
-						<p><?php esc_html_e( 'برند و نوع خرابی را انتخاب کنید؛ محاسبه در لحظه سمت سرور انجام می‌شود.', 'pixva' ); ?></p>
+				<dl class="px-facts">
+					<div>
+						<dt><?php esc_html_e( 'گارانتی کتبی', 'pixva' ); ?></dt>
+						<dd><?php echo esc_html( pixva_fa_num( '180' ) . ' ' . __( 'روز', 'pixva' ) ); ?></dd>
 					</div>
-					<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
-				</div>
+					<div>
+						<dt><?php esc_html_e( 'سابقه کارگاه', 'pixva' ); ?></dt>
+						<dd><?php echo esc_html( pixva_fa_num( '12' ) . ' ' . __( 'سال', 'pixva' ) ); ?></dd>
+					</div>
+					<div>
+						<dt><?php esc_html_e( 'پیک تهران', 'pixva' ); ?></dt>
+						<dd><?php esc_html_e( 'جمع‌آوری و تحویل', 'pixva' ); ?></dd>
+					</div>
+				</dl>
 			</div>
+			<figure class="px-film" data-pixva-film aria-label="<?php esc_attr_e( 'سه نما از تعمیر تلویزیون در کارگاه: باز کردن قاب، بندینگ بک‌لایت، تست تصویر', 'pixva' ); ?>">
+				<?php foreach ( $frames as $index => $frame ) : ?>
+					<img
+						src="<?php echo esc_url( $frame['src'] ); ?>"
+						alt=""
+						width="928"
+						height="1152"
+						<?php echo 0 === $index ? 'fetchpriority="high"' : ''; ?>
+					>
+				<?php endforeach; ?>
+				<figcaption class="px-film__caps" aria-hidden="true">
+					<?php foreach ( $frames as $index => $frame ) : ?>
+						<span><?php echo esc_html( pixva_fa_num( sprintf( '%02d', $index + 1 ) ) . '  ' . $frame['cap'] ); ?></span>
+					<?php endforeach; ?>
+				</figcaption>
+				<div class="px-film__progress" aria-hidden="true"><span></span><span></span><span></span></div>
+			</figure>
 		</div>
 	</section>
 	<?php
@@ -78,14 +105,21 @@ function pixva_home_hero() {
  */
 function pixva_home_calculator() {
 	?>
-	<section class="pixva-section" id="calculator">
-		<div class="pixva-container">
-			<div class="pixva-section-head">
-				<span class="pixva-badge"><?php esc_html_e( 'برآورد شفاف', 'pixva' ); ?></span>
-				<h2><?php esc_html_e( 'هزینه تعمیر را قبل از آوردن دستگاه ببینید', 'pixva' ); ?></h2>
-				<p><?php esc_html_e( 'برند، تکنولوژی، سایز و نوع خرابی را انتخاب کنید. بازه قیمت روی سرور محاسبه می‌شود، نه داخل مرورگر.', 'pixva' ); ?></p>
+	<section class="pixva-section px-estimate" id="calculator">
+		<div class="pixva-container px-estimate__grid" id="pricing">
+			<div>
+				<span class="pixva-badge"><?php esc_html_e( 'برآورد', 'pixva' ); ?></span>
+				<h2><?php esc_html_e( 'هزینه را قبل از باز کردن دستگاه ببینید', 'pixva' ); ?></h2>
+				<p><?php esc_html_e( 'برند، سایز و نوع خرابی را انتخاب کنید. عدد روی سرور حساب می‌شود. اگر پنل باید عوض شود، همان‌جا نوشته می‌شود.', 'pixva' ); ?></p>
+				<ul class="px-estimate__notes">
+					<li><?php esc_html_e( 'اول بندینگ و بک‌لایت، آخر تعویض پنل', 'pixva' ); ?></li>
+					<li><?php esc_html_e( 'هزینه قطعی بعد از عیب‌یابی، با تأیید شما', 'pixva' ); ?></li>
+					<li><?php esc_html_e( 'گارانتی کتبی ۱۸۰ روز برای برد و بک‌لایت', 'pixva' ); ?></li>
+				</ul>
 			</div>
-			<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
+			<div class="px-estimate__form">
+				<?php pixva_render_calculator( array( 'compact' => true ) ); ?>
+			</div>
 		</div>
 	</section>
 	<?php
@@ -100,12 +134,12 @@ function pixva_home_services() {
 	$services = get_posts(
 		array(
 			'post_type'      => 'tv_services',
-			'posts_per_page' => 6,
+			'posts_per_page' => 3,
 			'no_found_rows'  => true,
 		)
 	);
 	?>
-	<section class="pixva-section pixva-section--alt pixva-home-services">
+	<section class="pixva-section pixva-section--alt pixva-home-services" id="services">
 		<div class="pixva-container">
 			<div class="pixva-section-head">
 				<span class="pixva-badge"><?php esc_html_e( 'خدمات', 'pixva' ); ?></span>
@@ -128,8 +162,8 @@ function pixva_home_services() {
 						</a>
 					<?php endforeach; ?>
 				<?php else : ?>
-					<?php foreach ( pixva_service_fallbacks() as $service ) : ?>
-						<a class="pixva-card pixva-service-card pixva-reveal" href="<?php echo esc_url( add_query_arg( 'problem', $service['key'], pixva_page_url( 'calculator' ) ) ); ?>">
+					<?php foreach ( array_slice( pixva_service_fallbacks(), 0, 3 ) as $service ) : ?>
+						<a class="pixva-card pixva-service-card" href="<?php echo esc_url( add_query_arg( 'problem', $service['key'], pixva_page_url( 'calculator' ) ) ); ?>">
 							<?php echo pixva_icon( $service['icon'] ); ?>
 							<h3><?php echo esc_html( $service['title'] ); ?></h3>
 							<p><?php echo esc_html( $service['text'] ); ?></p>
@@ -137,6 +171,7 @@ function pixva_home_services() {
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</div>
+			<p class="px-more"><a href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'برآورد برای بقیه خرابی‌ها', 'pixva' ); ?></a></p>
 		</div>
 	</section>
 	<?php

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""پیش‌نمایش محلی فوتر. ریشه را به صحنه فوتر می‌فرستد."""
+"""پیش‌نمایش محلی صفحه اصلی. ریشه را به preview/index.html می‌فرستد."""
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import os
 

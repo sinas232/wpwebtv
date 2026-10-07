@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.3.0' );
+define( 'PIXVA_VERSION', '1.4.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -127,23 +127,23 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 		wp_enqueue_style( 'pixva-style', get_stylesheet_uri(), array(), PIXVA_VERSION );
 
 		wp_enqueue_style( 'pixva-main', PIXVA_URI . '/assets/css/main.css', array( 'pixva-style' ), PIXVA_VERSION );
-		wp_enqueue_style( 'pixva-stage', PIXVA_URI . '/assets/css/stage.css', array( 'pixva-main' ), PIXVA_VERSION );
 
-		// سبک کامپوننت‌ها تنها در صفحاتی که به آن نیاز دارند بارگذاری می‌شود.
-		if ( pixva_needs_components_css() ) {
-			wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
+		// چت‌بات در فوتر همه صفحات است؛ استایلش نباید شرطی بماند.
+		wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
+		wp_enqueue_style( 'pixva-layout', PIXVA_URI . '/assets/css/layout.css', array( 'pixva-components' ), PIXVA_VERSION );
+
+		if ( is_front_page() ) {
+			wp_enqueue_script(
+				'pixva-film',
+				PIXVA_URI . '/assets/js/film.js',
+				array(),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
 		}
-
-		wp_enqueue_script(
-			'pixva-stage',
-			PIXVA_URI . '/assets/js/stage.js',
-			array(),
-			PIXVA_VERSION,
-			array(
-				'in_footer' => true,
-				'strategy'  => 'defer',
-			)
-		);
 
 		wp_enqueue_script(
 			'pixva-main',

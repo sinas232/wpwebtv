@@ -779,8 +779,8 @@
 	position: fixed;
 	bottom: 84px;
 	left: 24px;
-	width: clamp(320px, 90vw, 400px);
-	height: 520px;
+	width: min(400px, calc(100vw - 32px));
+	height: min(520px, calc(100dvh - 140px));
 	background: #fff;
 	border: 1px solid #E2E8F0;
 	border-radius: 18px;
@@ -789,6 +789,10 @@
 	flex-direction: column;
 	overflow: hidden;
 	z-index: 10000;
+}
+
+.pixva-ai-panel[hidden] {
+	display: none !important;
 }
 
 .pixva-ai-header {
@@ -807,11 +811,22 @@
 }
 
 .pixva-ai-close {
-	background: none;
-	border: none;
-	font-size: 18px;
-	color: #64748B;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	margin: -8px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 999px;
+	font-size: 22px;
+	line-height: 1;
+	color: #0f172a;
 	cursor: pointer;
+	flex: 0 0 auto;
+	position: relative;
+	z-index: 2;
 }
 
 .pixva-ai-messages {

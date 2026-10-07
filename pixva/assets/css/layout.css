@@ -1,0 +1,781 @@
+/* ==========================================================================
+   پیکسوا — چیدمان Editorial
+   لایه آخر. فاصله، هدر روشن، هیروی کارگاه و فوتر آرام.
+   ========================================================================== */
+
+:root {
+	--bg-light: #f6f4f0;
+	--card-bg: #ffffff;
+	--text-main: #1c1917;
+	--text-muted: #57534e;
+	--primary: #1c1917;
+	--primary-hover: #292524;
+	--primary-dark: #1c1917;
+	--accent: #1c1917;
+	--cta: #1c1917;
+	--cta-hover: #292524;
+	--border: #e7e2d9;
+	--radius-sm: 2px;
+	--radius-md: 2px;
+	--radius-lg: 2px;
+	--header-h: 68px;
+	--shadow-sm: none;
+	--shadow-md: none;
+	--shadow-lg: none;
+	--shadow-cta: none;
+	--px-paper: #f6f4f0;
+	--px-ink: #1c1917;
+	--px-muted: #78716c;
+	--px-line: #e7e2d9;
+}
+
+body {
+	background: var(--px-paper);
+	color: var(--px-ink);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: var(--px-ink);
+	font-weight: 750;
+	letter-spacing: 0;
+}
+
+a {
+	color: inherit;
+}
+
+a:hover {
+	color: #44403c;
+}
+
+/* --------------------------------------------------------------------------
+   نوار بالا و هدر روشن
+   -------------------------------------------------------------------------- */
+
+.pixva-topbar {
+	background: var(--px-ink);
+	color: #e7e2d9;
+	font-size: 0.78rem;
+	border-bottom: 0;
+}
+
+.pixva-topbar__inner {
+	min-height: 34px;
+}
+
+.pixva-topbar a,
+.pixva-topbar__hours {
+	color: #e7e2d9;
+	font-weight: 500;
+}
+
+.pixva-header {
+	background: rgba(246, 244, 240, 0.94);
+	color: var(--px-ink);
+	border-bottom: 1px solid var(--px-line);
+	box-shadow: none;
+	backdrop-filter: saturate(140%) blur(14px);
+}
+
+.pixva-header.is-scrolled {
+	box-shadow: none;
+	border-bottom-color: #ddd6cc;
+}
+
+.pixva-header .pixva-logo,
+.pixva-header .pixva-logo:hover,
+.pixva-header .pixva-logo__text strong,
+.pixva-header .pixva-header-phone,
+.pixva-header .pixva-header-phone:hover {
+	color: var(--px-ink);
+}
+
+.pixva-header .pixva-logo__text small {
+	color: var(--px-muted);
+}
+
+.pixva-header .pixva-nav__list a {
+	color: #44403c;
+	font-weight: 600;
+	font-size: 0.84rem;
+	padding: 0.35rem 0.45rem;
+	border-radius: 2px;
+}
+
+.pixva-header .pixva-nav__list a:hover,
+.pixva-header .pixva-nav__list .current-menu-item > a,
+.pixva-header .pixva-nav__list .current_page_item > a,
+.pixva-header .pixva-nav__list .sub-menu a {
+	color: var(--px-ink);
+	background: rgba(28, 25, 23, 0.05);
+}
+
+.pixva-header .pixva-burger {
+	color: var(--px-ink);
+	border-color: var(--px-line);
+	border-radius: 2px;
+}
+
+.pixva-drawer .pixva-btn--cta {
+	background: #f6f4f0;
+	color: var(--px-ink);
+}
+
+/* --------------------------------------------------------------------------
+   دکمه‌ها — مستطیل جوهری، بدون درخشش
+   -------------------------------------------------------------------------- */
+
+.pixva-btn,
+.pixva-btn--sm {
+	border-radius: 2px;
+	box-shadow: none;
+	font-weight: 650;
+}
+
+.pixva-btn--cta,
+.pixva-btn--primary {
+	background: var(--px-ink);
+	color: #f6f4f0;
+	box-shadow: none;
+}
+
+.pixva-btn--cta:hover,
+.pixva-btn--primary:hover {
+	background: #292524;
+	color: #f6f4f0;
+	transform: none;
+}
+
+.pixva-btn--bolt::after {
+	display: none;
+}
+
+.px-btn--ghost,
+.pixva-btn--ghost,
+.pixva-btn--ghost-dark {
+	background: transparent;
+	color: var(--px-ink);
+	border: 1px solid var(--px-ink);
+	box-shadow: none;
+	border-radius: 2px;
+}
+
+.px-btn--ghost:hover,
+.pixva-btn--ghost:hover,
+.pixva-btn--ghost-dark:hover {
+	background: var(--px-ink);
+	color: #f6f4f0;
+	transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   هیرو: متن در سمت شروع، فیلم تعمیر در سمت پایان
+   -------------------------------------------------------------------------- */
+
+.px-hero {
+	background: var(--px-paper);
+}
+
+.px-hero__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.08fr) minmax(260px, 0.82fr);
+	gap: clamp(1.75rem, 4.5vw, 4.5rem);
+	align-items: center;
+	padding-block: clamp(2.4rem, 5.5vw, 4.75rem);
+}
+
+.px-kicker {
+	margin: 0 0 0.8rem;
+	color: var(--px-muted);
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.px-hero h1 {
+	margin: 0;
+	max-width: 12em;
+	color: var(--px-ink);
+	font-size: clamp(2rem, 4.2vw, 3.45rem);
+	line-height: 1.28;
+	font-weight: 760;
+}
+
+.px-lead {
+	margin: 1rem 0 0;
+	max-width: 36rem;
+	color: #44403c;
+	font-size: 1.05rem;
+	line-height: 1.95;
+}
+
+.px-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.7rem;
+	margin-top: 1.5rem;
+}
+
+.px-facts {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+	margin: 1.8rem 0 0;
+	padding: 1rem 0 0;
+	border-top: 1px solid var(--px-line);
+}
+
+.px-facts div {
+	min-width: 0;
+}
+
+.px-facts dt {
+	color: var(--px-muted);
+	font-size: 0.75rem;
+	font-weight: 650;
+}
+
+.px-facts dd {
+	margin: 0.15rem 0 0;
+	color: var(--px-ink);
+	font-size: 1.02rem;
+	font-weight: 750;
+}
+
+.px-film {
+	position: relative;
+	aspect-ratio: 4 / 5;
+	margin: 0;
+	overflow: hidden;
+	background: #1c1917;
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px rgba(28, 25, 23, 0.08);
+	transform-style: preserve-3d;
+	transition: transform 0.45s ease;
+}
+
+.px-film img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+	opacity: 0;
+	animation: px-film 18s infinite;
+}
+
+.px-film img:nth-child(1) {
+	opacity: 1;
+	animation-delay: 0s;
+}
+.px-film img:nth-child(2) { animation-delay: 6s; }
+.px-film img:nth-child(3) { animation-delay: 12s; }
+
+.px-film::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 32%;
+	background: linear-gradient(to top, rgba(18, 14, 10, 0.62), transparent);
+	z-index: 1;
+	pointer-events: none;
+}
+
+.px-film__caps {
+	position: absolute;
+	inset-inline: 0.9rem;
+	bottom: 1.65rem;
+	z-index: 2;
+	min-height: 1.4rem;
+	color: #fff;
+	font-size: 0.82rem;
+	font-weight: 650;
+}
+
+.px-film__caps span {
+	position: absolute;
+	inset-inline-start: 0;
+	bottom: 0;
+	inset-inline-end: 0;
+	opacity: 0;
+	white-space: normal;
+	animation: px-film-cap 18s infinite;
+}
+
+.px-film__caps span:nth-child(1) { animation-delay: 0s; }
+.px-film__caps span:nth-child(2) { animation-delay: 6s; }
+.px-film__caps span:nth-child(3) { animation-delay: 12s; }
+
+.px-film__progress {
+	position: absolute;
+	z-index: 2;
+	inset-inline: 0.9rem;
+	bottom: 0.7rem;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.35rem;
+}
+
+.px-film__progress span {
+	display: block;
+	height: 2px;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.35);
+}
+
+.px-film__progress span::after {
+	content: "";
+	display: block;
+	width: 100%;
+	height: 100%;
+	background: #fff;
+	transform: scaleX(0);
+	transform-origin: right center;
+	animation: px-film-bar 18s infinite;
+}
+
+.px-film__progress span:nth-child(1)::after { animation-delay: 0s; }
+.px-film__progress span:nth-child(2)::after { animation-delay: 6s; }
+.px-film__progress span:nth-child(3)::after { animation-delay: 12s; }
+
+@keyframes px-film {
+	0% { opacity: 0; transform: scale(1.045); }
+	2.2% { opacity: 1; }
+	31% { opacity: 1; transform: scale(1); }
+	33.4% { opacity: 0; }
+	100% { opacity: 0; }
+}
+
+@keyframes px-film-cap {
+	0%, 1.6% { opacity: 0; }
+	3.2%, 31% { opacity: 1; }
+	33.4%, 100% { opacity: 0; }
+}
+
+@keyframes px-film-bar {
+	0% { transform: scaleX(0); }
+	31% { transform: scaleX(1); }
+	33.4%, 100% { transform: scaleX(0); }
+}
+
+#pricing,
+#calculator,
+#process,
+#services,
+#hero {
+	scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+/* --------------------------------------------------------------------------
+   سکشن‌ها
+   -------------------------------------------------------------------------- */
+
+.pixva-section {
+	padding-block: clamp(3.6rem, 7vw, 6rem) !important;
+}
+
+.pixva-section--alt {
+	background: #fff;
+}
+
+.pixva-section-head {
+	text-align: start;
+	max-width: 38rem;
+	margin: 0 0 1.75rem;
+}
+
+.pixva-section-head h2,
+.px-estimate h2,
+.px-close h2 {
+	margin: 0.2rem 0 0.55rem;
+	font-size: clamp(1.55rem, 2.8vw, 2.25rem);
+	line-height: 1.35;
+}
+
+.pixva-section-head p,
+.px-estimate p {
+	margin: 0;
+	color: #44403c;
+	font-size: 1rem;
+	line-height: 1.9;
+}
+
+.pixva-section .pixva-badge,
+.pixva-page-hero .pixva-badge,
+.pixva-ai-header .pixva-badge,
+.px-estimate .pixva-badge {
+	display: inline-block;
+	margin: 0 0 0.35rem;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: var(--px-muted);
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.pixva-grid {
+	gap: clamp(0.9rem, 2vw, 1.35rem) !important;
+}
+
+.pixva-card,
+.pixva-card:hover {
+	border-radius: 2px;
+	border-color: var(--px-line);
+	box-shadow: none;
+	transform: none;
+	color: var(--px-ink);
+}
+
+.pixva-card p {
+	color: #57534e;
+}
+
+.pixva-service-card h3 {
+	margin: 0.85rem 0 0.35rem;
+	font-size: 1.05rem;
+}
+
+.px-more {
+	margin: 1.25rem 0 0;
+}
+
+.px-more a {
+	font-weight: 700;
+	border-bottom: 1px solid var(--px-ink);
+}
+
+.pixva-steps--home {
+	gap: 0 !important;
+	border-top: 1px solid var(--px-line);
+	counter-reset: pxstep;
+}
+
+.pixva-steps--home li {
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	border-inline-start: 1px solid var(--px-line);
+	padding: 1.2rem 1.15rem 0.2rem;
+	counter-increment: pxstep;
+}
+
+.pixva-steps--home li:first-child {
+	border-inline-start: 0;
+	padding-inline-start: 0;
+}
+
+.pixva-steps--home li::before {
+	content: counter(pxstep, decimal-leading-zero);
+	display: block;
+	margin-bottom: 0.45rem;
+	color: var(--px-muted);
+	font-size: 0.75rem;
+	font-weight: 700;
+	font-feature-settings: "ss01";
+}
+
+.px-estimate__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+	gap: clamp(1.5rem, 4vw, 3.5rem);
+	align-items: start;
+}
+
+.px-estimate__notes {
+	list-style: none;
+	margin: 1.2rem 0 0;
+	padding: 0;
+}
+
+.px-estimate__notes li {
+	padding-block: 0.6rem;
+	border-top: 1px solid var(--px-line);
+	color: #44403c;
+}
+
+.px-estimate__form {
+	min-width: 0;
+}
+
+.px-estimate .pixva-calc {
+	border-radius: 2px;
+	box-shadow: none;
+	border-color: var(--px-line);
+}
+
+.pixva-choice,
+.pixva-choice:hover,
+.pixva-choice.is-selected {
+	border-radius: 2px;
+	transform: none;
+	box-shadow: none;
+}
+
+.pixva-page-hero {
+	background: var(--px-paper);
+	color: var(--px-ink);
+	border-bottom: 1px solid var(--px-line);
+	padding-block: 2.2rem 1.8rem;
+}
+
+.pixva-page-hero h1 {
+	color: var(--px-ink);
+}
+
+.pixva-page-hero p,
+.pixva-crumbs,
+.pixva-crumbs a {
+	color: #57534e;
+}
+
+/* --------------------------------------------------------------------------
+   بستن صفحه و فوتر
+   -------------------------------------------------------------------------- */
+
+.px-close {
+	background: var(--px-paper);
+	color: var(--px-ink);
+	border-top: 1px solid var(--px-line);
+	padding-block: clamp(2.4rem, 5vw, 3.6rem);
+}
+
+.px-close__inner {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 1.5rem;
+}
+
+.px-close h2 {
+	max-width: 16em;
+	margin: 0;
+}
+
+.px-close__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.65rem;
+	flex: 0 0 auto;
+}
+
+.pixva-footer {
+	background: #1c1917;
+	color: #d6d3d1;
+	padding-top: 2.6rem;
+	margin-top: 0;
+}
+
+.pixva-footer a {
+	color: #d6d3d1;
+}
+
+.pixva-footer a:hover {
+	color: #fff;
+}
+
+.pixva-footer h2,
+.pixva-footer h3,
+.pixva-footer .pixva-logo,
+.pixva-footer .pixva-logo__text strong {
+	color: #f6f4f0;
+}
+
+.pixva-footer .pixva-logo__text small {
+	color: #a8a29e;
+}
+
+.pixva-footer .pixva-logo__mark,
+.pixva-drawer .pixva-logo__mark {
+	border-radius: 12px;
+	box-shadow: 0 0 0 1px rgba(246, 244, 240, 0.4);
+}
+
+.pixva-footer__grid {
+	gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.pixva-socials a {
+	border-color: rgba(246, 244, 240, 0.2);
+	border-radius: 2px;
+}
+
+.pixva-footer__base {
+	border-top-color: rgba(246, 244, 240, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   چت، داک، و حذف دکمه‌های روی هم
+   -------------------------------------------------------------------------- */
+
+.pixva-fab {
+	display: none !important;
+}
+
+.pixva-ai-widget {
+	z-index: 10000;
+}
+
+.pixva-ai-trigger {
+	width: 52px;
+	height: 52px;
+	padding: 0;
+	justify-content: center;
+	background: var(--px-ink);
+	color: #f6f4f0;
+	border-radius: 999px;
+	box-shadow: 0 8px 22px rgba(28, 25, 23, 0.18);
+}
+
+.pixva-ai-trigger:hover {
+	background: #292524;
+	transform: none;
+}
+
+.pixva-ai-trigger__badge,
+.pixva-ai-trigger__pulse {
+	display: none;
+}
+
+.pixva-ai-panel {
+	border-radius: 2px;
+	border-color: var(--px-line);
+	box-shadow: 0 18px 40px rgba(28, 25, 23, 0.16);
+	z-index: 2;
+}
+
+.pixva-ai-panel[hidden] {
+	display: none !important;
+}
+
+.pixva-ai-header {
+	background: #f6f4f0;
+	border-bottom-color: var(--px-line);
+}
+
+.pixva-ai-header h4 {
+	color: var(--px-ink);
+	font-size: 0.98rem;
+}
+
+.pixva-ai-close {
+	width: 44px;
+	height: 44px;
+	border-radius: 2px;
+	border-color: var(--px-line);
+	color: var(--px-ink);
+	background: #fff;
+}
+
+@media (max-width: 980px) {
+	.pixva-steps--home li,
+	.pixva-steps--home li:first-child {
+		border-inline-start: 0;
+		border-bottom: 1px solid var(--px-line);
+		padding-inline: 0;
+	}
+}
+
+@media (max-width: 900px) {
+	.px-hero__grid,
+	.px-estimate__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.px-hero__grid {
+		padding-block: 1.35rem 2.4rem;
+	}
+
+	.px-film {
+		order: 2;
+		aspect-ratio: 16 / 11;
+		max-height: 68vw;
+	}
+
+	.px-hero h1 {
+		max-width: none;
+	}
+}
+
+@media (max-width: 767px) {
+	.pixva-ai-trigger {
+		display: none !important;
+	}
+
+	.pixva-ai-panel {
+		left: 12px;
+		right: 12px;
+		width: auto;
+		bottom: 76px;
+		height: min(68dvh, 520px);
+	}
+
+	.pixva-mobile-dock {
+		height: calc(62px + env(safe-area-inset-bottom)) !important;
+		padding-bottom: env(safe-area-inset-bottom);
+		background: rgba(246, 244, 240, 0.96) !important;
+		border-top: 1px solid var(--px-line) !important;
+		box-shadow: none !important;
+	}
+
+	.pixva-mobile-dock__item,
+	.pixva-mobile-dock__item.is-cta {
+		color: var(--px-ink) !important;
+		font-weight: 650;
+		appearance: none;
+		background: none;
+		border: 0;
+		padding: 0.2rem;
+		margin: 0;
+		font-family: inherit;
+		cursor: pointer;
+		gap: 0.2rem;
+	}
+
+	.px-facts {
+		grid-template-columns: 1fr;
+		gap: 0.7rem;
+	}
+
+	.px-hero__actions .pixva-btn,
+	.px-close__actions .pixva-btn {
+		width: 100%;
+	}
+}
+
+@media (max-width: 720px) {
+	.px-close__inner {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.px-close__actions {
+		flex-direction: column;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.px-film,
+	.px-film img,
+	.px-film__caps span,
+	.px-film__progress span::after {
+		animation: none !important;
+		transition: none;
+	}
+
+	.px-film img:first-of-type,
+	.px-film__caps span:first-child {
+		opacity: 1;
+	}
+
+	.px-film__progress span:first-child::after {
+		transform: scaleX(1);
+	}
+}

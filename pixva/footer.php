@@ -9,63 +9,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$pixva_phone      = pixva_support_phone();
-$pixva_calc       = pixva_page_url( 'calculator' );
-$pixva_stage_nav  = array(
-	add_query_arg( 'problem', 'panel', $pixva_calc )      => __( 'پنل و بندینگ', 'pixva' ),
-	add_query_arg( 'problem', 'backlight', $pixva_calc )  => __( 'بک‌لایت', 'pixva' ),
-	add_query_arg( 'problem', 'mainboard', $pixva_calc )  => __( 'برد و پاور', 'pixva' ),
-	pixva_page_url( 'tracking' )                          => __( 'پیگیری دستگاه', 'pixva' ),
-);
-$pixva_stage_full = is_front_page() ? ' pixva-stage--full' : '';
+$pixva_phone = pixva_support_phone();
+$pixva_calc  = pixva_page_url( 'calculator' );
 ?>
-<footer class="pixva-footer" aria-label="<?php esc_attr_e( 'فوتر', 'pixva' ); ?>">
-	<div class="pixva-stage<?php echo esc_attr( $pixva_stage_full ); ?>" data-pixva-stage>
-		<div class="pixva-stage__seam" aria-hidden="true"></div>
-		<div class="pixva-stage__scene" data-pixva-scene aria-hidden="true">
-			<canvas data-pixva-stage-canvas></canvas>
+<div class="px-close">
+	<div class="pixva-container px-close__inner">
+		<div>
+			<p class="px-kicker"><?php esc_html_e( 'کارگاه علاءالدین', 'pixva' ); ?></p>
+			<h2><?php esc_html_e( 'دستگاه را بیاورید. اول بندینگ، آخر تعویض پنل.', 'pixva' ); ?></h2>
 		</div>
-		<p class="screen-reader-text"><?php esc_html_e( 'صحنه سه‌بعدی تعمیر تلویزیون. با حرکت نشانگر، مردمک تشخیص و نوک بندینگ به همان سو می‌چرخند.', 'pixva' ); ?></p>
-
-		<div class="pixva-stage__info">
-			<span class="pixva-stage__tag"><?php esc_html_e( 'تشخیص زنده', 'pixva' ); ?></span>
-			<p class="pixva-stage__headline"><?php esc_html_e( 'نگاهش با شماست', 'pixva' ); ?><br><?php esc_html_e( 'تعمیرش با ما', 'pixva' ); ?></p>
-			<nav class="pixva-stage__nav" aria-label="<?php esc_attr_e( 'خدمات تعمیر', 'pixva' ); ?>">
-				<?php foreach ( $pixva_stage_nav as $pixva_url => $pixva_label ) : ?>
-					<a href="<?php echo esc_url( $pixva_url ); ?>"><?php echo esc_html( $pixva_label ); ?></a>
-				<?php endforeach; ?>
-			</nav>
+		<div class="px-close__actions">
+			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php esc_html_e( 'تماس با کارگاه', 'pixva' ); ?></a>
+			<a class="pixva-btn px-btn--ghost" href="<?php echo esc_url( $pixva_calc ); ?>"><?php esc_html_e( 'برآورد هزینه', 'pixva' ); ?></a>
 		</div>
-
-		<a class="pixva-stage__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-			<?php pixva_the_logo( 'light' ); ?>
-		</a>
-
-		<div class="pixva-stage__contact">
-			<span class="pixva-stage__tag"><?php esc_html_e( 'کارگاه باز است', 'pixva' ); ?></span>
-			<div class="pixva-stage__links">
-				<span><?php esc_html_e( 'بیاوریدش', 'pixva' ); ?></span>
-				<span><?php esc_html_e( 'زنده برمی‌گردد*', 'pixva' ); ?></span>
-			</div>
-			<p class="pixva-stage__note"><?php esc_html_e( '*ضمانت کتبی ۱۸۰ روزه. اول بندینگ، آخر تعویض پنل.', 'pixva' ); ?></p>
-			<div class="pixva-stage__actions">
-				<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>" aria-label="<?php esc_attr_e( 'تماس با کارگاه', 'pixva' ); ?>"><?php echo pixva_icon( 'phone' ); ?></a>
-				<a href="<?php echo esc_url( pixva_whatsapp_url( __( 'سلام، برای تعمیر تلویزیون مشاوره می‌خواهم.', 'pixva' ) ) ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'واتساپ', 'pixva' ); ?>"><?php echo pixva_icon( 'whatsapp' ); ?></a>
-				<a href="<?php echo esc_url( $pixva_calc ); ?>" aria-label="<?php esc_attr_e( 'استعلام قیمت', 'pixva' ); ?>"><?php echo pixva_icon( 'bolt' ); ?></a>
-			</div>
-			<a class="pixva-stage__phone" href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>"><?php echo esc_html( pixva_fa_num( $pixva_phone ) ); ?></a>
-		</div>
-
-		<p class="pixva-stage__hint" data-pixva-stage-hint><?php esc_html_e( 'نشانگر را حرکت دهید؛ مردمک و نوک بندینگ دنبالتان می‌آیند', 'pixva' ); ?></p>
 	</div>
+</div>
 
+<footer class="pixva-footer" aria-label="<?php esc_attr_e( 'فوتر', 'pixva' ); ?>">
 	<div class="pixva-footer__dock">
 		<div class="pixva-container pixva-footer__grid">
 			<section>
 				<?php pixva_the_logo( 'light' ); ?>
 				<p><?php echo esc_html( get_bloginfo( 'description' ) ? get_bloginfo( 'description' ) : __( 'مرکز تخصصی تعمیر تلویزیون و نمایشگر؛ پنل، بک‌لایت و برد.', 'pixva' ) ); ?></p>
 				<div class="pixva-socials">
-					<?php foreach ( pixva_social_links() as $network => $item ) : ?>
+					<?php foreach ( pixva_social_links() as $item ) : ?>
 						<a href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $item['label'] ); ?></a>
 					<?php endforeach; ?>
 					<?php if ( ! pixva_social_links() ) : ?>
@@ -131,37 +98,22 @@ $pixva_stage_full = is_front_page() ? ' pixva-stage--full' : '';
 </footer>
 
 <nav class="pixva-mobile-dock" aria-label="<?php esc_attr_e( 'نوار دسترسی سریع موبایل', 'pixva' ); ?>">
-	<a href="tel:02191009990" class="pixva-mobile-dock__item">
-		<span>📞</span>
+	<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>" class="pixva-mobile-dock__item">
+		<?php echo pixva_icon( 'phone' ); ?>
 		<span><?php esc_html_e( 'تماس', 'pixva' ); ?></span>
 	</a>
-	<a href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>" class="pixva-mobile-dock__item is-cta">
-		<span>⚡</span>
-		<span><?php esc_html_e( 'استعلام قیمت', 'pixva' ); ?></span>
+	<a href="<?php echo esc_url( $pixva_calc ); ?>" class="pixva-mobile-dock__item">
+		<?php echo pixva_icon( 'bolt' ); ?>
+		<span><?php esc_html_e( 'برآورد', 'pixva' ); ?></span>
 	</a>
 	<a href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>" class="pixva-mobile-dock__item">
-		<span>🔍</span>
+		<?php echo pixva_icon( 'search' ); ?>
 		<span><?php esc_html_e( 'پیگیری', 'pixva' ); ?></span>
 	</a>
-	<button type="button" class="pixva-mobile-dock__item" style="background:none;border:none;cursor:pointer;" data-ai-toggle>
-		<span>🤖</span>
-		<span><?php esc_html_e( 'چت AI', 'pixva' ); ?></span>
+	<button type="button" class="pixva-mobile-dock__item" data-ai-toggle aria-expanded="false">
+		<?php echo pixva_icon( 'chat' ); ?>
+		<span><?php esc_html_e( 'تشخیص', 'pixva' ); ?></span>
 	</button>
-</nav>
-
-<nav class="pixva-fab" aria-label="<?php esc_attr_e( 'دسترسی سریع موبایل', 'pixva' ); ?>">
-	<a href="<?php echo esc_url( pixva_tel_href( $pixva_phone ) ); ?>">
-		<?php echo pixva_icon( 'phone' ); ?>
-		<?php esc_html_e( 'تماس', 'pixva' ); ?>
-	</a>
-	<a href="<?php echo esc_url( pixva_whatsapp_url( __( 'سلام، برای تعمیر تلویزیون مشاوره می‌خواهم.', 'pixva' ) ) ); ?>" target="_blank" rel="noopener noreferrer">
-		<?php echo pixva_icon( 'whatsapp' ); ?>
-		<?php esc_html_e( 'واتساپ', 'pixva' ); ?>
-	</a>
-	<a class="is-cta" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>">
-		<?php echo pixva_icon( 'bolt' ); ?>
-		<?php esc_html_e( 'ثبت سفارش', 'pixva' ); ?>
-	</a>
 </nav>
 
 <?php
