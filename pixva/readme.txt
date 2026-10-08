@@ -3,7 +3,7 @@ Contributors: pixva
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: rtl-language-support, custom-logo, custom-menu, featured-images, translation-ready, accessibility-ready, blog
@@ -40,6 +40,10 @@ Tags: rtl-language-support, custom-logo, custom-menu, featured-images, translati
 ارتقا خودکار و بدون حذف داده است: برگه‌های تکراری پیش‌نویس می‌شوند، نشانی‌های قدیمی ۳۰۱ یا ۴۱۰ می‌گیرند، اطلاعات ساختگی نسخه قبل وارد تنظیمات نمی‌شود و گزارش کامل در «پیکسوا ← گزارش ارتقا» نمایش داده می‌شود.
 
 == Changelog ==
+
+= 2.1.0 =
+* بازطراحی بصری کامل (بدون تغییر موتور): هیرو تشخیص با نمای دستگاه، انتخابگر مشکل با آیکن، ابزارها به‌صورت شبکه bento، خدمات و نمونه‌کارها و مقالات با ترکیب ویژگی/ردیف، روند کار روی زمینه تیره، دیوار برندها، CTA امضاشده، هدر و فوتر بازطراحی‌شده و طراحی موبایل مستقل.
+* افزودن حرکت‌های ظریف (نمایش تدریجی و وضعیت هدر) با احترام به کاهش حرکت؛ بدون JavaScript سنگین.
 
 = 2.0.0 =
 * بازنویسی کامل معماری: مسیرهای پایدار، مدل محتوا، نقش‌ها و قابلیت‌ها، فرم‌ها، REST، سئو، نقشه سایت، ریدایرکت و ۴۱۰.

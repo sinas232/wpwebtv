@@ -1,6 +1,6 @@
 {
   "theme": "pixva",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "generated": "2026-10-08",
   "allowed_statuses": [
     "COMPLETE",
@@ -1445,7 +1445,7 @@
       "area": "Runtime",
       "check": "Distribution ZIP",
       "method": "dist/pixva.zip extracted and compared with pixva/ (diff + SHA-256 manifest); theme installed from the ZIP on a clean database and 12 routes crawled",
-      "result": "PASS — ZIP == tree (88 files, identical manifest hash), only pixva/ paths, Version 2.0.0; activation from ZIP OK, 0 PHP errors, 301/410 behaviour intact"
+      "result": "PASS — ZIP == tree (identical manifest hash), only pixva/ paths, Version 2.1.0; activation from ZIP OK, 0 PHP errors, 301/410 behaviour intact"
     },
     {
       "id": "E01",
