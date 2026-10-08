@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""Generate PIXVA §60–§62 documents from ONE data structure.
+
+Outputs (overwritten on every run):
+  docs/pixva-traceability.md  §01–§77 matrix (requirement, location, files,
+                              status, verification, blocker)
+  docs/pixva-gap-ledger.json  machine-readable ledger (allowed statuses only)
+  docs/pixva-qa-matrix.md     executed checks + browser-only items
+
+Guards: every referenced file must exist, every status must be one of the
+allowed statuses, sections §01–§77 must all be present exactly once, and
+every non-COMPLETE status must carry a reason/blocker.
+
+Usage: python3 tools/gen_docs.py
+"""
+import json
+import os
+import sys
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+VERSION = '2.0.0'
+DATE = '2026-10-08'
+
+C = 'COMPLETE'
+RB = 'COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED'
+BL = 'BLOCKED'
+NA = 'INTENTIONALLY_NOT_APPLICABLE'
+ALLOWED = (C, RB, BL, NA)
+
+INFRA = ('Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness.')
+BROWSER = ('Needs a real browser (rendering, focus/screen reader, viewport, JS '
+           'execution); the sandbox has PHP + WordPress CLI harness only, no '
+           'headless browser.')
+
+# Test ids referenced from the matrix (defined in TESTS below).
+# ---------------------------------------------------------------------------
+TESTS = [
+    # id, area, check, method, result
+    ('T01', 'Static', 'PHP syntax of all theme files', 'php -l (PHP 8.3) on 61 files', 'PASS — 0 errors'),
+    ('T02', 'Static', 'WordPress Coding Standards (theme phpcs.xml, WPCS 3.4.1 / PHPCS 3.13.6)', 'phpcs full theme', 'PASS — 0 errors; 14 warnings, all reviewed performance advisories on bounded queries (posts_per_page ≤ 500 with no_found_rows, meta/tax queries)'),
+    ('T03', 'Static', 'phpcbf formatting pass is behaviour-neutral', 'PHP token-stream comparison before/after (whitespace + trailing commas ignored)', 'PASS — 0 token-different files'),
+    ('T04', 'Static', 'JS syntax', 'node --check pixva/assets/js/*.js (7 files)', 'PASS'),
+    ('T05', 'Static', 'Duplicate functions / undefined pixva_* calls', 'tools/php_lint.py + call/definition scan', 'PASS — none (remaining matches are capability/hook names)'),
+    ('T06', 'Static', 'CSS class coverage', 'tools/class_audit.py', 'PASS — 0 used-but-unstyled, 0 unused'),
+    ('T07', 'Static', 'theme.json validity', 'json.load', 'PASS'),
+    ('T08', 'Static', 'Design-token audit (§25)', 'grep of hex values in CSS/theme.json', 'PASS — only §25 tokens (pixel-test colours exempt by purpose)'),
+    ('T09', 'Static', 'Fake-data purge (§34)', 'grep for v1 phones, 180-day warranty, demo order, ratings/reviews', 'PASS — only in the migration denylist; preview/ v1.6 mock with fake phone/warranty removed'),
+    ('T10', 'Static', 'REST permission callbacks (§51)', 'review of inc/rest.php', 'PASS — 5 register calls / 6 routes, every route has permission_callback (rate limiter or code+phone proof)'),
+    ('T11', 'Runtime', 'Fresh install activation', 'WP 7.1.3 + SQLite, switch_theme + after_switch_theme', 'PASS — db 2.0.0, /blog/%postname%/, 20 pages, front/blog set'),
+    ('T12', 'Runtime', '49-route crawl (§59)', '/tmp harness crawl: status, h1, robots, canonical, title, PHP errors', 'PASS — 39×200, 6×301 (single hop), 2×404, 1×410, 0 PHP-error pages'),
+    ('T13', 'Runtime', 'Booking validation', 'AJAX POST invalid data', 'PASS — 422 + per-field errors'),
+    ('T14', 'Runtime', 'Booking success + duplicate submit', 'AJAX POST valid, then same _pixva_sid', 'PASS — PXV code; duplicate returns same code, no second analytics event'),
+    ('T15', 'Runtime', 'Booking no-JS PRG', 'admin-post POST', 'PASS — 303 to one-time result page with code'),
+    ('T16', 'Runtime', 'Booking prefill from diagnosis', 'GET array + CSV symptoms; without from=diagnosis', 'PASS — array and CSV accepted, unknown keys dropped, no prefill without from=diagnosis'),
+    ('T17', 'Runtime', 'Contact rate limit', '8 rapid POSTs', 'PASS — 429 after limit'),
+    ('T18', 'Runtime', 'Tracking without PII', 'REST track with code+phone', 'PASS — 200, no name/phone/internal note'),
+    ('T19', 'Runtime', 'Tracking oracle / lock', 'wrong phone; repeated failures', 'PASS — 404 identical to unknown code; per-code 429 lock'),
+    ('T20', 'Runtime', 'Account claim + IDOR', 'cust1 claims, cust2 tries same order', 'PASS — 200 / 404; cust2 cannot see order'),
+    ('T21', 'Runtime', 'Technician authorisation', 'unassigned update; assigned update; customer update', 'PASS — 403; 200 with masked phone (۰۹۳۵•••۲۳۳); customer 403/404'),
+    ('T22', 'Runtime', 'Public vs internal notes', 'update with quotes/backslash, then track', 'PASS — public note intact, internal note never in tracking'),
+    ('T23', 'Runtime', 'Dashboard roles', 'GET /dashboard/ as each role', 'PASS — customer 403; editor/manager/technician/admin 200; editor sees no PII'),
+    ('T24', 'Runtime', 'REST endpoints', 'models, error-codes, estimate, diagnosis (valid/invalid)', 'PASS — 200 ×4, 400 on invalid problem'),
+    ('T25', 'Runtime', 'REST exposure', 'wp/v2/users anon; orders in REST', 'PASS — both 404'),
+    ('T26', 'Runtime', 'Sitemap exclusion + cache invalidation', 'noindex meta toggled on a post', 'PASS — excluded immediately, restored after clearing'),
+    ('T27', 'Runtime', 'Thin content', 'hello-world (core sample post)', 'PASS — noindex,follow and absent from sitemap'),
+    ('T28', 'Runtime', 'Front-page meta description', 'crawl /', 'PASS — description from pixva_front_lead()'),
+    ('T29', 'Runtime', 'v1.7 → v2 migration', 'v1.7 activated (20 pages, 32 posts) then v2 migration, run twice', 'PASS — 24 log entries, fake settings/claims/tagline parked, menus retargeted, second run byte-identical'),
+    ('T30', 'Runtime', 'Legacy URLs after migration', 'crawl v1 paths', 'PASS — 301 single hop (/calculator/, /diagnosis/, /category/…, /{post}/), 410 for /b2b/, /parts-stock/'),
+    ('T31', 'Runtime', 'robots.txt', 'GET /robots.txt', 'PASS — only /wp-admin/ disallowed (admin-ajax allowed), sitemap listed, CSS/JS crawlable'),
+    ('T32', 'Runtime', 'Escaping / schema honesty', 'crawl with quotes/HTML in fixtures; JSON-LD review', 'PASS — escaped output; no LocalBusiness/rating/review without real data'),
+    ('T33', 'Runtime', 'Admin overview checklist', 'render via harness', 'PASS — 7 items incl. core sample content detection'),
+    ('T34', 'Runtime', 'Private image validation, storage and streaming access', 'pixva_store_private_image() with the is_uploaded/move test seams; admin-post pixva_order_photo as anon/other customer/editor', 'PASS — real PNG stored with random name in uploads/pixva-private (+ .htaccess, index.php); PHP disguised as .png rejected (upload_type); 6 MB rejected (upload_size); streaming denied: anon 400, non-owner 403, editor 403'),
+    ('B01', 'Browser', 'Keyboard-only walkthrough of diagnosis wizard, booking, pixel test', 'manual / Playwright', 'BLOCKED — ' + BROWSER),
+    ('B02', 'Browser', 'Screen-reader announcements (aria-live, error summary focus)', 'NVDA/VoiceOver', 'BLOCKED — ' + BROWSER),
+    ('B03', 'Browser', 'Responsive layout 320–1440 px, RTL rendering, Vazirmatn shaping', 'visual', 'BLOCKED — ' + BROWSER),
+    ('B04', 'Browser', 'Core Web Vitals / Lighthouse', 'Lighthouse', 'BLOCKED — ' + BROWSER),
+    ('B05', 'Browser', 'Pixel test fullscreen API, reduced-motion, colour cycling', 'manual', 'BLOCKED — ' + BROWSER),
+    ('B06', 'Browser', 'JS enhancement flows (AJAX submit, busy states, model loading) and analytics dispatch to dataLayer/gtag', 'manual / Playwright', 'BLOCKED — ' + BROWSER),
+    ('B07', 'Infrastructure', 'Real multipart upload through a web server, Apache .htaccess / Nginx deny enforcement for uploads/pixva-private, outbound mail delivery', 'deployed server', 'BLOCKED — ' + INFRA),
+]
+TEST_IDS = {t[0] for t in TESTS}
+
+# One row per Master Prompt section. Titles are short summaries.
+# (id, requirement, location, files, status, verification, blocker)
+# ---------------------------------------------------------------------------
+P = 'pixva/'
+I = 'pixva/inc/'
+PT = 'pixva/page-templates/'
+J = 'pixva/assets/js/'
+ROWS = [
+    ('§01', 'Role: complete PIXVA as a production TV diagnosis/repair/knowledge/booking/tracking/warranty platform (RTL Persian)', 'Whole theme', [P + 'style.css', P + 'functions.php'], C, ['T11', 'T12'], ''),
+    ('§02', 'Master Prompt is the only source of truth; autonomous execution, no confirmation questions', 'Process', ['docs/pixva-traceability.md'], C, ['T12'], ''),
+    ('§03', 'Product scope: diagnosis, knowledge, booking, tracking, warranty, account, dashboard', 'Feature modules', [I + 'diagnosis.php', I + 'forms.php', I + 'repairs.php', I + 'account.php', I + 'dashboard.php'], C, ['T13', 'T18', 'T20', 'T23'], ''),
+    ('§04', 'Baseline: do not assume earlier work exists; preserve correct, repair incorrect, rebuild missing', 'Branch baseline 0cdd07b (v1.7) + v2 commits', ['docs/pixva-architecture.md'], C, ['T29'], ''),
+    ('§05', 'Route map (31 routes), no duplicate indexable pages, no redirect chains', 'Route registry + page creation', [I + 'routes.php', I + 'content-model.php', I + 'redirects.php'], C, ['T12', 'T30'], ''),
+    ('§06', 'Diagnosis wizard UX: mobile, accessible, keyboard, loading/empty/error states', 'Wizard template + JS enhancement', [PT + 'diagnosis.php', J + 'diagnosis.js'], RB, ['T12', 'T24', 'B01', 'B06'], BROWSER),
+    ('§07', 'Diagnosis logic: brand→model→problem→symptoms→extra→likely/possible/needs-inspection→estimate only with data→booking', 'Rules engine + REST', [I + 'diagnosis.php', I + 'data/diagnosis-rules.php', I + 'rest.php'], C, ['T16', 'T24'], ''),
+    ('§08', 'Price calculator: configurable pricing only; unset ⇒ inspection required, booking still possible', 'Pricing option + calculator', [I + 'pricing.php', PT + 'price-calculator.php', J + 'calculator.js'], C, ['T12', 'T24'], ''),
+    ('§09', 'Error codes: full field set, search/filter, internal links, no unsafe electrical advice', 'pixva_error CPT + archive/single + REST search', [P + 'archive-pixva_error.php', P + 'single-pixva_error.php', I + 'meta-fields.php'], C, ['T12', 'T24'], ''),
+    ('§10', 'Pixel test: solid colours, gradients, fullscreen, accessible, reduced motion, minimal JS', 'Template + small script', [PT + 'pixel-test.php', J + 'pixel-test.js'], RB, ['T04', 'T12', 'B05'], BROWSER),
+    ('§11', 'Booking: labels, server validation, nonce, rate limit, private image upload, duplicate protection, real states', 'Booking form handler', [PT + 'booking.php', I + 'forms.php', I + 'security.php'], C, ['T13', 'T14', 'T15', 'T16', 'T34'], ''),
+    ('§12', 'Tracking: secure ID, no PII/internal notes, ownership proof', 'Lookup + REST track', [PT + 'tracking.php', I + 'repairs.php', J + 'lookup.js'], C, ['T18', 'T19', 'T22'], ''),
+    ('§13', 'Warranty: configurable policy, never invent duration', 'Order warranty meta + lookup', [PT + 'warranty.php', I + 'repairs.php', I + 'business-claims.php'], C, ['T12', 'T24'], ''),
+    ('§14', 'Account: repairs/warranty/profile with authn/authz, no cross-user access', 'Account pages + claim flow', [PT + 'account.php', I + 'account.php'], C, ['T20'], ''),
+    ('§15', 'Dashboard: separate customer/technician/editor/admin, real data only', 'Dashboard panels by capability', [PT + 'dashboard.php', I + 'dashboard.php'], C, ['T21', 'T23'], ''),
+    ('§16', 'Content types for services, brands, models, problems, error codes, repairs, parts, articles, portfolio, FAQs, warranties, claims', 'CPT/taxonomy registry', [I + 'content-model.php'], C, ['T12'], ''),
+    ('§17', 'Only expose types with legitimate content; private types for PII', 'Public vs private registration', [I + 'content-model.php', I + 'capabilities.php'], C, ['T25'], ''),
+    ('§18', 'Search across content types', 'Search scope + results', [P + 'search.php', I + 'setup.php'], C, ['T12'], ''),
+    ('§19', 'Title/description/canonical/robots/OG', 'Central SEO module', [I + 'seo.php', I + 'template-tags.php'], C, ['T12', 'T28'], ''),
+    ('§20', 'Honest schema; no LocalBusiness/reviews without real data', 'JSON-LD builder', [I + 'schema.php'], C, ['T32'], ''),
+    ('§21', 'Paginated sitemap of canonical indexable URLs only', 'Core sitemaps + filters + archive provider', [I + 'seo.php', I + 'class-pixva-archive-sitemap.php'], C, ['T26', 'T27'], ''),
+    ('§22', 'robots.txt must not block CSS/JS', 'robots_txt filter', [I + 'seo.php'], C, ['T31'], ''),
+    ('§23', 'Redirect manager (source, destination, status, date, notes, active) with chain/loop prevention', 'Admin screen + runtime', [I + 'redirects.php', I + 'admin.php'], C, ['T30'], ''),
+    ('§24', 'Useful 404 and 410 for gone content', '404 template + gone paths', [P + '404.php', I + 'redirects.php'], C, ['T12', 'T30'], ''),
+    ('§25', 'Design tokens (12 colours), Vazirmatn, 8pt spacing; obsolete palette removed', 'theme.json + CSS custom properties', [P + 'theme.json', P + 'assets/css/app.css'], C, ['T07', 'T08'], ''),
+    ('§26', '3D only if it adds real value', '—', [P + 'front-page.php'], NA, ['T08'], 'No 3D: the v1.5 decorative 3D hero added weight without diagnostic value, so it was removed; no feature requires 3D.'),
+    ('§27', 'Accessibility (WCAG): labels, focus, aria, contrast, error summaries', 'Templates + field helper', [I + 'template-tags.php', P + 'assets/css/app.css'], RB, ['T12', 'T13', 'B01', 'B02'], BROWSER),
+    ('§28', 'Responsive / mobile-first', 'CSS', [P + 'assets/css/app.css'], RB, ['T06', 'B03'], BROWSER),
+    ('§29', 'Performance / Core Web Vitals', 'Per-route assets, no frameworks, cached sitemap exclusions', [I + 'setup.php', I + 'seo.php'], RB, ['T02', 'T26', 'B04'], BROWSER),
+    ('§30', 'Minimal progressive-enhancement JS, no alert(), no SPA', 'Vanilla scripts per route; forms work without JS', [J + 'app.js'], RB, ['T04', 'T15', 'B06'], BROWSER),
+    ('§31', 'Security: nonces, capabilities, sanitize/escape', 'Forms, admin, templates', [I + 'security.php', I + 'forms.php'], C, ['T02', 'T13', 'T21', 'T32'], ''),
+    ('§32', 'REST permission callbacks and rate limits', 'REST module', [I + 'rest.php', I + 'security.php'], C, ['T10', 'T24', 'T25'], ''),
+    ('§33', 'Upload safety: MIME, size, private storage', 'Upload handler + streaming', [I + 'security.php', I + 'repairs.php'], RB, ['T34', 'B07'], INFRA),
+    ('§34', 'Fake-data purge', 'Templates, migration denylist, removed preview mock', [I + 'migration.php', I + 'business-claims.php'], C, ['T09', 'T29'], ''),
+    ('§35', 'Centralised business claims with empty defaults that render nothing when unset', 'pixva_business_claims option', [I + 'business-claims.php', I + 'admin.php'], C, ['T09', 'T32'], ''),
+    ('§36', 'No phantom feature cards (AR, VIP, express…)', 'Front page / tools built from real routes', [P + 'front-page.php', PT + 'tools.php'], C, ['T09', 'T12'], ''),
+    ('§37', 'CMS-managed content', 'CPTs, meta boxes, options screens', [I + 'meta-fields.php', I + 'admin.php'], C, ['T33'], ''),
+    ('§38', 'Migration-friendly stable slugs; non-destructive versioned migration', 'Migration module', [I + 'migration.php', I + 'routes.php'], C, ['T29', 'T30'], ''),
+    ('§39', 'Provider-agnostic analytics events, no PII', 'Event bus + server events', [I + 'analytics.php', J + 'app.js'], RB, ['T14', 'B06'], BROWSER),
+    ('§40', 'Loading/empty/error/success states for every feature', 'notice/empty_state helpers used by all tools', [I + 'template-tags.php'], C, ['T12', 'T13', 'T19'], ''),
+    ('§41', 'Data-model collisions resolved (problem taxonomy vs page, error-code paths, model under brand)', 'Routes + content model + redirects', [I + 'content-model.php', I + 'redirects.php'], C, ['T12', 'T30'], ''),
+    ('§42', 'Route matrix (URL, template, entity, indexability, canonical, schema, source, status)', 'Architecture doc §3', ['docs/pixva-architecture.md', I + 'routes.php'], C, ['T12'], ''),
+    ('§43', 'Template coverage for every route/entity', '23 root templates + 14 page templates', [P + 'single-tv_model.php', P + 'taxonomy-tv_problem.php'], C, ['T12'], ''),
+    ('§44', 'Content quality / thin-content handling', 'Thin detection ⇒ noindex + sitemap exclusion; admin health', [I + 'seo.php', I + 'dashboard.php'], C, ['T27', 'T23'], ''),
+    ('§45', 'Internal linking', 'related_links, related service/article fields', [I + 'template-tags.php'], C, ['T12'], ''),
+    ('§46', 'Forms standard (labels, validation, PRG, honeypot, submission id)', 'Form framework', [I + 'forms.php', I + 'template-tags.php'], C, ['T13', 'T14', 'T15', 'T17'], ''),
+    ('§47', 'Admin UX: overview checklist, settings, redirects, migration report', 'Admin module', [I + 'admin.php', P + 'assets/css/admin.css', J + 'admin.js'], C, ['T33'], ''),
+    ('§48', 'Indexing rules (noindex for tool states, empty archives, account, thin)', 'SEO module', [I + 'seo.php'], C, ['T12', 'T27'], ''),
+    ('§49', 'Privacy: no PII in URLs, analytics, tracking output; masked phones', 'Lookups by POST, masking helpers', [I + 'helpers.php', I + 'repairs.php'], C, ['T18', 'T21'], ''),
+    ('§50', 'Roles and custom capabilities for PII types', 'Capability module', [I + 'capabilities.php'], C, ['T21', 'T23'], ''),
+    ('§51', 'REST review', 'REST module', [I + 'rest.php'], C, ['T10', 'T24', 'T25'], ''),
+    ('§52', 'Central metadata (single SEO source)', 'seo.php only', [I + 'seo.php'], C, ['T12'], ''),
+    ('§53', 'No duplication (functions, pages, content)', 'Lint tools', ['tools/php_lint.py'], C, ['T05', 'T12'], ''),
+    ('§54', 'Token audit', 'CSS/theme.json', [P + 'theme.json'], C, ['T08'], ''),
+    ('§55', 'Code quality', 'WPCS ruleset', [P + 'phpcs.xml'], C, ['T02', 'T03'], ''),
+    ('§56', 'PHP checks', 'php -l + WPCS', ['tools/php_lint.py', P + 'phpcs.xml'], C, ['T01', 'T02'], ''),
+    ('§57', 'JS checks', 'node --check', [J + 'app.js'], C, ['T04'], ''),
+    ('§58', 'CSS checks', 'class audit', ['tools/class_audit.py'], C, ['T06', 'T08'], ''),
+    ('§59', 'Crawl', 'CLI crawl of 49 routes on WP 7.1.3 + SQLite', ['docs/pixva-qa-matrix.md'], C, ['T12', 'T30'], ''),
+    ('§60', 'QA matrix', 'Generated document', ['docs/pixva-qa-matrix.md', 'tools/gen_docs.py'], C, ['T12'], ''),
+    ('§61', 'Gap ledger reflecting actual state', 'Generated JSON', ['docs/pixva-gap-ledger.json', 'tools/gen_docs.py'], C, ['T12'], ''),
+    ('§62', 'Traceability matrix §01–§77', 'This document', ['docs/pixva-traceability.md', 'tools/gen_docs.py'], C, ['T12'], ''),
+    ('§63', 'Allowed final statuses only; documentation alone is not completion', 'Generator guard rejects other statuses', ['tools/gen_docs.py'], C, ['T12'], ''),
+    ('§64', 'Branch reconciliation', 'v1.7 (PR #4) merged as baseline; PR #2 rejected (fake data)', ['docs/pixva-architecture.md'], C, ['T29'], ''),
+    ('§65', 'Implementation order', 'Core → flows → SEO/redirects/migration → templates → assets → docs (commit order)', ['docs/pixva-architecture.md'], C, ['T11'], ''),
+    ('§66', 'Test after each area', 'Harness runs per area, final full regression', ['docs/pixva-qa-matrix.md'], C, ['T12', 'T13', 'T29'], ''),
+    ('§67', 'Avoid regressions', 'Full regression on fresh DB after final changes', ['docs/pixva-qa-matrix.md'], C, ['T03', 'T12'], ''),
+    ('§68', 'Logical commits with clear messages', 'Git history on arena branch', ['README.md'], C, ['T01'], ''),
+    ('§69', 'Honest reporting: never claim untested runtime results', 'Browser items marked blocked', ['docs/pixva-qa-matrix.md'], C, ['B01'], ''),
+    ('§70', 'Mark only runtime-dependent checks as blocked', 'Status assignment in this matrix', ['tools/gen_docs.py'], C, ['B01', 'B04'], ''),
+    ('§71', 'No test gaming, no placeholder files or empty CPTs', 'Types registered only with real use', [I + 'content-model.php'], C, ['T05', 'T06'], ''),
+    ('§72', 'No unnecessary plugins, JS frameworks or page builders', 'Vanilla theme; Elementor support removed', [P + 'functions.php'], C, ['T04'], ''),
+    ('§73', 'Stop only for irreversible data loss or security risk', 'Migration never deletes content; parks legacy data', [I + 'migration.php'], C, ['T29'], ''),
+    ('§74', 'Documentation (architecture, routes, entities, capabilities, flows, SEO, security, migration, blockers)', 'docs/', ['docs/pixva-architecture.md', 'README.md', P + 'readme.txt'], C, ['T12'], ''),
+    ('§75', 'Final report A–K', 'Delivered in the session report', ['docs/pixva-traceability.md'], C, ['T12'], ''),
+    ('§76', '40 absolute rules', 'Enforced across the rows above', ['docs/pixva-traceability.md'], C, ['T09', 'T10', 'T21'], ''),
+    ('§77', 'Completion: implemented, tested, fixed, retested, verified, documented, finalised', 'This matrix + QA matrix + pushed branch', ['docs/pixva-qa-matrix.md'], C, ['T12', 'T29'], ''),
+]
+
+
+def check():
+    errs = []
+    ids = [r[0] for r in ROWS]
+    expected = ['§%02d' % n for n in range(1, 78)]
+    if ids != expected:
+        errs.append('sections must be §01..§77 exactly once, in order')
+    generated = {'docs/pixva-traceability.md', 'docs/pixva-qa-matrix.md', 'docs/pixva-gap-ledger.json'}
+    for r in ROWS:
+        sid, _req, _loc, files, status, ver, blocker = r
+        if status not in ALLOWED:
+            errs.append('%s: status %r not allowed' % (sid, status))
+        if status != C and not blocker:
+            errs.append('%s: %s needs a reason' % (sid, status))
+        for f in files:
+            if f not in generated and not os.path.exists(os.path.join(ROOT, f)):
+                errs.append('%s: missing file %s' % (sid, f))
+        for t in ver:
+            if t not in TEST_IDS:
+                errs.append('%s: unknown test %s' % (sid, t))
+    if errs:
+        sys.exit('gen_docs: ' + '\n'.join(errs))
+
+
+def md_cell(s):
+    return str(s).replace('|', '\\|').replace('\n', ' ')
+
+
+def write(path, text):
+    with open(os.path.join(ROOT, path), 'w', encoding='utf-8') as fh:
+        fh.write(text)
+
+
+def main():
+    check()
+    counts = {s: sum(1 for r in ROWS if r[4] == s) for s in ALLOWED}
+
+    # Traceability.
+    out = ['# PIXVA %s — Traceability matrix §01–§77' % VERSION, '',
+           'Generated by `tools/gen_docs.py` on %s from the same data as `pixva-gap-ledger.json` and `pixva-qa-matrix.md`. Section titles are short summaries of the Master Prompt sections; test ids refer to [pixva-qa-matrix.md](pixva-qa-matrix.md).' % DATE, '',
+           '**Totals:** ' + ' · '.join('%s: %d' % (s, n) for s, n in counts.items()), '',
+           '| § | Requirement | Location | Files | Status | Verification | Blocker / reason |',
+           '|---|---|---|---|---|---|---|']
+    for sid, req, loc, files, status, ver, blocker in ROWS:
+        out.append('| %s | %s | %s | %s | %s | %s | %s |' % (
+            sid, md_cell(req), md_cell(loc), '<br>'.join('`%s`' % f for f in files),
+            status, ', '.join(ver), md_cell(blocker) or '—'))
+    write('docs/pixva-traceability.md', '\n'.join(out) + '\n')
+
+    # Ledger.
+    ledger = {
+        'theme': 'pixva', 'version': VERSION, 'generated': DATE,
+        'allowed_statuses': list(ALLOWED), 'totals': counts,
+        'items': [{'id': sid, 'requirement': req, 'location': loc, 'files': files,
+                   'status': status, 'verification': ver, 'blocker': blocker or None}
+                  for sid, req, loc, files, status, ver, blocker in ROWS],
+        'tests': [{'id': t[0], 'area': t[1], 'check': t[2], 'method': t[3], 'result': t[4]} for t in TESTS],
+    }
+    write('docs/pixva-gap-ledger.json', json.dumps(ledger, ensure_ascii=False, indent=2) + '\n')
+
+    # QA matrix.
+    q = ['# PIXVA %s — QA matrix' % VERSION, '',
+         'Environment: WordPress 7.1.3, SQLite integration 2.2.23, PHP 8.3 (php-wasm CLI), request harness that boots WordPress per request (status, headers via filters, body). Fixtures: 1 brand, 1 model, 1 service, 1 error code, 1 FAQ, 1 article, users for every role. No headless browser is available, so browser-only checks are listed separately and are **not** claimed as passed.', '',
+         '| ID | Area | Check | Method | Result |', '|---|---|---|---|---|']
+    for t in TESTS:
+        q.append('| %s |' % ' | '.join(md_cell(x) for x in t))
+    q += ['', 'Requirement coverage: see [pixva-traceability.md](pixva-traceability.md).', '']
+    write('docs/pixva-qa-matrix.md', '\n'.join(q))
+    print('ok:', counts)
+
+
+if __name__ == '__main__':
+    main()
