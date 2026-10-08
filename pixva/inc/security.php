@@ -325,8 +325,12 @@ function pixva_private_dir() {
 	if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
 		return '';
 	}
-	if ( ! file_exists( $dir . '/.htaccess' ) ) {
-		file_put_contents( $dir . '/.htaccess', "Require all denied\nDeny from all\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+	// Apache 2.4 (with or without mod_access_compat) and 2.2. A bare "Deny" line
+	// is a 500 on 2.4 without mod_access_compat, so the 2.0.0 file is replaced.
+	$htaccess = $dir . '/.htaccess';
+	$rules    = "<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tOrder allow,deny\n\tDeny from all\n</IfModule>\n";
+	if ( ! file_exists( $htaccess ) || "Require all denied\nDeny from all\n" === file_get_contents( $htaccess ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+		file_put_contents( $htaccess, $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 	}
 	if ( ! file_exists( $dir . '/index.php' ) ) {
 		file_put_contents( $dir . '/index.php', "<?php\n// Silence.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
