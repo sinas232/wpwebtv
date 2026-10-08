@@ -131,7 +131,14 @@
 			}
 		};
 		toggle.addEventListener('click', function () {
-			setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+			var open = toggle.getAttribute('aria-expanded') !== 'true';
+			setOpen(open);
+			if (open) {
+				var first = nav.querySelector('a[href]');
+				if (first) {
+					first.focus();
+				}
+			}
 		});
 		document.addEventListener('keydown', function (ev) {
 			if (ev.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
