@@ -48,23 +48,45 @@ if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
 }
 
 /**
- * Hide /wp/v2/users from guests (user enumeration).
+ * Restrict /wp/v2/users (user enumeration, §31/§49).
+ *
+ * Only staff who need user lookups in the editor (edit_posts / list_users)
+ * keep the collection and single-user routes. Other logged-in users
+ * (customers, technicians) keep only /wp/v2/users/me, which returns their
+ * own record; guests get none of the routes.
  *
  * @param array $endpoints Endpoints.
  * @return array
  */
 function pixva_restrict_rest_users( $endpoints ) {
-	if ( is_user_logged_in() ) {
+	if ( current_user_can( 'edit_posts' ) || current_user_can( 'list_users' ) ) {
 		return $endpoints;
 	}
 	foreach ( array_keys( $endpoints ) as $route ) {
-		if ( 0 === strpos( $route, '/wp/v2/users' ) ) {
-			unset( $endpoints[ $route ] );
+		if ( 0 !== strpos( $route, '/wp/v2/users' ) ) {
+			continue;
 		}
+		if ( '/wp/v2/users/me' === $route && is_user_logged_in() ) {
+			continue;
+		}
+		unset( $endpoints[ $route ] );
 	}
 	return $endpoints;
 }
 add_filter( 'rest_endpoints', 'pixva_restrict_rest_users' );
+
+/**
+ * Drop the author archive URL (contains the login slug and is a 404 for
+ * the public anyway) from oEmbed responses.
+ *
+ * @param array $data oEmbed data.
+ * @return array
+ */
+function pixva_oembed_no_author_url( $data ) {
+	unset( $data['author_url'] );
+	return $data;
+}
+add_filter( 'oembed_response_data', 'pixva_oembed_no_author_url' );
 
 /**
  * Author archives are not part of the IA (§05) and leak usernames: 404 them
@@ -113,6 +135,15 @@ add_action( 'send_headers', 'pixva_send_security_headers' );
  */
 function pixva_client_key() {
 	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
+	/**
+	 * Client IP used for rate limiting. Defaults to REMOTE_ADDR, which cannot
+	 * be spoofed with request headers. Behind a reverse proxy/CDN, configure
+	 * the web server to restore the real IP (nginx real_ip, Apache remoteip)
+	 * or filter this value using the proxy's trusted header.
+	 *
+	 * @param string $ip REMOTE_ADDR.
+	 */
+	$ip = (string) apply_filters( 'pixva_client_ip', $ip );
 	return substr( hash_hmac( 'sha256', $ip, wp_salt( 'nonce' ) ), 0, 32 );
 }
 
