@@ -1432,3 +1432,32 @@ function pixva_front_lead() {
 	}
 	return __( 'ایراد تلویزیون را آنلاین بررسی کنید، علت‌های محتمل و بررسی‌های ایمن را ببینید، و در صورت نیاز درخواست تعمیر ثبت و وضعیت آن را پیگیری کنید.', 'pixva' );
 }
+
+/**
+ * Latest published posts of a post type, for template loops.
+ *
+ * Returns real CMS content only; an empty array means the template must
+ * render its own empty state (no placeholder content is ever generated).
+ *
+ * @param string $post_type Post type slug (e.g. tv_services, tv_brands, post).
+ * @param int    $limit     Maximum number of posts.
+ * @return WP_Post[]
+ */
+function pixva_posts( $post_type, $limit = 6 ) {
+	if ( ! post_type_exists( $post_type ) ) {
+		return array();
+	}
+	$query = new WP_Query(
+		array(
+			'post_type'              => $post_type,
+			'post_status'            => 'publish',
+			'posts_per_page'         => max( 1, (int) $limit ),
+			'orderby'                => 'menu_order date',
+			'order'                  => 'ASC',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		)
+	);
+	return $query->posts;
+}

@@ -49,10 +49,8 @@ $pixva_case_labels = static function ( $case ) {
 				<p class="eyebrow"><?php esc_html_e( 'پلتفرم تشخیص و تعمیر تلویزیون', 'pixva' ); ?></p>
 				<h1 class="hero__title" id="hero-title">
 					<?php
-					$pixva_h1 = get_the_title();
-					if ( '' === $pixva_h1 ) {
-						$pixva_h1 = __( 'تشخیص و تعمیر تلویزیون، شفاف و قابل پیگیری', 'pixva' );
-					}
+					/* The page title ("خانه") is a navigation label, not a headline. */
+					$pixva_h1 = apply_filters( 'pixva_front_h1', __( 'تشخیص و تعمیر تلویزیون، شفاف و قابل پیگیری', 'pixva' ) );
 					echo wp_kses( nl2br( esc_html( $pixva_h1 ) ), array( 'br' => array() ) );
 					?>
 				</h1>
