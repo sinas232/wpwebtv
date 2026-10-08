@@ -33,7 +33,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_rest_limit( $bucket, $max ) {
 	return static function () use ( $bucket, $max ) {
-		if ( ! pixva_rate_limit( 'rest_' . $bucket, $max, 10 * MINUTE_IN_SECONDS ) ) {
+		// Core calls permission callbacks a second time while building the
+		// Allow header (rest_send_allow_header); count each request once.
+		static $allowed = array();
+		if ( ! isset( $allowed[ $bucket ] ) ) {
+			$allowed[ $bucket ] = pixva_rate_limit( 'rest_' . $bucket, $max, 10 * MINUTE_IN_SECONDS );
+		}
+		if ( ! $allowed[ $bucket ] ) {
 			return new WP_Error( 'pixva_rate_limited', __( 'تعداد درخواست‌ها زیاد است. چند دقیقه دیگر دوباره تلاش کنید.', 'pixva' ), array( 'status' => 429 ) );
 		}
 		return true;
