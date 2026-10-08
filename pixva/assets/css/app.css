@@ -429,6 +429,8 @@
 
 .hero__grid {
 	display: grid;
+	/* minmax(0, …): the quick-diagnosis <select> must not widen the track past a 360px screen. */
+	grid-template-columns: minmax(0, 1fr);
 	gap: var(--s-6);
 	align-items: center;
 }
@@ -471,6 +473,8 @@
 .input-group select,
 .input-group input {
 	flex: 1 1 220px;
+	min-width: 0;
+	max-width: 100%;
 	min-height: 48px;
 	padding-inline: var(--s-2);
 	border: 0;

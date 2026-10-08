@@ -359,3 +359,44 @@ function pixva_maybe_flush_rewrites() {
 	}
 }
 add_action( 'init', 'pixva_maybe_flush_rewrites', 99 );
+
+/**
+ * Whether the current request renders the Persian-only front end.
+ *
+ * @return bool
+ */
+function pixva_is_front_request() {
+	return ! is_admin() && ! in_array( $GLOBALS['pagenow'] ?? '', array( 'wp-login.php', 'wp-register.php' ), true );
+}
+
+/**
+ * The PIXVA front end is Persian-only (all UI strings, schema inLanguage and
+ * og:locale are fa-IR), but core only sets dir="rtl" when the fa_IR core
+ * translation is installed — which often cannot be downloaded. Without this
+ * the whole UI renders left-to-right and screen readers announce Persian as
+ * English (WCAG 3.1.1). Admin and login keep the site's own locale.
+ *
+ * @return void
+ */
+function pixva_front_text_direction() {
+	global $wp_locale;
+	if ( pixva_is_front_request() && $wp_locale instanceof WP_Locale ) {
+		$wp_locale->text_direction = 'rtl';
+	}
+}
+add_action( 'after_setup_theme', 'pixva_front_text_direction', 0 );
+
+/**
+ * Document language for the Persian-only front end.
+ *
+ * @param string $output lang/dir attributes.
+ * @return string
+ */
+function pixva_language_attributes( $output ) {
+	if ( ! pixva_is_front_request() || 0 === strpos( determine_locale(), 'fa' ) ) {
+		return $output;
+	}
+	$output = preg_replace( '/\blang="[^"]*"/', 'lang="fa-IR"', $output );
+	return false === strpos( $output, 'dir=' ) ? $output . ' dir="rtl"' : $output;
+}
+add_filter( 'language_attributes', 'pixva_language_attributes' );
