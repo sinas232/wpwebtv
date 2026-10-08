@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /*
  * نسخه قالب برای cache-busting (بر اساس زمان اصلاح پرونده اصلی).
  */
-define( 'PIXVA_VERSION', '1.2.0' );
+define( 'PIXVA_VERSION', '1.7.0' );
 define( 'PIXVA_DIR', get_template_directory() );
 define( 'PIXVA_URI', get_template_directory_uri() );
 
@@ -38,6 +38,7 @@ require_once PIXVA_DIR . '/inc/schema-markup.php';
 require_once PIXVA_DIR . '/inc/template-tags.php';
 require_once PIXVA_DIR . '/inc/setup.php';
 require_once PIXVA_DIR . '/inc/activation.php';
+require_once PIXVA_DIR . '/inc/platform.php';
 
 /*
  * ---------------------------------------------------------------------------
@@ -128,10 +129,43 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 
 		wp_enqueue_style( 'pixva-main', PIXVA_URI . '/assets/css/main.css', array( 'pixva-style' ), PIXVA_VERSION );
 
-		// سبک کامپوننت‌ها تنها در صفحاتی که به آن نیاز دارند بارگذاری می‌شود.
-		if ( pixva_needs_components_css() ) {
-			wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
+		// چت‌بات در فوتر همه صفحات است؛ استایلش نباید شرطی بماند.
+		wp_enqueue_style( 'pixva-components', PIXVA_URI . '/assets/css/components.css', array( 'pixva-main' ), PIXVA_VERSION );
+		wp_enqueue_style( 'pixva-layout', PIXVA_URI . '/assets/css/layout.css', array( 'pixva-components' ), PIXVA_VERSION );
+
+		if ( is_front_page() ) {
+			wp_enqueue_script(
+				'pixva-tv',
+				PIXVA_URI . '/assets/js/tv-scene.js',
+				array(),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
+			wp_enqueue_script(
+				'pixva-tools-ui',
+				PIXVA_URI . '/assets/js/tools-ui.js',
+				array(),
+				PIXVA_VERSION,
+				array(
+					'in_footer' => true,
+					'strategy'  => 'defer',
+				)
+			);
 		}
+
+		wp_enqueue_script(
+			'pixva-platform',
+			PIXVA_URI . '/assets/js/platform.js',
+			array( 'pixva-main' ),
+			PIXVA_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
 
 		wp_enqueue_script(
 			'pixva-main',
@@ -155,6 +189,8 @@ if ( ! function_exists( 'pixva_assets' ) ) {
 					'tracking'   => wp_create_nonce( 'pixva_tracking_nonce' ),
 					'contact'    => wp_create_nonce( 'pixva_contact_nonce' ),
 				),
+				'repairUrl' => pixva_page_url( 'repair' ),
+				'phone'     => preg_replace( '/\D+/', '', pixva_support_phone() ),
 				'i18n'    => array(
 					'loading'   => esc_html__( 'در حال پردازش…', 'pixva' ),
 					'error'     => esc_html__( 'خطایی رخ داد؛ دوباره تلاش کنید.', 'pixva' ),

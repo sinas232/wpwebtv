@@ -19,19 +19,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pixva_home_sections() {
 	return array(
-		'hero'         => esc_html__( 'هیرو (بنر اصلی و استعلام سریع)', 'pixva' ),
-		'tv_simulator' => esc_html__( 'شبیه‌ساز لمسی تلویزیون مجازی (ابزار ۵)', 'pixva' ),
-		'screen_tester'=> esc_html__( 'تستر پیکسل‌سوختگی RGB و احیای OLED (ابزار ۶ و ۷)', 'pixva' ),
-		'services'     => esc_html__( 'خدمات تخصصی کارگاه', 'pixva' ),
-		'before_after' => esc_html__( 'اسلایدر قبل/بعد صحنه واحد (ابزار ۹)', 'pixva' ),
-		'dispatch_hub' => esc_html__( 'هاب اعزام اورژانسی و پیگیری سفارش', 'pixva' ),
-		'process'      => esc_html__( 'مسیر پذیرش تا تحویل', 'pixva' ),
-		'brands'       => esc_html__( 'برندها و ضرایب', 'pixva' ),
-		'errors'       => esc_html__( 'کدهای خطا و چشمک پاور', 'pixva' ),
-		'testimonials' => esc_html__( 'نظرات مشتریان', 'pixva' ),
-		'faq'          => esc_html__( 'سوالات متداول', 'pixva' ),
-		'blog'         => esc_html__( 'مجله تخصصی', 'pixva' ),
+		'hero'          => esc_html__( 'هیرو', 'pixva' ),
+		'problems'      => esc_html__( 'یابنده مشکل', 'pixva' ),
+		'brands'        => esc_html__( 'برندها', 'pixva' ),
+		'services'      => esc_html__( 'خدمات', 'pixva' ),
+		'tools'         => esc_html__( 'تشخیص، برآورد، تستر، پیگیری', 'pixva' ),
+		'before_after'  => esc_html__( 'نمونه قبل و بعد', 'pixva' ),
+		'process'       => esc_html__( 'فرآیند کار', 'pixva' ),
+		'why'           => esc_html__( 'چرا پیکسوا', 'pixva' ),
+		'testimonials'  => esc_html__( 'نظرات مشتریان', 'pixva' ),
+		'portfolio'     => esc_html__( 'نمونه‌کار', 'pixva' ),
+		'faq'           => esc_html__( 'سوالات متداول', 'pixva' ),
+		'blog'          => esc_html__( 'مجله', 'pixva' ),
+		'calculator'    => esc_html__( 'برآورد جدا (اگر ابزارها خاموش باشد)', 'pixva' ),
+		'errors'        => esc_html__( 'کد خطا جدا', 'pixva' ),
+		'tv_simulator'  => esc_html__( 'شبیه‌ساز جدا', 'pixva' ),
+		'screen_tester' => esc_html__( 'تستر جدا', 'pixva' ),
+		'dispatch_hub'  => esc_html__( 'هاب اعزام جدا', 'pixva' ),
 	);
+}
+
+/**
+ * ابزارهای تکراری پیش‌فرض خاموش‌اند؛ نسخه تمیزشان داخل سکشن tools است.
+ *
+ * @param string $key کلید سکشن.
+ * @return bool
+ */
+function pixva_section_is_default_on( $key ) {
+	return ! in_array( $key, array( 'calculator', 'errors', 'tv_simulator', 'screen_tester', 'dispatch_hub' ), true );
 }
 
 /**
@@ -162,7 +177,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_header_cta_text',
 		array(
-			'default'           => 'درخواست مشاوره رایگان',
+			'default'           => 'درخواست تعمیر',
 			'sanitize_callback' => 'sanitize_text_field',
 			'transport'         => 'postMessage',
 		)
@@ -179,7 +194,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_header_cta_url',
 		array(
-			'default'           => '/contact/',
+			'default'           => '/repair/',
 			'sanitize_callback' => 'esc_url_raw',
 		)
 	);
@@ -408,7 +423,7 @@ function pixva_customize_register( $wp_customize ) {
 		$wp_customize->add_setting(
 			'pixva_section_' . $key,
 			array(
-				'default'           => true,
+				'default'           => pixva_section_is_default_on( $key ),
 				'sanitize_callback' => 'pixva_sanitize_checkbox',
 			)
 		);
@@ -434,7 +449,7 @@ function pixva_customize_register( $wp_customize ) {
 		'pixva_sections_order',
 		array(
 			'label'       => esc_html__( 'ترتیب سکشن‌ها (با ویرگول جدا کنید)', 'pixva' ),
-			'description' => esc_html__( 'کلیدهای مجاز: hero, calculator, services, process, before_after, brands, errors, testimonials, faq, blog', 'pixva' ),
+			'description' => esc_html__( 'کلیدهای مجاز: hero, problems, services, before_after, process, testimonials, tools, faq, brands, blog', 'pixva' ),
 			'section'     => 'pixva_homepage',
 			'type'        => 'text',
 		)
@@ -443,7 +458,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_title',
 		array(
-			'default'           => 'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی',
+			'default'           => 'تلویزیونت خراب شده؟ تخصصی تعمیرش می‌کنیم.',
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -459,7 +474,7 @@ function pixva_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'pixva_hero_subtitle',
 		array(
-			'default'           => 'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.',
+			'default'           => 'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.',
 			'sanitize_callback' => 'sanitize_textarea_field',
 		)
 	);
@@ -497,6 +512,59 @@ function pixva_option( $key, $default = '' ) {
 }
 
 /**
+ * یک‌بار چیدمان صفحه اصلی را به روایت کارگاه برمی‌گرداند.
+ * انتخاب بعدی سفارشی‌ساز دست نمی‌خورد.
+ *
+ * @return void
+ */
+function pixva_migrate_home_ia() {
+	if ( '1.7.0' === get_option( 'pixva_ia_version' ) ) {
+		return;
+	}
+
+	set_theme_mod( 'pixva_sections_order', pixva_default_section_order() );
+	foreach ( array( 'calculator', 'errors', 'tv_simulator', 'screen_tester', 'dispatch_hub' ) as $key ) {
+		set_theme_mod( 'pixva_section_' . $key, false );
+	}
+	set_theme_mod( 'pixva_section_tools', true );
+	set_theme_mod( 'pixva_section_problems', true );
+
+	$old_titles = array(
+		'',
+		'تعمیر تخصصی تلویزیون و نمایشگر، با گارانتی کتبی',
+		'تعمیر تلویزیون، بدون تعویض بی‌دلیل پنل',
+	);
+	$title = (string) get_theme_mod( 'pixva_hero_title', '' );
+	if ( in_array( $title, $old_titles, true ) ) {
+		set_theme_mod( 'pixva_hero_title', 'تلویزیونت خراب شده؟ تخصصی تعمیرش می‌کنیم.' );
+	}
+
+	$old_leads = array(
+		'',
+		'مرکز تخصصی پیکسوا با تجهیز کارگاهی پیشرفته، تعمیر پنل، بک‌لایت و بردهای OLED، QLED و LED را با قطعات فابریک و ضمانت کتبی ۶ ماهه انجام می‌دهد.',
+		'مرکز تخصصی پیکسوا با تجهیز کارگاهی کامل، تعمیر پنل، بک‌لایت و بردهای تلویزیون‌های OLED، QLED و LED را در محل یا کارگاه انجام می‌دهد.',
+		'قاب را باز می‌کنیم، مسیر ارزان‌تر را اول امتحان می‌کنیم، و هزینه را قبل از تعویض قطعه می‌نویسیم. گارانتی کتبی ۱۸۰ روز است.',
+		'هزینه را قبل از باز کردن دستگاه می‌بینید. گارانتی کتبی ۱۸۰ روز است و پیک، دستگاه را در تهران می‌آورد.',
+	);
+	$lead = (string) get_theme_mod( 'pixva_hero_subtitle', '' );
+	if ( in_array( $lead, $old_leads, true ) ) {
+		set_theme_mod( 'pixva_hero_subtitle', 'تشخیص دقیق، تعمیر تخصصی و گارانتی کتبی برای انواع تلویزیون. هزینه نهایی بعد از بررسی دستگاه نوشته می‌شود.' );
+	}
+
+	$cta = (string) get_theme_mod( 'pixva_header_cta_text', '' );
+	if ( '' === $cta || in_array( $cta, array( 'درخواست مشاوره رایگان', 'برآورد هزینه' ), true ) ) {
+		set_theme_mod( 'pixva_header_cta_text', 'درخواست تعمیر' );
+	}
+	$cta_url = (string) get_theme_mod( 'pixva_header_cta_url', '' );
+	if ( '' === $cta_url || in_array( $cta_url, array( '/contact/', '/calculator/' ), true ) ) {
+		set_theme_mod( 'pixva_header_cta_url', '/repair/' );
+	}
+
+	update_option( 'pixva_ia_version', '1.7.0', false );
+}
+add_action( 'after_setup_theme', 'pixva_migrate_home_ia', 20 );
+
+/**
  * فهرست نهایی سکشن‌های فعال صفحه اصلی به‌ترتیب کاربر.
  *
  * @return array<string>
@@ -508,7 +576,7 @@ function pixva_active_home_sections() {
 	$keys  = array_filter(
 		$keys,
 		static function ( $key ) {
-			return (bool) pixva_option( 'pixva_section_' . $key, true );
+			return (bool) pixva_option( 'pixva_section_' . $key, pixva_section_is_default_on( $key ) );
 		}
 	);
 	return array_values( $keys );

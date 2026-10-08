@@ -25,29 +25,34 @@ if ( ! function_exists( 'pixva_render_ai_chatbot_widget' ) ) {
 	 * @return void
 	 */
 	function pixva_render_ai_chatbot_widget() {
+		static $pixva_ai_printed = false;
+		if ( $pixva_ai_printed ) {
+			return;
+		}
 		$opts = function_exists( 'pixva_control_options' ) ? pixva_control_options() : array();
 		if ( empty( $opts['ai_enable_floating'] ) ) {
 			return;
 		}
+		$pixva_ai_printed = true;
 		?>
 		<div class="pixva-ai-widget" data-pixva-ai-bot>
-			<button type="button" class="pixva-ai-trigger" aria-label="<?php esc_attr_e( 'دستیار هوش مصنوعی عیب‌یابی پیکسوا', 'pixva' ); ?>" data-ai-toggle>
+			<button type="button" class="pixva-ai-trigger" aria-expanded="false" aria-label="<?php esc_attr_e( 'باز کردن تشخیص کارگاه', 'pixva' ); ?>" data-ai-toggle>
 				<span class="pixva-ai-trigger__pulse"></span>
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4.93 4.93a2 2 0 0 1 2.83 0l1.41 1.41a2 2 0 0 1-2.83 2.83L4.93 7.76a2 2 0 0 1 0-2.83zM2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2H4v-2z"/></svg>
-				<span class="pixva-ai-trigger__badge"><?php esc_html_e( 'عیب‌یابی AI', 'pixva' ); ?></span>
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 3.5V15H7.5A2.5 2.5 0 0 1 5 12.5z"/></svg>
+						<span class="pixva-ai-trigger__badge"><?php esc_html_e( 'تشخیص', 'pixva' ); ?></span>
 			</button>
 
 			<div class="pixva-ai-panel" data-ai-panel hidden>
 				<header class="pixva-ai-header">
 					<div>
-						<span class="pixva-badge pixva-badge--pulse"><?php esc_html_e( 'هوش مصنوعی چندگانه', 'pixva' ); ?></span>
-						<h4><?php esc_html_e( 'دستیار عیب‌یاب هوشمند پیکسوا', 'pixva' ); ?></h4>
+						<span class="pixva-badge"><?php esc_html_e( 'تشخیص کارگاه', 'pixva' ); ?></span>
+						<h4><?php esc_html_e( 'بپرسید، قبل از آوردن دستگاه', 'pixva' ); ?></h4>
 					</div>
 					<button type="button" class="pixva-ai-close" data-ai-close aria-label="<?php esc_attr_e( 'بستن', 'pixva' ); ?>">✕</button>
 				</header>
 				<div class="pixva-ai-messages" data-ai-messages>
 					<div class="pixva-ai-msg pixva-ai-msg--bot">
-						<p><?php esc_html_e( 'سلام! برند تلویزیون و شرح خرابی دستگاه (مثلاً: صدا هست ولی تصویر سیاه است، یا آب‌خوردگی پنل) را بنویسید تا بلافاصله عیب‌یابی و برآورد هزینه شود.', 'pixva' ); ?></p>
+							<p><?php esc_html_e( 'برند و علامت را بنویسید. مثلاً تصویر هست و صدا نیست، یا چراغ پاور چشمک می‌زند.', 'pixva' ); ?></p>
 					</div>
 				</div>
 				<form class="pixva-ai-input-form" data-ai-form>

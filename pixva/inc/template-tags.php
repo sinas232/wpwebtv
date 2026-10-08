@@ -296,24 +296,8 @@ function pixva_default_faqs() {
  * @return array<int, array<string, string>>
  */
 function pixva_testimonials() {
-	$items = array(
-		array(
-			'quote' => __( 'خطوط عمودی ۵۵ اینچ سامسونگ را بدون تعویض پنل بستند. عصر همان روز تصویر یکدست شد و برگه گارانتی هم دادند.', 'pixva' ),
-			'name'  => __( 'مهدی ر.', 'pixva' ),
-			'role'  => __( 'تعمیر پنل، تهران', 'pixva' ),
-		),
-		array(
-			'quote' => __( 'چراغ پاور ال‌جی سه بار چشمک می‌زد. برد تغذیه تعمیر شد، نه تعویض کامل. هزینه از برآورد سایت کمتر درآمد.', 'pixva' ),
-			'name'  => __( 'سارا ک.', 'pixva' ),
-			'role'  => __( 'برد پاور، کرج', 'pixva' ),
-		),
-		array(
-			'quote' => __( 'پیگیری آنلاین واقعاً کار می‌کرد. از مرحله تأمین قطعه تا آماده تحویل را با همان کد پیامکی دیدم.', 'pixva' ),
-			'name'  => __( 'حمید ن.', 'pixva' ),
-			'role'  => __( 'تعویض بک‌لایت، تهران', 'pixva' ),
-		),
-	);
-	return apply_filters( 'pixva_testimonials', $items );
+	// نظر واقعی فقط از فیلتر یا محتوای منتشرشده می‌آید. نقل‌قول ساختگی نشان داده نمی‌شود.
+	return apply_filters( 'pixva_testimonials', array() );
 }
 
 /**
@@ -484,6 +468,7 @@ function pixva_icon( $name ) {
 		'cert'     => '<circle cx="12" cy="10" r="5"/><path d="M9 14.5L8 20l4-2 4 2-1-5.5"/>',
 		'user'     => '<circle cx="12" cy="8" r="3"/><path d="M5 19c1.4-3 3.8-4.5 7-4.5S17.6 16 19 19"/>',
 		'book'     => '<path d="M5 5.5A3.5 3.5 0 0 1 8.5 4H20v15H8.5A3.5 3.5 0 0 0 5 22.5z"/><path d="M5 5.5V22"/>',
+		'chat'     => '<path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 3.5V15H7.5A2.5 2.5 0 0 1 5 12.5z"/>',
 	);
 
 	if ( ! isset( $paths[ $name ] ) ) {
@@ -663,12 +648,10 @@ function pixva_fallback_menu() {
 		home_url( '/' )                             => __( 'خانه', 'pixva' ),
 		get_post_type_archive_link( 'tv_services' ) => __( 'خدمات', 'pixva' ),
 		get_post_type_archive_link( 'tv_brands' )   => __( 'برندها', 'pixva' ),
-		pixva_page_url( 'calculator' )              => __( 'محاسبه هزینه', 'pixva' ),
-		pixva_page_url( 'rates' )                   => __( 'نرخ‌نامه', 'pixva' ),
-		pixva_page_url( 'tracking' )                => __( 'پیگیری تعمیر', 'pixva' ),
-		pixva_page_url( 'error-codes' )             => __( 'کدهای خطا', 'pixva' ),
-		pixva_blog_url()                            => __( 'مجله', 'pixva' ),
-		pixva_page_url( 'contact' )                 => __( 'تماس', 'pixva' ),
+		pixva_page_url( 'problems' )                => __( 'مشکلات', 'pixva' ),
+		pixva_page_url( 'diagnosis' )               => __( 'ابزارها', 'pixva' ),
+		get_post_type_archive_link( 'repair_cases' ) => __( 'نمونه‌کارها', 'pixva' ),
+		pixva_blog_url()                            => __( 'مقالات', 'pixva' ),
 	);
 	echo '<nav class="pixva-nav" aria-label="' . esc_attr__( 'منوی اصلی', 'pixva' ) . '"><ul class="pixva-nav__list">';
 	foreach ( $items as $url => $label ) {

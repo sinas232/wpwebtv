@@ -13,41 +13,76 @@
 
 	// ۱) چت‌بات هوش مصنوعی شناور پیکسوا
 	const initAIBot = () => {
-		const widget = document.querySelector('[data-pixva-ai-bot]');
-		if (!widget) return;
+		const widgets = document.querySelectorAll('[data-pixva-ai-bot]');
+		if (!widgets.length) return;
 
-		const toggleBtn = widget.querySelector('[data-ai-toggle]');
-		const panel = widget.querySelector('[data-ai-panel]');
-		const closeBtn = widget.querySelector('[data-ai-close]');
-		const form = widget.querySelector('[data-ai-form]');
-		const input = widget.querySelector('[data-ai-input]');
-		const brandSelect = widget.querySelector('[data-ai-brand]');
-		const messages = widget.querySelector('[data-ai-messages]');
-
-		const toggle = () => {
-			const isHidden = panel.hidden;
-			panel.hidden = !isHidden;
-			if (panel.hidden) {
+		const setOpen = (widget, open, shouldFocus) => {
+			const panel = widget.querySelector('[data-ai-panel]');
+			const toggleBtn = widget.querySelector('[data-ai-toggle]');
+			const input = widget.querySelector('[data-ai-input]');
+			if (!panel) return;
+			panel.hidden = !open;
+			panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+			widget.classList.toggle('is-open', open);
+			if (toggleBtn) {
+				toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+			}
+			if (shouldFocus && !open && toggleBtn && toggleBtn.offsetParent !== null) {
 				toggleBtn.focus();
-			} else if (input) {
+			} else if (open && input) {
 				input.focus();
 			}
 		};
 
-		if (toggleBtn) toggleBtn.addEventListener('click', toggle);
-		if (closeBtn) closeBtn.addEventListener('click', toggle);
+		widgets.forEach((widget) => setOpen(widget, false, false));
 
-		const appendMsg = (text, sender = 'bot') => {
-			const div = document.createElement('div');
-			div.className = `pixva-ai-msg pixva-ai-msg--${sender}`;
-			const p = document.createElement('p');
-			p.innerText = text;
-			div.appendChild(p);
-			messages.appendChild(div);
-			messages.scrollTop = messages.scrollHeight;
-		};
+		document.addEventListener('click', (event) => {
+			const closer = event.target.closest('[data-ai-close]');
+			if (closer) {
+				event.preventDefault();
+				event.stopPropagation();
+				setOpen(closer.closest('[data-pixva-ai-bot]') || widgets[0], false, true);
+				return;
+			}
+			const opener = event.target.closest('[data-ai-toggle]');
+			if (!opener) {
+				return;
+			}
+			event.preventDefault();
+			const host = opener.closest('[data-pixva-ai-bot]') || widgets[0];
+			const panel = host.querySelector('[data-ai-panel]');
+			const next = panel ? panel.hidden : true;
+			widgets.forEach((other) => {
+				if (other !== host) setOpen(other, false, false);
+			});
+			setOpen(host, next, false);
+		});
 
-		if (form) {
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape') return;
+			widgets.forEach((widget) => {
+				const panel = widget.querySelector('[data-ai-panel]');
+				if (panel && !panel.hidden) setOpen(widget, false, true);
+			});
+		});
+
+		widgets.forEach((widget) => {
+			const form = widget.querySelector('[data-ai-form]');
+			const input = widget.querySelector('[data-ai-input]');
+			const brandSelect = widget.querySelector('[data-ai-brand]');
+			const messages = widget.querySelector('[data-ai-messages]');
+			if (!form || !messages) return;
+
+			const appendMsg = (text, sender = 'bot') => {
+				const div = document.createElement('div');
+				div.className = `pixva-ai-msg pixva-ai-msg--${sender}`;
+				const p = document.createElement('p');
+				p.innerText = text;
+				div.appendChild(p);
+				messages.appendChild(div);
+				messages.scrollTop = messages.scrollHeight;
+			};
+
 			form.addEventListener('submit', (e) => {
 				e.preventDefault();
 				const msg = (input ? input.value : '').trim();
@@ -57,7 +92,7 @@
 				appendMsg(msg, 'user');
 				input.value = '';
 
-				appendMsg('⏳ در حال بررسی علائم خرابی و آنالیز مهندسی...', 'bot');
+				appendMsg('در حال تطبیق علامت با پرونده‌های کارگاه...', 'bot');
 				const loadingMsg = messages.lastElementChild;
 
 				const data = new FormData();
@@ -81,7 +116,7 @@
 							appendMsg(res.data.reply, 'bot');
 						} else {
 							appendMsg(
-								'علائم به واحد فنی کارگاه ارجاع شد. برای تسریع می‌توانید با شماره ۰۲۱۹۱۰۰۹۹۹۰ تماس بگیرید.',
+								'علامت ثبت شد. برای نوبت کارگاه با شماره ۰۲۱۹۱۰۰۹۹۹۰ تماس بگیرید.',
 								'bot'
 							);
 						}
@@ -91,12 +126,12 @@
 							loadingMsg.remove();
 						}
 						appendMsg(
-							'خرابی محتمل در بخش تغذیه یا بک‌لایت گزارش شده است. جهت بررسی حضوری با تلفن کارگاه علاءالدین تماس بگیرید.',
+							'اتصال برقرار نشد. علامت را برای کارگاه علاءالدین بفرستید یا تلفنی بگویید.',
 							'bot'
 						);
 					});
 			});
-		}
+		});
 	};
 
 	// ۲) شبیه‌ساز لمسی تلویزیون مجازی

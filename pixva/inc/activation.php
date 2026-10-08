@@ -175,6 +175,12 @@ if ( ! function_exists( 'pixva_page_definitions' ) ) {
 			'error-codes' => array( 'کدهای خطا و چشمک چراغ', 'page-templates/page-error-codes.php' ),
 			'about'       => array( 'درباره پیکسوا', 'page-templates/page-about.php' ),
 			'contact'     => array( 'تماس با ما', 'page-templates/page-contact.php' ),
+			'repair'      => array( 'درخواست تعمیر', 'page-templates/page-repair.php' ),
+			'diagnosis'   => array( 'تشخیص مشکل', 'page-templates/page-diagnosis.php' ),
+			'warranty'    => array( 'گارانتی تعمیر', 'page-templates/page-warranty.php' ),
+			'account'     => array( 'حساب من', 'page-templates/page-account.php' ),
+			'technician'  => array( 'میز تکنسین', 'page-templates/page-technician.php' ),
+			'problems'    => array( 'مشکلات تلویزیون', 'page-templates/page-problems.php' ),
 			'faq'         => array( 'سوالات متداول', 'page-templates/page-faq.php' ),
 			'rates'       => array( 'نرخ‌نامه و تعرفه‌ها', 'page-templates/page-rates.php' ),
 			'b2b'         => array( 'خدمات سازمانی و B2B', 'page-templates/page-b2b.php' ),
@@ -374,6 +380,8 @@ function pixva_install_terms() {
  * @return void
  */
 function pixva_install_demo_order() {
+	// پرونده نمونه ساخته نمی‌شود. پیگیری فقط با پرونده واقعی کار می‌کند.
+	return;
 	$existing = function_exists( 'pixva_find_order_by_code' )
 		? pixva_find_order_by_code( 'PXV-DEMO-2401' )
 		: null;
@@ -465,6 +473,8 @@ function pixva_maybe_upgrade() {
 		}
 	}
 
+	pixva_install_pages();
+	flush_rewrite_rules( false );
 	update_option( 'pixva_theme_version', PIXVA_VERSION );
 }
 add_action( 'init', 'pixva_maybe_upgrade', 5 );

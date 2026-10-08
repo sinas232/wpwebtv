@@ -10,8 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $pixva_phone = pixva_support_phone();
-$pixva_cta   = (string) pixva_option( 'pixva_header_cta_text', __( 'درخواست مشاوره رایگان', 'pixva' ) );
-$pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
+$pixva_cta   = (string) pixva_option( 'pixva_header_cta_text', __( 'درخواست تعمیر', 'pixva' ) );
+$pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', pixva_page_url( 'repair' ) );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -63,7 +63,7 @@ $pixva_cta_u = (string) pixva_option( 'pixva_header_cta_url', '/contact/' );
 				<?php echo pixva_icon( 'phone' ); ?>
 				<span data-phone-text><?php echo esc_html( pixva_fa_num( $pixva_phone ) ); ?></span>
 			</a>
-			<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-btn--bolt pixva-header-cta" href="<?php echo esc_url( $pixva_cta_u ); ?>"><?php echo esc_html( $pixva_cta ); ?></a>
+			<a class="pixva-btn pixva-btn--cta pixva-btn--sm pixva-header-cta" href="<?php echo esc_url( $pixva_cta_u ); ?>"><?php echo esc_html( $pixva_cta ); ?></a>
 			<button type="button" class="pixva-burger" data-pixva-burger aria-expanded="false" aria-controls="pixva-drawer" aria-label="<?php esc_attr_e( 'باز کردن منو', 'pixva' ); ?>">
 				<?php echo pixva_icon( 'menu' ); ?>
 			</button>
