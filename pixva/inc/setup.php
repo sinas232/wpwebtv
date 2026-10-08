@@ -1,14 +1,13 @@
 <?php
 /**
- * محتوای نمونه و کمک‌های زمان اجرای قالب پیکسوا
+ * Theme setup, assets and install routine (§27–§30, §64).
  *
- * منطق فعال‌سازی (after_switch_theme، برگه‌ها، داده دمو و تنظیمات کارگاه)
- * در inc/activation.php است. این پرونده محتوای نمونه را می‌سازد و چند
- * اصلاحیه زمان اجرا را نگه می‌دارد. محتوای واقعی کاربر در فعال‌سازی‌های
- * بعدی دست نمی‌خورد.
+ * Assets: one stylesheet pair (style.css tokens/base + app.css components)
+ * and one small core script (app.js). Feature scripts are loaded only on
+ * the routes that need them, deferred, no jQuery, no frameworks.
  *
  * @package Pixva
- * @since   1.0.0
+ * @since   2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,278 +15,347 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * درون‌ریزی تصویر قالب به کتابخانه رسانه.
+ * Theme supports & menus.
  *
- * @param string $relative مسیر نسبت به پوشه قالب.
- * @param string $title    عنوان پیوست.
+ * @return void
+ */
+function pixva_setup() {
+	load_theme_textdomain( 'pixva', PIXVA_DIR . '/languages' );
+	add_theme_support( 'title-tag' );
+	add_theme_support( 'post-thumbnails' );
+	add_theme_support( 'automatic-feed-links' );
+	add_theme_support( 'responsive-embeds' );
+	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script', 'navigation-widgets' ) );
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 48,
+			'width'       => 160,
+			'flex-width'  => true,
+			'flex-height' => true,
+		)
+	);
+	add_theme_support( 'editor-styles' );
+	add_theme_support( 'wp-block-styles' );
+	add_editor_style( array( 'assets/css/editor.css' ) );
+	register_nav_menus(
+		array(
+			'primary' => __( 'منوی اصلی', 'pixva' ),
+			'footer'  => __( 'منوی فوتر', 'pixva' ),
+		)
+	);
+	set_post_thumbnail_size( 768, 432, true );
+}
+add_action( 'after_setup_theme', 'pixva_setup' );
+
+/**
+ * Content width.
+ *
+ * @return void
+ */
+function pixva_content_width() {
+	$GLOBALS['content_width'] = 760;
+}
+add_action( 'after_setup_theme', 'pixva_content_width', 0 );
+
+/**
+ * Enqueue styles and scripts.
+ *
+ * @return void
+ */
+function pixva_assets() {
+	$v = PIXVA_VERSION;
+	wp_enqueue_style( 'pixva-style', get_stylesheet_uri(), array(), $v );
+	wp_enqueue_style( 'pixva-app', PIXVA_URI . '/assets/css/app.css', array( 'pixva-style' ), $v );
+
+	wp_enqueue_script(
+		'pixva-app',
+		PIXVA_URI . '/assets/js/app.js',
+		array(),
+		$v,
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+	wp_localize_script(
+		'pixva-app',
+		'PIXVA',
+		array(
+			'ajax'    => admin_url( 'admin-ajax.php' ),
+			'rest'    => esc_url_raw( rest_url( 'pixva/v1/' ) ),
+			'nonce'   => is_user_logged_in() ? wp_create_nonce( 'wp_rest' ) : '',
+			'events'  => pixva_analytics_events(),
+			'props'   => pixva_analytics_props(),
+			'pending' => pixva_page_events(),
+			'route'   => pixva_current_route(),
+			'i18n'    => array(
+				'sending'   => __( 'در حال ارسال…', 'pixva' ),
+				'loading'   => __( 'در حال بارگذاری…', 'pixva' ),
+				'error'     => __( 'ارتباط برقرار نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.', 'pixva' ),
+				'fixErrors' => __( 'لطفاً خطاهای مشخص‌شده را برطرف کنید.', 'pixva' ),
+				'menu'      => __( 'منو', 'pixva' ),
+				'close'     => __( 'بستن', 'pixva' ),
+				'required'  => __( 'این فیلد لازم است.', 'pixva' ),
+			),
+		)
+	);
+
+	$route   = pixva_current_route();
+	$feature = array(
+		'diagnosis'        => 'diagnosis',
+		'price_calculator' => 'calculator',
+		'pixel_test'       => 'pixel-test',
+		'tracking'         => 'lookup',
+		'warranty'         => 'lookup',
+	);
+	if ( isset( $feature[ $route ] ) ) {
+		wp_enqueue_script(
+			'pixva-' . $feature[ $route ],
+			PIXVA_URI . '/assets/js/' . $feature[ $route ] . '.js',
+			array( 'pixva-app' ),
+			$v,
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
+		);
+		if ( 'diagnosis' === $route ) {
+			wp_add_inline_script( 'pixva-diagnosis', 'window.PIXVA_DIAG=' . wp_json_encode( array( 'problems' => pixva_diagnosis_client_data() ) ) . ';', 'before' );
+		}
+	}
+	if ( is_post_type_archive( 'pixva_error' ) ) {
+		wp_enqueue_script(
+			'pixva-lookup',
+			PIXVA_URI . '/assets/js/lookup.js',
+			array( 'pixva-app' ),
+			$v,
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
+		);
+	}
+	if ( is_singular( 'repair_cases' ) && get_post_meta( get_queried_object_id(), '_pixva_case_before', true ) && get_post_meta( get_queried_object_id(), '_pixva_case_after', true ) ) {
+		wp_enqueue_script(
+			'pixva-before-after',
+			PIXVA_URI . '/assets/js/before-after.js',
+			array(),
+			$v,
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
+		);
+	}
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
+
+	// No block library CSS for classic templates where blocks are not used heavily
+	// is NOT removed: editors may use blocks in content (§37).
+}
+add_action( 'wp_enqueue_scripts', 'pixva_assets' );
+
+/**
+ * Preload the single variable font file used above the fold.
+ *
+ * @return void
+ */
+function pixva_preload_font() {
+	echo '<link rel="preload" href="' . esc_url( PIXVA_URI . '/assets/fonts/vazirmatn-variable.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+}
+add_action( 'wp_head', 'pixva_preload_font', 1 );
+
+/**
+ * SVG favicon fallback (brand mark) when no Site Icon is configured.
+ *
+ * @return void
+ */
+function pixva_favicon_fallback() {
+	if ( ! has_site_icon() ) {
+		echo '<link rel="icon" href="' . esc_url( PIXVA_URI . '/assets/images/logo-mark.svg' ) . '" type="image/svg+xml">' . "\n";
+	}
+}
+add_action( 'wp_head', 'pixva_favicon_fallback', 2 );
+
+/**
+ * Remove emoji scripts (perf).
+ *
+ * @return void
+ */
+function pixva_disable_emojis() {
+	remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+	remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+	remove_action( 'admin_print_styles', 'print_emoji_styles' );
+}
+add_action( 'init', 'pixva_disable_emojis' );
+
+/**
+ * Admin assets for meta-box image pickers.
+ *
+ * @param string $hook Hook.
+ * @return void
+ */
+function pixva_admin_assets( $hook ) {
+	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		wp_enqueue_media();
+		wp_enqueue_script( 'pixva-admin', PIXVA_URI . '/assets/js/admin.js', array(), PIXVA_VERSION, true );
+	}
+	wp_enqueue_style( 'pixva-admin', PIXVA_URI . '/assets/css/admin.css', array(), PIXVA_VERSION );
+}
+add_action( 'admin_enqueue_scripts', 'pixva_admin_assets' );
+
+/**
+ * Body classes for route styling.
+ *
+ * @param string[] $classes Classes.
+ * @return string[]
+ */
+function pixva_body_class( $classes ) {
+	$route = pixva_current_route();
+	if ( $route ) {
+		$classes[] = 'route-' . sanitize_html_class( str_replace( '_', '-', $route ) );
+	}
+	return $classes;
+}
+add_filter( 'body_class', 'pixva_body_class' );
+
+/**
+ * Excerpt length/more.
+ *
  * @return int
  */
-function pixva_import_theme_image( $relative, $title ) {
-	$map = get_option( 'pixva_imported_images', array() );
-	if ( ! is_array( $map ) ) {
-		$map = array();
-	}
-	if ( ! empty( $map[ $relative ] ) && get_post( (int) $map[ $relative ] ) ) {
-		return (int) $map[ $relative ];
-	}
-	$path = PIXVA_DIR . '/' . ltrim( $relative, '/' );
-	if ( ! file_exists( $path ) ) {
-		return 0;
-	}
-	require_once ABSPATH . 'wp-admin/includes/image.php';
-	require_once ABSPATH . 'wp-admin/includes/file.php';
-	$contents = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- فایل محلی قالب است.
-	if ( false === $contents ) {
-		return 0;
-	}
-	$upload = wp_upload_bits( basename( $path ), null, $contents );
-	if ( ! empty( $upload['error'] ) ) {
-		return 0;
-	}
-	$filetype  = wp_check_filetype( $upload['file'] );
-	$attach_id = wp_insert_attachment(
-		array(
-			'post_mime_type' => $filetype['type'],
-			'post_title'     => $title,
-			'post_status'    => 'inherit',
-		),
-		$upload['file']
-	);
-	if ( is_wp_error( $attach_id ) || ! $attach_id ) {
-		return 0;
-	}
-	wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $upload['file'] ) );
-	$map[ $relative ] = (int) $attach_id;
-	update_option( 'pixva_imported_images', $map );
-	return (int) $attach_id;
+function pixva_excerpt_length() {
+	return 28;
 }
+add_filter( 'excerpt_length', 'pixva_excerpt_length' );
+add_filter(
+	'excerpt_more',
+	static function () {
+		return '…';
+	}
+);
 
 /**
- * محتوای نمونه خدمات، برند، نمونه‌کار و مقاله.
+ * Search: include public PIXVA types; exclude pages that are system tools
+ * without content (account/dashboard).
  *
+ * @param WP_Query $q Query.
  * @return void
  */
-function pixva_install_sample_content() {
-	if ( get_option( 'pixva_sample_content' ) ) {
+function pixva_search_scope( $q ) {
+	if ( is_admin() || ! $q->is_main_query() || ! $q->is_search() ) {
 		return;
 	}
-	$services = array(
-		'backlight'  => array( 'تعویض بک‌لایت', 'رفع تاریکی، هاله و خاموشی نور پس‌زمینه بدون تعویض پنل.' ),
-		'panel'      => array( 'تعمیر پنل با دستگاه بندینگ', 'ترمیم خطوط عمودی و افقی وقتی شیشه سالم است.' ),
-		'mainboard'  => array( 'تعمیر برد اصلی', 'عیب‌یابی مین‌برد، HDMI و بوت نشدن سیستم.' ),
-		'powerboard' => array( 'تعمیر برد پاور', 'رفع چشمک چراغ، خاموشی کامل و صدای جرقه تغذیه.' ),
-		'water'      => array( 'رفع آب‌خوردگی', 'شست‌وشو و ترمیم برد پس از نفوذ مایع، اگر سلول پنل سالم باشد.' ),
-	);
-	foreach ( $services as $slug => $item ) {
-		if ( get_page_by_path( $slug, OBJECT, 'tv_services' ) ) {
-			continue;
+	$q->set( 'post_type', array( 'post', 'page', 'tv_services', 'tv_brands', 'tv_model', 'pixva_error', 'repair_cases' ) );
+	$exclude = array();
+	foreach ( array( 'account', 'account_repairs', 'account_warranty', 'account_profile', 'dashboard' ) as $r ) {
+		$id = pixva_route_page_id( $r );
+		if ( $id ) {
+			$exclude[] = $id;
 		}
-		wp_insert_post(
+	}
+	$q->set( 'post__not_in', $exclude );
+	$q->set( 'posts_per_page', 12 );
+}
+add_action( 'pre_get_posts', 'pixva_search_scope' );
+
+/**
+ * Archive page sizes.
+ *
+ * @param WP_Query $q Query.
+ * @return void
+ */
+function pixva_archive_sizes( $q ) {
+	if ( is_admin() || ! $q->is_main_query() ) {
+		return;
+	}
+	if ( $q->is_post_type_archive( array( 'tv_services', 'tv_brands' ) ) ) {
+		$q->set( 'posts_per_page', 48 );
+		$q->set(
+			'orderby',
 			array(
-				'post_type'    => 'tv_services',
-				'post_status'  => 'publish',
-				'post_name'    => $slug,
-				'post_title'   => $item[0],
-				'post_excerpt' => $item[1],
-				'post_content' => '<p>' . $item[1] . '</p><h2>چه زمانی این خدمت به‌صرفه است؟</h2><p>وقتی علامت خرابی با این مسیر هم‌خوان باشد و هزینه از تعویض پنل کمتر دربیاید. قبل از شروع، بازه قیمت اعلام و تأیید می‌شود.</p><h2>گارانتی</h2><p>برد و بک‌لایت ۱۸۰ روز ضمانت کتبی دارند. نتیجه بندینگ روی همان خط تعمیرشده تضمین می‌شود.</p>',
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
 			)
 		);
 	}
-
-	foreach ( pixva_brand_catalog() as $slug => $brand ) {
-		if ( get_page_by_path( $slug, OBJECT, 'tv_brands' ) ) {
-			continue;
+	if ( $q->is_post_type_archive( 'pixva_error' ) ) {
+		$q->set( 'posts_per_page', 24 );
+		$q->set( 'orderby', 'title' );
+		$q->set( 'order', 'ASC' );
+		$brand = absint( pixva_get_request_var( 'brand', '0' ) );
+		$sev   = sanitize_key( pixva_get_request_var( 'severity' ) );
+		$text  = pixva_get_request_var( 'q' );
+		$meta  = array();
+		if ( $brand ) {
+			$meta[] = array(
+				'key'   => '_pixva_err_brand_id',
+				'value' => $brand,
+			);
 		}
-		wp_insert_post(
-			array(
-				'post_type'    => 'tv_brands',
-				'post_status'  => 'publish',
-				'post_name'    => $slug,
-				'post_title'   => 'تعمیر تلویزیون ' . $brand['fa'],
-				'post_excerpt' => 'پذیرش ' . $brand['en'] . ' در کارگاه پیکسوا؛ از برد تغذیه تا بندینگ پنل.',
-				'post_content' => '<p>تلویزیون‌های ' . $brand['fa'] . ' (' . $brand['en'] . ') در پیکسوا با توجه به شاسی و الگوی چشمک همان برند عیب‌یابی می‌شوند.</p><h2>خرابی‌های شایع</h2><ul><li>صفحه سیاه با صدا</li><li>خطوط عمودی یا افقی</li><li>چشمک چراغ پاور</li><li>خاموشی بعد از نوسان برق</li></ul><h2>نکته پذیرش</h2><p>مدل دقیق پشت دستگاه و تعداد چشمک را قبل از آوردن یادداشت کنید تا قطعه از قبل بررسی شود.</p>',
-			)
-		);
-	}
-
-	$before = pixva_import_theme_image( 'assets/images/panel-before.jpg', 'پنل قبل از تعمیر' );
-	$after  = pixva_import_theme_image( 'assets/images/panel-after.jpg', 'پنل بعد از تعمیر' );
-	if ( ! get_page_by_path( 'samsung-55-lines', OBJECT, 'repair_cases' ) ) {
-		$case_id = wp_insert_post(
-			array(
-				'post_type'    => 'repair_cases',
-				'post_status'  => 'publish',
-				'post_name'    => 'samsung-55-lines',
-				'post_title'   => 'رفع خطوط عمودی سامسونگ ۵۵ اینچ',
-				'post_excerpt' => 'بندینگ فلت COF بدون تعویض پنل. تصویر تست نهایی یکدست شد.',
-				'post_content' => '<p>دستگاه با خطوط عمودی ثابت پذیرش شد. شیشه ضربه نداشت و مسیر فلت کنار پنل قطع شده بود.</p><h2>کار انجام‌شده</h2><p>بندینگ COF، تست حرارت دو ساعته و الگوی خاکستری. پنل تعویض نشد.</p>',
-			)
-		);
-		if ( ! is_wp_error( $case_id ) && $case_id ) {
-			update_post_meta( $case_id, '_pixva_case_before', $before );
-			update_post_meta( $case_id, '_pixva_case_after', $after );
-			update_post_meta( $case_id, '_pixva_case_model', 'Samsung 55 inch' );
-			update_post_meta( $case_id, '_pixva_case_parts', 'فلت COF' );
-			update_post_meta( $case_id, '_pixva_case_duration', '۴ ساعت کاری' );
-			wp_set_object_terms( $case_id, array( 'lines' ), 'tv_problem' );
-			wp_set_object_terms( $case_id, array( 'led' ), 'tv_tech' );
-			if ( $after ) {
-				set_post_thumbnail( $case_id, $after );
-			}
+		if ( $sev && isset( pixva_severity_levels()[ $sev ] ) ) {
+			$meta[] = array(
+				'key'   => '_pixva_err_severity',
+				'value' => $sev,
+			);
 		}
-	}
-
-	pixva_install_sample_posts( $after );
-	update_option( 'pixva_sample_content', 1 );
-}
-
-/**
- * دو مقاله نمونه با سرتیتر، FAQ و متای عیب‌یابی.
- *
- * @param int $thumb شناسه تصویر شاخص.
- * @return void
- */
-function pixva_install_sample_posts( $thumb ) {
-	$posts = array(
-		array(
-			'slug'       => 'no-picture-has-sound',
-			'title'      => 'چرا تلویزیون صدا دارد ولی تصویر ندارد؟',
-			'excerpt'    => 'صفحه سیاه با صدا معمولاً بک‌لایت یا برد تغذیه نور است، نه لزوماً سوختن پنل.',
-			'difficulty' => 'medium',
-			'brand'      => 'سامسونگ، ال‌جی، اسنوا',
-			'tools'      => 'چراغ‌قوه، مولتی‌متر',
-			'problem'    => 'no-picture',
-			'tech'       => 'led',
-			'faq'        => "صفحه کاملاً سیاه است؛ پنل سوخته؟ | اگر با چراغ‌قوه سایه تصویر دیده شود پنل زنده است و نور پس‌زمینه قطع شده.\nخودمان می‌توانیم بک‌لایت را عوض کنیم؟ | ولتاژ درایور LED خطرناک است و نوار اشتباه سایز، پنل را خط می‌اندازد.",
-			'content'    => '<p>وقتی صدا هست و تصویر نیست، اول مسیر نور را از مسیر پردازش جدا کنید. این کار جلوی تعویض بی‌دلیل پنل را می‌گیرد.</p><h2>تست چراغ‌قوه</h2><p>در اتاق تاریک، نور چراغ‌قوه را مایل به صفحه بگیرید. اگر سایه منو یا تصویر را دیدید، سلول پنل زنده است و مشکل از بک‌لایت یا درایور آن است.</p><h3>اگر هیچ سایه‌ای نیست</h3><p>احتمال T-CON، فلت یا مین‌برد بیشتر می‌شود. در این حالت تعداد چشمک چراغ پاور را بشمارید و با پایگاه کدهای خطا تطبیق دهید.</p><h2>چه وقت دستگاه را باز نکنید</h2><p>برد پاور حتی بعد از کشیدن دو شاخه هم بار نگه می‌دارد. اگر به اندازه‌گیری ولتاژ مسلط نیستید، همان علائم را برای کارگاه بفرستید.</p><h2>برآورد پیکسوا</h2><p>تعویض بک‌لایت در سایزهای رایج معمولاً یک تا دو روز کاری زمان می‌برد. OLED این مسیر را ندارد و باید جدا بررسی شود.</p>',
-		),
-		array(
-			'slug'       => 'sony-blink-power-board',
-			'title'      => 'سه بار چشمک زدن چراغ سونی یعنی چیست؟',
-			'excerpt'    => 'در راهنمای کارگاهی پیکسوا، سه چشمک سونی اغلب به برد تغذیه برمی‌گردد.',
-			'difficulty' => 'easy',
-			'brand'      => 'سونی',
-			'tools'      => 'شمارش چشمک، جدا کردن HDMI',
-			'problem'    => 'blink',
-			'tech'       => 'led',
-			'faq'        => "چشمک را چطور دقیق بشمارم؟ | دستگاه را از برق بکشید، دو دقیقه صبر کنید، دوباره وصل کنید و فقط الگوی تکرارشونده را بشمارید.\nآیا سه چشمک همیشه برد پاور است؟ | در بیشتر شاسی‌های رایج بله، اما اتصال کوتاه سمت پنل هم می‌تواند همان محافظت را فعال کند.",
-			'content'    => '<p>چراغ پاور سونی اگر سه بار چشمک بزند و مکث کند، کارگاه پیکسوا اول برد تغذیه را بی‌بار تست می‌کند.</p><h2>قبل از آوردن دستگاه</h2><p>کابل HDMI و آنتن را جدا کنید. یک‌بار برق را کامل قطع کنید. اگر الگو ماند، مشکل از رسیور نیست.</p><h3>الگوهای نزدیک</h3><p>چهار چشمک بیشتر به نور پس‌زمینه و پنج چشمک به تایمینگ یا پنل نزدیک است. عدد را با ریموت روشن‌شده قاطی نکنید.</p><h2>چرا خودتان فیوز را پل نکنید</h2><p>فیوز سوخته علت نیست، نشانه اتصال کوتاه است. پل کردن فیوز برد را می‌سوزاند و گارانتی تعمیر را از بین می‌برد.</p>',
-		),
-	);
-
-	foreach ( $posts as $item ) {
-		if ( get_page_by_path( $item['slug'], OBJECT, 'post' ) ) {
-			continue;
+		if ( $meta ) {
+			$q->set( 'meta_query', $meta );
 		}
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'post',
-				'post_status'  => 'publish',
-				'post_name'    => $item['slug'],
-				'post_title'   => $item['title'],
-				'post_excerpt' => $item['excerpt'],
-				'post_content' => $item['content'],
-			)
-		);
-		if ( is_wp_error( $post_id ) || ! $post_id ) {
-			continue;
-		}
-		update_post_meta( $post_id, '_pixva_post_difficulty', $item['difficulty'] );
-		update_post_meta( $post_id, '_pixva_post_brand', $item['brand'] );
-		update_post_meta( $post_id, '_pixva_post_tools', $item['tools'] );
-		update_post_meta( $post_id, '_pixva_post_faq', $item['faq'] );
-		wp_set_object_terms( $post_id, array( $item['problem'] ), 'tv_problem' );
-		wp_set_object_terms( $post_id, array( $item['tech'] ), 'tv_tech' );
-		wp_set_object_terms( $post_id, array( 'diagnostics' ), 'category' );
-		if ( $thumb ) {
-			set_post_thumbnail( $post_id, $thumb );
+		if ( '' !== $text ) {
+			$ids = pixva_error_code_query( $text, $brand, 200 )->posts;
+			$q->set( 'post__in', $ids ? wp_list_pluck( $ids, 'ID' ) : array( 0 ) );
 		}
 	}
 }
+add_action( 'pre_get_posts', 'pixva_archive_sizes' );
 
 /**
- * اگر مجله به عنوان برگه نوشته‌ها تنظیم نشده، آن را وصل می‌کند.
+ * Install / refresh: roles, route pages, permalinks, reading settings.
+ * Runs on theme activation and on version upgrade (migration.php).
  *
  * @return void
  */
-function pixva_ensure_posts_page() {
-	if ( get_option( 'pixva_reading_checked' ) ) {
-		return;
+function pixva_install() {
+	pixva_install_roles();
+	pixva_register_content_model();
+	pixva_ensure_route_pages();
+	if ( '/blog/%postname%/' !== get_option( 'permalink_structure' ) ) {
+		update_option( 'pixva_previous_permalink', (string) get_option( 'permalink_structure' ), false );
+		update_option( 'permalink_structure', '/blog/%postname%/' );
 	}
-	$home = get_page_by_path( 'home' );
-	$blog = get_page_by_path( 'blog' );
-	if ( $blog instanceof WP_Post && ! (int) get_option( 'page_for_posts' ) ) {
-		if ( 'posts' === get_option( 'show_on_front' ) && $home instanceof WP_Post ) {
-			update_option( 'show_on_front', 'page' );
-			update_option( 'page_on_front', (int) $home->ID );
-		}
-		if ( 'page' === get_option( 'show_on_front' ) ) {
-			update_option( 'page_for_posts', (int) $blog->ID );
-		}
-	}
-	$hello = get_page_by_path( 'hello-world', OBJECT, 'post' );
-	if ( $hello instanceof WP_Post && 'Hello world!' === $hello->post_title ) {
-		wp_trash_post( $hello->ID );
-	}
-	update_option( 'pixva_reading_checked', 1 );
+	update_option( 'category_base', 'blog/category' );
+	update_option( 'wp_attachment_pages_enabled', 0 );
+	update_option( 'pixva_flush_rewrites', 1 );
 }
-add_action( 'init', 'pixva_ensure_posts_page', 20 );
 
 /**
- * عنوان‌های بلند منوی نصب‌شده را کوتاه می‌کند تا هدر نشکند.
+ * Activation hook.
  *
  * @return void
  */
-function pixva_shorten_nav_labels() {
-	if ( get_option( 'pixva_nav_short' ) ) {
-		return;
+function pixva_on_switch_theme() {
+	// Migrations run pixva_install() themselves, after moving legacy pages.
+	if ( version_compare( (string) get_option( 'pixva_db_version', '0' ), PIXVA_DB_VERSION, '<' ) ) {
+		pixva_run_migrations();
+	} else {
+		pixva_install();
 	}
-	$short = array(
-		'calculator'  => 'محاسبه هزینه',
-		'tracking'    => 'پیگیری',
-		'error-codes' => 'کدهای خطا',
-		'blog'        => 'مجله',
-		'about'       => 'درباره ما',
-		'contact'     => 'تماس',
-		'home'        => 'خانه',
-	);
-	$menus = wp_get_nav_menus();
-	if ( is_array( $menus ) ) {
-		foreach ( $menus as $menu ) {
-			$items = wp_get_nav_menu_items( $menu->term_id );
-			if ( ! is_array( $items ) ) {
-				continue;
-			}
-			foreach ( $items as $item ) {
-				$path = trim( (string) wp_parse_url( $item->url, PHP_URL_PATH ), '/' );
-				if ( isset( $short[ $path ] ) ) {
-					wp_update_post(
-						array(
-							'ID'         => (int) $item->ID,
-							'post_title' => $short[ $path ],
-						)
-					);
-				}
-			}
-		}
-	}
-	update_option( 'pixva_nav_short', 1 );
 }
-add_action( 'init', 'pixva_shorten_nav_labels', 30 );
+add_action( 'after_switch_theme', 'pixva_on_switch_theme' );
 
 /**
- * اگر نام سایت هنوز پیش‌فرض محیط آزمایشی است، آن را به پیکسوا عوض می‌کند.
+ * Flush rewrites once after install/upgrade (late init, after all rules exist).
  *
  * @return void
  */
-function pixva_fix_default_site_name() {
-	if ( get_option( 'pixva_identity_checked' ) ) {
-		return;
+function pixva_maybe_flush_rewrites() {
+	if ( get_option( 'pixva_flush_rewrites' ) ) {
+		delete_option( 'pixva_flush_rewrites' );
+		flush_rewrite_rules( false );
 	}
-	$defaults = array( 'WordPress', 'وردپرس', 'وبلاگ من', 'My WordPress', 'My WordPress Website' );
-	if ( in_array( get_option( 'blogname' ), $defaults, true ) ) {
-		update_option( 'blogname', 'پیکسوا' );
-	}
-	update_option( 'pixva_identity_checked', 1 );
 }
-add_action( 'init', 'pixva_fix_default_site_name' );
+add_action( 'init', 'pixva_maybe_flush_rewrites', 99 );

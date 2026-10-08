@@ -4,6 +4,9 @@
 	<file>.</file>
 	<exclude-pattern>*/assets/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
+	<arg name="extensions" value="php"/>
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="7.4-"/>
 
 	<rule ref="WordPress">
 		<!-- نام فایل‌های single-{$post_type} و taxonomy-{$taxonomy} را هسته وردپرس الزامی کرده است. -->
@@ -15,10 +18,40 @@
 		<properties>
 			<property name="customEscapingFunctions" type="array">
 				<element value="pixva_icon"/>
-				<element value="pixva_kses_svg"/>
-				<element value="pixva_cta_box"/>
 				<element value="pixva_build_toc"/>
-				<element value="pixva_inject_cta"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="pixva"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="pixva"/>
+			</property>
+		</properties>
+	</rule>
+	<!-- قابلیت‌های سفارشی که در inc/capabilities.php ثبت یا با map_meta_cap نگاشت می‌شوند. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="pixva_view_dashboard"/>
+				<element value="pixva_manage_orders"/>
+				<element value="pixva_work_orders"/>
+				<element value="pixva_manage_settings"/>
+				<element value="pixva_manage_redirects"/>
+				<element value="pixva_view_content_health"/>
+				<element value="pixva_view_order"/>
+				<element value="pixva_view_order_pii"/>
+				<element value="pixva_work_order"/>
+				<element value="edit_pixva_messages"/>
 			</property>
 		</properties>
 	</rule>
