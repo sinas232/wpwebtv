@@ -1,34 +1,28 @@
 <?php
 /**
- * برگه عمومی
+ * Default page.
  *
  * @package Pixva
+ * @since   2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 get_header();
-?>
-<main id="content">
+while ( have_posts() ) :
+	the_post();
+	?>
+	<main id="main" class="site-main">
+		<?php pixva_page_header( get_the_title(), has_excerpt() ? get_the_excerpt() : '' ); ?>
+		<div class="container container--narrow section">
+			<div class="entry-content"><?php the_content(); ?></div>
+			<?php wp_link_pages(); ?>
+			<?php if ( comments_open() || get_comments_number() ) : ?>
+				<?php comments_template(); ?>
+			<?php endif; ?>
+		</div>
+	</main>
 	<?php
-	while ( have_posts() ) :
-		the_post();
-		pixva_page_hero( get_the_title(), has_excerpt() ? get_the_excerpt() : '' );
-		?>
-		<article <?php post_class( 'pixva-container pixva-content entry-content' ); ?>>
-			<?php the_content(); ?>
-			<?php
-			wp_link_pages(
-				array(
-					'before' => '<nav class="pixva-pagination">',
-					'after'  => '</nav>',
-				)
-			);
-			?>
-		</article>
-	<?php endwhile; ?>
-</main>
-<?php
+endwhile;
 get_footer();

@@ -1,55 +1,39 @@
 <?php
 /**
- * دیدگاه‌های مقاله
+ * Comments.
  *
  * @package Pixva
+ * @since   2.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
-if ( post_password_required() ) {
+if ( ! defined( 'ABSPATH' ) || post_password_required() ) {
 	return;
 }
 ?>
-<section id="comments" class="pixva-comments">
+<section id="comments" class="comments" aria-labelledby="comments-title">
 	<?php if ( have_comments() ) : ?>
-		<h2>
-			<?php
-			echo esc_html(
-				sprintf(
-					/* translators: %s: تعداد دیدگاه */
-					__( 'دیدگاه‌ها (%s)', 'pixva' ),
-					pixva_fa_num( (string) get_comments_number() )
-				)
-			);
-			?>
-		</h2>
+		<h2 id="comments-title"><?php echo esc_html( sprintf( /* translators: %s: count. */ __( '%s دیدگاه', 'pixva' ), pixva_fa_num( get_comments_number() ) ) ); ?></h2>
 		<ol class="comment-list">
 			<?php
 			wp_list_comments(
 				array(
-					'style'       => 'ol',
-					'short_ping'  => true,
-					'avatar_size' => 48,
-					'callback'    => 'pixva_comment_item',
+					'callback' => 'pixva_comment_item',
+					'style'    => 'ol',
 				)
 			);
 			?>
 		</ol>
 		<?php the_comments_navigation(); ?>
+	<?php else : ?>
+		<h2 id="comments-title" class="screen-reader-text"><?php esc_html_e( 'دیدگاه‌ها', 'pixva' ); ?></h2>
 	<?php endif; ?>
-
 	<?php
 	comment_form(
 		array(
-			'title_reply'          => __( 'تجربه تعمیرتان را بنویسید', 'pixva' ),
+			'title_reply'          => __( 'دیدگاه یا پرسش خود را بنویسید', 'pixva' ),
 			'label_submit'         => __( 'ارسال دیدگاه', 'pixva' ),
-			'comment_notes_before' => '',
-			'comment_notes_after'  => '',
-			'class_submit'         => 'submit',
-			'comment_field'        => '<div class="pixva-field"><label for="comment">' . esc_html__( 'متن دیدگاه', 'pixva' ) . '</label><textarea id="comment" name="comment" cols="45" rows="6" required></textarea></div>',
+			'comment_notes_before' => '<p class="field__help">' . esc_html__( 'ایمیل شما منتشر نمی‌شود. شماره تماس در متن دیدگاه ننویسید.', 'pixva' ) . '</p>',
+			'class_submit'         => 'btn btn--primary',
 		)
 	);
 	?>
