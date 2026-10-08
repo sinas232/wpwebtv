@@ -53,6 +53,10 @@ function pixva_result_query_args() {
  * @return bool
  */
 function pixva_has_result_params() {
+	// No-JS tracking/warranty lookups render their result state in the POST response.
+	if ( 'POST' === strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) && isset( $_POST['pixva_lookup'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- read only, robots directive.
+		return true;
+	}
 	foreach ( pixva_result_query_args() as $arg ) {
 		if ( isset( $_GET[ $arg ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only.
 			return true;
