@@ -40,6 +40,8 @@ $pixva_brand_opts   = array( '' => __( 'انتخاب کنید…', 'pixva' ) ) +
 	<?php pixva_page_header( get_the_title(), __( 'مشخصات دستگاه و ایراد را بنویسید. پس از ثبت، کد پیگیری دریافت می‌کنید و کارشناس برای هماهنگی با شما تماس می‌گیرد.', 'pixva' ) ); ?>
 	<div class="container container--narrow section">
 		<?php pixva_page_intro(); ?>
+		<div class="layout-aside booking">
+		<div class="layout-aside__main">
 		<div id="pixva-booking" class="form-wrap">
 			<?php if ( is_array( $pixva_r ) && $pixva_r['ok'] && ! empty( $pixva_r['payload']['code'] ) ) : ?>
 				<div class="success" data-track-view="booking_submitted" tabindex="-1">
@@ -261,6 +263,21 @@ $pixva_brand_opts   = array( '' => __( 'انتخاب کنید…', 'pixva' ) ) +
 					</div>
 				</form>
 			<?php endif; ?>
+		</div>
+		</div>
+		<aside class="booking__side" aria-labelledby="bk-side-title">
+			<h2 class="booking__side-title" id="bk-side-title"><?php esc_html_e( 'بعد از ثبت درخواست چه می‌شود؟', 'pixva' ); ?></h2>
+			<ol class="booking__steps">
+				<li><strong><?php esc_html_e( 'دریافت کد پیگیری', 'pixva' ); ?></strong><span><?php esc_html_e( 'بلافاصله پس از ثبت، کد مخصوص درخواست را می‌بینید.', 'pixva' ); ?></span></li>
+				<li><strong><?php esc_html_e( 'بررسی کارشناس', 'pixva' ); ?></strong><span><?php esc_html_e( 'کارشناس اطلاعات و تصاویر را بررسی و برای هماهنگی تماس می‌گیرد.', 'pixva' ); ?></span></li>
+				<li><strong><?php esc_html_e( 'تأیید هزینه', 'pixva' ); ?></strong><span><?php esc_html_e( 'تعمیر فقط پس از اعلام هزینه و تأیید شما شروع می‌شود.', 'pixva' ); ?></span></li>
+			</ol>
+			<ul class="booking__trust">
+				<li><?php echo wp_kses( pixva_icon( 'track' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'پیگیری با کد و شماره همراه، بدون نمایش اطلاعات شخصی در صفحه.', 'pixva' ); ?></span></li>
+				<li><?php echo wp_kses( pixva_icon( 'shield' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'تصاویر فقط برای کارشناسان قابل مشاهده است و عمومی نمی‌شود.', 'pixva' ); ?></span></li>
+				<li><?php echo wp_kses( pixva_icon( 'pulse' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'اگر بوی سوختگی یا دود دارد، دستگاه را از برق بکشید و باز نکنید.', 'pixva' ); ?></span></li>
+			</ul>
+		</aside>
 		</div>
 		<?php
 		$pixva_faq = pixva_faq_items( 'booking' );

@@ -1996,61 +1996,6 @@
 	color: var(--c-on-dark-muted);
 }
 
-/* Brand cards (brands archive). */
-.brand-card {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--s-1);
-	min-height: 128px;
-	padding: var(--s-3) var(--s-2);
-	background: var(--c-white);
-	border: 1px solid var(--c-border);
-	border-radius: var(--r);
-	text-align: center;
-	transition:
-		transform var(--dur-2),
-		box-shadow var(--dur-2),
-		border-color var(--dur-2);
-}
-
-.brand-card:hover,
-.brand-card:focus-within {
-	transform: translateY(-3px);
-	box-shadow: var(--shadow);
-	border-color: var(--c-border-strong);
-}
-
-.brand-card img {
-	max-height: 44px;
-	width: auto;
-}
-
-.brand-card__title {
-	position: relative;
-	margin: 0;
-	font-size: var(--fs-md);
-}
-
-.brand-card__title a {
-	color: var(--c-primary);
-	text-decoration: none;
-}
-
-.brand-card__title a::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-}
-
-.brand-card__en {
-	margin: 0;
-	font-family: var(--font-mono);
-	font-size: var(--fs-xs);
-	color: var(--c-muted);
-}
-
 /* ==========================================================================
    Generic cards & grids (archives, taxonomy tiles)
    ========================================================================== */
@@ -2072,11 +2017,6 @@
 
 .grid--tiles {
 	grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
-	gap: var(--s-2);
-}
-
-.grid--brands {
-	grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
 	gap: var(--s-2);
 }
 
@@ -4446,4 +4386,217 @@ fieldset.field--error {
 
 .faq-layout__main {
 	min-width: 0;
+}
+
+/* ==========================================================================
+   Art direction pass 3: booking, lookups, error lists, article head,
+   FAQ topics, about facts, brand logos. Tokens only.
+   ========================================================================== */
+
+/* Booking: numbered form sections + process aside. */
+.booking {
+	counter-reset: bk;
+}
+
+.booking .form__section {
+	counter-increment: bk;
+}
+
+.booking .form__section > legend::before,
+.booking .form__section > h2::before,
+.booking .form__section > h3::before {
+	content: counter(bk);
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: var(--r-pill);
+	background: var(--c-primary);
+	color: var(--c-white);
+	font-size: var(--fs-xs);
+	font-weight: 800;
+}
+
+.booking__side {
+	padding: var(--s-3);
+	border-radius: var(--r-lg);
+	background: var(--c-deep);
+	color: var(--c-on-dark-soft);
+	box-shadow: var(--shadow-lg);
+}
+
+.booking__side-title {
+	margin: 0 0 var(--s-3);
+	font-size: var(--fs-lg);
+	color: var(--c-white);
+}
+
+.booking__steps {
+	counter-reset: bk-step;
+	display: grid;
+	gap: var(--s-3);
+	margin: 0 0 var(--s-3);
+	padding: 0;
+	list-style: none;
+}
+
+.booking__steps li {
+	counter-increment: bk-step;
+	display: grid;
+	grid-template-columns: 2rem minmax(0, 1fr);
+	column-gap: var(--s-2);
+	row-gap: 0.25rem;
+}
+
+.booking__steps li::before {
+	content: counter(bk-step);
+	grid-column: 1;
+	grid-row: 1 / span 2;
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: var(--r-pill);
+	background: var(--c-accent);
+	color: var(--c-deep);
+	font-weight: 800;
+}
+
+.booking__steps strong {
+	grid-column: 2;
+	color: var(--c-white);
+}
+
+.booking__steps span {
+	grid-column: 2;
+	font-size: var(--fs-sm);
+	line-height: var(--lh);
+}
+
+.booking__trust {
+	display: grid;
+	gap: var(--s-2);
+	margin: 0;
+	padding: var(--s-2) 0 0;
+	border-block-start: 1px solid var(--c-on-dark-line);
+	list-style: none;
+}
+
+.booking__trust li {
+	display: flex;
+	gap: var(--s-1);
+	align-items: flex-start;
+	font-size: var(--fs-sm);
+	line-height: var(--lh);
+}
+
+.booking__trust svg {
+	flex: none;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin-block-start: 0.1rem;
+	color: var(--c-accent);
+}
+
+/* Tracking and warranty: one console for form + result. */
+.lookup-console {
+	display: grid;
+	gap: var(--s-3);
+	padding: var(--s-3);
+	background: var(--c-white);
+	border: 1px solid var(--c-border);
+	border-radius: var(--r-lg);
+	box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+	.lookup-console {
+		padding: var(--s-4);
+	}
+}
+
+.warranty-policy {
+	margin-block-end: var(--s-4);
+	padding: var(--s-3);
+	border-radius: var(--r-lg);
+	background: var(--c-primary-tint);
+	border: 1px solid var(--c-border);
+}
+
+/* Error-code archive: stacked rows instead of a card grid. */
+.code-list {
+	display: grid;
+	gap: var(--s-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.code-list > li {
+	min-width: 0;
+}
+
+.code-list .card--error {
+	height: 100%;
+}
+
+/* Single error code: dark diagnostic plate for the code itself. */
+.error-head {
+	background: var(--c-deep);
+	border-color: var(--c-deep);
+	color: var(--c-on-dark-soft);
+}
+
+.error-head .code {
+	color: var(--c-white);
+}
+
+/* Article: deep editorial head, cover image overlaps the band. */
+.article > .page-head {
+	background: var(--c-deep);
+	border-block-end: 0;
+	color: var(--c-on-dark-soft);
+}
+
+.article > .page-head .page-head__title {
+	color: var(--c-white);
+}
+
+.article > .page-head a {
+	color: var(--c-on-dark-muted);
+}
+
+.article > .page-head .badge {
+	background: var(--c-accent);
+	color: var(--c-deep);
+}
+
+.article__media {
+	margin-block: calc(var(--s-6) * -1) var(--s-4);
+	border-radius: var(--r-lg);
+	overflow: hidden;
+	box-shadow: var(--shadow-lg);
+}
+
+.article__media img {
+	width: 100%;
+	height: auto;
+}
+
+/* Brand wall logos (when a brand has a logo). */
+.brand-wall__logo {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	max-height: 2.5rem;
+	margin-block-end: var(--s-1);
+	object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.booking__steps li,
+	.lookup-console {
+		transition: none;
+	}
 }

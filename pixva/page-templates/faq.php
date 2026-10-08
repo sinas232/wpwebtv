@@ -35,10 +35,10 @@ foreach ( $pixva_items as $pixva_it ) {
 			<?php pixva_empty_state( __( 'هنوز پرسشی منتشر نشده است', 'pixva' ), __( 'پرسش خود را از طریق فرم تماس بفرستید.', 'pixva' ), array( __( 'تماس با ما', 'pixva' ) => pixva_route_url( 'contact' ) ) ); ?>
 		<?php else : ?>
 			<?php if ( count( $pixva_groups ) > 1 ) : ?>
-				<nav class="toc" aria-label="<?php esc_attr_e( 'دسته‌ها', 'pixva' ); ?>"><ul>
+				<nav class="filter-nav" aria-label="<?php esc_attr_e( 'دسته‌ها', 'pixva' ); ?>"><ul class="chips">
 					<?php foreach ( $pixva_topics as $pixva_k => $pixva_label ) : ?>
 						<?php if ( ! empty( $pixva_groups[ $pixva_k ] ) ) : ?>
-							<li><a href="#faq-<?php echo esc_attr( $pixva_k ); ?>"><?php echo esc_html( $pixva_label ); ?></a></li>
+							<li><a class="chip" href="#faq-<?php echo esc_attr( $pixva_k ); ?>"><?php echo esc_html( $pixva_label ); ?></a></li>
 						<?php endif; ?>
 					<?php endforeach; ?>
 				</ul></nav>

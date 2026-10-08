@@ -23,7 +23,7 @@ get_header();
 	<?php pixva_page_header( get_the_title() ); ?>
 	<div class="container container--narrow section">
 		<?php pixva_page_intro(); ?>
-		<section aria-labelledby="wr-policy">
+		<section class="warranty-policy" aria-labelledby="wr-policy">
 			<h2 id="wr-policy"><?php esc_html_e( 'سیاست گارانتی', 'pixva' ); ?></h2>
 			<?php if ( $pixva_days > 0 ) : ?>
 				<p class="price"><?php echo esc_html( sprintf( /* translators: %s: days. */ __( '%s روز گارانتی تعمیر', 'pixva' ), pixva_fa_num( $pixva_days ) ) ); ?></p>
@@ -41,6 +41,7 @@ get_header();
 		</section>
 		<section class="section--tight" aria-labelledby="wr-lookup">
 			<h2 id="wr-lookup"><?php esc_html_e( 'استعلام گارانتی تعمیر', 'pixva' ); ?></h2>
+			<div class="lookup-console">
 			<?php pixva_lookup_form( 'pixva_warranty', 'warranty', __( 'استعلام', 'pixva' ), 'warranty_lookup' ); ?>
 			<div class="lookup__result" data-lookup-result aria-live="polite" tabindex="-1">
 				<?php if ( is_wp_error( $pixva_res ) ) : ?>
@@ -48,6 +49,7 @@ get_header();
 				<?php elseif ( is_array( $pixva_res ) ) : ?>
 					<div data-track-view="warranty_lookup"><?php pixva_warranty_view( $pixva_res ); ?></div>
 				<?php endif; ?>
+			</div>
 			</div>
 		</section>
 		<?php

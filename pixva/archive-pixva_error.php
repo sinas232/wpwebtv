@@ -62,7 +62,7 @@ $pixva_filter = '' !== $pixva_q || $pixva_brand || '' !== $pixva_sev;
 		</p>
 		<div data-error-results>
 			<?php if ( have_posts() ) : ?>
-				<ul class="grid grid--cards">
+				<ul class="code-list">
 					<?php
 					while ( have_posts() ) :
 						the_post();

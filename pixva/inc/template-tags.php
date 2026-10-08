@@ -1156,7 +1156,11 @@ function pixva_brand_wall( $brands ) {
 	foreach ( $brands as $b ) {
 		++$i;
 		$en = (string) get_post_meta( $b->ID, '_pixva_brand_en', true );
+		$logo = absint( get_post_meta( $b->ID, '_pixva_brand_logo', true ) );
 		echo '<li class="brand-wall__tile reveal" style="--d:' . (int) min( $i, 8 ) . '"><a href="' . esc_url( get_permalink( $b ) ) . '">';
+		if ( $logo ) {
+			echo wp_get_attachment_image( $logo, 'thumbnail', false, array( 'alt' => '', 'loading' => 'lazy', 'class' => 'brand-wall__logo' ) );
+		}
 		echo '<span class="brand-wall__name">' . esc_html( trim( (string) preg_replace( '/^تعمیر\s+(تلویزیون\s+)?/u', '', get_the_title( $b ) ) ) ) . '</span>';
 		if ( '' !== $en ) {
 			echo '<span class="brand-wall__en" lang="en" dir="ltr">' . esc_html( $en ) . '</span>';

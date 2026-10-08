@@ -21,6 +21,7 @@ get_header();
 	<?php pixva_page_header( get_the_title(), __( 'کد پیگیری و شماره همراهی را که هنگام ثبت درخواست وارد کرده‌اید بنویسید.', 'pixva' ) ); ?>
 	<div class="container container--narrow section">
 		<?php pixva_page_intro(); ?>
+		<div class="lookup-console">
 		<?php pixva_lookup_form( 'pixva_track', 'track', __( 'نمایش وضعیت', 'pixva' ), 'tracking_viewed' ); ?>
 		<div class="lookup__result" data-lookup-result aria-live="polite" tabindex="-1">
 			<?php if ( is_wp_error( $pixva_res ) ) : ?>
@@ -28,6 +29,7 @@ get_header();
 			<?php elseif ( is_array( $pixva_res ) ) : ?>
 				<div data-track-view="tracking_viewed"><?php pixva_order_view( $pixva_res ); ?></div>
 			<?php endif; ?>
+		</div>
 		</div>
 		<?php if ( is_user_logged_in() ) : ?>
 			<p><a class="link-more" href="<?php echo esc_url( pixva_route_url( 'account_repairs' ) ); ?>"><?php esc_html_e( 'همه درخواست‌های من', 'pixva' ); ?></a></p>

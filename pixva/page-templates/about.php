@@ -42,7 +42,7 @@ get_header();
 		}
 		if ( $pixva_facts ) :
 			?>
-			<dl class="details">
+			<dl class="details details--specs">
 				<?php foreach ( $pixva_facts as $pixva_k => $pixva_v ) : ?>
 					<dt><?php echo esc_html( $pixva_k ); ?></dt><dd><?php echo esc_html( $pixva_v ); ?></dd>
 				<?php endforeach; ?>

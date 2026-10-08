@@ -15,14 +15,17 @@ get_header();
 	<?php pixva_page_header( pixva_routes()['services']['title'], pixva_route_description( 'services' ) ); ?>
 	<div class="container section">
 		<?php if ( have_posts() ) : ?>
-			<div class="grid grid--cards">
-				<?php
-				while ( have_posts() ) :
-					the_post();
-					pixva_card( get_post(), '', 'h2' );
-				endwhile;
-				?>
-			</div>
+			<?php
+			$pixva_items = array();
+			while ( have_posts() ) :
+				the_post();
+				$pixva_items[] = get_post();
+			endwhile;
+			pixva_service_feature( $pixva_items[0] );
+			if ( count( $pixva_items ) > 1 ) :
+				pixva_service_rows( array_slice( $pixva_items, 1 ) );
+			endif;
+			?>
 			<?php pixva_pagination(); ?>
 		<?php else : ?>
 			<?php
