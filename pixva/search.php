@@ -1,63 +1,61 @@
 <?php
 /**
- * نتایج جستجو
+ * Search results across content types (§18). Noindex (seo.php).
  *
  * @package Pixva
+ * @since   2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 get_header();
-$query = get_search_query();
+global $wp_query;
+$pixva_q     = get_search_query();
+$pixva_types = array(
+	'post'         => __( 'مقاله', 'pixva' ),
+	'page'         => __( 'صفحه', 'pixva' ),
+	'tv_services'  => __( 'خدمت', 'pixva' ),
+	'tv_brands'    => __( 'برند', 'pixva' ),
+	'tv_model'     => __( 'مدل', 'pixva' ),
+	'pixva_error'  => __( 'کد خطا', 'pixva' ),
+	'repair_cases' => __( 'نمونه‌کار', 'pixva' ),
+);
 ?>
-<main id="content">
+<main id="main" class="site-main">
 	<?php
-	pixva_page_hero(
-		sprintf(
-			/* translators: %s: عبارت جستجو */
-			__( 'نتایج «%s»', 'pixva' ),
-			$query
-		),
-		sprintf(
-			/* translators: %s: تعداد نتیجه */
-			__( '%s مورد پیدا شد.', 'pixva' ),
-			pixva_fa_num( (string) $GLOBALS['wp_query']->found_posts )
-		)
+	pixva_page_header(
+		'' !== $pixva_q ? sprintf( /* translators: %s: query. */ __( 'نتایج جست‌وجو برای «%s»', 'pixva' ), $pixva_q ) : __( 'جست‌وجو', 'pixva' ),
+		'' !== $pixva_q ? sprintf( /* translators: %s: count. */ __( '%s نتیجه پیدا شد.', 'pixva' ), pixva_fa_num( (int) $wp_query->found_posts ) ) : ''
 	);
 	?>
-	<div class="pixva-container pixva-content">
-		<div class="pixva-search" style="margin-bottom:1.2rem"><?php get_search_form(); ?></div>
-		<?php if ( have_posts() ) : ?>
-			<?php
-			while ( have_posts() ) :
-				the_post();
-				$pixva_type_obj = get_post_type_object( get_post_type() );
-				?>
-				<article <?php post_class( 'pixva-card pixva-result' ); ?>>
-					<a href="<?php the_permalink(); ?>">
-						<?php
-						if ( has_post_thumbnail() ) {
-							the_post_thumbnail( 'pixva-card' );
-						} else {
-							echo '<span class="pixva-result__ph"></span>';
-						}
-						?>
-					</a>
-					<div>
-						<span class="pixva-kicker"><?php echo esc_html( $post_type_object ? $post_type_object->labels->singular_name : '' ); ?></span>
-						<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
-						<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
-					</div>
-				</article>
-			<?php endwhile; ?>
+	<div class="container section">
+		<?php get_search_form(); ?>
+		<?php if ( '' !== $pixva_q && have_posts() ) : ?>
+			<ol class="results">
+				<?php
+				while ( have_posts() ) :
+					the_post();
+					?>
+					<li class="result">
+						<p class="result__type"><?php echo esc_html( $pixva_types[ get_post_type() ] ?? '' ); ?></p>
+						<h2 class="result__title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+						<p class="result__text"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 26 ) ); ?></p>
+					</li>
+				<?php endwhile; ?>
+			</ol>
 			<?php pixva_pagination(); ?>
-		<?php else : ?>
-			<div class="pixva-notice pixva-notice--info">
-				<p><?php esc_html_e( 'چیزی پیدا نشد. عبارت کوتاه‌تری امتحان کنید یا مستقیم هزینه را برآورد کنید.', 'pixva' ); ?></p>
-			</div>
-			<a class="pixva-btn pixva-btn--primary" href="<?php echo esc_url( pixva_page_url( 'error-codes' ) ); ?>"><?php esc_html_e( 'جستجو در کدهای خطا', 'pixva' ); ?></a>
+		<?php elseif ( '' !== $pixva_q ) : ?>
+			<?php
+			pixva_empty_state(
+				__( 'نتیجه‌ای پیدا نشد', 'pixva' ),
+				__( 'عبارت کوتاه‌تری امتحان کنید، یا ایراد را با ابزار تشخیص بررسی کنید. برای کد خطا، پایگاه کدهای خطا را جست‌وجو کنید.', 'pixva' ),
+				array(
+					__( 'تشخیص آنلاین', 'pixva' )     => pixva_route_url( 'diagnosis' ),
+					__( 'پایگاه کدهای خطا', 'pixva' ) => pixva_route_url( 'error_codes', array( 'q' => $pixva_q ) ),
+				)
+			);
+			?>
 		<?php endif; ?>
 	</div>
 </main>

@@ -1,0 +1,100 @@
+/**
+ * PIXVA admin screens (meta boxes, settings, redirects, checklist).
+ * Uses WordPress admin colours plus the §25 tokens for status accents.
+ */
+.pixva-meta-grid {
+	display: grid;
+	gap: 12px 24px;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.pixva-meta-field label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.pixva-meta-field .description {
+	margin-top: 4px;
+}
+
+.pixva-meta-field--textarea,
+.pixva-meta-field--lines,
+.pixva-meta-field--html {
+	grid-column: 1 / -1;
+}
+
+.pixva-meta-field textarea {
+	width: 100%;
+	min-height: 96px;
+}
+
+.pixva-meta-req {
+	color: #64748B;
+	font-weight: 400;
+}
+
+.pixva-image-field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.pixva-image-field input[type="number"] {
+	width: 96px;
+}
+
+.pixva-image-preview {
+	flex-basis: 100%;
+}
+
+.pixva-image-preview img {
+	max-width: 120px;
+	height: auto;
+	border: 1px solid #E2E8F0;
+	border-radius: 4px;
+}
+
+.pixva-checklist {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.pixva-checklist li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px solid #E2E8F0;
+}
+
+.pixva-checklist .is-done .dashicons {
+	color: #00A86B;
+}
+
+.pixva-checklist .is-todo .dashicons {
+	color: #F59E0B;
+}
+
+.pixva-rows input {
+	width: 100%;
+}
+
+.pixva-redirect-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 8px 16px;
+	margin: 16px 0;
+}
+
+.pixva-redirect-form label {
+	display: block;
+	font-weight: 600;
+}
+
+.column-pixva_status {
+	width: 140px;
+}

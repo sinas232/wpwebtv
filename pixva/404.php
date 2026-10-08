@@ -1,43 +1,34 @@
 <?php
 /**
- * صفحه ۴۰۴
+ * 404 / 410 page (§23–§24). Status codes are set by redirects.php;
+ * this template only adapts the wording and offers useful exits.
  *
  * @package Pixva
+ * @since   2.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 get_header();
-$suggested = get_posts(
-	array(
-		'post_type'      => 'post',
-		'posts_per_page' => 3,
-		'no_found_rows'  => true,
-	)
-);
+$pixva_gone = ! empty( $GLOBALS['pixva_is_gone'] );
 ?>
-<main id="content">
-	<?php pixva_page_hero( __( 'این صفحه پیدا نشد', 'pixva' ), __( 'آدرس عوض شده یا اشتباه تایپ شده است. از جستجو یا مسیرهای زیر استفاده کنید.', 'pixva' ) ); ?>
-	<div class="pixva-container pixva-content pixva-404">
-		<p class="pixva-404__code" aria-hidden="true"><?php echo esc_html( pixva_fa_num( '4' ) ); ?><span><?php echo esc_html( pixva_fa_num( '0' ) ); ?></span><?php echo esc_html( pixva_fa_num( '4' ) ); ?></p>
-		<div class="pixva-search" style="max-width:520px;margin:0 auto 1.5rem">
-			<?php get_search_form(); ?>
-		</div>
-		<div class="pixva-hero__actions" style="justify-content:center">
-			<a class="pixva-btn pixva-btn--cta" href="<?php echo esc_url( pixva_page_url( 'calculator' ) ); ?>"><?php esc_html_e( 'محاسبه هزینه', 'pixva' ); ?></a>
-			<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( pixva_page_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری تعمیر', 'pixva' ); ?></a>
-			<a class="pixva-btn pixva-btn--ghost" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'بازگشت به خانه', 'pixva' ); ?></a>
-		</div>
-		<?php if ( ! empty( $suggested ) ) : ?>
-			<h2><?php esc_html_e( 'شاید این مقاله‌ها به کارتان بیاید', 'pixva' ); ?></h2>
-			<div class="pixva-grid pixva-grid--3" style="text-align:start">
-				<?php foreach ( $suggested as $suggested_post ) : ?>
-					<?php pixva_post_card( $suggested_post->ID ); ?>
-				<?php endforeach; ?>
-			</div>
-		<?php endif; ?>
+<main id="main" class="site-main">
+	<?php
+	pixva_page_header(
+		$pixva_gone ? __( 'این صفحه حذف شده است', 'pixva' ) : __( 'صفحه پیدا نشد', 'pixva' ),
+		$pixva_gone ? __( 'محتوای این نشانی به‌طور دائمی برداشته شده است. از گزینه‌های زیر برای پیدا کردن مطلب مشابه استفاده کنید.', 'pixva' ) : __( 'نشانی ممکن است اشتباه تایپ شده یا صفحه جابه‌جا شده باشد.', 'pixva' )
+	);
+	?>
+	<div class="container section">
+		<?php get_search_form(); ?>
+		<h2 class="section__title"><?php esc_html_e( 'شاید این‌ها کمک کند', 'pixva' ); ?></h2>
+		<?php pixva_tool_cards(); ?>
+		<ul class="link-list link-list--inline">
+			<?php foreach ( array( 'services', 'problems', 'error_codes', 'booking', 'tracking', 'blog', 'contact' ) as $pixva_key ) : ?>
+				<li><a href="<?php echo esc_url( pixva_route_url( $pixva_key ) ); ?>"><?php echo esc_html( pixva_routes()[ $pixva_key ]['title'] ); ?></a></li>
+			<?php endforeach; ?>
+		</ul>
 	</div>
 </main>
 <?php
