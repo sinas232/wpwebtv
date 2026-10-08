@@ -62,7 +62,7 @@ $pixva_head = static function ( $eyebrow, $id, $title, $lead, $link_url = '', $l
 	echo '</header>';
 };
 ?>
-<main id="content" class="site-main hx">
+<main id="main" class="site-main hx">
 
 	<?php /* ---------- 1. HERO: diagnostic stage ---------- */ ?>
 	<section class="hx-hero band band--deep band--grid" aria-labelledby="hero-title">

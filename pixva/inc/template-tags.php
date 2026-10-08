@@ -1100,7 +1100,7 @@ function pixva_service_feature( $post ) {
 	echo '</div>';
 	echo '<div class="feature__body">';
 	echo '<p class="feature__kicker">' . esc_html__( 'خدمت تعمیر', 'pixva' ) . '</p>';
-	echo '<h3 class="feature__title"><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h3>';
+	echo '<h2 class="feature__title"><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h2>';
 	$excerpt = pixva_plain_excerpt( $post, 30 );
 	if ( '' !== trim( $excerpt ) ) {
 		echo '<p class="feature__text">' . esc_html( $excerpt ) . '</p>';

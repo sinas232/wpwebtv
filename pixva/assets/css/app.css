@@ -8960,3 +8960,8 @@ fieldset.field--error {
 	.account__main .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 	.account__main .stats > li { border-block-end: 0; }
 }
+
+/* Single article header is dark (v2.4): light meta and breadcrumb text for contrast. */
+.single-post .page-head .post-meta { color: #cbd5e1; }
+.single-post .page-head [aria-current="page"] { color: #ffffff; }
+.single-post .page-head a { color: #cbd5e1; }

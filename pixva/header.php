@@ -30,7 +30,7 @@ $pixva_is_in = is_user_logged_in();
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="skip-link" href="#content"><?php esc_html_e( 'رفتن به محتوای اصلی', 'pixva' ); ?></a>
+<a class="skip-link" href="#main"><?php esc_html_e( 'رفتن به محتوای اصلی', 'pixva' ); ?></a>
 <header class="site-header" id="site-header">
 	<div class="container site-header__bar">
 		<?php pixva_logo(); ?>
