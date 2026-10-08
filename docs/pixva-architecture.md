@@ -132,17 +132,18 @@ permalink `/blog/%postname%/`, route pages created or retargeted, duplicates dra
 | `/error-codes` | GET | public | 120 / 10 min | no |
 | `/models?brand=` | GET | public | 120 / 10 min | no |
 
-All responses, including errors, are `Cache-Control: no-store, private`. `/wp/v2/users` hidden from anonymous users; `pixva_orders/inbox/part` not in REST.
+All responses, including errors, are `Cache-Control: no-store, private`. `/wp/v2/users` is available only to staff with `edit_posts`/`list_users` (block editor); other logged-in users keep only `/wp/v2/users/me` (own record), guests get none. oEmbed responses carry no `author_url` (it contains the login slug); `pixva_orders/inbox/part` not in REST.
 
 ## 9. SEO (§19–24, §48, §52)
 
 - One decision function for robots: noindex for account/dashboard/search/404/410, query states (diagnosis steps, calculator inputs, error-code search, booking prefill), empty archives, thin posts/terms, per-post `_pixva_seo_noindex`.
 - Canonical only on indexable pages; titles/descriptions per route/entity; OG + Twitter tags. The front-page description comes from `pixva_front_lead()` (the front page excerpt, or a factual sentence about what the site does — never a claim). Without a tagline the title uses a factual descriptor until the owner sets one.
-- Thin content: posts with < 300 characters of text (e.g. WordPress’ untouched “Hello world!”), and thin services/brands/models/problems, are `noindex, follow` and kept out of the sitemap. The admin overview checklist flags untouched core sample content (`pixva_core_sample_content()`); the theme never deletes it.
+- Thin content: WordPress’ own sample content while untouched (“Hello world!”, “Sample Page”; indexable again once the owner edits it), posts with < 300 characters of text, and thin services/brands/models/problems, are `noindex, follow` and kept out of the sitemap. The admin overview checklist flags untouched core sample content (`pixva_core_sample_content()`); the theme never deletes it.
 - Schema only from real data: WebSite + SearchAction and Organization (name/url/logo/sameAs) on every page, upgraded to LocalBusiness only when real address/phone claims exist, BreadcrumbList, Article, Service, FAQPage only with entries. Never AggregateRating, Review, Offer/price.
-- Sitemaps: core `wp-sitemap.xml` (paginated by core at 2 000 URLs), excludes noindex/thin posts, redirect sources and gone paths (exclusion list computed in batches of 100 without an upper cap, cached in the `pixva_sitemap_excluded` transient and flushed on any post/meta/redirect/gone-path change); custom provider for CPT archive URLs (only non-empty).
+- Sitemaps: core `wp-sitemap.xml` (paginated by core at 2 000 URLs), excludes noindex/thin posts, redirect sources and gone paths (exclusion list computed in batches of 100 without an upper cap, cached in the `pixva_sitemap_excluded` transient keyed by theme version and flushed on any post/meta/redirect/gone-path change, theme switch or update); custom provider for CPT archive URLs (only non-empty).
 - robots.txt: only `/wp-admin/` disallowed (`admin-ajax.php` allowed); CSS/JS/images crawlable.
 - Redirect manager: source, destination, status (301/302/307/308/410), date, notes, active; flattens chains on save (A→B + B→C becomes A→C), rejects loops, self-redirects and protected route paths; a redirect whose target is gone answers 410 directly.
+- Query-var URLs of public custom types (`/?tv_services=slug`, bare `/?post_type=tv_services`) answer one 301 to the pretty permalink (other parameters kept); core already handles `?p=`, `?page_id=`, `?cat=` and taxonomy query vars.
 - 404: explanation, search, key routes, suggestions. 410 for intentionally removed content (tracked on trash/unpublish of public types).
 
 ## 10. Analytics (§39)
@@ -155,7 +156,7 @@ Tokens in `style.css` and `theme.json` (exactly the 12 approved colours; derived
 
 ## 12. Security summary (§31–33)
 
-Nonces on all forms and admin actions, capability or ownership checks on all writes, `wp_unslash` + sanitisation on all input, escaping on all output, rate limits on public writes and lookups, honeypot, duplicate-submit protection, private uploads, security headers (`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`), generic login errors, author archives blocked, mail header injection stripped.
+Nonces on all forms and admin actions, capability or ownership checks on all writes, `wp_unslash` + sanitisation on all input, escaping on all output, rate limits on public writes and lookups, honeypot, duplicate-submit protection, private uploads, security headers (`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`), generic login errors, author archives blocked, user enumeration closed (REST users, oEmbed author URL, users sitemap), mail header injection stripped. Rate limits key on `REMOTE_ADDR` (not spoofable via headers); behind a reverse proxy/CDN restore the real client IP in the web server or use the `pixva_client_ip` filter, otherwise all visitors share one bucket.
 
 ## 13. Code quality
 

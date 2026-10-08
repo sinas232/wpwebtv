@@ -88,7 +88,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T30"
+        "T30",
+        "T36"
       ],
       "blocker": null
     },
@@ -188,7 +189,8 @@
         "T14",
         "T15",
         "T16",
-        "T34"
+        "T34",
+        "T37"
       ],
       "blocker": null
     },
@@ -205,7 +207,8 @@
       "verification": [
         "T18",
         "T19",
-        "T22"
+        "T22",
+        "T37"
       ],
       "blocker": null
     },
@@ -221,7 +224,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T24"
+        "T24",
+        "T37"
       ],
       "blocker": null
     },
@@ -235,7 +239,8 @@
       ],
       "status": "COMPLETE",
       "verification": [
-        "T20"
+        "T20",
+        "T37"
       ],
       "blocker": null
     },
@@ -250,7 +255,8 @@
       "status": "COMPLETE",
       "verification": [
         "T21",
-        "T23"
+        "T23",
+        "T37"
       ],
       "blocker": null
     },
@@ -306,7 +312,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T28"
+        "T28",
+        "T35"
       ],
       "blocker": null
     },
@@ -334,7 +341,8 @@
       "status": "COMPLETE",
       "verification": [
         "T26",
-        "T27"
+        "T27",
+        "T35"
       ],
       "blocker": null
     },
@@ -361,7 +369,8 @@
       ],
       "status": "COMPLETE",
       "verification": [
-        "T30"
+        "T30",
+        "T36"
       ],
       "blocker": null
     },
@@ -376,7 +385,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T30"
+        "T30",
+        "T36"
       ],
       "blocker": null
     },
@@ -483,7 +493,8 @@
         "T02",
         "T13",
         "T21",
-        "T32"
+        "T32",
+        "T37"
       ],
       "blocker": null
     },
@@ -499,7 +510,8 @@
       "verification": [
         "T10",
         "T24",
-        "T25"
+        "T25",
+        "T37"
       ],
       "blocker": null
     },
@@ -514,7 +526,8 @@
       "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
       "verification": [
         "T34",
-        "B07"
+        "B07",
+        "T37"
       ],
       "blocker": "Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness."
     },
@@ -529,7 +542,8 @@
       "status": "COMPLETE",
       "verification": [
         "T09",
-        "T29"
+        "T29",
+        "T38"
       ],
       "blocker": null
     },
@@ -544,7 +558,8 @@
       "status": "COMPLETE",
       "verification": [
         "T09",
-        "T32"
+        "T32",
+        "T38"
       ],
       "blocker": null
     },
@@ -633,7 +648,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T30"
+        "T30",
+        "T36"
       ],
       "blocker": null
     },
@@ -654,7 +670,7 @@
     {
       "id": "§43",
       "requirement": "Template coverage for every route/entity",
-      "location": "23 root templates + 14 page templates",
+      "location": "22 root templates + 14 page templates",
       "files": [
         "pixva/single-tv_model.php",
         "pixva/taxonomy-tv_problem.php"
@@ -706,7 +722,8 @@
         "T13",
         "T14",
         "T15",
-        "T17"
+        "T17",
+        "T37"
       ],
       "blocker": null
     },
@@ -735,7 +752,8 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T27"
+        "T27",
+        "T35"
       ],
       "blocker": null
     },
@@ -750,7 +768,8 @@
       "status": "COMPLETE",
       "verification": [
         "T18",
-        "T21"
+        "T21",
+        "T37"
       ],
       "blocker": null
     },
@@ -764,7 +783,8 @@
       "status": "COMPLETE",
       "verification": [
         "T21",
-        "T23"
+        "T23",
+        "T37"
       ],
       "blocker": null
     },
@@ -779,7 +799,8 @@
       "verification": [
         "T10",
         "T24",
-        "T25"
+        "T25",
+        "T37"
       ],
       "blocker": null
     },
@@ -889,7 +910,9 @@
       "status": "COMPLETE",
       "verification": [
         "T12",
-        "T30"
+        "T30",
+        "T35",
+        "T36"
       ],
       "blocker": null
     },
@@ -985,7 +1008,8 @@
       "verification": [
         "T12",
         "T13",
-        "T29"
+        "T29",
+        "T37"
       ],
       "blocker": null
     },
@@ -999,7 +1023,8 @@
       "status": "COMPLETE",
       "verification": [
         "T03",
-        "T12"
+        "T12",
+        "T37"
       ],
       "blocker": null
     },
@@ -1094,7 +1119,8 @@
       ],
       "status": "COMPLETE",
       "verification": [
-        "T12"
+        "T12",
+        "T39"
       ],
       "blocker": null
     },
@@ -1194,9 +1220,9 @@
     {
       "id": "T08",
       "area": "Static",
-      "check": "Design-token audit (§25)",
-      "method": "grep of hex values in CSS/theme.json",
-      "result": "PASS — only §25 tokens (pixel-test colours exempt by purpose)"
+      "check": "Design-token integrity (§25)",
+      "method": "theme.json palette + hex scan of CSS/PHP/JS",
+      "result": "PASS — palette has exactly the 12 §25 colours; no off-palette hex in CSS/PHP/JS except the pixel-test colours (the tool itself)"
     },
     {
       "id": "T09",
@@ -1224,7 +1250,7 @@
       "area": "Runtime",
       "check": "49-route crawl (§59)",
       "method": "/tmp harness crawl: status, h1, robots, canonical, title, PHP errors",
-      "result": "PASS — 39×200, 6×301 (single hop), 2×404, 1×410, 0 PHP-error pages"
+      "result": "PASS — 39×200, 6×301 (single hop), 2×404, 1×410, 0 PHP-error pages (fresh install, final HEAD)"
     },
     {
       "id": "T13",
@@ -1287,7 +1313,7 @@
       "area": "Runtime",
       "check": "Technician authorisation",
       "method": "unassigned update; assigned update; customer update",
-      "result": "PASS — 403; 200 with masked phone (۰۹۳۵•••۲۳۳); customer 403/404"
+      "result": "PASS — 6/6: 403 unassigned; assigned sees order with masked phone (۰۹۳۵•••۲۳۳), update 200; customer update 403/404"
     },
     {
       "id": "T22",
@@ -1320,16 +1346,16 @@
     {
       "id": "T26",
       "area": "Runtime",
-      "check": "Sitemap exclusion + cache invalidation",
-      "method": "noindex meta toggled on a post",
-      "result": "PASS — excluded immediately, restored after clearing"
+      "check": "Sitemap exclusion cache",
+      "method": "noindex meta toggled; cache keyed by theme version and flushed on post/meta/redirect/gone/theme changes",
+      "result": "PASS — excluded immediately, restored after clearing; stale pre-update cache ignored"
     },
     {
       "id": "T27",
       "area": "Runtime",
-      "check": "Thin content",
-      "method": "hello-world (core sample post)",
-      "result": "PASS — noindex,follow and absent from sitemap"
+      "check": "Thin and untouched sample content",
+      "method": "hello-world post, Sample Page before/after an owner edit",
+      "result": "PASS — both noindex,follow and out of the sitemap while untouched; Sample Page indexable and listed after edit"
     },
     {
       "id": "T28",
@@ -1379,6 +1405,41 @@
       "check": "Private image validation, storage and streaming access",
       "method": "pixva_store_private_image() with the is_uploaded/move test seams; admin-post pixva_order_photo as anon/other customer/editor",
       "result": "PASS — real PNG stored with random name in uploads/pixva-private (+ .htaccess, index.php); PHP disguised as .png rejected (upload_type); 6 MB rejected (upload_size); streaming denied: anon 400, non-owner 403, editor 403"
+    },
+    {
+      "id": "T35",
+      "area": "Runtime",
+      "check": "Sitemap integrity (both directions)",
+      "method": "every URL of every sub-sitemap fetched: status, robots, canonical",
+      "result": "PASS — fresh install 24/24 and migrated v1.7 site 47/47 URLs are 200, indexable and self-canonical; users sitemap 404"
+    },
+    {
+      "id": "T36",
+      "area": "Runtime",
+      "check": "One-hop guarantee on URL variants",
+      "method": "redirect chains followed (≤6) for 34 variants on fresh install + 20 legacy paths on migrated site: no trailing slash, /index.php/, ?p=, ?page_id=, ?cat=, ?tv_problem=, CPT query vars, ?post_type=, legacy v1 paths",
+      "result": "PASS — 0 chains; every redirect is a single 301 to a 200 (or a direct 410/404). Fixed in this pass: CPT query-var and bare ?post_type= URLs were 200 duplicates, now one-hop 301"
+    },
+    {
+      "id": "T37",
+      "area": "Runtime",
+      "check": "Final acceptance suite (53 checks)",
+      "method": "photo streaming (owner/manager/tech/other customer/editor/bad nonce/traversal), warranty privacy, no-JS tracking/warranty forms, PRG one-time token, profile role escalation, anon form actions, wp-admin restriction per role, redirect manager per role, REST exposure incl. users and oEmbed, no-store headers via real REST dispatch",
+      "result": "PASS — 53/53. Fixed in this pass: logged-in customers/technicians could list users via /wp/v2/users (admin login slug) and oEmbed exposed author_url; now 404 / removed, /users/me returns only own record, editors keep the list"
+    },
+    {
+      "id": "T38",
+      "area": "Runtime",
+      "check": "Rendered fake-data scan",
+      "method": "tel:/WhatsApp links, phone numbers, prices, ratings/reviews, warranty durations, statistics, demo order across all crawled + indexable pages",
+      "result": "PASS — fresh install 46 crawled + 28 indexable pages, migrated v1.7 site 51 pages: 0 hits"
+    },
+    {
+      "id": "T39",
+      "area": "Runtime",
+      "check": "Distribution ZIP",
+      "method": "dist/pixva.zip extracted and compared with pixva/ (diff + SHA-256 manifest); theme installed from the ZIP on a clean database and 12 routes crawled",
+      "result": "PASS — ZIP == tree (88 files, identical manifest hash), only pixva/ paths, Version 2.0.0; activation from ZIP OK, 0 PHP errors, 301/410 behaviour intact"
     },
     {
       "id": "B01",
