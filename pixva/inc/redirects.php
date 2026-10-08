@@ -381,6 +381,49 @@ function pixva_handle_redirects() {
 }
 add_action( 'template_redirect', 'pixva_handle_redirects', 1 );
 
+/**
+ * One-hop 301 from plain query-var URLs of public custom types to their
+ * pretty permalink (§05: no duplicate indexable URLs).
+ *
+ * Core redirect_canonical() covers ?p=, ?page_id=, ?cat= and taxonomy
+ * query vars, but not custom post type query vars (?tv_services=slug) or
+ * a bare ?post_type= archive. Other parameters (e.g. utm_*) are kept.
+ *
+ * @return void
+ */
+function pixva_query_var_canonical() {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_preview() || is_search() || is_feed() || is_404() ) {
+		return;
+	}
+	if ( '/' !== pixva_request_path() || empty( $_GET ) || isset( $_GET['p'] ) || isset( $_GET['paged'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing.
+		return;
+	}
+	$drop   = array( 'post_type' );
+	$target = '';
+	if ( is_singular() ) {
+		$obj = get_post_type_object( (string) get_post_type() );
+		if ( ! $obj || in_array( $obj->name, array( 'post', 'page', 'attachment' ), true ) || ! $obj->public || ! $obj->query_var || ! isset( $_GET[ $obj->query_var ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+		$drop[] = $obj->query_var;
+		$target = (string) get_permalink( get_queried_object_id() );
+	} elseif ( is_post_type_archive() && isset( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$type   = get_query_var( 'post_type' );
+		$type   = is_array( $type ) ? reset( $type ) : $type;
+		$target = (string) get_post_type_archive_link( (string) $type );
+	}
+	if ( '' === $target || false !== strpos( $target, '?' ) ) {
+		return;
+	}
+	$keep = array_diff_key( wp_unslash( $_GET ), array_flip( $drop ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- re-encoded by add_query_arg/rawurlencode_deep.
+	if ( $keep ) {
+		$target = add_query_arg( rawurlencode_deep( $keep ), $target );
+	}
+	wp_safe_redirect( $target, 301, 'PIXVA' );
+	exit;
+}
+add_action( 'template_redirect', 'pixva_query_var_canonical', 2 );
+
 add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
 
 /*

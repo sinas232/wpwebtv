@@ -62,12 +62,32 @@ function pixva_has_result_params() {
 }
 
 /**
+ * Whether a post is WordPress' own sample content that the owner never
+ * edited ("Hello world!" post, "Sample Page"). Such content is not real
+ * site content: noindex and out of the sitemap (§44). The admin overview
+ * lists it for review (pixva_core_sample_content()); it is never deleted.
+ *
+ * @param WP_Post $post Post.
+ * @return bool
+ */
+function pixva_is_untouched_core_sample( $post ) {
+	$samples = array(
+		'post' => 'hello-world',
+		'page' => 'sample-page',
+	);
+	return isset( $samples[ $post->post_type ] ) && $samples[ $post->post_type ] === $post->post_name && $post->post_date === $post->post_modified;
+}
+
+/**
  * Thin-content checks per post.
  *
  * @param WP_Post $post Post.
  * @return bool
  */
 function pixva_post_is_thin( $post ) {
+	if ( pixva_is_untouched_core_sample( $post ) ) {
+		return true;
+	}
 	switch ( $post->post_type ) {
 		case 'pixva_error':
 			return '' === trim( (string) get_post_meta( $post->ID, '_pixva_err_meaning', true ) );
@@ -489,7 +509,8 @@ add_filter( 'wp_sitemaps_add_provider', 'pixva_sitemap_providers', 10, 2 );
  */
 function pixva_sitemap_excluded_ids( $post_type ) {
 	$cache = get_transient( 'pixva_sitemap_excluded' );
-	$cache = is_array( $cache ) ? $cache : array();
+	// Rules can change with a theme update: entries from another version are stale.
+	$cache = ( is_array( $cache ) && PIXVA_VERSION === ( $cache['_version'] ?? '' ) ) ? $cache : array( '_version' => PIXVA_VERSION );
 	if ( isset( $cache[ $post_type ] ) && is_array( $cache[ $post_type ] ) ) {
 		return $cache[ $post_type ];
 	}
@@ -538,7 +559,7 @@ function pixva_sitemap_excluded_ids( $post_type ) {
 function pixva_flush_sitemap_cache() {
 	delete_transient( 'pixva_sitemap_excluded' );
 }
-foreach ( array( 'save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'update_option_pixva_redirects', 'update_option_pixva_gone_paths', 'add_option_pixva_redirects', 'add_option_pixva_gone_paths', 'switch_theme' ) as $pixva_hook ) {
+foreach ( array( 'save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'update_option_pixva_redirects', 'update_option_pixva_gone_paths', 'add_option_pixva_redirects', 'add_option_pixva_gone_paths', 'switch_theme', 'upgrader_process_complete' ) as $pixva_hook ) {
 	add_action( $pixva_hook, 'pixva_flush_sitemap_cache' );
 }
 unset( $pixva_hook );
