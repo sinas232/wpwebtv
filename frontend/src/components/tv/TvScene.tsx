@@ -120,6 +120,7 @@ export default function TvScene({ screen, highlight, explode, lowPower = false, 
   const screenRef = useRef(screen);
   const selectedRef = useRef(selectedPart ?? null);
   const { camera, pointer } = useThree();
+  const focusRef = useRef(new THREE.Vector3());
 
   useEffect(() => {
     highlightRef.current = highlight;
@@ -172,9 +173,16 @@ export default function TvScene({ screen, highlight, explode, lowPower = false, 
       g.rotation.x = current.current.rotX;
       g.position.y = Math.sin(t * 0.9) * 0.035 * (1 - pp);
     }
-    camera.position.z = 6.4 + pp * 2.4;
-    camera.position.y = pp * 0.35;
-    camera.lookAt(0, 0, -pp * 0.6);
+    // Camera focus: when a part is selected in the exploded view, the camera eases toward it.
+    // Smoothed every frame, so selection changes never snap.
+    const focusSpec = sel ? parts.find((p) => p.id === sel) : undefined;
+    const want = focusSpec
+      ? new THREE.Vector3(focusSpec.exp[0] * pp * 0.7, focusSpec.exp[1] * pp * 0.7, focusSpec.exp[2] * pp * 0.5)
+      : new THREE.Vector3(0, 0, -pp * 0.6);
+    focusRef.current.lerp(want, Math.min(1, delta * 3));
+    const pull = focusSpec ? 0.9 * pp : 0;
+    camera.position.set(focusRef.current.x * 0.35, pp * 0.35 + focusRef.current.y * 0.35, 6.4 + pp * 2.4 - pull);
+    camera.lookAt(focusRef.current);
 
     // Body shell fades as parts separate.
     if (bodyMat.current) bodyMat.current.opacity = 1 - pp * 0.8;

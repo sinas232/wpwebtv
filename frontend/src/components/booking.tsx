@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/ui";
 import { captureAttribution, readAttribution, track } from "@/lib/analytics";
+import { postLead } from "@/lib/client-api";
+import { decodeHandoff, handoffSummary, type DiagnosisHandoff } from "@/lib/diagnosis";
 import {
   BRAND_OPTIONS,
   MEDIA_LIMITS,
@@ -67,6 +69,8 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [media, setMedia] = useState<Media[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadPct, setUploadPct] = useState<number | null>(null);
+  const [handoff, setHandoff] = useState<DiagnosisHandoff | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
@@ -81,6 +85,11 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
     const problem = params.get("problem");
     if (problem && PROBLEM_OPTIONS.some((p) => p.id === problem)) {
       setForm((f) => ({ ...f, problem }));
+    }
+    const diag = decodeHandoff(params.get("diag"));
+    if (diag) {
+      setHandoff(diag);
+      setForm((f) => ({ ...f, problem: diag.symptom }));
     }
     const city = params.get("city");
     if (city) {
@@ -227,15 +236,16 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
     const attribution = readAttribution();
     for (const [k, v] of Object.entries(attribution)) fd.set(k, v);
     fd.set("source", attribution.utm_source ?? document.referrer ?? "direct");
+    if (handoff) fd.set("diagnosis", JSON.stringify(handoff));
     media.forEach((m) => {
       fd.append("media", m.file, m.file.name);
       fd.append("mediaKind", m.kind);
     });
 
     try {
-      const res = await fetch("/api/leads", { method: "POST", body: fd });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; trackingCode?: string; errors?: Record<string, string>; error?: string };
-      if (res.ok && data.ok && data.trackingCode) {
+      setUploadPct(0);
+      const { status, data } = await postLead(fd, (f) => setUploadPct(Math.round(f * 100)));
+      if (status >= 200 && status < 300 && data.ok && data.trackingCode) {
         setTrackingCode(data.trackingCode);
         track("form_step", { step: SCREENS.length, screen: "submitted" });
         return;
@@ -245,11 +255,13 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
         const firstBad = SCREENS.findIndex((s) => Object.keys(data.errors ?? {}).some((k) => (s.fields as readonly string[]).includes(k)));
         if (firstBad >= 0) setScreen(firstBad);
       }
-      setServerError(data.error ?? "ثبت درخواست انجام نشد. لطفاً دوباره تلاش کنید یا از طریق صفحه‌ی تماس اقدام کنید.");
+      setServerError(data.error ?? (status === 429 ? "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید." : "ثبت درخواست انجام نشد. لطفاً دوباره تلاش کنید یا از طریق صفحه‌ی تماس اقدام کنید."));
+      if (status >= 500) setServerError("سامانه‌ی ثبت در این لحظه پاسخ نمی‌دهد. اطلاعات شما در مرورگر باقی مانده است؛ دوباره تلاش کنید.");
     } catch {
-      setServerError("اتصال برقرار نشد. اینترنت خود را بررسی کنید و دوباره تلاش کنید.");
+      setServerError("اتصال برقرار نشد یا آپلود دیر تمام شد. اینترنت خود را بررسی کنید و دوباره تلاش کنید؛ فایل‌های بزرگ ممکن است زمان بیشتری ببرند.");
     } finally {
       setSubmitting(false);
+      setUploadPct(null);
     }
   }
 
@@ -278,6 +290,16 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
 
   return (
     <form className="form form-card" onSubmit={submit} noValidate aria-labelledby="booking-step-title">
+      {handoff ? (
+        <div className="notice" role="status" style={{ marginBlockEnd: "var(--s-4)" }}>
+          <p style={{ margin: 0, fontWeight: 800 }}>نتیجه‌ی تشخیص همراه درخواست ثبت می‌شود</p>
+          <p style={{ margin: "var(--s-1) 0 0" }}>{handoffSummary(handoff)}</p>
+          <p className="muted" style={{ margin: "var(--s-1) 0 0", fontSize: "0.9rem" }}>
+            این یک سرنخ احتمالی است؛ تشخیص قطعی با بررسی تکنسین انجام می‌شود.
+          </p>
+        </div>
+      ) : null}
+
       <div className="steps-bar" aria-live="polite">
         <span>
           مرحله {screen + 1} از {SCREENS.length}
@@ -469,9 +491,19 @@ export function BookingWizard({ cities }: { cities: { slug: string; name: string
           مرحله قبل
         </button>
         {isLast ? (
+          <>
+          {uploadPct !== null ? (
+            <span style={{ display: "grid", gap: "var(--s-1)", minWidth: 160 }} role="status">
+              <progress value={uploadPct} max={100} aria-label="پیشرفت ارسال" style={{ width: "100%" }} />
+              <span className="muted" style={{ fontSize: "0.85rem" }}>
+                در حال ارسال… {uploadPct}٪
+              </span>
+            </span>
+          ) : null}
           <button type="submit" className="btn btn--primary" disabled={submitting}>
             {submitting ? "در حال ثبت…" : "ثبت درخواست"}
           </button>
+          </>
         ) : (
           <button type="button" className="btn btn--primary" onClick={next}>
             ادامه

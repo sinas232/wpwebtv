@@ -30,7 +30,6 @@ export const site = {
   /** Optional WordPress headless CMS base, e.g. https://cms.example.ir */
   cmsUrl: env("WP_API_URL"),
   /** Optional CRM / automation webhook that receives every lead as JSON. */
-  leadWebhookUrl: env("LEAD_WEBHOOK_URL"),
 } as const;
 
 /** Trust statements shown as capabilities. Numeric or verifiable proof is gated below. */

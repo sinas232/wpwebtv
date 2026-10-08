@@ -5,12 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { TvStage } from "@/components/tv/TvStage";
 import { track } from "@/lib/analytics";
 import {
+  CAUSES,
   DISCLAIMER,
-  FLOW_STEPS,
   SYMPTOMS,
-  evaluateFlow,
+  encodeHandoff,
   getSymptom,
-  type Candidate,
+  questionsFor,
+  runDiagnosis,
   type FlowAnswers,
   type PartId,
   type ScreenMode,
@@ -19,14 +20,16 @@ import {
 import { complexityLabel } from "@/lib/format";
 import { Icon } from "@/components/ui";
 
-/** How the TV reacts to each likely cause. */
-const CAUSE_VISUAL: Record<Candidate, { screen: ScreenMode; highlight: PartId[] }> = {
-  powerboard: { screen: "idle", highlight: ["powerboard"] },
-  sound_path: { screen: "fluid", highlight: ["speakers"] },
-  backlight: { screen: "dim", highlight: ["backlight"] },
-  panel_or_tcon: { screen: "black", highlight: ["display", "tcon"] },
-  mainboard_or_intermittent: { screen: "fluid", highlight: ["mainboard"] },
-  undetermined: { screen: "fluid", highlight: [] },
+/** SVG icons instead of emoji: emoji fonts are missing on some devices and render as boxes. */
+const SYMPTOM_ICON: Record<SymptomId, Parameters<typeof Icon>[0]["name"]> = {
+  no_picture: "screen",
+  no_sound: "sound",
+  dark_screen: "dim",
+  no_power: "power",
+  auto_reboot: "reboot",
+  hdmi: "hdmi",
+  smart_wifi: "wifi",
+  other: "other",
 };
 
 const SYMPTOM_TO_PROBLEM: Partial<Record<SymptomId, string>> = {
@@ -44,17 +47,20 @@ export function Detective({ compact = false }: { compact?: boolean }) {
   const [answers, setAnswers] = useState<FlowAnswers>({});
   const [step, setStep] = useState(0);
   const questionRef = useRef<HTMLHeadingElement>(null);
+
   const sym = symptom ? getSymptom(symptom) : undefined;
   const isOther = symptom === "other";
-  const flowDone = step >= FLOW_STEPS.length;
+  const questions = symptom ? questionsFor(symptom) : [];
+  const outcome = symptom ? runDiagnosis(symptom, answers) : null;
+  const flowDone = !!outcome;
+  const current = questions[step];
 
-  // Live visual: starts from the chosen symptom, then follows the evidence so far.
-  const result = evaluateFlow(answers);
-  const live = !symptom
-    ? { screen: "idle" as ScreenMode, highlight: [] as PartId[] }
-    : sym && Object.keys(answers).length === 0
-      ? { screen: sym.screen, highlight: sym.highlight }
-      : CAUSE_VISUAL[result.candidate];
+  // Visual: symptom state first, then the likely cause once the flow is complete.
+  const live: { screen: ScreenMode; highlight: PartId[] } = !symptom
+    ? { screen: "idle", highlight: [] }
+    : outcome
+      ? CAUSES[outcome.cause].visual
+      : { screen: sym?.screen ?? "idle", highlight: sym?.highlight ?? [] };
 
   useEffect(() => {
     if (symptom && !flowDone) questionRef.current?.focus();
@@ -68,14 +74,15 @@ export function Detective({ compact = false }: { compact?: boolean }) {
     if (id !== "other") track("diagnosis_start", { symptom: id });
   }
 
-  function answer(key: keyof FlowAnswers, value: string) {
-    const next = { ...answers, [key]: value } as FlowAnswers;
+  function answer(questionId: string, value: string) {
+    const next = { ...answers, [questionId]: value };
     setAnswers(next);
     const nextStep = step + 1;
     setStep(nextStep);
-    track("diagnosis_symptom", { step: nextStep, answer: value });
-    if (nextStep === FLOW_STEPS.length) {
-      track("diagnosis_complete", { candidate: evaluateFlow(next).candidate });
+    track("diagnosis_answer", { symptom: symptom ?? "none", question: questionId, answer: value, step: nextStep });
+    if (symptom && runDiagnosis(symptom, next)) {
+      const done = runDiagnosis(symptom, next);
+      track("diagnosis_complete", { symptom, cause: done?.cause ?? "none" });
     }
   }
 
@@ -86,10 +93,13 @@ export function Detective({ compact = false }: { compact?: boolean }) {
   }
 
   const problemSlug = symptom ? SYMPTOM_TO_PROBLEM[symptom] : undefined;
-  const bookingHref = `/booking?${new URLSearchParams({
-    ...(symptom ? { problem: symptom } : {}),
-    ...(result.part ? { part: result.part } : {}),
-  }).toString()}`;
+  const bookingHref =
+    symptom && outcome
+      ? `/booking?${new URLSearchParams({
+          problem: symptom,
+          diag: encodeHandoff({ symptom, cause: outcome.cause, answers }),
+        }).toString()}`
+      : `/booking?problem=${symptom ?? "other"}`;
 
   return (
     <div className="detective" data-compact={compact || undefined}>
@@ -105,7 +115,9 @@ export function Detective({ compact = false }: { compact?: boolean }) {
             ? "مشکلت رو انتخاب کن تا تلویزیون رو بررسی کنیم."
             : isOther
               ? "برای مشکل خاص‌تر، توضیح و عکس یا ویدئو بفرست."
-              : sym?.note}
+              : flowDone && outcome
+                ? CAUSES[outcome.cause].headline
+                : sym?.note}
         </p>
       </div>
 
@@ -116,7 +128,7 @@ export function Detective({ compact = false }: { compact?: boolean }) {
             <li key={s.id}>
               <button type="button" className="symptom" aria-pressed={symptom === s.id} onClick={() => pickSymptom(s.id)}>
                 <span className="symptom__icon" aria-hidden="true">
-                  {s.icon}
+                  <Icon name={SYMPTOM_ICON[s.id]} size={22} />
                 </span>
                 {s.label}
               </button>
@@ -129,51 +141,67 @@ export function Detective({ compact = false }: { compact?: boolean }) {
             <p className="result__title">مشکل خاص‌تر؟ توضیح بده.</p>
             <p className="muted">هر چه دقیق‌تر بنویسید، تکنسین سریع‌تر تشخیص می‌دهد.</p>
             <div className="btn-row" style={{ marginBlockStart: "var(--s-3)" }}>
-              <Link href="/booking?problem=other" className="btn btn--primary">درخواست بررسی توسط تکنسین</Link>
-              <button type="button" className="btn btn--ghost" onClick={reset}>شروع دوباره</button>
+              <Link href="/booking?problem=other" className="btn btn--primary">
+                درخواست بررسی توسط تکنسین
+              </Link>
+              <button type="button" className="btn btn--ghost" onClick={reset}>
+                شروع دوباره
+              </button>
             </div>
           </div>
         ) : null}
 
-        {symptom && !isOther && !flowDone ? (
+        {symptom && !isOther && current && !flowDone ? (
           <section className="flow" aria-labelledby="flow-q">
             <div className="flow__progress" aria-hidden="true">
-              {FLOW_STEPS.map((_, i) => (
+              {questions.map((_, i) => (
                 <span key={i} data-done={i < step ? "true" : "false"} />
               ))}
             </div>
             <p className="muted" style={{ fontSize: "0.9rem", margin: 0 }}>
-              {step < 3 ? `سرنخ ${step + 1} از ۳` : "تأیید نهایی"}
+              سؤال {step + 1} از {questions.length}
             </p>
             <h4 id="flow-q" ref={questionRef} tabIndex={-1} className="flow__question" style={{ outline: "none" }}>
-              {FLOW_STEPS[step].question}
+              {current.question}
             </h4>
-            <p className="muted" style={{ fontSize: "0.9rem" }}>{FLOW_STEPS[step].help}</p>
+            <p className="muted" style={{ fontSize: "0.9rem" }}>
+              {current.help}
+            </p>
             <div className="flow__options" role="group" aria-labelledby="flow-q">
-              {FLOW_STEPS[step].options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => answer(FLOW_STEPS[step].id, opt.value)}
-                >
+              {current.options.map((opt) => (
+                <button key={opt.value} type="button" className="btn btn--ghost" onClick={() => answer(current.id, opt.value)}>
                   {opt.label}
                 </button>
               ))}
             </div>
+            <button type="button" className="btn btn--ghost" style={{ alignSelf: "flex-start", fontSize: "0.9rem" }} onClick={reset}>
+              انصراف و انتخاب دوباره
+            </button>
           </section>
         ) : null}
 
-        {symptom && !isOther && flowDone ? (
+        {symptom && !isOther && flowDone && outcome ? (
           <section className="result" aria-labelledby="result-title">
-            <p className="result__title" id="result-title">🎯 سرنخش رو پیدا کردیم</p>
-            <p style={{ fontSize: "1.1rem", fontWeight: 800, margin: "var(--s-2) 0" }}>{result.headline}</p>
-            <p>{result.explanation}</p>
+            {outcome.urgent ? (
+              <div className="notice notice--error" role="alert" style={{ marginBlockEnd: "var(--s-3)" }}>
+                <strong>{outcome.urgent}</strong>
+              </div>
+            ) : null}
+            <p className="result__title" id="result-title">
+              سرنخ احتمالی
+            </p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 800, margin: "var(--s-2) 0" }}>{CAUSES[outcome.cause].headline}</p>
+            <p>{CAUSES[outcome.cause].explanation}</p>
             <p className="result__disclaimer">{DISCLAIMER}</p>
             <p className="muted" style={{ fontSize: "0.88rem" }}>
-              پیچیدگی تقریبی: {complexityLabel[result.complexity]}
-              {answers.persistent === "no" ? "، مشکل گاهی رخ می‌دهد؛ زمان دقیقش را در درخواست بنویسید." : ""}
+              پیچیدگی تقریبی: {complexityLabel[CAUSES[outcome.cause].complexity]}
             </p>
+            <h5 style={{ marginBlock: "var(--s-3) var(--s-2)" }}>کارهای ایمن که می‌توانی انجام بدهی</h5>
+            <ul className="check-list">
+              {outcome.advice.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
             <div className="btn-row" style={{ marginBlockStart: "var(--s-4)" }}>
               <Link href={bookingHref} className="btn btn--primary" data-track="cta_click" data-track-label="diagnosis_result_booking">
                 درخواست بررسی توسط تکنسین
@@ -188,6 +216,9 @@ export function Detective({ compact = false }: { compact?: boolean }) {
                 شروع دوباره
               </button>
             </div>
+            <p className="muted" style={{ fontSize: "0.88rem", marginBlockStart: "var(--s-3)" }}>
+              با ادامه، پاسخ‌های این بخش همراه درخواست شما ثبت می‌شود تا لازم نباشد دوباره توضیح بدهید.
+            </p>
           </section>
         ) : null}
       </div>

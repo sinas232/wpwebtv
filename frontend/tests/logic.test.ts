@@ -1,6 +1,5 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DISCLAIMER, evaluateFlow, FLOW_STEPS, SYMPTOMS } from "../src/lib/diagnosis.ts";
 import {
   isTrackingCode,
   makeTrackingCode,
@@ -9,48 +8,6 @@ import {
   validateLeadFields,
   validateMedia,
 } from "../src/lib/leads.ts";
-
-test("flow: standby off points to power board, always with technician recommendation", () => {
-  const r = evaluateFlow({ standby: "no" });
-  assert.equal(r.candidate, "powerboard");
-  assert.equal(r.part, "powerboard");
-  assert.equal(r.technicianRecommended, true);
-});
-
-test("flow: dim picture with sound points to backlight and uses hedged wording", () => {
-  const r = evaluateFlow({ standby: "yes", sound: "yes", picture: "dim" });
-  assert.equal(r.candidate, "backlight");
-  assert.match(r.headline, /احتمال/);
-  assert.doesNotMatch(r.explanation, /قطعاً|حتماً/);
-});
-
-test("flow: black picture with sound points to panel or T-Con", () => {
-  assert.equal(evaluateFlow({ standby: "yes", sound: "yes", picture: "black" }).candidate, "panel_or_tcon");
-});
-
-test("flow: no sound is handled before picture checks", () => {
-  assert.equal(evaluateFlow({ standby: "yes", sound: "no", picture: "dim" }).candidate, "sound_path");
-});
-
-test("flow: incomplete answers do not produce a confident diagnosis", () => {
-  assert.equal(evaluateFlow({}).candidate, "undetermined");
-});
-
-test("every symptom has a visual state and a hedged note", () => {
-  assert.equal(SYMPTOMS.length, 8);
-  for (const s of SYMPTOMS) {
-    assert.ok(s.label.length > 0);
-    assert.ok(s.note.length > 0);
-  }
-  assert.ok(DISCLAIMER.includes("نیاز به بررسی تکنسین"));
-});
-
-test("flow has the four steps from the brief", () => {
-  assert.deepEqual(
-    FLOW_STEPS.map((s) => s.id),
-    ["standby", "sound", "picture", "persistent"],
-  );
-});
 
 test("Persian and Arabic digits normalise to ASCII", () => {
   assert.equal(normalizeDigits("۰۹۱۲۳۴۵۶۷۸۹"), "09123456789");

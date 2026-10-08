@@ -8,6 +8,8 @@
  * until a technician workflow writes them. No values are fabricated.
  */
 
+import { validateHandoff, type DiagnosisHandoff } from "./diagnosis.ts";
+
 export const PROBLEM_OPTIONS = [
   { id: "no_picture", label: "تصویر ندارم" },
   { id: "no_sound", label: "صدا ندارم" },
@@ -107,6 +109,8 @@ export type Lead = {
   utm: Utm;
   landingPage: string;
   media: LeadMedia[];
+  /** Answers from TV Detective, when the customer came from the diagnostic flow. */
+  diagnosis: DiagnosisHandoff | null;
   technician: {
     assignedTo: string | null;
     visitAt: string | null;
@@ -200,8 +204,19 @@ export function validateLeadFields(raw: Record<string, unknown>): ValidationResu
         content: str(raw.utm_content, 100) || undefined,
       },
       landingPage: str(raw.landingPage, 300),
+      diagnosis: parseDiagnosis(raw.diagnosis),
     },
   };
+}
+
+/** The diagnosis field arrives as a JSON string. Invalid input is dropped, never trusted. */
+function parseDiagnosis(v: unknown): DiagnosisHandoff | null {
+  if (typeof v !== "string" || v.length === 0 || v.length > 1000) return null;
+  try {
+    return validateHandoff(JSON.parse(v));
+  } catch {
+    return null;
+  }
 }
 
 export type FileMeta = { kind: string; name: string; size: number; mime: string };

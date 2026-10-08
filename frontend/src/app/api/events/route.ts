@@ -14,6 +14,7 @@ const ALLOWED = new Set([
   "form_step",
   "diagnosis_start",
   "diagnosis_symptom",
+  "diagnosis_answer",
   "diagnosis_complete",
   "brand_selected",
   "problem_selected",

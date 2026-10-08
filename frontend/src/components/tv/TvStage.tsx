@@ -51,7 +51,9 @@ function Canvas3D({
   ...scene
 }: TvSceneProps & { inView: boolean; onLost: () => void }) {
   const [Canvas, setCanvas] = useState<null | typeof import("@react-three/fiber").Canvas>(null);
+  // The three.js bundle is downloaded only once this stage is near the viewport.
   useEffect(() => {
+    if (!inView) return;
     let cancelled = false;
     import("@react-three/fiber").then((m) => {
       if (!cancelled) setCanvas(() => m.Canvas);
@@ -59,7 +61,7 @@ function Canvas3D({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [inView]);
 
   if (!Canvas) return <TvFallback screen={scene.screen} />;
 

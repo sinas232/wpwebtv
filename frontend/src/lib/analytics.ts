@@ -13,6 +13,7 @@ export type EventName =
   | "form_step"
   | "diagnosis_start"
   | "diagnosis_symptom"
+  | "diagnosis_answer"
   | "diagnosis_complete"
   | "brand_selected"
   | "problem_selected"
