@@ -1,16 +1,51 @@
 /**
- * استایل ویرایشگر بلوکی قالب پیکسوا
+ * PIXVA block-editor styles (loaded via add_editor_style; WordPress scopes
+ * them to the editor canvas). Mirrors front-end typography and §25 tokens.
  */
-body {
-	font-family: Vazirmatn, Tahoma, sans-serif;
-	direction: rtl;
-	color: #334155;
-	line-height: 1.9;
-}
-
 @font-face {
-	font-family: Vazirmatn;
+	font-family: "Vazirmatn";
 	src: url("../fonts/vazirmatn-variable.woff2") format("woff2");
 	font-weight: 100 900;
 	font-display: swap;
+}
+
+body {
+	font-family: "Vazirmatn", system-ui, Tahoma, sans-serif;
+	direction: rtl;
+	color: #1E293B;
+	background: #FFFFFF;
+	line-height: 1.85;
+	font-size: 16px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	color: #0B1C2E;
+	font-weight: 800;
+	line-height: 1.4;
+}
+
+a {
+	color: #0B1C2E;
+	text-underline-offset: 3px;
+}
+
+blockquote {
+	margin-inline: 0;
+	padding: 16px 24px;
+	border-inline-start: 4px solid #FF5C35;
+	background: #F8FAFC;
+}
+
+table th,
+table td {
+	padding: 8px;
+	border: 1px solid #E2E8F0;
+}
+
+figcaption {
+	color: #64748B;
+	font-size: 14px;
 }

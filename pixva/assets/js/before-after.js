@@ -1,60 +1,37 @@
 /**
- * اسلایدر لمسی قبل و بعد، بدون کتابخانه
+ * PIXVA before/after comparison (progressive enhancement).
+ * Without JS both images are shown side by side. With JS the second image
+ * overlays the first and a native, labelled range input controls the split
+ * (keyboard, touch and screen-reader operable; no pointer-only gestures).
  */
 (function () {
 	'use strict';
 
-	function syncWidth(root) {
-		const image = root.querySelector('.pixva-ba__before img');
-		if (!image) {
+	function init(fig) {
+		var items = fig.querySelectorAll('.compare__item');
+		if (items.length < 2 || fig.classList.contains('is-slider')) {
 			return;
 		}
-		image.style.width = `${root.clientWidth}px`;
-	}
-
-	function setValue(root, value) {
-		const next = Math.min(100, Math.max(0, Number(value)));
-		root.style.setProperty('--pixva-ba', `${next}%`);
-		const range = root.querySelector('.pixva-ba__range');
-		if (range && Number(range.value) !== next) {
-			range.value = String(next);
-		}
-	}
-
-	function init(root) {
-		const range = root.querySelector('.pixva-ba__range');
-		syncWidth(root);
-		if (range) {
-			setValue(root, range.value);
-			range.addEventListener('input', () => setValue(root, range.value));
-		}
-
-		const move = (clientX) => {
-			const rect = root.getBoundingClientRect();
-			if (!rect.width) {
-				return;
-			}
-			const ratio = (clientX - rect.left) / rect.width;
-			setValue(root, Math.round(ratio * 100));
+		var range = document.createElement('input');
+		range.type = 'range';
+		range.min = '0';
+		range.max = '100';
+		range.step = '1';
+		range.value = '50';
+		range.dir = 'ltr';
+		range.className = 'compare__range';
+		range.setAttribute('aria-label', fig.getAttribute('data-compare-label') || 'مقایسه قبل و بعد');
+		var set = function (v) {
+			fig.style.setProperty('--pos', v + '%');
+			range.setAttribute('aria-valuetext', v + '%');
 		};
-
-		root.addEventListener('pointerdown', (event) => {
-			if (event.target === range) {
-				return;
-			}
-			root.setPointerCapture(event.pointerId);
-			move(event.clientX);
+		range.addEventListener('input', function () {
+			set(range.value);
 		});
-		root.addEventListener('pointermove', (event) => {
-			if (!root.hasPointerCapture(event.pointerId)) {
-				return;
-			}
-			move(event.clientX);
-		});
-		window.addEventListener('resize', () => syncWidth(root));
+		fig.classList.add('is-slider');
+		fig.appendChild(range);
+		set(50);
 	}
 
-	document.addEventListener('DOMContentLoaded', () => {
-		document.querySelectorAll('[data-pixva-ba]').forEach(init);
-	});
+	document.querySelectorAll('[data-compare]').forEach(init);
 }());
