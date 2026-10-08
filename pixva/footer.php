@@ -13,6 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 $pixva_social = pixva_social_links();
 ?>
 <footer class="site-footer">
+	<div class="site-footer__top">
+		<div class="container site-footer__top-inner">
+			<p class="site-footer__statement"><?php esc_html_e( 'تشخیص را از تعمیر جدا نکن؛ اول ببین، بعد تصمیم بگیر.', 'pixva' ); ?></p>
+			<div class="site-footer__top-actions">
+				<a class="btn btn--accent" data-track="cta_click" data-track-label="booking" data-track-location="footer" href="<?php echo esc_url( pixva_route_url( 'booking' ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
+				<a class="btn btn--ghost-light" data-track="cta_click" data-track-label="diagnosis" data-track-location="footer" href="<?php echo esc_url( pixva_route_url( 'diagnosis' ) ); ?>"><?php esc_html_e( 'شروع تشخیص', 'pixva' ); ?></a>
+			</div>
+		</div>
+	</div>
 	<div class="container site-footer__grid">
 		<div class="site-footer__brand">
 			<?php pixva_logo(); ?>
@@ -85,11 +94,16 @@ $pixva_social = pixva_social_links();
 				<li><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>"><?php esc_html_e( 'حریم خصوصی', 'pixva' ); ?></a></li>
 			<?php endif; ?>
 			<?php if ( pixva_has_claim( 'trust_seal_url' ) && pixva_has_claim( 'trust_seal_image' ) ) : ?>
-				<li><a href="<?php echo esc_url( (string) pixva_claim( 'trust_seal_url' ) ); ?>" rel="noopener" target="_blank"><img src="<?php echo esc_url( (string) pixva_claim( 'trust_seal_image' ) ); ?>" alt="<?php esc_attr_e( 'نماد اعتماد', 'pixva' ); ?>" width="64" height="64" loading="lazy"></a></li>
+				<li><a href="<?php echo esc_url( (string) pixva_claim( 'trust_seal_url' ) ); ?>" rel="noopener" target="_blank"><img src="<?php echo esc_url( (string) pixva_claim( 'trust_seal_image' ) ); ?>" alt="<?php esc_attr_e( 'نماد اعتماد', 'pixva' ); ?>" width="96" height="40" loading="lazy"></a></li>
 			<?php endif; ?>
 		</ul>
 	</div>
 </footer>
+<?php /* Mobile sticky CTA: two real actions, visible under 768px only. */ ?>
+<nav class="m-cta" aria-label="<?php esc_attr_e( 'دسترسی سریع', 'pixva' ); ?>">
+	<a class="m-cta__ghost" data-track="cta_click" data-track-label="diagnosis" data-track-location="sticky_mobile" href="<?php echo esc_url( pixva_route_url( 'diagnosis' ) ); ?>"><?php echo wp_kses( pixva_icon( 'pulse' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'تشخیص', 'pixva' ); ?></span></a>
+	<a class="m-cta__main" data-track="cta_click" data-track-label="booking" data-track-location="sticky_mobile" href="<?php echo esc_url( pixva_route_url( 'booking' ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
+</nav>
 <?php wp_footer(); ?>
 </body>
 </html>
