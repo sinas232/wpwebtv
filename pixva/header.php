@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<nav class="site-nav" id="site-nav" aria-label="<?php esc_attr_e( 'منوی اصلی', 'pixva' ); ?>">
 			<?php pixva_nav( 'primary', 'primary-menu' ); ?>
 			<div class="site-nav__actions">
-				<a class="icon-link" href="<?php echo esc_url( pixva_route_url( 'tracking' ) ); ?>"><?php echo wp_kses( pixva_icon( 'track' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'پیگیری', 'pixva' ); ?></span></a>
+				<a class="icon-link" href="<?php echo esc_url( pixva_route_url( 'tracking' ) ); ?>"><?php echo wp_kses( pixva_icon( 'route' ), pixva_svg_allowed() ); ?><span><?php esc_html_e( 'پیگیری', 'pixva' ); ?></span></a>
 				<a class="icon-link" href="<?php echo esc_url( pixva_route_url( 'account' ) ); ?>"><?php echo wp_kses( pixva_icon( 'user' ), pixva_svg_allowed() ); ?><span><?php echo is_user_logged_in() ? esc_html__( 'حساب من', 'pixva' ) : esc_html__( 'ورود', 'pixva' ); ?></span></a>
 				<a class="btn btn--accent btn--sm" data-track="cta_click" data-track-label="booking" data-track-location="header" href="<?php echo esc_url( pixva_route_url( 'booking' ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
 			</div>

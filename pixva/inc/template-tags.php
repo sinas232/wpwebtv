@@ -40,7 +40,7 @@ function pixva_logo() {
 		);
 	} else {
 		echo '<span class="brand__mark" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="currentColor"/><path class="brand__bolt" d="M9 18 16 6l-1.5 9H23l-9 11 2-8z"/></svg></span>';
-		echo '<span class="brand__name">' . esc_html( get_bloginfo( 'name' ) ) . '</span>';
+		echo '<span class="brand__text"><span class="brand__name">' . esc_html( get_bloginfo( 'name' ) ) . '</span><span class="brand__tag">' . esc_html__( 'تشخیص و تعمیر تلویزیون', 'pixva' ) . '</span></span>';
 	}
 	echo '</a>';
 }
@@ -288,7 +288,9 @@ function pixva_cta_box( $title = '', $text = '', $from = 'cta_box' ) {
 	$title = '' !== $title ? $title : __( 'مطمئن نیستید ایراد از کجاست؟', 'pixva' );
 	$text  = '' !== $text ? $text : __( 'با ابزار تشخیص علت‌های محتمل را ببینید یا مستقیم درخواست بررسی ثبت کنید.', 'pixva' );
 	$phone = pixva_primary_phone();
-	echo '<aside class="cta" aria-label="' . esc_attr( $title ) . '"><div class="cta__body"><h2 class="cta__title">' . esc_html( $title ) . '</h2><p>' . esc_html( $text ) . '</p></div><div class="cta__actions">';
+	echo '<aside class="cta reveal" aria-label="' . esc_attr( $title ) . '">';
+	echo '<span class="cta__icon" aria-hidden="true">' . wp_kses( pixva_icon( 'pulse' ), pixva_svg_allowed() ) . '</span>';
+	echo '<div class="cta__body"><h2 class="cta__title">' . esc_html( $title ) . '</h2><p>' . esc_html( $text ) . '</p></div><div class="cta__actions">';
 	echo '<a class="btn btn--accent" data-track="cta_click" data-track-label="booking" data-track-location="' . esc_attr( $from ) . '" href="' . esc_url( pixva_route_url( 'booking' ) ) . '">' . esc_html__( 'ثبت درخواست تعمیر', 'pixva' ) . '</a>';
 	echo '<a class="btn btn--ghost-light" data-track="cta_click" data-track-label="diagnosis" data-track-location="' . esc_attr( $from ) . '" href="' . esc_url( pixva_route_url( 'diagnosis' ) ) . '">' . esc_html__( 'تشخیص آنلاین', 'pixva' ) . '</a>';
 	if ( '' !== $phone ) {
@@ -792,16 +794,24 @@ function pixva_linked_post( $post_id, $key, $type ) {
 }
 
 /**
- * Section wrapper open/close with heading and optional "see all" link.
+ * Section wrapper open/close with heading, optional eyebrow, lead and
+ * "see all" link.
  *
- * @param string $id    Section id (for aria-labelledby).
- * @param string $title Title.
- * @param string $more  "See all" URL.
- * @param string $lead  Lead text.
+ * @param string $id      Section id (for aria-labelledby).
+ * @param string $title   Title.
+ * @param string $more    "See all" URL.
+ * @param string $lead    Lead text.
+ * @param string $eyebrow Small label above the title.
+ * @param string $class   Extra section class (e.g. section--white, band band--dark band--grid).
  * @return void
  */
-function pixva_section_open( $id, $title, $more = '', $lead = '' ) {
-	echo '<section class="section" aria-labelledby="' . esc_attr( $id ) . '"><div class="container"><div class="section__head"><div><h2 class="section__title" id="' . esc_attr( $id ) . '">' . esc_html( $title ) . '</h2>';
+function pixva_section_open( $id, $title, $more = '', $lead = '', $eyebrow = '', $class = '' ) {
+	$class = trim( 'section ' . $class );
+	echo '<section class="' . esc_attr( $class ) . '" aria-labelledby="' . esc_attr( $id ) . '"><div class="container"><div class="section__head"><div class="section__head-main">';
+	if ( '' !== $eyebrow ) {
+		echo '<p class="eyebrow">' . esc_html( $eyebrow ) . '</p>';
+	}
+	echo '<h2 class="section__title" id="' . esc_attr( $id ) . '">' . esc_html( $title ) . '</h2>';
 	if ( '' !== $lead ) {
 		echo '<p class="section__lead">' . esc_html( $lead ) . '</p>';
 	}
@@ -856,18 +866,50 @@ function pixva_tools() {
 }
 
 /**
- * Tool cards grid.
+ * Tool cards as a bento composition: one dominant dark card (diagnosis),
+ * two medium cards and one wide compact card (error codes). Visual weight
+ * follows importance — no four identical boxes.
  *
  * @param string $exclude Tool key to skip (current page).
  * @return void
  */
 function pixva_tool_cards( $exclude = '' ) {
-	echo '<ul class="grid grid--tools">';
+	$size = array(
+		'diagnosis'        => 'xl',
+		'price_calculator' => 'md',
+		'pixel_test'       => 'md',
+		'error_codes'      => 'wide',
+	);
+	$kicker = array(
+		'diagnosis'        => __( 'ابزار اصلی', 'pixva' ),
+		'price_calculator' => __( 'برآورد', 'pixva' ),
+		'pixel_test'       => __( 'تست صفحه', 'pixva' ),
+		'error_codes'      => __( 'دانشنامه', 'pixva' ),
+	);
+	echo '<ul class="bento">';
 	foreach ( pixva_tools() as $key => $t ) {
 		if ( $key === $exclude ) {
 			continue;
 		}
-		echo '<li class="tool-card"><span class="tool-card__icon" aria-hidden="true">' . wp_kses( pixva_icon( $t['icon'] ), pixva_svg_allowed() ) . '</span><h3 class="tool-card__title"><a class="card__link" href="' . esc_url( $t['url'] ) . '">' . esc_html( $t['title'] ) . '</a></h3><p>' . esc_html( $t['desc'] ) . '</p></li>';
+		$mod = $size[ $key ] ?? 'md';
+		echo '<li class="bento__item bento__item--' . esc_attr( $mod ) . ' reveal">';
+		echo '<a class="bento__link" href="' . esc_url( $t['url'] ) . '">';
+		echo '<span class="bento__icon" aria-hidden="true">' . wp_kses( pixva_icon( $t['icon'] ), pixva_svg_allowed() ) . '</span>';
+		if ( 'xl' === $mod ) {
+			echo '<span class="bento__kicker">' . esc_html( $kicker[ $key ] ?? '' ) . '</span>';
+			echo '<h3 class="bento__title">' . esc_html( $t['title'] ) . '</h3>';
+			echo '<span class="bento__text">' . esc_html( $t['desc'] ) . '</span>';
+			echo '<span class="bento__steps" aria-hidden="true"><span class="bento__step">' . esc_html__( '۱ · دستگاه', 'pixva' ) . '</span><span class="bento__step">' . esc_html__( '۲ · نشانه‌ها', 'pixva' ) . '</span><span class="bento__step">' . esc_html__( '۳ · نتیجه', 'pixva' ) . '</span></span>';
+			echo '<svg class="bento__art" viewBox="0 0 200 120" fill="none" aria-hidden="true"><path d="M0 70 H50 L62 70 74 22 92 108 106 44 118 70 H200" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+		} else {
+			echo '<span class="bento__body">';
+			echo '<span class="bento__kicker">' . esc_html( $kicker[ $key ] ?? '' ) . '</span>';
+			echo '<h3 class="bento__title">' . esc_html( $t['title'] ) . '</h3>';
+			echo '<span class="bento__text">' . esc_html( $t['desc'] ) . '</span>';
+			echo '</span>';
+		}
+		echo '<span class="bento__go" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+		echo '</a></li>';
 	}
 	echo '</ul>';
 }
@@ -903,6 +945,305 @@ function pixva_problem_tiles( $limit = 0 ) {
 	}
 	echo '</ul>';
 	return true;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * v2.1.0 compositions: problem selector, journey, brand wall, editorial
+ * feature/rows. Same data sources as v2.0.0 — only the presentation changed.
+ * ---------------------------------------------------------------------------
+ */
+
+/**
+ * Icon for a diagnosis problem key.
+ *
+ * @param string $key Problem key.
+ * @return string Icon name.
+ */
+function pixva_problem_icon( $key ) {
+	$map = array(
+		'no_power'   => 'power',
+		'no_picture' => 'picture',
+		'lines'      => 'lines',
+		'dim_dark'   => 'sun',
+		'blink'      => 'blink',
+		'no_sound'   => 'sound',
+		'spots'      => 'grid',
+		'water'      => 'droplet',
+		'physical'   => 'crack',
+		'restart'    => 'refresh',
+		'smart'      => 'cpu',
+		'remote'     => 'remote',
+	);
+	return $map[ $key ] ?? 'tv';
+}
+
+/**
+ * Diagnostic problem selector: icon tiles that link straight into the wizard
+ * with the problem preselected, plus one "other problem" tile.
+ *
+ * @param int $limit Number of problem tiles.
+ * @return void
+ */
+function pixva_problem_selector( $limit = 8 ) {
+	$order = array( 'no_power', 'no_picture', 'lines', 'dim_dark', 'blink', 'no_sound', 'spots', 'restart' );
+	$rules = pixva_diagnosis_problems();
+	$keys  = array();
+	foreach ( $order as $k ) {
+		if ( isset( $rules[ $k ] ) ) {
+			$keys[] = $k;
+		}
+	}
+	foreach ( array_keys( $rules ) as $k ) {
+		if ( ! in_array( $k, $keys, true ) ) {
+			$keys[] = $k;
+		}
+	}
+	$keys = array_slice( $keys, 0, max( 1, (int) $limit ) );
+	echo '<ul class="problem-grid">';
+	$i = 0;
+	foreach ( $keys as $k ) {
+		$p = $rules[ $k ];
+		++$i;
+		echo '<li class="reveal" style="--d:' . (int) $i . '">';
+		echo '<a class="problem-tile__link" href="' . esc_url( pixva_route_url( 'diagnosis', array( 'problem' => $k, 'step' => '1' ) ) ) . '">';
+		echo '<span class="problem-tile__icon" aria-hidden="true">' . wp_kses( pixva_icon( pixva_problem_icon( $k ) ), pixva_svg_allowed() ) . '</span>';
+		echo '<span class="problem-tile__title">' . esc_html( $p['label'] ) . '</span>';
+		echo '<span class="problem-tile__text">' . esc_html( $p['desc'] ) . '</span>';
+		echo '<span class="problem-tile__go" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+		echo '</a></li>';
+	}
+	echo '<li class="problem-tile problem-tile--more reveal" style="--d:' . (int) ( $i + 1 ) . '">';
+	echo '<a class="problem-tile__link" href="' . esc_url( pixva_route_url( 'problems' ) ) . '">';
+	echo '<span class="problem-tile__icon" aria-hidden="true">' . wp_kses( pixva_icon( 'plus' ), pixva_svg_allowed() ) . '</span>';
+	echo '<span class="problem-tile__title">' . esc_html__( 'مشکل دیگری دارم', 'pixva' ) . '</span>';
+	echo '<span class="problem-tile__text">' . esc_html__( 'فهرست کامل مشکلات رایج را در صفحه مشکلات ببینید.', 'pixva' ) . '</span>';
+	echo '<span class="problem-tile__go" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+	echo '</a></li>';
+	echo '</ul>';
+}
+
+/**
+ * Process journey: numbered steps with icons on a connecting line
+ * (horizontal on desktop, vertical on mobile — CSS handles the switch).
+ *
+ * @param array $steps [{icon, title, text}].
+ * @return void
+ */
+function pixva_journey( $steps ) {
+	if ( ! $steps ) {
+		return;
+	}
+	echo '<ol class="journey">';
+	$i = 0;
+	foreach ( $steps as $s ) {
+		++$i;
+		echo '<li class="journey__step reveal" style="--d:' . (int) $i . '">';
+		echo '<span class="journey__marker" aria-hidden="true">' . wp_kses( pixva_icon( $s['icon'] ?? 'check' ), pixva_svg_allowed() ) . '</span>';
+		echo '<span class="journey__num">' . esc_html( pixva_fa_num( sprintf( '%02d', $i ) ) ) . '</span>';
+		echo '<h3 class="journey__title">' . esc_html( $s['title'] ) . '</h3>';
+		echo '<p class="journey__text">' . esc_html( $s['text'] ) . '</p>';
+		echo '</li>';
+	}
+	echo '</ol>';
+}
+
+/**
+ * Dark full-bleed journey section (front page + repair hub).
+ *
+ * @param string $id    Section id.
+ * @param string $title Title.
+ * @param array  $steps Journey steps (see pixva_journey()).
+ * @param string $lead  Lead text.
+ * @return void
+ */
+function pixva_journey_section( $id, $title, $steps, $lead = '' ) {
+	pixva_section_open( $id, $title, '', $lead, __( 'روند کار', 'pixva' ), 'band band--dark band--grid' );
+	pixva_journey( $steps );
+	pixva_section_close();
+}
+
+/**
+ * Short plain excerpt for a post (feature/rows compositions).
+ *
+ * @param WP_Post|int $post  Post.
+ * @param int         $words Word limit.
+ * @return string
+ */
+function pixva_plain_excerpt( $post, $words = 26 ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return '';
+	}
+	return has_excerpt( $post ) ? get_the_excerpt( $post ) : wp_trim_words( wp_strip_all_tags( strip_shortcodes( $post->post_content ) ), $words );
+}
+
+/**
+ * Featured service panel (large horizontal composition with media or a
+ * branded icon panel when no thumbnail exists).
+ *
+ * @param WP_Post|int $post Post.
+ * @return void
+ */
+function pixva_service_feature( $post ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
+	echo '<article class="feature reveal">';
+	echo '<div class="feature__media">';
+	if ( has_post_thumbnail( $post ) ) {
+		echo get_the_post_thumbnail( $post, 'large', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => '' ) );
+	} else {
+		echo '<span class="feature__media-icon" aria-hidden="true">' . wp_kses( pixva_icon( 'tool' ), pixva_svg_allowed() ) . '</span>';
+	}
+	echo '</div>';
+	echo '<div class="feature__body">';
+	echo '<p class="feature__kicker">' . esc_html__( 'خدمت تعمیر', 'pixva' ) . '</p>';
+	echo '<h3 class="feature__title"><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h3>';
+	$excerpt = pixva_plain_excerpt( $post, 30 );
+	if ( '' !== trim( $excerpt ) ) {
+		echo '<p class="feature__text">' . esc_html( $excerpt ) . '</p>';
+	}
+	echo '<span class="feature__more" aria-hidden="true">' . esc_html__( 'مشاهده خدمت', 'pixva' ) . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+	echo '</div></article>';
+}
+
+/**
+ * Compact numbered service rows (editorial list, not cards).
+ *
+ * @param array $posts Service posts.
+ * @return void
+ */
+function pixva_service_rows( $posts ) {
+	$posts = array_filter( array_map( 'get_post', (array) $posts ) );
+	if ( ! $posts ) {
+		return;
+	}
+	echo '<ul class="rows">';
+	$i = 0;
+	foreach ( $posts as $p ) {
+		++$i;
+		echo '<li><a class="rows__item reveal" style="--d:' . (int) min( $i, 6 ) . '" href="' . esc_url( get_permalink( $p ) ) . '">';
+		echo '<span class="rows__head">';
+		echo '<span class="rows__num" aria-hidden="true">' . esc_html( pixva_fa_num( sprintf( '%02d', $i ) ) ) . '</span>';
+		echo '<span class="rows__body"><span class="rows__title">' . esc_html( get_the_title( $p ) ) . '</span>';
+		$excerpt = pixva_plain_excerpt( $p, 16 );
+		if ( '' !== trim( $excerpt ) ) {
+			echo '<span class="rows__meta">' . esc_html( $excerpt ) . '</span>';
+		}
+		echo '</span></span>';
+		echo '<span class="rows__go" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+		echo '</a></li>';
+	}
+	echo '</ul>';
+}
+
+/**
+ * Premium brand wall: typographic tiles from real brand data (no invented
+ * logos; the Latin name renders only when stored).
+ *
+ * @param array $brands Brand posts.
+ * @return void
+ */
+function pixva_brand_wall( $brands ) {
+	$brands = array_filter( array_map( 'get_post', (array) $brands ) );
+	if ( ! $brands ) {
+		return;
+	}
+	echo '<ul class="brand-wall">';
+	$i = 0;
+	foreach ( $brands as $b ) {
+		++$i;
+		$en = (string) get_post_meta( $b->ID, '_pixva_brand_en', true );
+		echo '<li class="brand-wall__tile reveal" style="--d:' . (int) min( $i, 8 ) . '"><a href="' . esc_url( get_permalink( $b ) ) . '">';
+		echo '<span class="brand-wall__name">' . esc_html( trim( (string) preg_replace( '/^تعمیر\s+(تلویزیون\s+)?/u', '', get_the_title( $b ) ) ) ) . '</span>';
+		if ( '' !== $en ) {
+			echo '<span class="brand-wall__en" lang="en" dir="ltr">' . esc_html( $en ) . '</span>';
+		}
+		echo '</a></li>';
+	}
+	echo '</ul>';
+}
+
+/**
+ * Editorial feature card (large media + body) for portfolio cases and
+ * featured articles.
+ *
+ * @param WP_Post|int $post   Post.
+ * @param string      $kicker Eyebrow text.
+ * @param string      $meta   Meta line (plain).
+ * @param string[]    $chips  Overlay chips (plain).
+ * @return void
+ */
+function pixva_feature_card( $post, $kicker, $meta = '', $chips = array() ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
+	echo '<article class="feature reveal">';
+	echo '<div class="feature__media">';
+	if ( has_post_thumbnail( $post ) ) {
+		echo get_the_post_thumbnail( $post, 'large', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => '' ) );
+	} else {
+		echo '<span class="feature__media-icon" aria-hidden="true">' . wp_kses( pixva_icon( 'picture' ), pixva_svg_allowed() ) . '</span>';
+	}
+	if ( $chips ) {
+		echo '<span class="feature__chips">';
+		foreach ( $chips as $c ) {
+			echo '<span class="feature__chip">' . esc_html( $c ) . '</span>';
+		}
+		echo '</span>';
+	}
+	echo '</div>';
+	echo '<div class="feature__body">';
+	echo '<p class="feature__kicker">' . esc_html( $kicker ) . '</p>';
+	echo '<h3 class="feature__title"><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h3>';
+	$excerpt = pixva_plain_excerpt( $post, 26 );
+	if ( '' !== trim( $excerpt ) ) {
+		echo '<p class="feature__text">' . esc_html( $excerpt ) . '</p>';
+	}
+	if ( '' !== $meta ) {
+		echo '<p class="post-meta">' . esc_html( $meta ) . '</p>';
+	}
+	echo '<span class="feature__more" aria-hidden="true">' . esc_html__( 'مشاهده', 'pixva' ) . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+	echo '</div></article>';
+}
+
+/**
+ * Editorial rows (thumb or number + title + meta) for portfolio cases and
+ * article lists.
+ *
+ * @param array    $posts   Posts.
+ * @param callable $meta_cb Optional callback (WP_Post): string meta line.
+ * @return void
+ */
+function pixva_rows( $posts, $meta_cb = null ) {
+	$posts = array_filter( array_map( 'get_post', (array) $posts ) );
+	if ( ! $posts ) {
+		return;
+	}
+	echo '<ul class="rows">';
+	$i = 0;
+	foreach ( $posts as $p ) {
+		++$i;
+		$meta = is_callable( $meta_cb ) ? (string) call_user_func( $meta_cb, $p ) : '';
+		echo '<li><a class="rows__item reveal" style="--d:' . (int) min( $i, 6 ) . '" href="' . esc_url( get_permalink( $p ) ) . '">';
+		echo '<span class="rows__head">';
+		if ( has_post_thumbnail( $p ) ) {
+			echo '<span class="rows__thumb">' . get_the_post_thumbnail( $p, 'thumbnail', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => '' ) ) . '</span>';
+		} else {
+			echo '<span class="rows__num" aria-hidden="true">' . esc_html( pixva_fa_num( sprintf( '%02d', $i ) ) ) . '</span>';
+		}
+		echo '<span class="rows__body"><span class="rows__title">' . esc_html( get_the_title( $p ) ) . '</span>';
+		if ( '' !== $meta ) {
+			echo '<span class="rows__meta">' . esc_html( $meta ) . '</span>';
+		}
+		echo '</span></span>';
+		echo '<span class="rows__go" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span>';
+		echo '</a></li>';
+	}
+	echo '</ul>';
 }
 
 /**

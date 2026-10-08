@@ -13,6 +13,9 @@
  *   errors, a focusable status region and duplicate-submit protection; the
  *   PRG admin-post flow remains the no-JS path.
  * - Conditional fields: data-show-when="field=value|value2".
+ * - Header elevation state (.is-scrolled) and restrained scroll reveals
+ *   (.reveal → .in-view via IntersectionObserver; skipped for reduced motion
+ *   and when IntersectionObserver is unavailable — content never hides).
  */
 (function () {
 	'use strict';
@@ -135,6 +138,44 @@
 				setOpen(false);
 				toggle.focus();
 			}
+		});
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Header elevation on scroll                                          */
+	/* ------------------------------------------------------------------ */
+
+	var header = document.querySelector('.site-header');
+	if (header) {
+		var onScroll = function () {
+			header.classList.toggle('is-scrolled', window.scrollY > 4);
+		};
+		window.addEventListener('scroll', onScroll, { passive: true });
+		onScroll();
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Scroll reveal (progressive enhancement; content is visible without  */
+	/* JS and with reduced motion — .reveal only hides under .js + motion). */
+	/* ------------------------------------------------------------------ */
+
+	var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	var revealEls = document.querySelectorAll('.reveal');
+	if (!reduceMotion && 'IntersectionObserver' in window && revealEls.length) {
+		var io = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					entry.target.classList.add('in-view');
+					io.unobserve(entry.target);
+				}
+			});
+		}, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+		revealEls.forEach(function (el) {
+			io.observe(el);
+		});
+	} else {
+		revealEls.forEach(function (el) {
+			el.classList.add('in-view');
 		});
 	}
 
