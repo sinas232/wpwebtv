@@ -8646,3 +8646,84 @@ fieldset.field--error {
 .bento__text {
 	color: color-mix(in srgb, var(--c-muted) 72%, var(--c-primary));
 }
+
+/* Mobile: content scrolled into view (focus, anchors, click targets) stays above the fixed sticky CTA. */
+@media (max-width: 767px) {
+	html {
+		scroll-padding-block-end: 104px;
+	}
+}
+
+/* ==========================================================================
+   Tools hub (v2.4): explicit hierarchy — primary, secondary, tertiary tiers.
+   ========================================================================== */
+.tl {
+	display: grid;
+	gap: var(--s-10);
+}
+
+.tl-tier {
+	display: grid;
+	gap: var(--s-4);
+	margin: 0;
+}
+
+.tl-tier__title {
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 800;
+	color: var(--c-accent-text);
+}
+
+.tl-tier--primary .hx-flagship {
+	min-block-size: 360px;
+}
+
+.tl-tier--secondary .tl-tier__list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--s-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tl-tier--tertiary .hx-tool--codes {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--s-4);
+	padding: var(--s-4) var(--s-5);
+	border: 1px dashed var(--c-border-strong);
+	border-radius: var(--r-lg);
+	color: var(--c-primary);
+	text-decoration: none;
+}
+
+.tl-tier--tertiary .hx-tool--codes:hover {
+	border-color: var(--c-accent);
+}
+
+@media (min-width: 1024px) {
+	.tl-tier--primary {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media (max-width: 639px) {
+	.tl-tier--secondary .tl-tier__list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tl-tier--primary .hx-flagship {
+		min-block-size: 0;
+	}
+
+	.tl-tier--tertiary .hx-tool--codes {
+		grid-template-columns: auto minmax(0, 1fr);
+	}
+
+	.tl-tier--tertiary .hx-tool--codes .hx-tool__go {
+		display: none;
+	}
+}
