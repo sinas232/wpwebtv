@@ -20,8 +20,9 @@ $pixva_filter = '' !== $pixva_q || $pixva_brand || '' !== $pixva_sev;
 ?>
 <main id="main" class="site-main">
 	<?php pixva_page_header( pixva_routes()['error_codes']['title'], pixva_route_description( 'error_codes' ) ); ?>
-	<div class="container section">
-		<form class="filters" method="get" action="<?php echo esc_url( pixva_route_url( 'error_codes' ) ); ?>" role="search" data-error-search data-track-submit="error_code_search">
+	<div class="container section ec">
+		<p class="ec-note"><span class="ec-note__dot" aria-hidden="true"></span><?php esc_html_e( 'فقط کدهایی نمایش داده می‌شوند که در سایت ثبت شده‌اند. کد یا الگویی که پیدا نشود، به معنی نبودن ایراد نیست.', 'pixva' ); ?></p>
+		<form class="filters ec-console" method="get" action="<?php echo esc_url( pixva_route_url( 'error_codes' ) ); ?>" role="search" data-error-search data-track-submit="error_code_search">
 			<div class="field">
 				<label for="err-q"><?php esc_html_e( 'کد خطا، تعداد چشمک یا شرح', 'pixva' ); ?></label>
 				<input type="search" id="err-q" name="q" value="<?php echo esc_attr( $pixva_q ); ?>" placeholder="<?php esc_attr_e( 'مثلاً ۶ بار چشمک یا E-203', 'pixva' ); ?>" autocomplete="off">
@@ -68,7 +69,7 @@ $pixva_filter = '' !== $pixva_q || $pixva_brand || '' !== $pixva_sev;
 						the_post();
 						$pixva_c = pixva_error_code_card_data( get_post() );
 						?>
-						<li class="card card--error">
+						<li class="card card--error ec-row">
 							<div class="card__body">
 								<p class="card__meta"><?php echo esc_html( $pixva_c['brand'] ); ?></p>
 								<h2 class="card__title"><a class="card__link" href="<?php echo esc_url( $pixva_c['url'] ); ?>"><?php echo esc_html( $pixva_c['title'] ); ?></a></h2>

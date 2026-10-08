@@ -44,7 +44,7 @@ $pixva_brand_opts   = array( '' => __( 'انتخاب کنید…', 'pixva' ) ) +
 		<div class="layout-aside__main">
 		<div id="pixva-booking" class="form-wrap">
 			<?php if ( is_array( $pixva_r ) && $pixva_r['ok'] && ! empty( $pixva_r['payload']['code'] ) ) : ?>
-				<div class="success" data-track-view="booking_submitted" tabindex="-1">
+				<div class="success bk-success" data-track-view="booking_submitted" tabindex="-1">
 					<h2 class="success__title"><?php echo wp_kses( pixva_icon( 'check' ), pixva_svg_allowed() ); ?> <?php echo esc_html( $pixva_r['payload']['message'] ); ?></h2>
 					<p><?php esc_html_e( 'کد پیگیری شما:', 'pixva' ); ?></p>
 					<p class="code code--lg" dir="ltr"><?php echo esc_html( $pixva_r['payload']['code'] ); ?></p>
@@ -63,6 +63,11 @@ $pixva_brand_opts   = array( '' => __( 'انتخاب کنید…', 'pixva' ) ) +
 				<?php if ( 'diagnosis' === $pixva_from && isset( $pixva_problems[ $pixva_pre['problem'] ] ) ) : ?>
 					<?php pixva_notice( 'info', __( 'اطلاعات ابزار تشخیص به فرم اضافه شد. نتیجه تشخیص همراه درخواست برای کارشناس ارسال می‌شود.', 'pixva' ) ); ?>
 				<?php endif; ?>
+				<ol class="bk-stages" aria-label="<?php esc_attr_e( 'مراحل ثبت درخواست', 'pixva' ); ?>">
+					<li class="is-current"><span class="bk-stages__n" aria-hidden="true">۱</span><span><?php esc_html_e( 'تماس', 'pixva' ); ?></span></li>
+					<li><span class="bk-stages__n" aria-hidden="true">۲</span><span><?php esc_html_e( 'دستگاه و ایراد', 'pixva' ); ?></span></li>
+					<li><span class="bk-stages__n" aria-hidden="true">۳</span><span><?php esc_html_e( 'ارسال', 'pixva' ); ?></span></li>
+				</ol>
 				<form class="form" method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-pixva-form data-code-help="<?php esc_attr_e( 'این کد را نگه دارید. با کد و شماره همراهی که وارد کردید، وضعیت درخواست را در صفحه پیگیری می‌بینید.', 'pixva' ); ?>" data-tracking-label="<?php esc_attr_e( 'صفحه پیگیری', 'pixva' ); ?>" data-track-start="booking_started" data-track-success="booking_submitted" data-track-fail="booking_failed" novalidate>
 					<?php pixva_form_fields( 'pixva_booking' ); ?>
 					<input type="hidden" name="from" value="<?php echo esc_attr( $pixva_from ); ?>">
@@ -265,7 +270,7 @@ $pixva_brand_opts   = array( '' => __( 'انتخاب کنید…', 'pixva' ) ) +
 			<?php endif; ?>
 		</div>
 		</div>
-		<aside class="booking__side" aria-labelledby="bk-side-title">
+		<aside class="booking__side bk-side" aria-labelledby="bk-side-title">
 			<h2 class="booking__side-title" id="bk-side-title"><?php esc_html_e( 'بعد از ثبت درخواست چه می‌شود؟', 'pixva' ); ?></h2>
 			<ol class="booking__steps">
 				<li><strong><?php esc_html_e( 'دریافت کد پیگیری', 'pixva' ); ?></strong><span><?php esc_html_e( 'بلافاصله پس از ثبت، کد مخصوص درخواست را می‌بینید.', 'pixva' ); ?></span></li>
