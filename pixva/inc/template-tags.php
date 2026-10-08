@@ -1461,3 +1461,49 @@ function pixva_posts( $post_type, $limit = 6 ) {
 	);
 	return $query->posts;
 }
+
+/**
+ * Editorial blog layout: lead story + dated list. Expects an array of WP_Post (may be empty).
+ * Uses only real post fields (title, date, excerpt, thumbnail); no placeholder content.
+ */
+function pixva_editorial_list( $posts ) {
+	$posts = array_values( array_filter( (array) $posts ) );
+	if ( ! $posts ) {
+		return;
+	}
+	$lead = array_shift( $posts );
+	?>
+	<?php if ( $lead ) : ?>
+	<article class="ed-lead reveal">
+		<a class="ed-lead__link" href="<?php echo esc_url( get_permalink( $lead ) ); ?>">
+			<?php if ( has_post_thumbnail( $lead ) ) : ?>
+			<span class="ed-lead__media"><?php echo get_the_post_thumbnail( $lead, 'large', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => '' ) ); ?></span>
+			<?php endif; ?>
+			<span class="ed-lead__body">
+		<span class="ed-meta"><time datetime="<?php echo esc_attr( get_the_date( 'c', $lead ) ); ?>"><?php echo esc_html( get_the_date( '', $lead ) ); ?></time></span>
+		<span class="ed-lead__title"><?php echo esc_html( get_the_title( $lead ) ); ?></span>
+		<?php $pixva_ex = pixva_plain_excerpt( $lead, 28 ); if ( '' !== trim( $pixva_ex ) ) : ?>
+		<span class="ed-lead__text"><?php echo esc_html( $pixva_ex ); ?></span>
+		<?php endif; ?>
+		<span class="ed-more" aria-hidden="true"><?php esc_html_e( 'ادامه مطلب', 'pixva' ); ?></span>
+			</span>
+		</a>
+	</article>
+	<?php endif; ?>
+	<?php if ( $posts ) : ?>
+	<ol class="ed-list" aria-label="<?php esc_attr_e( 'مطالب بیشتر', 'pixva' ); ?>">
+		<?php foreach ( $posts as $pixva_n => $pixva_p ) : ?>
+		<li class="ed-item reveal" style="--d:<?php echo (int) min( $pixva_n + 1, 6 ); ?>">
+			<a class="ed-item__link" href="<?php echo esc_url( get_permalink( $pixva_p ) ); ?>">
+		<span class="ed-meta"><time datetime="<?php echo esc_attr( get_the_date( 'c', $pixva_p ) ); ?>"><?php echo esc_html( get_the_date( '', $pixva_p ) ); ?></time></span>
+		<span class="ed-item__title"><?php echo esc_html( get_the_title( $pixva_p ) ); ?></span>
+		<?php $pixva_ex = pixva_plain_excerpt( $pixva_p, 18 ); if ( '' !== trim( $pixva_ex ) ) : ?>
+		<span class="ed-item__text"><?php echo esc_html( $pixva_ex ); ?></span>
+		<?php endif; ?>
+			</a>
+		</li>
+		<?php endforeach; ?>
+	</ol>
+	<?php endif; ?>
+	<?php
+}

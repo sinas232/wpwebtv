@@ -35,16 +35,7 @@ $pixva_blog = get_post( (int) get_option( 'page_for_posts' ) );
 				the_post();
 				$pixva_items[] = get_post();
 			endwhile;
-			$pixva_cat = static function ( $p ) {
-				$c = get_the_category( $p->ID );
-				return $c ? $c[0]->name : '';
-			};
-			pixva_feature_card( $pixva_items[0], $pixva_cat( $pixva_items[0] ) ?: __( 'مقاله', 'pixva' ), pixva_format_date( get_post_time( 'U', true, $pixva_items[0] ) ), array_filter( array( $pixva_cat( $pixva_items[0] ) ) ) );
-			if ( count( $pixva_items ) > 1 ) :
-				pixva_rows( array_slice( $pixva_items, 1 ), static function ( $p ) use ( $pixva_cat ) {
-					return implode( ' · ', array_filter( array( $pixva_cat( $p ), pixva_format_date( get_post_time( 'U', true, $p ) ) ) ) );
-				} );
-			endif;
+			pixva_editorial_list( $pixva_items );
 			?>
 			<?php pixva_pagination(); ?>
 		<?php else : ?>

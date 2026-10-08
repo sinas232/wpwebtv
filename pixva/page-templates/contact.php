@@ -17,10 +17,10 @@ $pixva_r = pixva_form_result( 'pixva_contact' );
 ?>
 <main id="main" class="site-main">
 	<?php pixva_page_header( get_the_title() ); ?>
-	<div class="container section layout-aside">
+	<div class="container section layout-aside ct">
 		<div>
 			<?php pixva_page_intro(); ?>
-			<div id="pixva-contact" class="form-wrap" tabindex="-1">
+			<div id="pixva-contact" class="form-wrap ct-form" tabindex="-1">
 				<?php if ( is_array( $pixva_r ) && $pixva_r['ok'] ) : ?>
 					<div class="success">
 						<?php pixva_notice( 'success', $pixva_r['payload']['message'], __( 'پیام شما ثبت شد', 'pixva' ), true ); ?>
@@ -104,7 +104,7 @@ $pixva_r = pixva_form_result( 'pixva_contact' );
 				<?php endif; ?>
 			</div>
 		</div>
-		<aside class="panel" aria-labelledby="ct-details">
+		<aside class="panel ct-aside" aria-labelledby="ct-details">
 			<h2 class="panel__title" id="ct-details"><?php esc_html_e( 'راه‌های ارتباط', 'pixva' ); ?></h2>
 			<?php if ( ! pixva_contact_details() ) : ?>
 				<p><?php esc_html_e( 'اطلاعات تماس هنوز منتشر نشده است؛ از فرم استفاده کنید.', 'pixva' ); ?></p>

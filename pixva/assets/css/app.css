@@ -8727,3 +8727,236 @@ fieldset.field--error {
 		display: none;
 	}
 }
+
+/* ==========================================================================
+   Blog archive — editorial (v2.4). Lead story + dated list. No card grid.
+   ========================================================================== */
+.ed { display: grid; gap: var(--s-10); }
+.ed-meta { display: block; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .02em; color: var(--c-accent-text); }
+.ed-lead__link { display: grid; gap: var(--s-5); color: inherit; text-decoration: none; }
+.ed-lead__media { display: block; border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 16 / 9; }
+.ed-lead__media img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.ed-lead__body { display: grid; gap: var(--s-3); max-inline-size: 60ch; }
+.ed-lead__title { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem); font-weight: 900; line-height: 1.3; color: var(--c-primary); }
+.ed-lead__text { color: var(--c-muted); line-height: 1.9; }
+.ed-more { font-weight: 800; color: var(--c-primary); border-block-end: 2px solid var(--c-accent); justify-self: start; }
+.ed-list { list-style: none; margin: 0; padding: 0; border-block-start: 1px solid var(--c-border); }
+.ed-item { border-block-end: 1px solid var(--c-border); }
+.ed-item__link { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--s-2) var(--s-6); padding-block: var(--s-6); color: inherit; text-decoration: none; }
+.ed-item__link:hover .ed-item__title { color: var(--c-accent-text); }
+.ed-item__title { font-size: var(--fs-lg); font-weight: 800; line-height: 1.5; color: var(--c-primary); }
+.ed-item__text { grid-column: 2; color: var(--c-muted); line-height: 1.8; }
+@media (min-width: 900px) {
+	.ed-lead__link { grid-template-columns: 1.3fr 1fr; align-items: center; }
+	.ed-lead__body { max-inline-size: none; }
+}
+@media (max-width: 639px) {
+	.ed-item__link { grid-template-columns: minmax(0, 1fr); }
+	.ed-item__text { grid-column: 1; }
+}
+
+/* ==========================================================================
+   404 — deliberate composition (v2.4): search, ranked paths, plain index.
+   ========================================================================== */
+.nf { display: grid; gap: var(--s-12); }
+.nf-search { display: grid; gap: var(--s-3); max-inline-size: 640px; }
+.nf-search__label { margin: 0; font-weight: 800; color: var(--c-accent-text); font-size: var(--fs-sm); }
+.nf-paths { display: grid; gap: var(--s-5); }
+.nf-paths__title,
+.nf-index__title { margin: 0; font-size: var(--fs-lg); font-weight: 900; color: var(--c-primary); }
+.nf-paths__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-block-start: 1px solid var(--c-border); }
+.nf-path { border-block-end: 1px solid var(--c-border); }
+.nf-path a {
+	display: grid;
+	grid-template-columns: 3rem minmax(0, 1fr);
+	gap: var(--s-1) var(--s-4);
+	align-items: baseline;
+	padding-block: var(--s-5);
+	color: inherit;
+	text-decoration: none;
+}
+.nf-path a:hover .nf-path__title,
+.nf-path a:focus-visible .nf-path__title { color: var(--c-accent-text); }
+.nf-path__no { grid-row: span 2; font-size: var(--fs-2xl); font-weight: 900; color: var(--c-accent-text); line-height: 1; }
+.nf-path__title { font-size: var(--fs-lg); font-weight: 800; color: var(--c-primary); }
+.nf-path__text { grid-column: 2; color: var(--c-muted); line-height: 1.7; }
+.nf-path--primary .nf-path__title { font-size: var(--fs-xl); }
+.nf-index { display: grid; gap: var(--s-4); }
+.nf-index__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); }
+.nf-index__list a { color: var(--c-primary); font-weight: 700; text-decoration: none; border-block-end: 1px solid var(--c-border-strong); padding-block: var(--s-1); }
+.nf-index__list a:hover { border-color: var(--c-accent); }
+@media (min-width: 900px) {
+	.nf-paths__list { grid-template-columns: 1.4fr 1fr 1fr; gap: var(--s-6); border-block-start: 0; }
+	.nf-path { border-block-end: 0; border-block-start: 3px solid var(--c-border); }
+	.nf-path--primary { border-color: var(--c-accent); }
+}
+
+/* ==========================================================================
+   Services — hierarchical composition (v2.4): featured service, then a
+   numbered catalogue. Title and summary are separate blocks (no run-on text).
+   ========================================================================== */
+.feature.reveal { border: 0; border-radius: var(--r-xl); background: var(--c-primary); color: #fff; overflow: hidden; }
+.feature .feature__body { padding: var(--s-8); display: grid; gap: var(--s-3); align-content: center; }
+.feature .feature__kicker { margin: 0; color: var(--c-accent); font-weight: 800; font-size: var(--fs-sm); }
+.feature .feature__title { margin: 0; font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem); font-weight: 900; line-height: 1.3; }
+.feature .feature__title a { color: #fff; text-decoration: none; }
+.feature .feature__text { margin: 0; color: #c7d0dc; line-height: 1.9; }
+.feature .feature__more { color: var(--c-accent); font-weight: 800; }
+.feature .feature__media { min-block-size: 200px; }
+
+.rows { list-style: none; margin: var(--s-10) 0 0; padding: 0; border-block-start: 1px solid var(--c-border); }
+.rows > li { border-block-end: 1px solid var(--c-border); }
+.rows__item { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); padding-block: var(--s-6); color: inherit; text-decoration: none; }
+.rows__item:hover .rows__title,
+.rows__item:focus-visible .rows__title { color: var(--c-accent-text); }
+.rows__head { display: flex; align-items: flex-start; gap: var(--s-5); min-inline-size: 0; }
+.rows__num { flex: none; font-size: var(--fs-xl); font-weight: 900; color: var(--c-accent-text); inline-size: 2.5rem; }
+.rows__body { display: grid; gap: var(--s-2); min-inline-size: 0; }
+.rows__title { display: block; font-size: var(--fs-lg); font-weight: 800; color: var(--c-primary); line-height: 1.5; }
+.rows__meta { display: block; color: var(--c-muted); line-height: 1.8; }
+.rows__go { flex: none; color: var(--c-accent-text); }
+
+@media (max-width: 639px) {
+	.feature .feature__body { padding: var(--s-6); }
+	.rows__head { gap: var(--s-3); }
+	.rows__num { inline-size: 1.8rem; font-size: var(--fs-lg); }
+}
+
+/* ==========================================================================
+   Brands — wall (v2.4): hairline typographic grid. Uses CMS logo only when a
+   real logo is set; never draws a fake logo. Name is the primary element.
+   ========================================================================== */
+.brand-wall {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	border-inline-start: 1px solid var(--c-border);
+	border-block-start: 1px solid var(--c-border);
+}
+.brand-wall__tile { border-inline-end: 1px solid var(--c-border); border-block-end: 1px solid var(--c-border); }
+.brand-wall__tile a {
+	display: grid;
+	gap: var(--s-2);
+	align-content: center;
+	justify-items: start;
+	min-block-size: 112px;
+	padding: var(--s-5);
+	color: inherit;
+	text-decoration: none;
+}
+.brand-wall__tile a:hover .brand-wall__name,
+.brand-wall__tile a:focus-visible .brand-wall__name { color: var(--c-accent-text); }
+.brand-wall__logo { max-inline-size: 120px; max-block-size: 40px; object-fit: contain; }
+.brand-wall__name { font-size: var(--fs-lg); font-weight: 900; color: var(--c-primary); line-height: 1.4; }
+.brand-wall__en { font-size: var(--fs-xs); color: var(--c-muted); letter-spacing: .04em; }
+@media (min-width: 640px) { .brand-wall { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .brand-wall { grid-template-columns: repeat(4, minmax(0, 1fr)); } .brand-wall__tile a { min-block-size: 152px; padding: var(--s-6); } }
+
+/* Brand wall — final authoritative reset (v2.4). Overrides the stacked legacy blocks above. */
+.brand-wall .brand-wall__tile,
+.brand-wall .brand-wall__tile.reveal {
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 0;
+	transform: none;
+}
+.brand-wall .brand-wall__tile a {
+	background: transparent;
+	border-radius: 0;
+	box-shadow: none;
+	border: 0;
+}
+.brand-wall .brand-wall__tile:hover a,
+.brand-wall .brand-wall__tile a:hover {
+	background: color-mix(in srgb, var(--c-primary) 4%, var(--c-white));
+}
+
+/* ==========================================================================
+   Contact (v2.4): form is the primary zone; the details aside is a quiet,
+   honest note (shows the "not published yet" state when no details exist).
+   Form fields, names, nonce and admin-post action are unchanged.
+   ========================================================================== */
+.ct { display: grid; gap: var(--s-10); align-items: start; }
+.ct-form { padding: var(--s-8); border: 1px solid var(--c-border); border-radius: var(--r-xl); background: var(--c-white); }
+.ct-form > h2 { margin-block-start: 0; font-size: var(--fs-xl); font-weight: 900; color: var(--c-primary); }
+.ct-aside { background: transparent; border: 0; border-inline-start: 3px solid var(--c-accent); border-radius: 0; padding: var(--s-2) 0 var(--s-2) var(--s-6); box-shadow: none; }
+.ct-aside .panel__title { font-size: var(--fs-lg); font-weight: 900; color: var(--c-primary); }
+.ct-aside p { color: var(--c-muted); line-height: 1.9; }
+@media (min-width: 960px) {
+	.ct { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+}
+@media (max-width: 639px) {
+	.ct-form { padding: var(--s-5); }
+}
+
+/* ==========================================================================
+   Account logged-in dashboard (v2.4): sidebar nav + main column, stats strip.
+   Markup and nav links unchanged; mobile nav becomes a horizontal rail.
+   ========================================================================== */
+.account { display: grid; gap: var(--s-8); align-items: start; }
+.account__nav {
+	display: flex;
+	gap: var(--s-1);
+	overflow-x: auto;
+	padding-block-end: var(--s-2);
+	border-block-end: 1px solid var(--c-border);
+	scrollbar-width: thin;
+}
+.account__nav a {
+	flex: none;
+	padding: var(--s-2) var(--s-4);
+	border-radius: var(--r-pill, 999px);
+	color: var(--c-primary);
+	font-weight: 800;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.account__nav a:hover { background: color-mix(in srgb, var(--c-primary) 6%, var(--c-white)); }
+.account__nav a[aria-current="page"],
+.account__nav a.is-active {
+	background: var(--c-primary);
+	color: #fff;
+}
+.account__main { display: grid; gap: var(--s-8); min-inline-size: 0; }
+.account__main .stats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid var(--c-border);
+	border-radius: var(--r-xl);
+	background: var(--c-white);
+	overflow: hidden;
+}
+.account__main .stats > li {
+	display: grid;
+	gap: var(--s-1);
+	padding: var(--s-6);
+	border-inline-end: 1px solid var(--c-border);
+	border-block-end: 1px solid var(--c-border);
+}
+.account__main .stats__num { font-size: clamp(2rem, 1.6rem + 1.4vw, 2.8rem); font-weight: 900; line-height: 1; color: var(--c-primary); }
+.account__main .stats > li > span:last-child { color: var(--c-muted); font-size: var(--fs-sm); }
+@media (min-width: 900px) {
+	.account { grid-template-columns: 240px minmax(0, 1fr); gap: var(--s-12); }
+	.account__nav {
+		flex-direction: column;
+		overflow: visible;
+		padding-block-end: 0;
+		border-block-end: 0;
+		border-inline-start: 3px solid var(--c-border);
+		padding-inline-start: var(--s-3);
+	}
+	.account__nav a { border-radius: 0; padding: var(--s-3) var(--s-3); }
+	.account__nav a[aria-current="page"],
+	.account__nav a.is-active { background: transparent; color: var(--c-accent-text); }
+	.account__nav a[aria-current="page"] { box-shadow: inset 3px 0 0 var(--c-accent); margin-inline-start: -3px; }
+	.account__main .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+	.account__main .stats > li { border-block-end: 0; }
+}
