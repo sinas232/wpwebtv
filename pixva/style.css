@@ -3,7 +3,7 @@ Theme Name: پیکسوا
 Theme URI: https://github.com/sinas232/wpwebtv
 Author: PIXVA
 Description: قالب راست‌چین پلتفرم تشخیص، تعمیر، دانش‌نامه، رزرو، پیگیری و گارانتی تعمیر تلویزیون. ابزار تشخیص مرحله‌ای، برآورد هزینه پیکربندی‌پذیر، تست پیکسل، پایگاه کدهای خطا، حساب مشتری و داشبورد نقش‌محور. بدون افزونه، بدون فریم‌ورک JS، بدون داده ساختگی.
-Version: 2.0.0
+Version: 2.1.0
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -15,10 +15,12 @@ Tags: right-to-left, custom-logo, custom-menu, featured-images, threaded-comment
 
 /* ==========================================================================
    Design tokens (§25) — the ONLY colour values in the theme CSS.
-   Derived tints/shades are computed from these with color-mix().
+   Derived tints/shades/surfaces are computed from these with color-mix().
+   v2.1.0: extended type scale, radii, elevation and motion tokens for the
+   premium visual system; the 12-colour palette contract is unchanged.
    ========================================================================== */
 :root {
-	/* Palette */
+	/* Palette (12 — the §25 contract, unchanged) */
 	--c-primary: #0B1C2E;
 	--c-deep: #071521;
 	--c-accent: #FF5C35;
@@ -32,29 +34,55 @@ Tags: right-to-left, custom-logo, custom-menu, featured-images, threaded-comment
 	--c-warning: #F59E0B;
 	--c-error: #EF4444;
 
-	/* Derived (AA text contrast on light backgrounds) */
+	/* Derived text colours (AA contrast on light backgrounds) */
 	--c-accent-text: color-mix(in srgb, var(--c-accent) 72%, var(--c-deep));
 	--c-success-text: color-mix(in srgb, var(--c-success) 70%, var(--c-deep));
 	--c-warning-text: color-mix(in srgb, var(--c-warning) 55%, var(--c-deep));
 	--c-error-text: color-mix(in srgb, var(--c-error) 72%, var(--c-deep));
+	--c-on-dark-muted: color-mix(in srgb, var(--c-white) 74%, var(--c-primary));
+	--c-on-deep-muted: color-mix(in srgb, var(--c-white) 72%, var(--c-deep));
+
+	/* Derived surfaces */
 	--c-accent-soft: color-mix(in srgb, var(--c-accent) 10%, var(--c-white));
 	--c-success-soft: color-mix(in srgb, var(--c-success) 10%, var(--c-white));
 	--c-warning-soft: color-mix(in srgb, var(--c-warning) 14%, var(--c-white));
 	--c-error-soft: color-mix(in srgb, var(--c-error) 9%, var(--c-white));
 	--c-primary-soft: color-mix(in srgb, var(--c-primary) 6%, var(--c-white));
-	--c-on-dark-muted: color-mix(in srgb, var(--c-white) 74%, var(--c-primary));
+	--c-primary-tint: color-mix(in srgb, var(--c-primary) 12%, var(--c-white));
+	--c-border-strong: color-mix(in srgb, var(--c-muted) 38%, var(--c-white));
+	--c-on-dark-line: color-mix(in srgb, var(--c-white) 14%, transparent);
+	--c-on-dark-soft: color-mix(in srgb, var(--c-white) 7%, transparent);
+
+	/* Elevation */
+	--shadow-sm: 0 1px 2px color-mix(in srgb, var(--c-deep) 8%, transparent);
+	--shadow: 0 1px 2px color-mix(in srgb, var(--c-deep) 6%, transparent), 0 8px 24px color-mix(in srgb, var(--c-deep) 6%, transparent);
+	--shadow-lg: 0 16px 48px color-mix(in srgb, var(--c-deep) 14%, transparent);
+	--shadow-xl: 0 24px 64px color-mix(in srgb, var(--c-deep) 18%, transparent);
+	--ring: 0 0 0 3px color-mix(in srgb, var(--c-primary) 28%, transparent);
+	--ring-accent: 0 0 0 3px color-mix(in srgb, var(--c-accent) 50%, transparent);
+
+	/* Shape */
+	--r-sm: 10px;
+	--r: 16px;
+	--r-lg: 20px;
+	--r-xl: 28px;
+	--r-pill: 999px;
 
 	/* Typography */
 	--font: "Vazirmatn", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
 	--font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+	--fs-xs: 0.8125rem;
 	--fs-sm: 0.875rem;
 	--fs-base: 1rem;
-	--fs-md: 1.125rem;
-	--fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
-	--fs-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
-	--fs-2xl: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
+	--fs-md: 1.0625rem;
+	--fs-lg: 1.125rem;
+	--fs-xl: clamp(1.25rem, 1.08rem + 0.7vw, 1.5rem);
+	--fs-2xl: clamp(1.625rem, 1.25rem + 1.6vw, 2.25rem);
+	--fs-3xl: clamp(2rem, 1.4rem + 2.8vw, 3rem);
+	--fs-4xl: clamp(2.5rem, 1.6rem + 4vw, 3.75rem);
 	--lh: 1.85;
-	--lh-tight: 1.4;
+	--lh-tight: 1.45;
+	--lh-display: 1.22;
 
 	/* 8pt spacing scale */
 	--s-half: 4px;
@@ -64,20 +92,25 @@ Tags: right-to-left, custom-logo, custom-menu, featured-images, threaded-comment
 	--s-4: 32px;
 	--s-5: 40px;
 	--s-6: 48px;
+	--s-7: 56px;
 	--s-8: 64px;
+	--s-9: 72px;
 	--s-10: 80px;
+	--s-12: 96px;
+	--s-16: 128px;
 
-	/* Shape & elevation */
-	--r-sm: 8px;
-	--r: 16px;
-	--r-pill: 999px;
-	--shadow: 0 1px 2px color-mix(in srgb, var(--c-deep) 6%, transparent), 0 8px 24px color-mix(in srgb, var(--c-deep) 6%, transparent);
-	--shadow-lg: 0 16px 48px color-mix(in srgb, var(--c-deep) 14%, transparent);
+	/* Motion */
+	--ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--dur-1: 120ms;
+	--dur-2: 200ms;
+	--dur-3: 350ms;
+	--dur-4: 600ms;
 
 	/* Layout */
 	--container: 1200px;
 	--container-narrow: 800px;
-	--header-h: 64px;
+	--header-h: 72px;
 	--focus: 3px solid var(--c-primary);
 }
 
@@ -105,6 +138,7 @@ html {
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
 	scroll-padding-top: calc(var(--header-h) + var(--s-2));
+	scroll-behavior: smooth;
 }
 
 body {
@@ -139,10 +173,10 @@ h4 {
 	font-weight: 800;
 }
 
-h1 { font-size: var(--fs-2xl); }
-h2 { font-size: var(--fs-xl); }
-h3 { font-size: var(--fs-lg); }
-h4 { font-size: var(--fs-md); }
+h1 { font-size: var(--fs-3xl); }
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-xl); }
+h4 { font-size: var(--fs-lg); }
 
 p,
 ul,
@@ -161,6 +195,11 @@ a {
 
 a:hover {
 	color: var(--c-accent-text);
+}
+
+::selection {
+	background: var(--c-accent);
+	color: var(--c-deep);
 }
 
 :focus-visible {

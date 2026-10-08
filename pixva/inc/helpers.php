@@ -425,6 +425,28 @@ function pixva_icon( $name ) {
 		'mail'     => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
 		'clock'    => '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',
 		'logout'   => '<path d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4M14 8l-4 4 4 4M10 12h10"/>',
+		/* v2.1.0 visual system — problem categories, tools, journey, UI */
+		'tv'       => '<rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M9 21h6M12 17v4"/>',
+		'picture'  => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.5"/><path d="M3.5 17.5l4.7-4.7 3.3 3.3 3-3 6 5.4"/>',
+		'sound'    => '<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9.2a4.2 4.2 0 0 1 0 5.6M18 6.8a7.6 7.6 0 0 1 0 10.4"/>',
+		'power'    => '<path d="M12 3.5V11"/><path d="M7.2 6.4a7.5 7.5 0 1 0 9.6 0"/>',
+		'lines'    => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M6.5 9.5h11M6.5 12.5h11M6.5 15.5h7"/>',
+		'blink'    => '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4"/>',
+		'sun'      => '<circle cx="12" cy="12" r="3.6"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6L18 18M18 6l-1.4 1.4M7.4 16.6L6 18"/>',
+		'droplet'  => '<path d="M12 3.5s6 6.4 6 10.1a6 6 0 1 1-12 0c0-3.7 6-10.1 6-10.1z"/>',
+		'crack'    => '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12.5 4l-2 4.5 3 3-4.5 4 2.5 4.5"/>',
+		'refresh'  => '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5V8h-4.5"/>',
+		'cpu'      => '<rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 2.5v3M14 2.5v3M10 18.5v3M14 18.5v3M2.5 10h3M2.5 14h3M18.5 10h3M18.5 14h3"/>',
+		'remote'   => '<rect x="8" y="3" width="8" height="18" rx="4"/><path d="M12 7.5h.01M12 11.5h.01M12 15.5h.01"/>',
+		'signal'   => '<path d="M4.5 11.5a10 10 0 0 1 15 0"/><path d="M7.5 14.7a6 6 0 0 1 9 0"/><circle cx="12" cy="18.3" r="1.2"/>',
+		'bolt'     => '<path d="M13 3L5.5 13.5H11L10 21l7.5-10.5H12z"/>',
+		'route'    => '<circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><path d="M8.4 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.6"/>',
+		'arrow-back' => '<path d="M9 6l6 6-6 6"/>',
+		'plus'     => '<path d="M12 5.5v13M5.5 12h13"/>',
+		'upload'   => '<path d="M12 15.5V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 19.5h16"/>',
+		'camera'   => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7l1.3-2.2h3.4L15 7"/><circle cx="12" cy="13.2" r="3.4"/>',
+		'file'     => '<path d="M6.5 3h7L18 7.5V21h-11.5z"/><path d="M13.5 3v4.5H18"/>',
+		'headset'  => '<path d="M4.5 13.5a7.5 7.5 0 0 1 15 0"/><rect x="3.5" y="13" width="4" height="6" rx="1.6"/><rect x="16.5" y="13" width="4" height="6" rx="1.6"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
