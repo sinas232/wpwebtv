@@ -25,16 +25,45 @@ $pixva_modes = pixva_service_modes();
 			<a class="btn btn--ghost" href="<?php echo esc_url( pixva_route_url( 'tracking' ) ); ?>"><?php esc_html_e( 'پیگیری درخواست', 'pixva' ); ?></a>
 		</p>
 	</div>
-	<?php pixva_section_open( 'repair-process', __( 'روند تعمیر', 'pixva' ) ); ?>
-		<ol class="steps">
-			<li><strong><?php esc_html_e( 'ثبت درخواست', 'pixva' ); ?></strong><span><?php esc_html_e( 'مشخصات دستگاه و ایراد را ثبت می‌کنید و کد پیگیری می‌گیرید.', 'pixva' ); ?></span></li>
-			<li><strong><?php esc_html_e( 'عیب‌یابی', 'pixva' ); ?></strong><span><?php esc_html_e( 'کارشناس دستگاه را بررسی و علت و هزینه را اعلام می‌کند.', 'pixva' ); ?></span></li>
-			<li><strong><?php esc_html_e( 'تأیید شما', 'pixva' ); ?></strong><span><?php esc_html_e( 'تعمیر فقط پس از تأیید هزینه توسط شما شروع می‌شود.', 'pixva' ); ?></span></li>
-			<li><strong><?php esc_html_e( 'تعمیر، تست و تحویل', 'pixva' ); ?></strong><span><?php esc_html_e( 'هر مرحله در صفحه پیگیری با همان کد قابل مشاهده است.', 'pixva' ); ?></span></li>
-		</ol>
-	<?php pixva_section_close(); ?>
+	<?php
+	pixva_journey_section(
+		'repair-process',
+		__( 'روند تعمیر، قدم به قدم', 'pixva' ),
+		array(
+			array(
+				'icon'  => 'calendar',
+				'title' => __( 'ثبت درخواست', 'pixva' ),
+				'text'  => __( 'مشخصات دستگاه و ایراد را ثبت می‌کنید و کد پیگیری می‌گیرید.', 'pixva' ),
+			),
+			array(
+				'icon'  => 'search',
+				'title' => __( 'عیب‌یابی', 'pixva' ),
+				'text'  => __( 'کارشناس دستگاه را بررسی و علت و هزینه را اعلام می‌کند.', 'pixva' ),
+			),
+			array(
+				'icon'  => 'check',
+				'title' => __( 'تأیید شما', 'pixva' ),
+				'text'  => __( 'تعمیر فقط پس از تأیید هزینه توسط شما شروع می‌شود.', 'pixva' ),
+			),
+			array(
+				'icon'  => 'shield',
+				'title' => __( 'تعمیر، تست و تحویل', 'pixva' ),
+				'text'  => __( 'هر مرحله در صفحه پیگیری با همان کد قابل مشاهده است.', 'pixva' ),
+			),
+		),
+		__( 'هیچ کاری بدون تأیید شما انجام نمی‌شود.', 'pixva' )
+	);
+	?>
 	<?php if ( $pixva_modes ) : ?>
-		<?php pixva_section_open( 'repair-modes', __( 'شیوه‌های دریافت خدمت', 'pixva' ) ); ?>
+		<?php
+		pixva_section_open(
+			'repair-modes',
+			__( 'شیوه‌های دریافت خدمت', 'pixva' ),
+			'',
+			__( 'بسته به شرایط خود، یکی از شیوه‌های زیر را انتخاب می‌کنید.', 'pixva' ),
+			__( 'شیوه‌های خدمت', 'pixva' )
+		);
+		?>
 			<?php pixva_list( array_values( $pixva_modes ), 'checks' ); ?>
 			<?php if ( pixva_has_claim( 'service_area' ) ) : ?>
 				<p><?php echo esc_html( sprintf( /* translators: %s: area. */ __( 'محدوده خدمت: %s', 'pixva' ), (string) pixva_claim( 'service_area' ) ) ); ?></p>
@@ -55,13 +84,26 @@ $pixva_modes = pixva_service_modes();
 		)
 	);
 	if ( $pixva_services ) :
-		pixva_section_open( 'repair-services', __( 'خدمات تعمیر', 'pixva' ), pixva_route_url( 'services' ) );
-		pixva_card_grid( $pixva_services );
+		pixva_section_open(
+			'repair-services',
+			__( 'خدمات تعمیر', 'pixva' ),
+			pixva_route_url( 'services' ),
+			__( 'یکی را انتخاب کنید تا صفحه سرویس آن باز شود.', 'pixva' ),
+			__( 'خدمات', 'pixva' )
+		);
+		pixva_service_feature( $pixva_services[0] );
+		pixva_service_rows( array_slice( $pixva_services, 1 ) );
 		pixva_section_close();
 	endif;
 	$pixva_faq = pixva_faq_items( 'booking' );
 	if ( $pixva_faq ) :
-		pixva_section_open( 'repair-faq', __( 'پرسش‌های رایج', 'pixva' ) );
+		pixva_section_open(
+			'repair-faq',
+			__( 'پرسش‌های رایج', 'pixva' ),
+			pixva_route_url( 'faq' ),
+			'',
+			__( 'سؤالات متداول', 'pixva' )
+		);
 		pixva_faq_list( $pixva_faq, true );
 		pixva_section_close();
 	endif;

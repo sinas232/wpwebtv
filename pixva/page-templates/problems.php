@@ -31,7 +31,15 @@ get_header();
 			?>
 		<?php endif; ?>
 	</div>
-	<?php pixva_section_open( 'problems-tools', __( 'ابزارهای عیب‌یابی', 'pixva' ) ); ?>
+	<?php
+	pixva_section_open(
+		'problems-tools',
+		__( 'ابزارهای عیب‌یابی', 'pixva' ),
+		pixva_route_url( 'tools' ),
+		__( 'اگر مطمئن نیستید مشکل از کجاست، یکی از ابزارها را امتحان کنید.', 'pixva' ),
+		__( 'ابزارها', 'pixva' )
+	);
+	?>
 		<?php pixva_tool_cards(); ?>
 	<?php pixva_section_close(); ?>
 	<div class="container section--tight"><?php pixva_cta_box( '', '', 'problems_hub' ); ?></div>

@@ -37,8 +37,10 @@ $pixva_insp_tx = ( (int) ( $pixva_insp['max'] ?? 0 ) > 0 ) ? pixva_format_range(
 ?>
 <main id="main" class="site-main">
 	<?php pixva_page_header( get_the_title(), __( 'بازه تقریبی هزینه تعمیر را بر اساس نرخ‌های اعلام‌شده ببینید. مبلغ نهایی همیشه پس از بررسی دستگاه و پیش از شروع کار اعلام می‌شود.', 'pixva' ), __( 'ابزار رایگان', 'pixva' ) ); ?>
-	<div class="container container--narrow section">
-		<?php pixva_page_intro(); ?>
+	<div class="container section">
+		<div class="container--narrow">
+			<?php pixva_page_intro(); ?>
+		</div>
 		<?php if ( ! $pixva_active ) : ?>
 			<div class="panel" id="pixva-calculator" data-calculator-state="inspection">
 				<h2 class="panel__title"><?php esc_html_e( 'هزینه پس از کارشناسی اعلام می‌شود', 'pixva' ); ?></h2>
@@ -55,53 +57,62 @@ $pixva_insp_tx = ( (int) ( $pixva_insp['max'] ?? 0 ) > 0 ) ? pixva_format_range(
 				</div>
 			</div>
 		<?php else : ?>
-			<form class="panel calc" id="pixva-calculator" method="get" action="<?php echo esc_url( pixva_route_url( 'price_calculator' ) ); ?>" data-calculator>
-				<div class="form-grid">
-					<div class="field">
-						<label for="calc-service"><?php esc_html_e( 'نوع تعمیر', 'pixva' ); ?> <span class="req" aria-hidden="true">*</span></label>
-						<select id="calc-service" name="service" required aria-required="true">
-							<option value=""><?php esc_html_e( 'انتخاب کنید…', 'pixva' ); ?></option>
-							<?php foreach ( $pixva_services as $pixva_k => $pixva_l ) : ?>
-								<option value="<?php echo esc_attr( $pixva_k ); ?>" data-sized="<?php echo ! empty( $pixva_p['services'][ $pixva_k ]['sized'] ) ? '1' : '0'; ?>" <?php selected( $pixva_sel['service'], $pixva_k ); ?>><?php echo esc_html( $pixva_l ); ?></option>
-							<?php endforeach; ?>
-						</select>
+			<form class="calc" id="pixva-calculator" method="get" action="<?php echo esc_url( pixva_route_url( 'price_calculator' ) ); ?>" data-calculator>
+				<div class="calc-grid">
+					<div class="calc__main panel">
+						<div class="form-grid">
+							<div class="field">
+								<label for="calc-service"><?php esc_html_e( 'نوع تعمیر', 'pixva' ); ?> <span class="req" aria-hidden="true">*</span></label>
+								<select id="calc-service" name="service" required aria-required="true">
+									<option value=""><?php esc_html_e( 'انتخاب کنید…', 'pixva' ); ?></option>
+									<?php foreach ( $pixva_services as $pixva_k => $pixva_l ) : ?>
+										<option value="<?php echo esc_attr( $pixva_k ); ?>" data-sized="<?php echo ! empty( $pixva_p['services'][ $pixva_k ]['sized'] ) ? '1' : '0'; ?>" <?php selected( $pixva_sel['service'], $pixva_k ); ?>><?php echo esc_html( $pixva_l ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</div>
+							<?php if ( $pixva_sized && $pixva_p['sizes'] ) : ?>
+								<div class="field" data-size-field>
+									<label for="calc-size"><?php esc_html_e( 'اندازه صفحه', 'pixva' ); ?></label>
+									<select id="calc-size" name="size">
+										<option value=""><?php esc_html_e( 'نمی‌دانم', 'pixva' ); ?></option>
+										<?php foreach ( $pixva_p['sizes'] as $pixva_k => $pixva_s ) : ?>
+											<option value="<?php echo esc_attr( $pixva_k ); ?>" <?php selected( $pixva_sel['size'], $pixva_k ); ?>><?php echo esc_html( $pixva_s['label'] ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+							<?php endif; ?>
+							<?php if ( $pixva_brands ) : ?>
+								<div class="field">
+									<label for="calc-brand"><?php esc_html_e( 'برند', 'pixva' ); ?></label>
+									<select id="calc-brand" name="brand">
+										<option value=""><?php esc_html_e( 'سایر / نمی‌دانم', 'pixva' ); ?></option>
+										<?php foreach ( $pixva_brands as $pixva_k => $pixva_l ) : ?>
+											<option value="<?php echo esc_attr( (string) $pixva_k ); ?>" <?php selected( $pixva_sel['brand'], $pixva_k ); ?>><?php echo esc_html( $pixva_l ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+							<?php endif; ?>
+						</div>
+						<div class="wizard__actions"><button class="btn btn--primary" type="submit" data-calc-submit><?php esc_html_e( 'محاسبه بازه هزینه', 'pixva' ); ?></button></div>
 					</div>
-					<?php if ( $pixva_sized && $pixva_p['sizes'] ) : ?>
-						<div class="field" data-size-field>
-							<label for="calc-size"><?php esc_html_e( 'اندازه صفحه', 'pixva' ); ?></label>
-							<select id="calc-size" name="size">
-								<option value=""><?php esc_html_e( 'نمی‌دانم', 'pixva' ); ?></option>
-								<?php foreach ( $pixva_p['sizes'] as $pixva_k => $pixva_s ) : ?>
-									<option value="<?php echo esc_attr( $pixva_k ); ?>" <?php selected( $pixva_sel['size'], $pixva_k ); ?>><?php echo esc_html( $pixva_s['label'] ); ?></option>
-								<?php endforeach; ?>
-							</select>
+					<aside class="calc__aside">
+						<div class="calc__panel">
+							<p class="calc__label"><?php esc_html_e( 'برآورد بازه هزینه', 'pixva' ); ?></p>
+							<div class="calc__result" data-calc-result aria-live="polite" tabindex="-1">
+								<?php pixva_calc_result( $pixva_est ); ?>
+							</div>
+							<p class="field__help"><?php echo esc_html( '' !== $pixva_p['disclaimer'] ? $pixva_p['disclaimer'] : __( 'این بازه تقریبی است و بر اساس نرخ‌های اعلام‌شده محاسبه می‌شود. مبلغ نهایی پس از بررسی دستگاه و پیش از شروع کار اعلام می‌شود.', 'pixva' ) ); ?></p>
+							<?php if ( $pixva_p['updated'] ) : ?>
+								<p class="field__help"><?php echo esc_html( sprintf( /* translators: %s: date. */ __( 'آخرین به‌روزرسانی نرخ‌ها: %s', 'pixva' ), pixva_format_date( (int) $pixva_p['updated'] ) ) ); ?></p>
+							<?php endif; ?>
+							<?php if ( '' !== $pixva_insp_tx ) : ?>
+								<p class="field__help"><?php echo esc_html( sprintf( /* translators: %s: range. */ __( 'هزینه کارشناسی: %s', 'pixva' ), $pixva_insp_tx ) ); ?></p>
+							<?php endif; ?>
+							<div class="wizard__actions">
+								<a class="btn btn--accent" data-track="cta_click" data-track-label="booking" data-track-location="calculator" href="<?php echo esc_url( pixva_route_url( 'booking' ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
+							</div>
 						</div>
-					<?php endif; ?>
-					<?php if ( $pixva_brands ) : ?>
-						<div class="field">
-							<label for="calc-brand"><?php esc_html_e( 'برند', 'pixva' ); ?></label>
-							<select id="calc-brand" name="brand">
-								<option value=""><?php esc_html_e( 'سایر / نمی‌دانم', 'pixva' ); ?></option>
-								<?php foreach ( $pixva_brands as $pixva_k => $pixva_l ) : ?>
-									<option value="<?php echo esc_attr( (string) $pixva_k ); ?>" <?php selected( $pixva_sel['brand'], $pixva_k ); ?>><?php echo esc_html( $pixva_l ); ?></option>
-								<?php endforeach; ?>
-							</select>
-						</div>
-					<?php endif; ?>
-				</div>
-				<div class="wizard__actions"><button class="btn btn--primary" type="submit" data-calc-submit><?php esc_html_e( 'محاسبه بازه هزینه', 'pixva' ); ?></button></div>
-				<div class="calc__result" data-calc-result aria-live="polite" tabindex="-1">
-					<?php pixva_calc_result( $pixva_est ); ?>
-				</div>
-				<p class="field__help"><?php echo esc_html( '' !== $pixva_p['disclaimer'] ? $pixva_p['disclaimer'] : __( 'این بازه تقریبی است و بر اساس نرخ‌های اعلام‌شده محاسبه می‌شود. مبلغ نهایی پس از بررسی دستگاه و پیش از شروع کار اعلام می‌شود.', 'pixva' ) ); ?></p>
-				<?php if ( $pixva_p['updated'] ) : ?>
-					<p class="field__help"><?php echo esc_html( sprintf( /* translators: %s: date. */ __( 'آخرین به‌روزرسانی نرخ‌ها: %s', 'pixva' ), pixva_format_date( (int) $pixva_p['updated'] ) ) ); ?></p>
-				<?php endif; ?>
-				<?php if ( '' !== $pixva_insp_tx ) : ?>
-					<p class="field__help"><?php echo esc_html( sprintf( /* translators: %s: range. */ __( 'هزینه کارشناسی: %s', 'pixva' ), $pixva_insp_tx ) ); ?></p>
-				<?php endif; ?>
-				<div class="wizard__actions">
-					<a class="btn btn--accent" data-track="cta_click" data-track-label="booking" data-track-location="calculator" href="<?php echo esc_url( pixva_route_url( 'booking' ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
+					</aside>
 				</div>
 			</form>
 		<?php endif; ?>

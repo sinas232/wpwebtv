@@ -29,15 +29,23 @@ $pixva_blog = get_post( (int) get_option( 'page_for_posts' ) );
 			</nav>
 		<?php endif; ?>
 		<?php if ( have_posts() ) : ?>
-			<div class="grid grid--cards">
-				<?php
-				while ( have_posts() ) :
-					the_post();
-					$pixva_cat = get_the_category();
-					pixva_card( get_post(), $pixva_cat ? $pixva_cat[0]->name : '', 'h2' );
-				endwhile;
-				?>
-			</div>
+			<?php
+			$pixva_items = array();
+			while ( have_posts() ) :
+				the_post();
+				$pixva_items[] = get_post();
+			endwhile;
+			$pixva_cat = static function ( $p ) {
+				$c = get_the_category( $p->ID );
+				return $c ? $c[0]->name : '';
+			};
+			pixva_feature_card( $pixva_items[0], $pixva_cat( $pixva_items[0] ) ?: __( 'مقاله', 'pixva' ), pixva_format_date( get_post_time( 'U', true, $pixva_items[0] ) ), array_filter( array( $pixva_cat( $pixva_items[0] ) ) ) );
+			if ( count( $pixva_items ) > 1 ) :
+				pixva_rows( array_slice( $pixva_items, 1 ), static function ( $p ) use ( $pixva_cat ) {
+					return implode( ' · ', array_filter( array( $pixva_cat( $p ), pixva_format_date( get_post_time( 'U', true, $p ) ) ) ) );
+				} );
+			endif;
+			?>
 			<?php pixva_pagination(); ?>
 		<?php else : ?>
 			<?php pixva_empty_state( __( 'هنوز مقاله‌ای منتشر نشده است', 'pixva' ), __( 'تا آن زمان می‌توانید از ابزارهای عیب‌یابی استفاده کنید.', 'pixva' ), array( __( 'ابزارها', 'pixva' ) => pixva_route_url( 'tools' ) ) ); ?>

@@ -54,11 +54,23 @@ $pixva_colors = array(
 		</section>
 		<section class="section--tight" aria-labelledby="px-read">
 			<h2 id="px-read"><?php esc_html_e( 'نتیجه را چطور تفسیر کنیم؟', 'pixva' ); ?></h2>
-			<dl class="details">
-				<dt><?php esc_html_e( 'نقطه سیاه روی زمینه روشن', 'pixva' ); ?></dt><dd><?php esc_html_e( 'احتمالاً پیکسل سوخته (مرده) است و معمولاً با نرم‌افزار برطرف نمی‌شود.', 'pixva' ); ?></dd>
-				<dt><?php esc_html_e( 'نقطه رنگی ثابت روی زمینه تیره', 'pixva' ); ?></dt><dd><?php esc_html_e( 'احتمالاً پیکسل گیرکرده است؛ گاهی پس از چند ساعت کار خودبه‌خود برطرف می‌شود.', 'pixva' ); ?></dd>
-				<dt><?php esc_html_e( 'لکه یا هاله روشن روی زمینه سیاه', 'pixva' ); ?></dt><dd><?php esc_html_e( 'می‌تواند نشتی نور یا ایراد بک‌لایت باشد و بررسی کارشناس لازم است.', 'pixva' ); ?></dd>
-				<dt><?php esc_html_e( 'خط عمودی یا افقی', 'pixva' ); ?></dt><dd><?php esc_html_e( 'معمولاً به پنل یا اتصالات آن مربوط است؛ دستگاه را باز نکنید.', 'pixva' ); ?></dd>
+			<dl class="px-guide">
+				<div class="px-guide__item">
+					<dt><?php esc_html_e( 'نقطه سیاه روی زمینه روشن', 'pixva' ); ?></dt>
+					<dd><?php esc_html_e( 'احتمالاً پیکسل سوخته (مرده) است و معمولاً با نرم‌افزار برطرف نمی‌شود.', 'pixva' ); ?></dd>
+				</div>
+				<div class="px-guide__item">
+					<dt><?php esc_html_e( 'نقطه رنگی ثابت روی زمینه تیره', 'pixva' ); ?></dt>
+					<dd><?php esc_html_e( 'احتمالاً پیکسل گیرکرده است؛ گاهی پس از چند ساعت کار خودبه‌خود برطرف می‌شود.', 'pixva' ); ?></dd>
+				</div>
+				<div class="px-guide__item">
+					<dt><?php esc_html_e( 'لکه یا هاله روشن روی زمینه سیاه', 'pixva' ); ?></dt>
+					<dd><?php esc_html_e( 'می‌تواند نشتی نور یا ایراد بک‌لایت باشد و بررسی کارشناس لازم است.', 'pixva' ); ?></dd>
+				</div>
+				<div class="px-guide__item">
+					<dt><?php esc_html_e( 'خط عمودی یا افقی', 'pixva' ); ?></dt>
+					<dd><?php esc_html_e( 'معمولاً به پنل یا اتصالات آن مربوط است؛ دستگاه را باز نکنید.', 'pixva' ); ?></dd>
+				</div>
 			</dl>
 			<p><a class="btn btn--ghost" href="<?php echo esc_url( pixva_route_url( 'diagnosis' ) ); ?>" data-track="cta_click" data-track-label="diagnosis" data-track-location="pixel_test"><?php esc_html_e( 'ادامه با تشخیص آنلاین', 'pixva' ); ?></a></p>
 		</section>

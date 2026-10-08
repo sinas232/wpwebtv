@@ -101,7 +101,10 @@ $pixva_steps       = array(
 						<?php foreach ( $pixva_problems as $pixva_k => $pixva_p ) : ?>
 							<label class="choice">
 								<input type="radio" name="problem" value="<?php echo esc_attr( $pixva_k ); ?>" <?php checked( $pixva_sel_problem, $pixva_k ); ?> required>
-								<span class="choice__body"><span class="choice__title"><?php echo esc_html( $pixva_p['label'] ); ?></span><span class="choice__text"><?php echo esc_html( $pixva_p['desc'] ); ?></span></span>
+								<span class="choice__body">
+									<span class="choice__icon" aria-hidden="true"><?php echo wp_kses( pixva_icon( pixva_problem_icon( $pixva_k ) ), pixva_svg_allowed() ); ?></span>
+									<span class="choice__main"><span class="choice__title"><?php echo esc_html( $pixva_p['label'] ); ?></span><span class="choice__text"><?php echo esc_html( $pixva_p['desc'] ); ?></span></span>
+								</span>
 							</label>
 						<?php endforeach; ?>
 						<p class="field__error" id="dg-problem-err" hidden></p>
@@ -193,7 +196,15 @@ $pixva_steps       = array(
 				<?php $pixva_r = pixva_diagnose( $pixva_in ); ?>
 				<section class="wizard__panel result" data-wizard-step="result" data-track-view="diagnosis_completed" data-track-problem="<?php echo esc_attr( $pixva_in['problem'] ); ?>" aria-labelledby="dg-result-title">
 					<h2 class="wizard__title" id="dg-result-title"><?php esc_html_e( 'نتیجه تشخیص', 'pixva' ); ?></h2>
-					<p class="wizard__summary"><?php echo esc_html( $pixva_r['problem']['label'] ); ?><?php echo '' !== $pixva_r['device'] ? ' — <span dir="auto">' . esc_html( $pixva_r['device'] ) . '</span>' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inline. ?></p>
+					<div class="result__head">
+						<span class="result__icon" aria-hidden="true"><?php echo wp_kses( pixva_icon( pixva_problem_icon( $pixva_in['problem'] ) ), pixva_svg_allowed() ); ?></span>
+						<div>
+							<p class="result__problem"><?php echo esc_html( $pixva_r['problem']['label'] ); ?></p>
+							<?php if ( '' !== $pixva_r['device'] ) : ?>
+								<p class="result__device" dir="auto"><?php echo esc_html( $pixva_r['device'] ); ?></p>
+							<?php endif; ?>
+						</div>
+					</div>
 					<?php if ( $pixva_r['danger'] ) : ?>
 						<?php pixva_notice( 'error', __( 'دستگاه را از برق بکشید و تا بررسی تکنسین روشن نکنید. نشانه‌هایی که انتخاب کردید می‌تواند خطر برق‌گرفتگی یا آتش‌سوزی داشته باشد.', 'pixva' ), __( 'هشدار ایمنی', 'pixva' ) ); ?>
 					<?php endif; ?>
@@ -214,8 +225,11 @@ $pixva_steps       = array(
 					<p class="field__help"><?php esc_html_e( 'قاب دستگاه را باز نکنید؛ برد تغذیه حتی پس از کشیدن دوشاخه برق‌دار می‌ماند.', 'pixva' ); ?></p>
 					<h3><?php esc_html_e( 'هزینه', 'pixva' ); ?></h3>
 					<?php if ( $pixva_r['estimate'] ) : ?>
-						<p class="price"><?php echo esc_html( $pixva_r['estimate']['range'] ); ?></p>
-						<p class="field__help"><?php echo esc_html( sprintf( /* translators: %s: service label. */ __( 'بازه تقریبی برای «%s»؛ مبلغ نهایی پس از بررسی دستگاه و پیش از شروع کار اعلام می‌شود.', 'pixva' ), $pixva_r['estimate']['label'] ) ); ?> <?php echo esc_html( $pixva_r['estimate']['disclaimer'] ); ?></p>
+						<div class="result__estimate">
+							<p class="result__estimate-label"><?php echo esc_html( sprintf( /* translators: %s: service label. */ __( 'بازه تقریبی برای «%s»', 'pixva' ), $pixva_r['estimate']['label'] ) ); ?></p>
+							<p class="price"><?php echo esc_html( $pixva_r['estimate']['range'] ); ?></p>
+							<p class="field__help"><?php esc_html_e( 'مبلغ نهایی پس از بررسی دستگاه و پیش از شروع کار اعلام می‌شود.', 'pixva' ); ?> <?php echo esc_html( $pixva_r['estimate']['disclaimer'] ); ?></p>
+						</div>
 					<?php else : ?>
 						<p><?php esc_html_e( 'برای این مورد برآورد آنلاین در دسترس نیست؛ هزینه پس از کارشناسی و پیش از شروع کار اعلام می‌شود.', 'pixva' ); ?></p>
 					<?php endif; ?>
