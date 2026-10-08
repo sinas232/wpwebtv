@@ -1,0 +1,1433 @@
+{
+  "theme": "pixva",
+  "version": "2.0.0",
+  "generated": "2026-10-08",
+  "allowed_statuses": [
+    "COMPLETE",
+    "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+    "BLOCKED",
+    "INTENTIONALLY_NOT_APPLICABLE"
+  ],
+  "totals": {
+    "COMPLETE": 68,
+    "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED": 8,
+    "BLOCKED": 0,
+    "INTENTIONALLY_NOT_APPLICABLE": 1
+  },
+  "items": [
+    {
+      "id": "§01",
+      "requirement": "Role: complete PIXVA as a production TV diagnosis/repair/knowledge/booking/tracking/warranty platform (RTL Persian)",
+      "location": "Whole theme",
+      "files": [
+        "pixva/style.css",
+        "pixva/functions.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T11",
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§02",
+      "requirement": "Master Prompt is the only source of truth; autonomous execution, no confirmation questions",
+      "location": "Process",
+      "files": [
+        "docs/pixva-traceability.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§03",
+      "requirement": "Product scope: diagnosis, knowledge, booking, tracking, warranty, account, dashboard",
+      "location": "Feature modules",
+      "files": [
+        "pixva/inc/diagnosis.php",
+        "pixva/inc/forms.php",
+        "pixva/inc/repairs.php",
+        "pixva/inc/account.php",
+        "pixva/inc/dashboard.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T13",
+        "T18",
+        "T20",
+        "T23"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§04",
+      "requirement": "Baseline: do not assume earlier work exists; preserve correct, repair incorrect, rebuild missing",
+      "location": "Branch baseline 0cdd07b (v1.7) + v2 commits",
+      "files": [
+        "docs/pixva-architecture.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T29"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§05",
+      "requirement": "Route map (31 routes), no duplicate indexable pages, no redirect chains",
+      "location": "Route registry + page creation",
+      "files": [
+        "pixva/inc/routes.php",
+        "pixva/inc/content-model.php",
+        "pixva/inc/redirects.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§06",
+      "requirement": "Diagnosis wizard UX: mobile, accessible, keyboard, loading/empty/error states",
+      "location": "Wizard template + JS enhancement",
+      "files": [
+        "pixva/page-templates/diagnosis.php",
+        "pixva/assets/js/diagnosis.js"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T12",
+        "T24",
+        "B01",
+        "B06"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§07",
+      "requirement": "Diagnosis logic: brand→model→problem→symptoms→extra→likely/possible/needs-inspection→estimate only with data→booking",
+      "location": "Rules engine + REST",
+      "files": [
+        "pixva/inc/diagnosis.php",
+        "pixva/inc/data/diagnosis-rules.php",
+        "pixva/inc/rest.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T16",
+        "T24"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§08",
+      "requirement": "Price calculator: configurable pricing only; unset ⇒ inspection required, booking still possible",
+      "location": "Pricing option + calculator",
+      "files": [
+        "pixva/inc/pricing.php",
+        "pixva/page-templates/price-calculator.php",
+        "pixva/assets/js/calculator.js"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T24"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§09",
+      "requirement": "Error codes: full field set, search/filter, internal links, no unsafe electrical advice",
+      "location": "pixva_error CPT + archive/single + REST search",
+      "files": [
+        "pixva/archive-pixva_error.php",
+        "pixva/single-pixva_error.php",
+        "pixva/inc/meta-fields.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T24"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§10",
+      "requirement": "Pixel test: solid colours, gradients, fullscreen, accessible, reduced motion, minimal JS",
+      "location": "Template + small script",
+      "files": [
+        "pixva/page-templates/pixel-test.php",
+        "pixva/assets/js/pixel-test.js"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T04",
+        "T12",
+        "B05"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§11",
+      "requirement": "Booking: labels, server validation, nonce, rate limit, private image upload, duplicate protection, real states",
+      "location": "Booking form handler",
+      "files": [
+        "pixva/page-templates/booking.php",
+        "pixva/inc/forms.php",
+        "pixva/inc/security.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T13",
+        "T14",
+        "T15",
+        "T16",
+        "T34"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§12",
+      "requirement": "Tracking: secure ID, no PII/internal notes, ownership proof",
+      "location": "Lookup + REST track",
+      "files": [
+        "pixva/page-templates/tracking.php",
+        "pixva/inc/repairs.php",
+        "pixva/assets/js/lookup.js"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T18",
+        "T19",
+        "T22"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§13",
+      "requirement": "Warranty: configurable policy, never invent duration",
+      "location": "Order warranty meta + lookup",
+      "files": [
+        "pixva/page-templates/warranty.php",
+        "pixva/inc/repairs.php",
+        "pixva/inc/business-claims.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T24"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§14",
+      "requirement": "Account: repairs/warranty/profile with authn/authz, no cross-user access",
+      "location": "Account pages + claim flow",
+      "files": [
+        "pixva/page-templates/account.php",
+        "pixva/inc/account.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T20"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§15",
+      "requirement": "Dashboard: separate customer/technician/editor/admin, real data only",
+      "location": "Dashboard panels by capability",
+      "files": [
+        "pixva/page-templates/dashboard.php",
+        "pixva/inc/dashboard.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T21",
+        "T23"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§16",
+      "requirement": "Content types for services, brands, models, problems, error codes, repairs, parts, articles, portfolio, FAQs, warranties, claims",
+      "location": "CPT/taxonomy registry",
+      "files": [
+        "pixva/inc/content-model.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§17",
+      "requirement": "Only expose types with legitimate content; private types for PII",
+      "location": "Public vs private registration",
+      "files": [
+        "pixva/inc/content-model.php",
+        "pixva/inc/capabilities.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T25"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§18",
+      "requirement": "Search across content types",
+      "location": "Search scope + results",
+      "files": [
+        "pixva/search.php",
+        "pixva/inc/setup.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§19",
+      "requirement": "Title/description/canonical/robots/OG",
+      "location": "Central SEO module",
+      "files": [
+        "pixva/inc/seo.php",
+        "pixva/inc/template-tags.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T28"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§20",
+      "requirement": "Honest schema; no LocalBusiness/reviews without real data",
+      "location": "JSON-LD builder",
+      "files": [
+        "pixva/inc/schema.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T32"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§21",
+      "requirement": "Paginated sitemap of canonical indexable URLs only",
+      "location": "Core sitemaps + filters + archive provider",
+      "files": [
+        "pixva/inc/seo.php",
+        "pixva/inc/class-pixva-archive-sitemap.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T26",
+        "T27"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§22",
+      "requirement": "robots.txt must not block CSS/JS",
+      "location": "robots_txt filter",
+      "files": [
+        "pixva/inc/seo.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T31"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§23",
+      "requirement": "Redirect manager (source, destination, status, date, notes, active) with chain/loop prevention",
+      "location": "Admin screen + runtime",
+      "files": [
+        "pixva/inc/redirects.php",
+        "pixva/inc/admin.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§24",
+      "requirement": "Useful 404 and 410 for gone content",
+      "location": "404 template + gone paths",
+      "files": [
+        "pixva/404.php",
+        "pixva/inc/redirects.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§25",
+      "requirement": "Design tokens (12 colours), Vazirmatn, 8pt spacing; obsolete palette removed",
+      "location": "theme.json + CSS custom properties",
+      "files": [
+        "pixva/theme.json",
+        "pixva/assets/css/app.css"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T07",
+        "T08"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§26",
+      "requirement": "3D only if it adds real value",
+      "location": "—",
+      "files": [
+        "pixva/front-page.php"
+      ],
+      "status": "INTENTIONALLY_NOT_APPLICABLE",
+      "verification": [
+        "T08"
+      ],
+      "blocker": "No 3D: the v1.5 decorative 3D hero added weight without diagnostic value, so it was removed; no feature requires 3D."
+    },
+    {
+      "id": "§27",
+      "requirement": "Accessibility (WCAG): labels, focus, aria, contrast, error summaries",
+      "location": "Templates + field helper",
+      "files": [
+        "pixva/inc/template-tags.php",
+        "pixva/assets/css/app.css"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T12",
+        "T13",
+        "B01",
+        "B02"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§28",
+      "requirement": "Responsive / mobile-first",
+      "location": "CSS",
+      "files": [
+        "pixva/assets/css/app.css"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T06",
+        "B03"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§29",
+      "requirement": "Performance / Core Web Vitals",
+      "location": "Per-route assets, no frameworks, cached sitemap exclusions",
+      "files": [
+        "pixva/inc/setup.php",
+        "pixva/inc/seo.php"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T02",
+        "T26",
+        "B04"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§30",
+      "requirement": "Minimal progressive-enhancement JS, no alert(), no SPA",
+      "location": "Vanilla scripts per route; forms work without JS",
+      "files": [
+        "pixva/assets/js/app.js"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T04",
+        "T15",
+        "B06"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§31",
+      "requirement": "Security: nonces, capabilities, sanitize/escape",
+      "location": "Forms, admin, templates",
+      "files": [
+        "pixva/inc/security.php",
+        "pixva/inc/forms.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T02",
+        "T13",
+        "T21",
+        "T32"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§32",
+      "requirement": "REST permission callbacks and rate limits",
+      "location": "REST module",
+      "files": [
+        "pixva/inc/rest.php",
+        "pixva/inc/security.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T10",
+        "T24",
+        "T25"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§33",
+      "requirement": "Upload safety: MIME, size, private storage",
+      "location": "Upload handler + streaming",
+      "files": [
+        "pixva/inc/security.php",
+        "pixva/inc/repairs.php"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T34",
+        "B07"
+      ],
+      "blocker": "Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness."
+    },
+    {
+      "id": "§34",
+      "requirement": "Fake-data purge",
+      "location": "Templates, migration denylist, removed preview mock",
+      "files": [
+        "pixva/inc/migration.php",
+        "pixva/inc/business-claims.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T09",
+        "T29"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§35",
+      "requirement": "Centralised business claims with empty defaults that render nothing when unset",
+      "location": "pixva_business_claims option",
+      "files": [
+        "pixva/inc/business-claims.php",
+        "pixva/inc/admin.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T09",
+        "T32"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§36",
+      "requirement": "No phantom feature cards (AR, VIP, express…)",
+      "location": "Front page / tools built from real routes",
+      "files": [
+        "pixva/front-page.php",
+        "pixva/page-templates/tools.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T09",
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§37",
+      "requirement": "CMS-managed content",
+      "location": "CPTs, meta boxes, options screens",
+      "files": [
+        "pixva/inc/meta-fields.php",
+        "pixva/inc/admin.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T33"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§38",
+      "requirement": "Migration-friendly stable slugs; non-destructive versioned migration",
+      "location": "Migration module",
+      "files": [
+        "pixva/inc/migration.php",
+        "pixva/inc/routes.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T29",
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§39",
+      "requirement": "Provider-agnostic analytics events, no PII",
+      "location": "Event bus + server events",
+      "files": [
+        "pixva/inc/analytics.php",
+        "pixva/assets/js/app.js"
+      ],
+      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "verification": [
+        "T14",
+        "B06"
+      ],
+      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "§40",
+      "requirement": "Loading/empty/error/success states for every feature",
+      "location": "notice/empty_state helpers used by all tools",
+      "files": [
+        "pixva/inc/template-tags.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T13",
+        "T19"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§41",
+      "requirement": "Data-model collisions resolved (problem taxonomy vs page, error-code paths, model under brand)",
+      "location": "Routes + content model + redirects",
+      "files": [
+        "pixva/inc/content-model.php",
+        "pixva/inc/redirects.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§42",
+      "requirement": "Route matrix (URL, template, entity, indexability, canonical, schema, source, status)",
+      "location": "Architecture doc §3",
+      "files": [
+        "docs/pixva-architecture.md",
+        "pixva/inc/routes.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§43",
+      "requirement": "Template coverage for every route/entity",
+      "location": "23 root templates + 14 page templates",
+      "files": [
+        "pixva/single-tv_model.php",
+        "pixva/taxonomy-tv_problem.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§44",
+      "requirement": "Content quality / thin-content handling",
+      "location": "Thin detection ⇒ noindex + sitemap exclusion; admin health",
+      "files": [
+        "pixva/inc/seo.php",
+        "pixva/inc/dashboard.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T27",
+        "T23"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§45",
+      "requirement": "Internal linking",
+      "location": "related_links, related service/article fields",
+      "files": [
+        "pixva/inc/template-tags.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§46",
+      "requirement": "Forms standard (labels, validation, PRG, honeypot, submission id)",
+      "location": "Form framework",
+      "files": [
+        "pixva/inc/forms.php",
+        "pixva/inc/template-tags.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T13",
+        "T14",
+        "T15",
+        "T17"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§47",
+      "requirement": "Admin UX: overview checklist, settings, redirects, migration report",
+      "location": "Admin module",
+      "files": [
+        "pixva/inc/admin.php",
+        "pixva/assets/css/admin.css",
+        "pixva/assets/js/admin.js"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T33"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§48",
+      "requirement": "Indexing rules (noindex for tool states, empty archives, account, thin)",
+      "location": "SEO module",
+      "files": [
+        "pixva/inc/seo.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T27"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§49",
+      "requirement": "Privacy: no PII in URLs, analytics, tracking output; masked phones",
+      "location": "Lookups by POST, masking helpers",
+      "files": [
+        "pixva/inc/helpers.php",
+        "pixva/inc/repairs.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T18",
+        "T21"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§50",
+      "requirement": "Roles and custom capabilities for PII types",
+      "location": "Capability module",
+      "files": [
+        "pixva/inc/capabilities.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T21",
+        "T23"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§51",
+      "requirement": "REST review",
+      "location": "REST module",
+      "files": [
+        "pixva/inc/rest.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T10",
+        "T24",
+        "T25"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§52",
+      "requirement": "Central metadata (single SEO source)",
+      "location": "seo.php only",
+      "files": [
+        "pixva/inc/seo.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§53",
+      "requirement": "No duplication (functions, pages, content)",
+      "location": "Lint tools",
+      "files": [
+        "tools/php_lint.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T05",
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§54",
+      "requirement": "Token audit",
+      "location": "CSS/theme.json",
+      "files": [
+        "pixva/theme.json"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T08"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§55",
+      "requirement": "Code quality",
+      "location": "WPCS ruleset",
+      "files": [
+        "pixva/phpcs.xml"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T02",
+        "T03"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§56",
+      "requirement": "PHP checks",
+      "location": "php -l + WPCS",
+      "files": [
+        "tools/php_lint.py",
+        "pixva/phpcs.xml"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T01",
+        "T02"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§57",
+      "requirement": "JS checks",
+      "location": "node --check",
+      "files": [
+        "pixva/assets/js/app.js"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T04"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§58",
+      "requirement": "CSS checks",
+      "location": "class audit",
+      "files": [
+        "tools/class_audit.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T06",
+        "T08"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§59",
+      "requirement": "Crawl",
+      "location": "CLI crawl of 49 routes on WP 7.1.3 + SQLite",
+      "files": [
+        "docs/pixva-qa-matrix.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T30"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§60",
+      "requirement": "QA matrix",
+      "location": "Generated document",
+      "files": [
+        "docs/pixva-qa-matrix.md",
+        "tools/gen_docs.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§61",
+      "requirement": "Gap ledger reflecting actual state",
+      "location": "Generated JSON",
+      "files": [
+        "docs/pixva-gap-ledger.json",
+        "tools/gen_docs.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§62",
+      "requirement": "Traceability matrix §01–§77",
+      "location": "This document",
+      "files": [
+        "docs/pixva-traceability.md",
+        "tools/gen_docs.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§63",
+      "requirement": "Allowed final statuses only; documentation alone is not completion",
+      "location": "Generator guard rejects other statuses",
+      "files": [
+        "tools/gen_docs.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§64",
+      "requirement": "Branch reconciliation",
+      "location": "v1.7 (PR #4) merged as baseline; PR #2 rejected (fake data)",
+      "files": [
+        "docs/pixva-architecture.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T29"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§65",
+      "requirement": "Implementation order",
+      "location": "Core → flows → SEO/redirects/migration → templates → assets → docs (commit order)",
+      "files": [
+        "docs/pixva-architecture.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T11"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§66",
+      "requirement": "Test after each area",
+      "location": "Harness runs per area, final full regression",
+      "files": [
+        "docs/pixva-qa-matrix.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T13",
+        "T29"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§67",
+      "requirement": "Avoid regressions",
+      "location": "Full regression on fresh DB after final changes",
+      "files": [
+        "docs/pixva-qa-matrix.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T03",
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§68",
+      "requirement": "Logical commits with clear messages",
+      "location": "Git history on arena branch",
+      "files": [
+        "README.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T01"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§69",
+      "requirement": "Honest reporting: never claim untested runtime results",
+      "location": "Browser items marked blocked",
+      "files": [
+        "docs/pixva-qa-matrix.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "B01"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§70",
+      "requirement": "Mark only runtime-dependent checks as blocked",
+      "location": "Status assignment in this matrix",
+      "files": [
+        "tools/gen_docs.py"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "B01",
+        "B04"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§71",
+      "requirement": "No test gaming, no placeholder files or empty CPTs",
+      "location": "Types registered only with real use",
+      "files": [
+        "pixva/inc/content-model.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T05",
+        "T06"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§72",
+      "requirement": "No unnecessary plugins, JS frameworks or page builders",
+      "location": "Vanilla theme; Elementor support removed",
+      "files": [
+        "pixva/functions.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T04"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§73",
+      "requirement": "Stop only for irreversible data loss or security risk",
+      "location": "Migration never deletes content; parks legacy data",
+      "files": [
+        "pixva/inc/migration.php"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T29"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§74",
+      "requirement": "Documentation (architecture, routes, entities, capabilities, flows, SEO, security, migration, blockers)",
+      "location": "docs/",
+      "files": [
+        "docs/pixva-architecture.md",
+        "README.md",
+        "pixva/readme.txt"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§75",
+      "requirement": "Final report A–K",
+      "location": "Delivered in the session report",
+      "files": [
+        "docs/pixva-traceability.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§76",
+      "requirement": "40 absolute rules",
+      "location": "Enforced across the rows above",
+      "files": [
+        "docs/pixva-traceability.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T09",
+        "T10",
+        "T21"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "§77",
+      "requirement": "Completion: implemented, tested, fixed, retested, verified, documented, finalised",
+      "location": "This matrix + QA matrix + pushed branch",
+      "files": [
+        "docs/pixva-qa-matrix.md"
+      ],
+      "status": "COMPLETE",
+      "verification": [
+        "T12",
+        "T29"
+      ],
+      "blocker": null
+    }
+  ],
+  "tests": [
+    {
+      "id": "T01",
+      "area": "Static",
+      "check": "PHP syntax of all theme files",
+      "method": "php -l (PHP 8.3) on 61 files",
+      "result": "PASS — 0 errors"
+    },
+    {
+      "id": "T02",
+      "area": "Static",
+      "check": "WordPress Coding Standards (theme phpcs.xml, WPCS 3.4.1 / PHPCS 3.13.6)",
+      "method": "phpcs full theme",
+      "result": "PASS — 0 errors; 14 warnings, all reviewed performance advisories on bounded queries (posts_per_page ≤ 500 with no_found_rows, meta/tax queries)"
+    },
+    {
+      "id": "T03",
+      "area": "Static",
+      "check": "phpcbf formatting pass is behaviour-neutral",
+      "method": "PHP token-stream comparison before/after (whitespace + trailing commas ignored)",
+      "result": "PASS — 0 token-different files"
+    },
+    {
+      "id": "T04",
+      "area": "Static",
+      "check": "JS syntax",
+      "method": "node --check pixva/assets/js/*.js (7 files)",
+      "result": "PASS"
+    },
+    {
+      "id": "T05",
+      "area": "Static",
+      "check": "Duplicate functions / undefined pixva_* calls",
+      "method": "tools/php_lint.py + call/definition scan",
+      "result": "PASS — none (remaining matches are capability/hook names)"
+    },
+    {
+      "id": "T06",
+      "area": "Static",
+      "check": "CSS class coverage",
+      "method": "tools/class_audit.py",
+      "result": "PASS — 0 used-but-unstyled, 0 unused"
+    },
+    {
+      "id": "T07",
+      "area": "Static",
+      "check": "theme.json validity",
+      "method": "json.load",
+      "result": "PASS"
+    },
+    {
+      "id": "T08",
+      "area": "Static",
+      "check": "Design-token audit (§25)",
+      "method": "grep of hex values in CSS/theme.json",
+      "result": "PASS — only §25 tokens (pixel-test colours exempt by purpose)"
+    },
+    {
+      "id": "T09",
+      "area": "Static",
+      "check": "Fake-data purge (§34)",
+      "method": "grep for v1 phones, 180-day warranty, demo order, ratings/reviews",
+      "result": "PASS — only in the migration denylist; preview/ v1.6 mock with fake phone/warranty removed"
+    },
+    {
+      "id": "T10",
+      "area": "Static",
+      "check": "REST permission callbacks (§51)",
+      "method": "review of inc/rest.php",
+      "result": "PASS — 5 register calls / 6 routes, every route has permission_callback (rate limiter or code+phone proof)"
+    },
+    {
+      "id": "T11",
+      "area": "Runtime",
+      "check": "Fresh install activation",
+      "method": "WP 7.1.3 + SQLite, switch_theme + after_switch_theme",
+      "result": "PASS — db 2.0.0, /blog/%postname%/, 20 pages, front/blog set"
+    },
+    {
+      "id": "T12",
+      "area": "Runtime",
+      "check": "49-route crawl (§59)",
+      "method": "/tmp harness crawl: status, h1, robots, canonical, title, PHP errors",
+      "result": "PASS — 39×200, 6×301 (single hop), 2×404, 1×410, 0 PHP-error pages"
+    },
+    {
+      "id": "T13",
+      "area": "Runtime",
+      "check": "Booking validation",
+      "method": "AJAX POST invalid data",
+      "result": "PASS — 422 + per-field errors"
+    },
+    {
+      "id": "T14",
+      "area": "Runtime",
+      "check": "Booking success + duplicate submit",
+      "method": "AJAX POST valid, then same _pixva_sid",
+      "result": "PASS — PXV code; duplicate returns same code, no second analytics event"
+    },
+    {
+      "id": "T15",
+      "area": "Runtime",
+      "check": "Booking no-JS PRG",
+      "method": "admin-post POST",
+      "result": "PASS — 303 to one-time result page with code"
+    },
+    {
+      "id": "T16",
+      "area": "Runtime",
+      "check": "Booking prefill from diagnosis",
+      "method": "GET array + CSV symptoms; without from=diagnosis",
+      "result": "PASS — array and CSV accepted, unknown keys dropped, no prefill without from=diagnosis"
+    },
+    {
+      "id": "T17",
+      "area": "Runtime",
+      "check": "Contact rate limit",
+      "method": "8 rapid POSTs",
+      "result": "PASS — 429 after limit"
+    },
+    {
+      "id": "T18",
+      "area": "Runtime",
+      "check": "Tracking without PII",
+      "method": "REST track with code+phone",
+      "result": "PASS — 200, no name/phone/internal note"
+    },
+    {
+      "id": "T19",
+      "area": "Runtime",
+      "check": "Tracking oracle / lock",
+      "method": "wrong phone; repeated failures",
+      "result": "PASS — 404 identical to unknown code; per-code 429 lock"
+    },
+    {
+      "id": "T20",
+      "area": "Runtime",
+      "check": "Account claim + IDOR",
+      "method": "cust1 claims, cust2 tries same order",
+      "result": "PASS — 200 / 404; cust2 cannot see order"
+    },
+    {
+      "id": "T21",
+      "area": "Runtime",
+      "check": "Technician authorisation",
+      "method": "unassigned update; assigned update; customer update",
+      "result": "PASS — 403; 200 with masked phone (۰۹۳۵•••۲۳۳); customer 403/404"
+    },
+    {
+      "id": "T22",
+      "area": "Runtime",
+      "check": "Public vs internal notes",
+      "method": "update with quotes/backslash, then track",
+      "result": "PASS — public note intact, internal note never in tracking"
+    },
+    {
+      "id": "T23",
+      "area": "Runtime",
+      "check": "Dashboard roles",
+      "method": "GET /dashboard/ as each role",
+      "result": "PASS — customer 403; editor/manager/technician/admin 200; editor sees no PII"
+    },
+    {
+      "id": "T24",
+      "area": "Runtime",
+      "check": "REST endpoints",
+      "method": "models, error-codes, estimate, diagnosis (valid/invalid)",
+      "result": "PASS — 200 ×4, 400 on invalid problem"
+    },
+    {
+      "id": "T25",
+      "area": "Runtime",
+      "check": "REST exposure",
+      "method": "wp/v2/users anon; orders in REST",
+      "result": "PASS — both 404"
+    },
+    {
+      "id": "T26",
+      "area": "Runtime",
+      "check": "Sitemap exclusion + cache invalidation",
+      "method": "noindex meta toggled on a post",
+      "result": "PASS — excluded immediately, restored after clearing"
+    },
+    {
+      "id": "T27",
+      "area": "Runtime",
+      "check": "Thin content",
+      "method": "hello-world (core sample post)",
+      "result": "PASS — noindex,follow and absent from sitemap"
+    },
+    {
+      "id": "T28",
+      "area": "Runtime",
+      "check": "Front-page meta description",
+      "method": "crawl /",
+      "result": "PASS — description from pixva_front_lead()"
+    },
+    {
+      "id": "T29",
+      "area": "Runtime",
+      "check": "v1.7 → v2 migration",
+      "method": "v1.7 activated (20 pages, 32 posts) then v2 migration, run twice",
+      "result": "PASS — 24 log entries, fake settings/claims/tagline parked, menus retargeted, second run byte-identical"
+    },
+    {
+      "id": "T30",
+      "area": "Runtime",
+      "check": "Legacy URLs after migration",
+      "method": "crawl v1 paths",
+      "result": "PASS — 301 single hop (/calculator/, /diagnosis/, /category/…, /{post}/), 410 for /b2b/, /parts-stock/"
+    },
+    {
+      "id": "T31",
+      "area": "Runtime",
+      "check": "robots.txt",
+      "method": "GET /robots.txt",
+      "result": "PASS — only /wp-admin/ disallowed (admin-ajax allowed), sitemap listed, CSS/JS crawlable"
+    },
+    {
+      "id": "T32",
+      "area": "Runtime",
+      "check": "Escaping / schema honesty",
+      "method": "crawl with quotes/HTML in fixtures; JSON-LD review",
+      "result": "PASS — escaped output; no LocalBusiness/rating/review without real data"
+    },
+    {
+      "id": "T33",
+      "area": "Runtime",
+      "check": "Admin overview checklist",
+      "method": "render via harness",
+      "result": "PASS — 7 items incl. core sample content detection"
+    },
+    {
+      "id": "T34",
+      "area": "Runtime",
+      "check": "Private image validation, storage and streaming access",
+      "method": "pixva_store_private_image() with the is_uploaded/move test seams; admin-post pixva_order_photo as anon/other customer/editor",
+      "result": "PASS — real PNG stored with random name in uploads/pixva-private (+ .htaccess, index.php); PHP disguised as .png rejected (upload_type); 6 MB rejected (upload_size); streaming denied: anon 400, non-owner 403, editor 403"
+    },
+    {
+      "id": "B01",
+      "area": "Browser",
+      "check": "Keyboard-only walkthrough of diagnosis wizard, booking, pixel test",
+      "method": "manual / Playwright",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B02",
+      "area": "Browser",
+      "check": "Screen-reader announcements (aria-live, error summary focus)",
+      "method": "NVDA/VoiceOver",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B03",
+      "area": "Browser",
+      "check": "Responsive layout 320–1440 px, RTL rendering, Vazirmatn shaping",
+      "method": "visual",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B04",
+      "area": "Browser",
+      "check": "Core Web Vitals / Lighthouse",
+      "method": "Lighthouse",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B05",
+      "area": "Browser",
+      "check": "Pixel test fullscreen API, reduced-motion, colour cycling",
+      "method": "manual",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B06",
+      "area": "Browser",
+      "check": "JS enhancement flows (AJAX submit, busy states, model loading) and analytics dispatch to dataLayer/gtag",
+      "method": "manual / Playwright",
+      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+    },
+    {
+      "id": "B07",
+      "area": "Infrastructure",
+      "check": "Real multipart upload through a web server, Apache .htaccess / Nginx deny enforcement for uploads/pixva-private, outbound mail delivery",
+      "method": "deployed server",
+      "result": "BLOCKED — Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness."
+    }
+  ]
+}
