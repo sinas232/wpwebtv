@@ -34,11 +34,6 @@ N_PAGE_TPL = len([f for f in os.listdir(os.path.join(_THEME, 'page-templates')) 
 N_PHP = sum(1 for d, _s, fs in os.walk(_THEME) for f in fs if f.endswith('.php'))
 N_JS = len([f for f in os.listdir(os.path.join(_THEME, 'assets', 'js')) if f.endswith('.js')])
 
-INFRA = ('Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness.')
-BROWSER = ('Needs a real browser (rendering, focus/screen reader, viewport, JS '
-           'execution); the sandbox has PHP + WordPress CLI harness only, no '
-           'headless browser.')
-
 # Test ids referenced from the matrix (defined in TESTS below).
 # ---------------------------------------------------------------------------
 TESTS = [
@@ -82,13 +77,17 @@ TESTS = [
     ('T37', 'Runtime', 'Final acceptance suite (53 checks)', 'photo streaming (owner/manager/tech/other customer/editor/bad nonce/traversal), warranty privacy, no-JS tracking/warranty forms, PRG one-time token, profile role escalation, anon form actions, wp-admin restriction per role, redirect manager per role, REST exposure incl. users and oEmbed, no-store headers via real REST dispatch', 'PASS — 53/53. Fixed in this pass: logged-in customers/technicians could list users via /wp/v2/users (admin login slug) and oEmbed exposed author_url; now 404 / removed, /users/me returns only own record, editors keep the list'),
     ('T38', 'Runtime', 'Rendered fake-data scan', 'tel:/WhatsApp links, phone numbers, prices, ratings/reviews, warranty durations, statistics, demo order across all crawled + indexable pages', 'PASS — fresh install 46 crawled + 28 indexable pages, migrated v1.7 site 51 pages: 0 hits'),
     ('T39', 'Runtime', 'Distribution ZIP', 'dist/pixva.zip extracted and compared with pixva/ (diff + SHA-256 manifest); theme installed from the ZIP on a clean database and 12 routes crawled', 'PASS — ZIP == tree (88 files, identical manifest hash), only pixva/ paths, Version 2.0.0; activation from ZIP OK, 0 PHP errors, 301/410 behaviour intact'),
-    ('B01', 'Browser', 'Keyboard-only walkthrough of diagnosis wizard, booking, pixel test', 'manual / Playwright', 'BLOCKED — ' + BROWSER),
-    ('B02', 'Browser', 'Screen-reader announcements (aria-live, error summary focus)', 'NVDA/VoiceOver', 'BLOCKED — ' + BROWSER),
-    ('B03', 'Browser', 'Responsive layout 320–1440 px, RTL rendering, Vazirmatn shaping', 'visual', 'BLOCKED — ' + BROWSER),
-    ('B04', 'Browser', 'Core Web Vitals / Lighthouse', 'Lighthouse', 'BLOCKED — ' + BROWSER),
-    ('B05', 'Browser', 'Pixel test fullscreen API, reduced-motion, colour cycling', 'manual', 'BLOCKED — ' + BROWSER),
-    ('B06', 'Browser', 'JS enhancement flows (AJAX submit, busy states, model loading) and analytics dispatch to dataLayer/gtag', 'manual / Playwright', 'BLOCKED — ' + BROWSER),
-    ('B07', 'Infrastructure', 'Real multipart upload through a web server, Apache .htaccess / Nginx deny enforcement for uploads/pixva-private, outbound mail delivery', 'deployed server', 'BLOCKED — ' + INFRA),
+    ('E01', 'Staging/browser', 'Keyboard: skip link, visible focus on every Tab stop, mobile nav (Enter/Esc, focus return, 44px target), diagnosis radio groups by arrow keys, pixel test keys', 'Chromium (puppeteer-core) on nginx 1.31 + PHP 8.3 + WP 7.1.3 staging, suite s4', 'PASS — 52/52 (51 tabbables, all with a focus ring; Esc restores focus)'),
+    ('E02', 'Staging/browser', 'Automated accessibility of every public route + announcements', 'axe-core on all routes at 360/768/1366 px (s1); role=alert / aria-live content after client and server validation (s2, s4); Lighthouse accessibility', 'PASS — 0 axe violations, Lighthouse accessibility 100 on 8 key routes, errors announced via role=alert. Real assistive technology (NVDA/JAWS/VoiceOver) not run: needs Windows/macOS'),
+    ('E03', 'Staging/browser', 'Responsive layout and RTL rendering of every public route', 'Chromium at 360, 768, 1366 px: horizontal overflow, single h1, dir/lang, Vazirmatn loaded, screenshots (s1)', 'PASS — 1151/1151 checks. Fixed: 13px overflow at 360px; front end was ltr/en-US without the fa_IR core pack (now rtl + fa-IR, also verified with fa_IR and de_DE locales lacking .mo files)'),
+    ('E04', 'Staging/performance', 'Core Web Vitals (lab)', 'Lighthouse 12.8.2 mobile (simulated Moto G Power, slow 4G, 4x CPU) on 8 routes + real Chromium with applied throttling (4x CPU, 1.6 Mbps/150 ms) measuring LCP/CLS/INP via PerformanceObserver and Event Timing (s6)', 'PASS — 60/60: performance 100, LCP ~1.65 s (incl. ~0.5 s php-wasm TTFB), CLS 0, TBT 0–6 ms, INP 40–48 ms, ~138 KB and 5–7 KB JS per page. Field data (CrUX) needs production traffic'),
+    ('E05', 'Staging/browser', 'Pixel test fullscreen API, colour cycling, Esc/focus restore, reduced motion, no-JS anchors', 'Chromium, real Fullscreen API, prefers-reduced-motion emulation (s4)', 'PASS — fullscreen entered/exited, arrows/Space cycle, no animation or transition over 10 ms with reduced motion'),
+    ('E06', 'Staging/browser', 'JS enhancement flows and analytics dispatch', 'Chromium: AJAX booking with busy state at 360 px, diagnosis wizard JS + no-JS, calculator unset → configured in admin → disabled, error-code live filter, dataLayer capture (s2, s4)', 'PASS — events use allow-listed props only (no name/phone/query text/amounts); calculator shows a range only when configured, inspection state otherwise; no-JS paths identical in outcome'),
+    ('E07', 'Staging/server', 'Real multipart upload and private-store protection through Nginx AND Apache; real mail', 'nginx 1.31.6 deny rule; Apache httpd 2.4.68 (AllowOverride All) with and without mod_access_compat; aiosmtpd SMTP sink (s2, s9)', 'PASS — Nginx 61/61, Apache 23/23 in both modes: random-named files, direct/encoded/traversal/listing/PHP requests 403, staff stream 200 with identical bytes and no-store, staff mail delivered without customer PII. Fixed: bare "Deny from all" was a 500 + core:alert on Apache without mod_access_compat'),
+    ('E08', 'Staging/server', 'pixva_client_ip behind a reverse proxy and rate limits with real client IPs', 'curl --interface 127.0.0.N through nginx (X-Real-IP = $remote_addr) and Apache (X-Real-IP = REMOTE_ADDR); control run with the proxy filter disabled (s5, s9)', 'PASS — 17/17: booking 6/h per client, lookups 20/10 min per client, per-code lock after 5 failures across IPs, spoofed X-Real-IP/XFF/Forwarded ignored, without the filter all clients share the proxy bucket. Fixed: REST limits counted twice per request (half the documented limits)'),
+    ('E09', 'Staging/browser', 'Authentication and authorisation flows', 'Chromium: registration, login, account pages, customer/technician/manager/editor scope, REST enumeration (s3)', 'PASS — 49/49: customer 403 on dashboard/admin, technician masked phones and 403 on foreign orders, REST users/orders 404'),
+    ('E10', 'Staging/server', 'Sitemap, robots, canonical redirects, redirect manager, 410', 'Every sitemap URL fetched; redirect chains followed; rules added through the admin UI; post trashed via row action (s7)', 'PASS — 35/35: 25 sitemap URLs 200/indexable/self-canonical, chains flattened to one hop, gone target answers 410 directly, trashed post 410 and out of every sitemap. /page/1/ on the :8080 staging port is a WordPress core canonical.php port bug (verified to 301 on default ports); it carries rel=canonical to the base'),
+    ('E11', 'Staging/server', 'v1.7 → v2 migration on a staging copy', 'Full copy of the staging site with its own database rolled back to v1.7 (fake workshop data, legacy pages/prices/mods/orders/roles/cron/menus, /%postname%/); migration triggered by an administrator opening wp-admin (s8)', 'PASS — 52/52: all 11 steps, nothing deleted, fake data parked (not autoloaded, never rendered), legacy URLs one 301 hop or 410, demo order untrackable, legacy order trackable without PII; idempotent on a second visit and on a forced full re-run (byte-identical snapshot)'),
 ]
 TEST_IDS = {t[0] for t in TESTS}
 
@@ -105,16 +104,16 @@ ROWS = [
     ('§03', 'Product scope: diagnosis, knowledge, booking, tracking, warranty, account, dashboard', 'Feature modules', [I + 'diagnosis.php', I + 'forms.php', I + 'repairs.php', I + 'account.php', I + 'dashboard.php'], C, ['T13', 'T18', 'T20', 'T23'], ''),
     ('§04', 'Baseline: do not assume earlier work exists; preserve correct, repair incorrect, rebuild missing', 'Branch baseline 0cdd07b (v1.7) + v2 commits', ['docs/pixva-architecture.md'], C, ['T29'], ''),
     ('§05', 'Route map (31 routes), no duplicate indexable pages, no redirect chains', 'Route registry + page creation', [I + 'routes.php', I + 'content-model.php', I + 'redirects.php'], C, ['T12', 'T30', 'T36'], ''),
-    ('§06', 'Diagnosis wizard UX: mobile, accessible, keyboard, loading/empty/error states', 'Wizard template + JS enhancement', [PT + 'diagnosis.php', J + 'diagnosis.js'], RB, ['T12', 'T24', 'B01', 'B06'], BROWSER),
+    ('§06', 'Diagnosis wizard UX: mobile, accessible, keyboard, loading/empty/error states', 'Wizard template + JS enhancement', [PT + 'diagnosis.php', J + 'diagnosis.js'], C, ['T12', 'T24', 'E01', 'E06'], ''),
     ('§07', 'Diagnosis logic: brand→model→problem→symptoms→extra→likely/possible/needs-inspection→estimate only with data→booking', 'Rules engine + REST', [I + 'diagnosis.php', I + 'data/diagnosis-rules.php', I + 'rest.php'], C, ['T16', 'T24'], ''),
     ('§08', 'Price calculator: configurable pricing only; unset ⇒ inspection required, booking still possible', 'Pricing option + calculator', [I + 'pricing.php', PT + 'price-calculator.php', J + 'calculator.js'], C, ['T12', 'T24'], ''),
     ('§09', 'Error codes: full field set, search/filter, internal links, no unsafe electrical advice', 'pixva_error CPT + archive/single + REST search', [P + 'archive-pixva_error.php', P + 'single-pixva_error.php', I + 'meta-fields.php'], C, ['T12', 'T24'], ''),
-    ('§10', 'Pixel test: solid colours, gradients, fullscreen, accessible, reduced motion, minimal JS', 'Template + small script', [PT + 'pixel-test.php', J + 'pixel-test.js'], RB, ['T04', 'T12', 'B05'], BROWSER),
+    ('§10', 'Pixel test: solid colours, gradients, fullscreen, accessible, reduced motion, minimal JS', 'Template + small script', [PT + 'pixel-test.php', J + 'pixel-test.js'], C, ['T04', 'T12', 'E05'], ''),
     ('§11', 'Booking: labels, server validation, nonce, rate limit, private image upload, duplicate protection, real states', 'Booking form handler', [PT + 'booking.php', I + 'forms.php', I + 'security.php'], C, ['T13', 'T14', 'T15', 'T16', 'T34', 'T37'], ''),
     ('§12', 'Tracking: secure ID, no PII/internal notes, ownership proof', 'Lookup + REST track', [PT + 'tracking.php', I + 'repairs.php', J + 'lookup.js'], C, ['T18', 'T19', 'T22', 'T37'], ''),
     ('§13', 'Warranty: configurable policy, never invent duration', 'Order warranty meta + lookup', [PT + 'warranty.php', I + 'repairs.php', I + 'business-claims.php'], C, ['T12', 'T24', 'T37'], ''),
     ('§14', 'Account: repairs/warranty/profile with authn/authz, no cross-user access', 'Account pages + claim flow', [PT + 'account.php', I + 'account.php'], C, ['T20', 'T37'], ''),
-    ('§15', 'Dashboard: separate customer/technician/editor/admin, real data only', 'Dashboard panels by capability', [PT + 'dashboard.php', I + 'dashboard.php'], C, ['T21', 'T23', 'T37'], ''),
+    ('§15', 'Dashboard: separate customer/technician/editor/admin, real data only', 'Dashboard panels by capability', [PT + 'dashboard.php', I + 'dashboard.php'], C, ['T21', 'T23', 'T37', 'E09'], ''),
     ('§16', 'Content types for services, brands, models, problems, error codes, repairs, parts, articles, portfolio, FAQs, warranties, claims', 'CPT/taxonomy registry', [I + 'content-model.php'], C, ['T12'], ''),
     ('§17', 'Only expose types with legitimate content; private types for PII', 'Public vs private registration', [I + 'content-model.php', I + 'capabilities.php'], C, ['T25'], ''),
     ('§18', 'Search across content types', 'Search scope + results', [P + 'search.php', I + 'setup.php'], C, ['T12'], ''),
@@ -122,23 +121,23 @@ ROWS = [
     ('§20', 'Honest schema; no LocalBusiness/reviews without real data', 'JSON-LD builder', [I + 'schema.php'], C, ['T32'], ''),
     ('§21', 'Paginated sitemap of canonical indexable URLs only', 'Core sitemaps + filters + archive provider', [I + 'seo.php', I + 'class-pixva-archive-sitemap.php'], C, ['T26', 'T27', 'T35'], ''),
     ('§22', 'robots.txt must not block CSS/JS', 'robots_txt filter', [I + 'seo.php'], C, ['T31'], ''),
-    ('§23', 'Redirect manager (source, destination, status, date, notes, active) with chain/loop prevention', 'Admin screen + runtime', [I + 'redirects.php', I + 'admin.php'], C, ['T30', 'T36'], ''),
+    ('§23', 'Redirect manager (source, destination, status, date, notes, active) with chain/loop prevention', 'Admin screen + runtime', [I + 'redirects.php', I + 'admin.php'], C, ['T30', 'T36', 'E10'], ''),
     ('§24', 'Useful 404 and 410 for gone content', '404 template + gone paths', [P + '404.php', I + 'redirects.php'], C, ['T12', 'T30', 'T36'], ''),
     ('§25', 'Design tokens (12 colours), Vazirmatn, 8pt spacing; obsolete palette removed', 'theme.json + CSS custom properties', [P + 'theme.json', P + 'assets/css/app.css'], C, ['T07', 'T08'], ''),
     ('§26', '3D only if it adds real value', '—', [P + 'front-page.php'], NA, ['T08'], 'No 3D: the v1.5 decorative 3D hero added weight without diagnostic value, so it was removed; no feature requires 3D.'),
-    ('§27', 'Accessibility (WCAG): labels, focus, aria, contrast, error summaries', 'Templates + field helper', [I + 'template-tags.php', P + 'assets/css/app.css'], RB, ['T12', 'T13', 'B01', 'B02'], BROWSER),
-    ('§28', 'Responsive / mobile-first', 'CSS', [P + 'assets/css/app.css'], RB, ['T06', 'B03'], BROWSER),
-    ('§29', 'Performance / Core Web Vitals', 'Per-route assets, no frameworks, cached sitemap exclusions', [I + 'setup.php', I + 'seo.php'], RB, ['T02', 'T26', 'B04'], BROWSER),
-    ('§30', 'Minimal progressive-enhancement JS, no alert(), no SPA', 'Vanilla scripts per route; forms work without JS', [J + 'app.js'], RB, ['T04', 'T15', 'B06'], BROWSER),
+    ('§27', 'Accessibility (WCAG): labels, focus, aria, contrast, error summaries', 'Templates + field helper', [I + 'template-tags.php', P + 'assets/css/app.css'], RB, ['T12', 'T13', 'E01', 'E02', 'E03'], 'Automated checks (axe-core, Lighthouse, keyboard, live regions) pass on real staging; passes with real assistive technology (NVDA/JAWS/VoiceOver) need Windows/macOS, which are not available.'),
+    ('§28', 'Responsive / mobile-first', 'CSS', [P + 'assets/css/app.css'], C, ['T06', 'E03'], ''),
+    ('§29', 'Performance / Core Web Vitals', 'Per-route assets, no frameworks, cached sitemap exclusions', [I + 'setup.php', I + 'seo.php'], C, ['T02', 'T26', 'E04'], ''),
+    ('§30', 'Minimal progressive-enhancement JS, no alert(), no SPA', 'Vanilla scripts per route; forms work without JS', [J + 'app.js'], C, ['T04', 'T15', 'E06'], ''),
     ('§31', 'Security: nonces, capabilities, sanitize/escape', 'Forms, admin, templates', [I + 'security.php', I + 'forms.php'], C, ['T02', 'T13', 'T21', 'T32', 'T37'], ''),
-    ('§32', 'REST permission callbacks and rate limits', 'REST module', [I + 'rest.php', I + 'security.php'], C, ['T10', 'T24', 'T25', 'T37'], ''),
-    ('§33', 'Upload safety: MIME, size, private storage', 'Upload handler + streaming', [I + 'security.php', I + 'repairs.php'], RB, ['T34', 'B07', 'T37'], INFRA),
+    ('§32', 'REST permission callbacks and rate limits', 'REST module', [I + 'rest.php', I + 'security.php'], C, ['T10', 'T24', 'T25', 'T37', 'E08'], ''),
+    ('§33', 'Upload safety: MIME, size, private storage', 'Upload handler + streaming', [I + 'security.php', I + 'repairs.php'], C, ['T34', 'E07', 'T37'], ''),
     ('§34', 'Fake-data purge', 'Templates, migration denylist, removed preview mock', [I + 'migration.php', I + 'business-claims.php'], C, ['T09', 'T29', 'T38'], ''),
     ('§35', 'Centralised business claims with empty defaults that render nothing when unset', 'pixva_business_claims option', [I + 'business-claims.php', I + 'admin.php'], C, ['T09', 'T32', 'T38'], ''),
     ('§36', 'No phantom feature cards (AR, VIP, express…)', 'Front page / tools built from real routes', [P + 'front-page.php', PT + 'tools.php'], C, ['T09', 'T12'], ''),
     ('§37', 'CMS-managed content', 'CPTs, meta boxes, options screens', [I + 'meta-fields.php', I + 'admin.php'], C, ['T33'], ''),
-    ('§38', 'Migration-friendly stable slugs; non-destructive versioned migration', 'Migration module', [I + 'migration.php', I + 'routes.php'], C, ['T29', 'T30'], ''),
-    ('§39', 'Provider-agnostic analytics events, no PII', 'Event bus + server events', [I + 'analytics.php', J + 'app.js'], RB, ['T14', 'B06'], BROWSER),
+    ('§38', 'Migration-friendly stable slugs; non-destructive versioned migration', 'Migration module', [I + 'migration.php', I + 'routes.php'], C, ['T29', 'T30', 'E11'], ''),
+    ('§39', 'Provider-agnostic analytics events, no PII', 'Event bus + server events', [I + 'analytics.php', J + 'app.js'], C, ['T14', 'E06', 'E08'], ''),
     ('§40', 'Loading/empty/error/success states for every feature', 'notice/empty_state helpers used by all tools', [I + 'template-tags.php'], C, ['T12', 'T13', 'T19'], ''),
     ('§41', 'Data-model collisions resolved (problem taxonomy vs page, error-code paths, model under brand)', 'Routes + content model + redirects', [I + 'content-model.php', I + 'redirects.php'], C, ['T12', 'T30', 'T36'], ''),
     ('§42', 'Route matrix (URL, template, entity, indexability, canonical, schema, source, status)', 'Architecture doc §3', ['docs/pixva-architecture.md', I + 'routes.php'], C, ['T12'], ''),
@@ -168,8 +167,8 @@ ROWS = [
     ('§66', 'Test after each area', 'Harness runs per area, final full regression', ['docs/pixva-qa-matrix.md'], C, ['T12', 'T13', 'T29', 'T37'], ''),
     ('§67', 'Avoid regressions', 'Full regression on fresh DB after final changes', ['docs/pixva-qa-matrix.md'], C, ['T03', 'T12', 'T37'], ''),
     ('§68', 'Logical commits with clear messages', 'Git history on arena branch', ['README.md'], C, ['T01'], ''),
-    ('§69', 'Honest reporting: never claim untested runtime results', 'Browser items marked blocked', ['docs/pixva-qa-matrix.md'], C, ['B01'], ''),
-    ('§70', 'Mark only runtime-dependent checks as blocked', 'Status assignment in this matrix', ['tools/gen_docs.py'], C, ['B01', 'B04'], ''),
+    ('§69', 'Honest reporting: never claim untested runtime results', 'Every runtime claim backed by an executed staging suite; real assistive technology reported as blocked', ['docs/pixva-qa-matrix.md'], C, ['E02'], ''),
+    ('§70', 'Mark only runtime-dependent checks as blocked', 'Status assignment in this matrix', ['tools/gen_docs.py'], C, ['E02', 'E04'], ''),
     ('§71', 'No test gaming, no placeholder files or empty CPTs', 'Types registered only with real use', [I + 'content-model.php'], C, ['T05', 'T06'], ''),
     ('§72', 'No unnecessary plugins, JS frameworks or page builders', 'Vanilla theme; Elementor support removed', [P + 'functions.php'], C, ['T04'], ''),
     ('§73', 'Stop only for irreversible data loss or security risk', 'Migration never deletes content; parks legacy data', [I + 'migration.php'], C, ['T29'], ''),
@@ -241,7 +240,7 @@ def main():
 
     # QA matrix.
     q = ['# PIXVA %s — QA matrix' % VERSION, '',
-         'Environment: WordPress 7.1.3, SQLite integration 2.2.23, PHP 8.3 (php-wasm CLI), request harness that boots WordPress per request (status, headers via filters, body). Fixtures: 1 brand, 1 model, 1 service, 1 error code, 1 FAQ, 1 article, users for every role. No headless browser is available, so browser-only checks are listed separately and are **not** claimed as passed.', '',
+         'T01–T39: WordPress 7.1.3, SQLite integration 2.2.23, PHP 8.3 (php-wasm CLI), request harness that boots WordPress per request. E01–E11: real staging stack — Chromium (puppeteer-core) → nginx 1.31.6 or Apache httpd 2.4.68 → PHP 8.3 (php-wasm HTTP upstream) → WordPress 7.1.3 + SQLite → SMTP sink; real multipart uploads, real client IPs via distinct source addresses. Fixtures are [STG]-prefixed staging data only (1 brand, 1 model, 1 service, 1 error code, 1 FAQ, 1 article, users for every role). Real assistive-technology passes (NVDA/JAWS/VoiceOver) were not possible and are not claimed.', '',
          '| ID | Area | Check | Method | Result |', '|---|---|---|---|---|']
     for t in TESTS:
         q.append('| %s |' % ' | '.join(md_cell(x) for x in t))

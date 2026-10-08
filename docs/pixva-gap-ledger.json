@@ -9,8 +9,8 @@
     "INTENTIONALLY_NOT_APPLICABLE"
   ],
   "totals": {
-    "COMPLETE": 68,
-    "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED": 8,
+    "COMPLETE": 75,
+    "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED": 1,
     "BLOCKED": 0,
     "INTENTIONALLY_NOT_APPLICABLE": 1
   },
@@ -101,14 +101,14 @@
         "pixva/page-templates/diagnosis.php",
         "pixva/assets/js/diagnosis.js"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T12",
         "T24",
-        "B01",
-        "B06"
+        "E01",
+        "E06"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§07",
@@ -166,13 +166,13 @@
         "pixva/page-templates/pixel-test.php",
         "pixva/assets/js/pixel-test.js"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T04",
         "T12",
-        "B05"
+        "E05"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§11",
@@ -256,7 +256,8 @@
       "verification": [
         "T21",
         "T23",
-        "T37"
+        "T37",
+        "E09"
       ],
       "blocker": null
     },
@@ -370,7 +371,8 @@
       "status": "COMPLETE",
       "verification": [
         "T30",
-        "T36"
+        "T36",
+        "E10"
       ],
       "blocker": null
     },
@@ -430,10 +432,11 @@
       "verification": [
         "T12",
         "T13",
-        "B01",
-        "B02"
+        "E01",
+        "E02",
+        "E03"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": "Automated checks (axe-core, Lighthouse, keyboard, live regions) pass on real staging; passes with real assistive technology (NVDA/JAWS/VoiceOver) need Windows/macOS, which are not available."
     },
     {
       "id": "§28",
@@ -442,12 +445,12 @@
       "files": [
         "pixva/assets/css/app.css"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T06",
-        "B03"
+        "E03"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§29",
@@ -457,13 +460,13 @@
         "pixva/inc/setup.php",
         "pixva/inc/seo.php"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T02",
         "T26",
-        "B04"
+        "E04"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§30",
@@ -472,13 +475,13 @@
       "files": [
         "pixva/assets/js/app.js"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T04",
         "T15",
-        "B06"
+        "E06"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§31",
@@ -511,7 +514,8 @@
         "T10",
         "T24",
         "T25",
-        "T37"
+        "T37",
+        "E08"
       ],
       "blocker": null
     },
@@ -523,13 +527,13 @@
         "pixva/inc/security.php",
         "pixva/inc/repairs.php"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T34",
-        "B07",
+        "E07",
         "T37"
       ],
-      "blocker": "Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness."
+      "blocker": null
     },
     {
       "id": "§34",
@@ -603,7 +607,8 @@
       "status": "COMPLETE",
       "verification": [
         "T29",
-        "T30"
+        "T30",
+        "E11"
       ],
       "blocker": null
     },
@@ -615,12 +620,13 @@
         "pixva/inc/analytics.php",
         "pixva/assets/js/app.js"
       ],
-      "status": "COMPLETE — RUNTIME/BROWSER VERIFICATION BLOCKED",
+      "status": "COMPLETE",
       "verification": [
         "T14",
-        "B06"
+        "E06",
+        "E08"
       ],
-      "blocker": "Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "blocker": null
     },
     {
       "id": "§40",
@@ -1044,13 +1050,13 @@
     {
       "id": "§69",
       "requirement": "Honest reporting: never claim untested runtime results",
-      "location": "Browser items marked blocked",
+      "location": "Every runtime claim backed by an executed staging suite; real assistive technology reported as blocked",
       "files": [
         "docs/pixva-qa-matrix.md"
       ],
       "status": "COMPLETE",
       "verification": [
-        "B01"
+        "E02"
       ],
       "blocker": null
     },
@@ -1063,8 +1069,8 @@
       ],
       "status": "COMPLETE",
       "verification": [
-        "B01",
-        "B04"
+        "E02",
+        "E04"
       ],
       "blocker": null
     },
@@ -1442,53 +1448,81 @@
       "result": "PASS — ZIP == tree (88 files, identical manifest hash), only pixva/ paths, Version 2.0.0; activation from ZIP OK, 0 PHP errors, 301/410 behaviour intact"
     },
     {
-      "id": "B01",
-      "area": "Browser",
-      "check": "Keyboard-only walkthrough of diagnosis wizard, booking, pixel test",
-      "method": "manual / Playwright",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E01",
+      "area": "Staging/browser",
+      "check": "Keyboard: skip link, visible focus on every Tab stop, mobile nav (Enter/Esc, focus return, 44px target), diagnosis radio groups by arrow keys, pixel test keys",
+      "method": "Chromium (puppeteer-core) on nginx 1.31 + PHP 8.3 + WP 7.1.3 staging, suite s4",
+      "result": "PASS — 52/52 (51 tabbables, all with a focus ring; Esc restores focus)"
     },
     {
-      "id": "B02",
-      "area": "Browser",
-      "check": "Screen-reader announcements (aria-live, error summary focus)",
-      "method": "NVDA/VoiceOver",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E02",
+      "area": "Staging/browser",
+      "check": "Automated accessibility of every public route + announcements",
+      "method": "axe-core on all routes at 360/768/1366 px (s1); role=alert / aria-live content after client and server validation (s2, s4); Lighthouse accessibility",
+      "result": "PASS — 0 axe violations, Lighthouse accessibility 100 on 8 key routes, errors announced via role=alert. Real assistive technology (NVDA/JAWS/VoiceOver) not run: needs Windows/macOS"
     },
     {
-      "id": "B03",
-      "area": "Browser",
-      "check": "Responsive layout 320–1440 px, RTL rendering, Vazirmatn shaping",
-      "method": "visual",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E03",
+      "area": "Staging/browser",
+      "check": "Responsive layout and RTL rendering of every public route",
+      "method": "Chromium at 360, 768, 1366 px: horizontal overflow, single h1, dir/lang, Vazirmatn loaded, screenshots (s1)",
+      "result": "PASS — 1151/1151 checks. Fixed: 13px overflow at 360px; front end was ltr/en-US without the fa_IR core pack (now rtl + fa-IR, also verified with fa_IR and de_DE locales lacking .mo files)"
     },
     {
-      "id": "B04",
-      "area": "Browser",
-      "check": "Core Web Vitals / Lighthouse",
-      "method": "Lighthouse",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E04",
+      "area": "Staging/performance",
+      "check": "Core Web Vitals (lab)",
+      "method": "Lighthouse 12.8.2 mobile (simulated Moto G Power, slow 4G, 4x CPU) on 8 routes + real Chromium with applied throttling (4x CPU, 1.6 Mbps/150 ms) measuring LCP/CLS/INP via PerformanceObserver and Event Timing (s6)",
+      "result": "PASS — 60/60: performance 100, LCP ~1.65 s (incl. ~0.5 s php-wasm TTFB), CLS 0, TBT 0–6 ms, INP 40–48 ms, ~138 KB and 5–7 KB JS per page. Field data (CrUX) needs production traffic"
     },
     {
-      "id": "B05",
-      "area": "Browser",
-      "check": "Pixel test fullscreen API, reduced-motion, colour cycling",
-      "method": "manual",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E05",
+      "area": "Staging/browser",
+      "check": "Pixel test fullscreen API, colour cycling, Esc/focus restore, reduced motion, no-JS anchors",
+      "method": "Chromium, real Fullscreen API, prefers-reduced-motion emulation (s4)",
+      "result": "PASS — fullscreen entered/exited, arrows/Space cycle, no animation or transition over 10 ms with reduced motion"
     },
     {
-      "id": "B06",
-      "area": "Browser",
-      "check": "JS enhancement flows (AJAX submit, busy states, model loading) and analytics dispatch to dataLayer/gtag",
-      "method": "manual / Playwright",
-      "result": "BLOCKED — Needs a real browser (rendering, focus/screen reader, viewport, JS execution); the sandbox has PHP + WordPress CLI harness only, no headless browser."
+      "id": "E06",
+      "area": "Staging/browser",
+      "check": "JS enhancement flows and analytics dispatch",
+      "method": "Chromium: AJAX booking with busy state at 360 px, diagnosis wizard JS + no-JS, calculator unset → configured in admin → disabled, error-code live filter, dataLayer capture (s2, s4)",
+      "result": "PASS — events use allow-listed props only (no name/phone/query text/amounts); calculator shows a range only when configured, inspection state otherwise; no-JS paths identical in outcome"
     },
     {
-      "id": "B07",
-      "area": "Infrastructure",
-      "check": "Real multipart upload through a web server, Apache .htaccess / Nginx deny enforcement for uploads/pixva-private, outbound mail delivery",
-      "method": "deployed server",
-      "result": "BLOCKED — Needs a deployed web server and mail transport; the sandbox runs WordPress through a CLI request harness."
+      "id": "E07",
+      "area": "Staging/server",
+      "check": "Real multipart upload and private-store protection through Nginx AND Apache; real mail",
+      "method": "nginx 1.31.6 deny rule; Apache httpd 2.4.68 (AllowOverride All) with and without mod_access_compat; aiosmtpd SMTP sink (s2, s9)",
+      "result": "PASS — Nginx 61/61, Apache 23/23 in both modes: random-named files, direct/encoded/traversal/listing/PHP requests 403, staff stream 200 with identical bytes and no-store, staff mail delivered without customer PII. Fixed: bare \"Deny from all\" was a 500 + core:alert on Apache without mod_access_compat"
+    },
+    {
+      "id": "E08",
+      "area": "Staging/server",
+      "check": "pixva_client_ip behind a reverse proxy and rate limits with real client IPs",
+      "method": "curl --interface 127.0.0.N through nginx (X-Real-IP = $remote_addr) and Apache (X-Real-IP = REMOTE_ADDR); control run with the proxy filter disabled (s5, s9)",
+      "result": "PASS — 17/17: booking 6/h per client, lookups 20/10 min per client, per-code lock after 5 failures across IPs, spoofed X-Real-IP/XFF/Forwarded ignored, without the filter all clients share the proxy bucket. Fixed: REST limits counted twice per request (half the documented limits)"
+    },
+    {
+      "id": "E09",
+      "area": "Staging/browser",
+      "check": "Authentication and authorisation flows",
+      "method": "Chromium: registration, login, account pages, customer/technician/manager/editor scope, REST enumeration (s3)",
+      "result": "PASS — 49/49: customer 403 on dashboard/admin, technician masked phones and 403 on foreign orders, REST users/orders 404"
+    },
+    {
+      "id": "E10",
+      "area": "Staging/server",
+      "check": "Sitemap, robots, canonical redirects, redirect manager, 410",
+      "method": "Every sitemap URL fetched; redirect chains followed; rules added through the admin UI; post trashed via row action (s7)",
+      "result": "PASS — 35/35: 25 sitemap URLs 200/indexable/self-canonical, chains flattened to one hop, gone target answers 410 directly, trashed post 410 and out of every sitemap. /page/1/ on the :8080 staging port is a WordPress core canonical.php port bug (verified to 301 on default ports); it carries rel=canonical to the base"
+    },
+    {
+      "id": "E11",
+      "area": "Staging/server",
+      "check": "v1.7 → v2 migration on a staging copy",
+      "method": "Full copy of the staging site with its own database rolled back to v1.7 (fake workshop data, legacy pages/prices/mods/orders/roles/cron/menus, /%postname%/); migration triggered by an administrator opening wp-admin (s8)",
+      "result": "PASS — 52/52: all 11 steps, nothing deleted, fake data parked (not autoloaded, never rendered), legacy URLs one 301 hop or 410, demo order untrackable, legacy order trackable without PII; idempotent on a second visit and on a forced full re-run (byte-identical snapshot)"
     }
   ]
 }
