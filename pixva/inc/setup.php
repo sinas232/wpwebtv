@@ -167,6 +167,13 @@ add_action( 'wp_enqueue_scripts', 'pixva_assets' );
  * @return void
  */
 function pixva_trim_block_styles() {
+	/**
+	 * Sites or plugins that add core block markup at render time (filters, shortcodes,
+	 * widgets) cannot be detected from post content: return true here to keep the library.
+	 */
+	if ( apply_filters( 'pixva_keep_block_library', false ) ) {
+		return;
+	}
 	$queried = get_queried_object();
 	if ( $queried instanceof WP_Post && has_blocks( $queried->post_content ) ) {
 		return;
