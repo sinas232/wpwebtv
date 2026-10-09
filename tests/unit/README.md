@@ -13,10 +13,10 @@ Evidence kinds:
 
 | Suite | Evidence | Command | Result |
 |---|---|---|---|
-| `php/order-security.test.php` (233 checks, sections A–Q) | Unit (stubbed WordPress and wpdb; SIMULATED, not MySQL/MariaDB) | `php-wasm-cli tests/unit/php/order-security.test.php` | `233 passed, 0 failed` (Round 4 final run; see the Round 4 report for the run date and runner) |
-| `php/mutation-controls.py` (30 controls: 15 order/IP/lock, 4 audit, 11 Round 4: F1 inbox, F2 notes, F3 role, F6 report, F7 migration) | Unit, negative controls | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=30 survivors=0` (see the final line of the run) |
+| `php/order-security.test.php` (253 checks, sections A–Q) | Unit (stubbed WordPress and wpdb; SIMULATED, not MySQL/MariaDB) | `php-wasm-cli tests/unit/php/order-security.test.php` | `253 passed, 0 failed` (Round 5 run on the final code; see the Round 5 report) |
+| `php/mutation-controls.py` (39 controls: 15 order/IP/lock, 4 audit, 11 Round 4: F1 inbox, F2 notes, F3 role, F6 report, F7 migration; 9 Round 5: R1–R9) | Unit, negative controls; run in parallel (`MUT_WORKERS`, default 4) | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=39 survivors=0` (see the final line of the run). A control is CAUGHT only if the suite prints a summary line and at least one FAIL. |
 | `php/render-fixtures.php` | Unit (writes `js/fixtures/render.json`) | `php-wasm-cli tests/unit/php/render-fixtures.php` | 3 fixtures; output identical to the committed file |
-| `db/reservation_sqlite_race.py` | Port on SQLite 3.40 (NOT MySQL/MariaDB) | `python3 tests/unit/db/reservation_sqlite_race.py 300 24` | `violations=0` over 300 rounds of 24 racing requests with random crashes (crashes are counted in the run output; recovery created exactly one order and one announcement each time) |
+| `db/reservation_sqlite_race.py` | Port on SQLite 3.40 (NOT MySQL/MariaDB) | `python3 tests/unit/db/reservation_sqlite_race.py 300 24` | `violations=0` over 300 rounds of 24 racing requests with random crashes (Round 5 run: one announcement per round; phase 2 is refused as busy while the reservation is live; phase 3 races the takeover) |
 | `php/audit` (section H of the PHP suite, read-only audit) | Unit (stubbed store, temp directory) | included in `order-security.test.php` | H1–H11 pass; H11 is a static check that `audit.php` has no write, delete or private-directory call |
 | Static analysis: PHPCS 4.0.4 with WordPress Coding Standards (develop), PHPCSUtils, PHPCSExtra; ruleset `pixva/phpcs.xml` | Static, run under php-wasm | `php-wasm-cli <phpcs>/bin/phpcs -p --report=summary --standard=phpcs.xml .` in `pixva/` | `27 ERRORS and 82 WARNINGS in 17 files`: identical to the pre-change baseline. `pixva/inc/audit.php` adds none. The 27 errors are pre-existing and listed in `docs/pixva-write-path-review.md`. Not fixed in this round. |
 | `js/safe-html.test.cjs` (22) | Unit (jsdom) | `NODE_PATH=<node_modules> node tests/unit/js/safe-html.test.cjs` | `22 passed` |
@@ -27,6 +27,14 @@ Evidence kinds:
 The `PHP=8.3` variable in the commands above is not a version selector. The runner used for the Round 3 results is `@php-wasm/cli` 3.1.57, which runs PHP 8.5.10 (check with `php-wasm-cli -r 'echo PHP_VERSION;'`). Record the version actually run.
 
 `php-wasm-cli` can return exit code 0 even after a PHP fatal error. Read the `N passed, M failed` line and check for `Fatal`.
+
+## Round 5 sections (simulated; not MySQL/MariaDB, not WordPress)
+
+- **H14–H16 (F1-order):** a live `creating` reservation returns `busy` and is never taken over (H14); a retry after the claim TTL, while the reservation is still live, is refused until the reservation TTL has passed (H15); a stalled attempt that loses its reservation inside the adopt path does not overwrite the order (H16). H6, H7 and H10b now expect no deletion: duplicates are marked `_pixva_superseded_by` and kept.
+- **H8 / M14:** a failed insert releases the attempt's own reservation, so the immediate retry is not refused as busy.
+- **N10 / N11 (F2, F4):** a status change or a technician or warranty save refused by a live order lock writes nothing and records a notice for the user; with the lock free the same save is written.
+- **P11 (F7):** a status change between two migration runs keeps its history entry and its status.
+- The PHP suite is still simulated. It does not run MySQL, and it does not run WordPress.
 
 ## Round 4 sections (simulated; not MySQL/MariaDB, not WordPress)
 
@@ -73,7 +81,9 @@ The mutation set runs as a background process: it takes several minutes.
 
 The Round 4 controls (F1a–F1e inbox, F2a notes, F3a role path, F6a report, F7a–F7c migration) are in `mutation-controls.py` with the same rule: each must make the suite fail.
 
-`reservation_sqlite_race.py` has its own negative controls, run over 300 rounds each: `RACE_MUTANT=no_adopt` (recovery inserts again instead of adopting) gives violations in 104 rounds; `RACE_MUTANT=no_cas` (read-then-write replacement) gives violations in 146 rounds, most with two or more announcements.
+The Round 5 controls R1–R9 cover: the live-reservation guard (R1), the fence before insert (R2) and before the adopt write (R3), duplicates deleted instead of superseded (R4), the reservation release after a failed insert in the order (R5) and inbox (R6) paths, the meta-box status notice (R7), the lock on technician and warranty saves (R8), and the migration step-7 lock (R9, a static check of the source text, not a runtime test).
+
+`reservation_sqlite_race.py` has its own negative controls, run over 300 rounds each (Round 5 run): `RACE_MUTANT=no_adopt` (recovery inserts again instead of adopting) gives violations in 110 rounds; `RACE_MUTANT=no_cas` (read-then-write replacement) gives violations in 140 rounds; `RACE_MUTANT=live_takeover` (takeover of a live reservation) gives violations in 162 rounds. The unmutated run has 0 violations.
 
 ## Why the SQLite port is not MySQL evidence
 

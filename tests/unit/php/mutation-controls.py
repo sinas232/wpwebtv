@@ -94,6 +94,34 @@ MUTATIONS = [
      "if ( $tech_id && $tech_id === (int) $user_id && user_can( $user_id, 'pixva_work_orders' ) ) {",
      "if ( $tech_id && user_can( $user_id, 'pixva_work_orders' ) ) {"),
     # Migration, Round 4 / F7 (migration.php)
+    # Round 5 / F1-order, F2, F4, F7
+    ("R1 live creating reservation is taken over (busy guard removed)", "repairs.php",
+     "if ( is_array( $row ) && 'creating' === ( $row['s'] ?? '' ) && (int) ( $row['t'] ?? 0 ) + PIXVA_CLAIM_PENDING_TTL > pixva_now() ) {",
+     "if ( false ) {"),
+    ("R2 no fence after before_insert (stale attempt inserts)", "repairs.php",
+     "\t\t\tdo_action( 'pixva_order_before_insert', $sid );\n\t\t\t// Fence again after the hook: a takeover during the pause means insert nothing.\n\t\t\tif ( pixva_option_value( $name ) !== $mine ) {\n\t\t\t\tcontinue;\n\t\t\t}",
+     "\t\t\tdo_action( 'pixva_order_before_insert', $sid );"),
+    ("R3 no fence before the adopt write (stale attempt overwrites)", "repairs.php",
+     "\t\t// Fence: a stalled attempt that lost the reservation must not write or insert any order.\n\t\t// Residual: this check and the write below are two statements, not one transaction.\n\t\tif ( pixva_option_value( $name ) !== $mine ) {\n\t\t\tcontinue;\n\t\t}",
+     "\t\t// fence removed"),
+    ("R4 duplicate order deleted instead of marked superseded", "repairs.php",
+     "update_post_meta( $id, '_pixva_superseded_by', (int) $keep );",
+     "wp_delete_post( $id, true );"),
+    ("R5 failed order insert keeps a live reservation (no release)", "repairs.php",
+     "\t\t\t\tpixva_delete_option_row( $name, $mine );\n\t\t\t\treturn $id;",
+     "\t\t\t\treturn $id;"),
+    ("R6 failed inbox insert keeps a live reservation (no release)", "inbox.php",
+     "\t\t\t\tpixva_delete_option_row( $name, $mine );\n\t\t\t\treturn new WP_Error( 'save',",
+     "\t\t\t\treturn new WP_Error( 'save',"),
+    ("R7 refused status change from the meta-box is dropped silently", "repairs.php",
+     "\t\t\tpixva_notes_set_notice( get_current_user_id(), $post_id, 'status' );",
+     "\t\t\t// removed"),
+    ("R8 technician and warranty saves not under the order lock", "repairs.php",
+     "$tw_result = pixva_with_order_lock(",
+     "$tw_result = ( static function ( $pid, $fn ) { return $fn(); } )("),
+    ("R9 migration step 7 not under the order lock (static)", "migration.php",
+     "\t\tpixva_with_order_lock(\n\t\t\t$oid,\n\t\t\tstatic function () use ( $oid ) {\n\t\t\t\tpixva_migrate_order_v2( $oid );",
+     "\t\t( static function ( $pid, $fn ) { return $fn(); } )(\n\t\t\t$oid,\n\t\t\tstatic function () use ( $oid ) {\n\t\t\t\tpixva_migrate_order_v2( $oid );"),
     ("F7a no migration lock (second run proceeds)", "migration.php",
      "if ( null === $token ) {\n\t\treturn;", "if ( false ) {\n\t\treturn;"),
     ("F7b valid status overwritten by the fallback", "migration.php",
@@ -133,21 +161,31 @@ def run_suite(tmp):
     return fails, summary[-1] if summary else "(no summary line)"
 
 
+def run_control(item):
+    name, file_name, old, new = item
+    tmp = tempfile.mkdtemp(prefix="pixva-mut-")
+    try:
+        shutil.copytree(os.path.join(ROOT, "pixva", "inc"), os.path.join(tmp, "pixva", "inc"))
+        os.makedirs(os.path.join(tmp, "tests", "unit", "php"))
+        shutil.copy(os.path.join(ROOT, "tests", "unit", "php", "order-security.test.php"),
+                    os.path.join(tmp, "tests", "unit", "php"))
+        apply(tmp, file_name, old, new)
+        fails, summary = run_suite(tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    # A fatal error or a missing summary line is NOT a detection.
+    caught = len(fails) > 0 and "passed," in summary
+    return name, caught, summary, len(fails)
+
+
 def main():
+    from concurrent.futures import ThreadPoolExecutor
+    workers = int(os.environ.get("MUT_WORKERS", "4"))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(run_control, MUTATIONS))
     survivors = []
-    for name, file_name, old, new in MUTATIONS:
-        tmp = tempfile.mkdtemp(prefix="pixva-mut-")
-        try:
-            shutil.copytree(os.path.join(ROOT, "pixva", "inc"), os.path.join(tmp, "pixva", "inc"))
-            os.makedirs(os.path.join(tmp, "tests", "unit", "php"))
-            shutil.copy(os.path.join(ROOT, "tests", "unit", "php", "order-security.test.php"),
-                        os.path.join(tmp, "tests", "unit", "php"))
-            apply(tmp, file_name, old, new)
-            fails, summary = run_suite(tmp)
-        finally:
-            shutil.rmtree(tmp, ignore_errors=True)
-        caught = len(fails) > 0
-        print("%s  %s  [%s] %d failing checks" % ("CAUGHT  " if caught else "SURVIVED", name, summary, len(fails)))
+    for name, caught, summary, nfail in results:
+        print("%s  %s  [%s] %d failing checks" % ("CAUGHT  " if caught else "SURVIVED", name, summary, nfail))
         if not caught:
             survivors.append(name)
     print("controls=%d survivors=%d" % (len(MUTATIONS), len(survivors)))

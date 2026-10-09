@@ -470,9 +470,10 @@ function pixva_orders_by_submission( $sid ) {
 }
 
 /**
- * Delete order posts for this submission id other than the linked one.
- * Only called once the reservation links $keep: after that no other post can be
- * linked to this id, so the others are unannounced duplicates.
+ * Mark order posts for this submission id other than the linked one as
+ * superseded. Nothing is deleted: a duplicate may hold data staff already used,
+ * and automatic deletion of orders is not allowed. Staff review the marked
+ * posts (see the audit report, submission_duplicate_orders).
  *
  * @param string $sid  Submission id.
  * @param int    $keep Linked order id.
@@ -480,8 +481,8 @@ function pixva_orders_by_submission( $sid ) {
  */
 function pixva_remove_duplicate_orders( $sid, $keep ) {
 	foreach ( pixva_orders_by_submission( $sid ) as $id ) {
-		if ( $id !== (int) $keep ) {
-			wp_delete_post( $id, true );
+		if ( $id !== (int) $keep && '' === (string) get_post_meta( $id, '_pixva_superseded_by', true ) ) {
+			update_post_meta( $id, '_pixva_superseded_by', (int) $keep );
 		}
 	}
 }
@@ -498,26 +499,39 @@ function pixva_remove_duplicate_orders( $sid, $keep ) {
  *
  * Steps (all state changes are UNIQUE create or compare-and-replace):
  *  1. Read the reservation. Linked to an existing order: return that order.
- *  2. Otherwise create it (UNIQUE) as "creating" with our token, or replace a
- *     stale "creating" row with ours (compare on the exact old value).
- *  3. Adopt an order a previous attempt already inserted (found by post_name),
- *     otherwise insert one. A post is never inserted when one exists.
- *  4. Link: compare-and-replace our "creating" row with "linked". Only the
+ *  2. A live \"creating\" row (written less than PIXVA_CLAIM_PENDING_TTL ago) is
+ *     never taken over: return WP_Error 'busy' (409). Only an expired \"creating\"
+ *     row, or a \"linked\" row whose order was deleted, is replaced with ours
+ *     (compare on the exact old value).
+ *  3. Fence: if the reservation no longer holds our token, stop and re-read.
+ *  4. Adopt an order a previous attempt already inserted (found by post_name),
+ *     otherwise insert one. A post is never inserted when one exists. Fence
+ *     again after the pixva_order_before_insert hook, before the insert.
+ *  5. Link: compare-and-replace our \"creating\" row with \"linked\". Only the
  *     request whose link succeeds fires pixva_order_created (the notification).
- *     Duplicates are then deleted.
- *  5. If the link fails, another attempt took over. Re-read and retry. Our
- *     unlinked order is removed by whoever links the reservation.
+ *     Other unlinked duplicates are marked _pixva_superseded_by the kept order.
+ *     They are never deleted.
+ *  6. If the link fails, another attempt took over. Re-read and retry.
  *
- * Error handling: a WP_Error from the insert returns the error with the
- * reservation still "creating", so a retry adopts whatever was written. A fatal
- * error at any step leaves the claim pending; after PIXVA_CLAIM_PENDING_TTL the
- * next attempt runs steps 1–4 and recovers the same order.
+ * Error handling: if the insert returns a WP_Error, no post exists, so our own
+ * \"creating\" row is released (compare on our token) and the error is returned.
+ * A fatal error at any step leaves the claim pending; after
+ * PIXVA_CLAIM_PENDING_TTL the next attempt re-reads the reservation. A live
+ * reservation still returns busy until PIXVA_CLAIM_PENDING_TTL has passed since
+ * it was written, then steps 2-5 recover the same order.
  *
- * Residual: an attempt that stalls for longer than the claim TTL between step 3
- * and step 4 is fenced at step 4 (its link fails). No other order can be linked.
- * If its insert completes first, the unlinked post is removed by the next
- * attempt that links the reservation. Between the insert and the link there is
- * no DB transaction. Verify on the target engine (see tests/unit/README.md).
+ * Residual (not removable with current WordPress APIs): step 3 and the write in
+ * step 4 or 5 are separate statements. An attempt that stalls past the reservation
+ * TTL can pass the fence just before a takeover and still write. Two cases follow.
+ * (a) If it has adopted an order, it writes the same submission data to that
+ * order. (b) If it inserts an order after the winner has already marked its
+ * duplicates, that post stays unlinked and unmarked. It is kept, never deleted,
+ * and the read-only audit (audit.php) lists it as a duplicate submission id.
+ * Staff must resolve it by hand. No outside order is linked. The exact window is
+ * the time between the fence read and the write, typically a few milliseconds.
+ * Closing it needs a DB transaction with SELECT ... FOR UPDATE on the
+ * reservation row, or a unique key on the order itself. WordPress exposes neither
+ * as a supported API. See docs/pixva-round5-report.md (F1-order).
  *
  * @param string $sid Submission id (32 hex, normalised here too).
  * @param array  $d   Validated data for pixva_insert_order().
@@ -551,6 +565,10 @@ function pixva_place_order_once( $sid, $d ) {
 				pixva_remove_duplicate_orders( $sid, (int) $row['o'] );
 				return (int) $row['o'];
 			}
+			// A live "creating" attempt owns this id. Never take it over: refuse, the client retries.
+			if ( is_array( $row ) && 'creating' === ( $row['s'] ?? '' ) && (int) ( $row['t'] ?? 0 ) + PIXVA_CLAIM_PENDING_TTL > pixva_now() ) {
+				return new WP_Error( 'busy', __( 'ثبت درخواست ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
+			}
 			// "creating" by an expired attempt, or "linked" to a deleted order: take over.
 			if ( ! pixva_replace_option_row( $name, $held, $mine ) ) {
 				continue;
@@ -559,6 +577,12 @@ function pixva_place_order_once( $sid, $d ) {
 
 		// We own the reservation. Adopt an order a previous attempt inserted, or insert one.
 		$found = pixva_orders_by_submission( $sid );
+		do_action( 'pixva_order_before_fence', $sid );
+		// Fence: a stalled attempt that lost the reservation must not write or insert any order.
+		// Residual: this check and the write below are two statements, not one transaction.
+		if ( pixva_option_value( $name ) !== $mine ) {
+			continue;
+		}
 		if ( $found ) {
 			$id   = $found[0];
 			$code = (string) get_post_meta( $id, '_pixva_order_code', true );
@@ -575,9 +599,16 @@ function pixva_place_order_once( $sid, $d ) {
 			pixva_write_order_data( $id, $d, $code );
 		} else {
 			do_action( 'pixva_order_before_insert', $sid );
+			// Fence again after the hook: a takeover during the pause means insert nothing.
+			if ( pixva_option_value( $name ) !== $mine ) {
+				continue;
+			}
 			$id = pixva_insert_order( $d );
 			if ( is_wp_error( $id ) ) {
-				return $id; // Reservation stays "creating" with our token; a retry adopts any partial write.
+				// The insert failed, so no post exists. Release our own reservation (compare on our token)
+				// so a retry is not refused as busy for the whole TTL.
+				pixva_delete_option_row( $name, $mine );
+				return $id;
 			}
 		}
 
@@ -1137,7 +1168,11 @@ function pixva_notes_admin_notice() {
 	delete_transient( $key );
 	$message = 'conflict' === ( $notice['reason'] ?? '' )
 		? __( 'یادداشت داخلی همزمان تغییر کرده است و یادداشت شما ذخیره نشد. صفحه را دوباره باز کنید و متن را دوباره وارد کنید.', 'pixva' )
-		: __( 'ذخیره یادداشت داخلی ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' );
+		: ( 'status' === ( $notice['reason'] ?? '' )
+			? __( 'تغییر وضعیت ذخیره نشد. لطفاً دوباره تلاش کنید.', 'pixva' )
+			: ( 'busy' === ( $notice['reason'] ?? '' )
+				? __( 'این پرونده در حال به‌روزرسانی است؛ تکنسین یا گارانتی ذخیره نشد. چند لحظه بعد دوباره تلاش کنید.', 'pixva' )
+				: __( 'ذخیره یادداشت داخلی ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' ) ) );
 	echo '<div class="notice notice-error"><p>' . esc_html( $message ) . '</p></div>';
 }
 add_action( 'admin_notices', 'pixva_notes_admin_notice' );
@@ -1226,34 +1261,49 @@ function pixva_save_order_box( $post_id ) {
 			pixva_notes_set_notice( get_current_user_id(), $post_id, $notes_result );
 		}
 	}
-	if ( isset( $in['technician'] ) ) {
-		$tech = absint( $in['technician'] );
-		if ( $tech && ( user_can( $tech, 'pixva_work_orders' ) || user_can( $tech, 'pixva_manage_orders' ) ) ) {
-			update_post_meta( $post_id, '_pixva_technician_id', $tech );
-		} elseif ( 0 === $tech ) {
-			delete_post_meta( $post_id, '_pixva_technician_id' );
-		}
-	}
-	foreach ( array(
-		'w_start' => '_pixva_warranty_start',
-		'w_until' => '_pixva_warranty_until',
-	) as $k => $meta ) {
-		if ( ! isset( $in[ $k ] ) ) {
-			continue;
-		}
-		$v = sanitize_text_field( (string) $in[ $k ] );
-		$o = (string) get_post_meta( $post_id, $meta, true );
-		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $v ) ) {
-			if ( $v !== $o ) {
-				update_post_meta( $post_id, $meta, $v );
-				update_post_meta( $post_id, '_pixva_warranty_source', 'manual' );
+	// Technician and warranty are read-modify-write: take the order lock so concurrent saves
+	// cannot overwrite each other silently. The status change below takes the lock itself, so it is kept outside.
+	$tw_result = pixva_with_order_lock(
+		$post_id,
+		static function () use ( $post_id, $in ) {
+			if ( isset( $in['technician'] ) ) {
+				$tech = absint( $in['technician'] );
+				if ( $tech && ( user_can( $tech, 'pixva_work_orders' ) || user_can( $tech, 'pixva_manage_orders' ) ) ) {
+					update_post_meta( $post_id, '_pixva_technician_id', $tech );
+				} elseif ( 0 === $tech ) {
+					delete_post_meta( $post_id, '_pixva_technician_id' );
+				}
 			}
-		} elseif ( '' === $v && '' !== $o ) {
-			delete_post_meta( $post_id, $meta );
+			foreach ( array(
+				'w_start' => '_pixva_warranty_start',
+				'w_until' => '_pixva_warranty_until',
+			) as $k => $meta ) {
+				if ( ! isset( $in[ $k ] ) ) {
+					continue;
+				}
+				$v = sanitize_text_field( (string) $in[ $k ] );
+				$o = (string) get_post_meta( $post_id, $meta, true );
+				if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $v ) ) {
+					if ( $v !== $o ) {
+						update_post_meta( $post_id, $meta, $v );
+						update_post_meta( $post_id, '_pixva_warranty_source', 'manual' );
+					}
+				} elseif ( '' === $v && '' !== $o ) {
+					delete_post_meta( $post_id, $meta );
+				}
+			}
+			return true;
 		}
+	);
+	if ( is_wp_error( $tw_result ) ) {
+		pixva_notes_set_notice( get_current_user_id(), $post_id, 'busy' );
 	}
 	if ( isset( $in['status'] ) ) {
-		pixva_set_order_status( $post_id, sanitize_key( (string) $in['status'] ), isset( $in['note'] ) ? (string) $in['note'] : '' );
+		$status_result = pixva_set_order_status( $post_id, sanitize_key( (string) $in['status'] ), isset( $in['note'] ) ? (string) $in['note'] : '' );
+		if ( is_wp_error( $status_result ) ) {
+			// Refused (busy or closed): tell the user instead of dropping the change silently.
+			pixva_notes_set_notice( get_current_user_id(), $post_id, 'status' );
+		}
 	}
 }
 add_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10, 1 );

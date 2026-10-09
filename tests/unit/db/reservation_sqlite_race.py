@@ -31,6 +31,7 @@ import time
 import uuid
 
 CLAIM_PENDING_TTL = 300
+RES_SKEW = 100  # Reservation written later than the claim (see the phase 2 / phase 3 comments in run_round).
 # Negative controls: each switch removes one primitive. The run must then report violations.
 MUTANT = os.environ.get("RACE_MUTANT", "")
 LINK_TTL = 2592000
@@ -50,6 +51,7 @@ CREATE TABLE wp_posts (
 CREATE INDEX wp_posts_name ON wp_posts (post_name);
 CREATE TABLE announce (sid TEXT NOT NULL, order_id INTEGER NOT NULL);
 CREATE TABLE inserted (sid TEXT NOT NULL, order_id INTEGER NOT NULL);
+CREATE TABLE superseded (order_id INTEGER PRIMARY KEY, keep_id INTEGER NOT NULL);
 """
 
 
@@ -100,9 +102,15 @@ def orders_for(db, sid):
 
 
 def remove_duplicates(db, sid, keep):
+    # Round 5: duplicates are marked superseded (conditional on no earlier mark), never deleted.
     for oid in orders_for(db, sid):
         if oid != keep:
-            db.execute("DELETE FROM wp_posts WHERE ID = ?", (oid,))
+            db.execute("INSERT OR IGNORE INTO superseded (order_id, keep_id) VALUES (?, ?)", (oid, keep))
+
+
+def live_orders(db, sid):
+    return [o for o in orders_for(db, sid)
+            if db.execute("SELECT 1 FROM superseded WHERE order_id = ?", (o,)).fetchone() is None]
 
 
 def order_exists(db, oid):
@@ -161,7 +169,8 @@ def submit(db_path, sid, now, crash_at, crash_step):
 
     # ---- reservation (pixva_place_order_once) ----
     name = "pixva_ord_" + sid
-    mine = json_row(s="creating", k=token, t=now)
+    # The reservation is written RES_SKEW seconds after the claim, so the claim can expire while the reservation is still live.
+    mine = json_row(s="creating", k=token, t=now + RES_SKEW)
     result = None
     for _ in range(5):
         held = read_row(db, name)
@@ -176,9 +185,16 @@ def submit(db_path, sid, now, crash_at, crash_step):
                 remove_duplicates(db, sid, int(row["o"]))
                 result = int(row["o"])
                 break
+            # Round 5: a live "creating" attempt owns the id. Never take it over: refuse (busy).
+            if row.get("s") == "creating" and int(row.get("t", 0)) + CLAIM_PENDING_TTL > now and MUTANT != "live_takeover":
+                db.close()
+                return ("busy", None)
             if not replace_row(db, name, held, mine):
                 continue
         found = orders_for(db, sid) if MUTANT != "no_adopt" else []
+        # Fence: a request that lost the reservation must not write or insert.
+        if read_row(db, name) != mine:
+            continue
         if found:
             oid = found[0]
         else:
@@ -244,16 +260,24 @@ def run_round(seed, processes):
     with ctx.Pool(processes) as pool:
         phase1 = pool.map(worker, jobs)
 
-    # Phase 2: retries after the claim TTL, all at once. Several requests see the same
-    # stale claim and reservation, so the takeover itself is raced.
+    # Phase 2: retries after the claim TTL but inside the reservation TTL. The claim is
+    # expired, the reservation is live: every request must be refused as busy, none may take over.
     global BARRIER
     later = now + CLAIM_PENDING_TTL + 1
+    pre = parse_row(read_row(sqlite3.connect(db_path, isolation_level=None), "pixva_ord_" + sid)) or {}
+    live_before = pre.get("s") == "creating" and int(pre.get("t", 0)) + CLAIM_PENDING_TTL > later
     BARRIER = ctx.Barrier(8)
     with ctx.Pool(8) as pool:
-        phase2 = pool.map(worker, [(db_path, sid, later, "sync") for _ in range(8)])
+        phase2_live = pool.map(worker, [(db_path, sid, later, "sync") for _ in range(8)])
+    # Phase 3: retries after the reservation TTL too. Several requests see the same stale
+    # claim and reservation, so the takeover itself is raced.
+    later3 = now + 2 * CLAIM_PENDING_TTL + 2
+    BARRIER = ctx.Barrier(8)
+    with ctx.Pool(8) as pool:
+        phase2 = pool.map(worker, [(db_path, sid, later3, "sync") for _ in range(8)])
 
     db = sqlite3.connect(db_path, isolation_level=None)
-    orders = orders_for(db, sid)
+    orders = live_orders(db, sid)
     announced = [r[1] for r in db.execute("SELECT sid, order_id FROM announce WHERE sid = ?", (sid,)).fetchall()]
     inserted = [r[1] for r in db.execute("SELECT sid, order_id FROM inserted WHERE sid = ? ORDER BY rowid", (sid,)).fetchall()]
     reservation = parse_row(read_row(db, "pixva_ord_" + sid)) or {}
@@ -274,6 +298,8 @@ def run_round(seed, processes):
         violations.append("announced order is not the surviving order")
     if reservation.get("s") != "linked" or (orders and int(reservation.get("o", -1)) != orders[0]):
         violations.append("reservation not linked to the surviving order")
+    if live_before and any(s_ == "created" for s_, _ in phase2_live):
+        violations.append("a retry inside the reservation TTL took over a live reservation")
     created_phase2 = [o for s_, o in phase2 if s_ == "created"]
     crashed = sum(1 for s_, _ in phase1 if s_ == "crashed")
     phase2 = [(s_, o) for s_, o in phase2]

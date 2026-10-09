@@ -925,7 +925,9 @@ $b_id    = null;
 add_action( 'pixva_order_before_link', function ( $sid_arg ) use ( &$nested, &$b_id ) {
 	if ( ! $nested ) {
 		$nested = true;
-		$b_id   = place( $sid_arg ); // B runs to completion inside A's pause.
+		// Time passes: A's reservation expires (A still holds its token). B takes over and links.
+		$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $sid_arg ] = wp_json_encode( array( 's' => 'creating', 'k' => 'stalled-a', 't' => pixva_now() - PIXVA_CLAIM_PENDING_TTL - 1 ) );
+		$b_id = place( $sid_arg ); // B runs to completion inside A's pause.
 	}
 } );
 $a_id = place( $s );
@@ -943,12 +945,15 @@ $b_id   = null;
 add_action( 'pixva_order_before_insert', function ( $sid_arg ) use ( &$nested, &$b_id ) {
 	if ( ! $nested ) {
 		$nested = true;
-		$b_id   = place( $sid_arg );
+		$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $sid_arg ] = wp_json_encode( array( 's' => 'creating', 'k' => 'stalled-a', 't' => pixva_now() - PIXVA_CLAIM_PENDING_TTL - 1 ) );
+		$b_id = place( $sid_arg );
 	}
 } );
 $a_id = place( $s );
-check( 'H7 the stalled attempt returns the linked order and removes its own duplicate', $a_id === $b_id && 1 === count( orders_for( $s ) ) );
-check( 'H7 the removed duplicate was never announced', $GLOBALS['created'] === array( $b_id ) && count( $GLOBALS['deleted_log'] ) === 1 );
+check( 'H7 the stalled attempt returns the order B linked', $a_id === $b_id && is_int( $b_id ) );
+check( 'H7 the stalled attempt inserts nothing: exactly one order exists', 1 === count( orders_for( $s ) ) );
+check( 'H7 the order was announced once, by B', $GLOBALS['created'] === array( $b_id ) );
+check( 'H7 nothing is deleted', array() === $GLOBALS['deleted_log'] );
 
 // A failed insert: nothing is announced, and a retry creates exactly one order.
 reset_state();
@@ -1000,8 +1005,10 @@ update_post_meta( 902, '_pixva_order_code', 'PXV-DUP-2' );
 stale_creating( $s );
 set_clock( 3600 * 200 + PIXVA_CLAIM_PENDING_TTL + 1 );
 $id = place( $s );
-check( 'H10b adopts the lowest id and removes the duplicate before announcing', 901 === $id && array( 902 ) === $GLOBALS['deleted_log'] && 1 === count( orders_for( $s ) ) );
+check( 'H10b adopts the lowest id and marks the duplicate superseded before announcing', 901 === $id && '901' === (string) get_post_meta( 902, '_pixva_superseded_by', true ) && 2 === count( orders_for( $s ) ) );
+check( 'H10b the duplicate is kept, never deleted', isset( $GLOBALS['post_rows'][902] ) && array() === $GLOBALS['deleted_log'] );
 check( 'H10b the adopted order is announced once', $GLOBALS['created'] === array( 901 ) );
+check( 'H10b the linked order itself is not marked superseded', '' === (string) get_post_meta( 901, '_pixva_superseded_by', true ) );
 
 // A link to a deleted order is replaced by a fresh order, not returned.
 reset_state();
@@ -1047,6 +1054,57 @@ $replay = pixva_claim_submission( $s );
 check( 'H13 after the TTL the retry recovers the same order and finishes the claim', true === $claim2 && 1 === count( orders_for( $s ) ) );
 check( 'H13 a repeated submission replays the same code, no second order', is_array( $replay ) && ( $replay['code'] ?? '' ) === get_post_meta( $id, '_pixva_order_code', true ) && 1 === count( orders_for( $s ) ) );
 check( 'H13 the order was announced exactly once', $GLOBALS['created'] === array( $id ) );
+
+// H14 (Round 5 / F1-order): a live reservation is never taken over.
+reset_state();
+listen_created();
+set_clock( 3600 * 200 );
+$GLOBALS['created'] = array();
+$s                  = sid( 41 );
+$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $s ] = wp_json_encode( array( 's' => 'creating', 'k' => 'live-a', 't' => pixva_now() ) );
+$r14 = place( $s );
+check( 'H14 a live reservation is refused with busy (409), not taken over', is_wp_error( $r14 ) && 'busy' === $r14->get_error_code() );
+check( 'H14 the live attempt keeps its reservation; no order is inserted or announced', 'live-a' === ( reservation( $s )['k'] ?? '' ) && 0 === count( orders_for( $s ) ) && empty( $GLOBALS['created'] ) );
+
+// H15: after the claim TTL, a reservation written later is still live; the retry waits for it to expire.
+reset_state();
+listen_created();
+set_clock( 3600 * 200 );
+$GLOBALS['created'] = array();
+$s                  = sid( 42 );
+$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $s ] = wp_json_encode( array( 's' => 'creating', 'k' => 'a', 't' => pixva_now() + 100 ) );
+set_clock( 3600 * 200 + PIXVA_CLAIM_PENDING_TTL + 1 );
+$r15a = place( $s );
+check( 'H15 after the claim TTL but inside the reservation TTL: busy, no second order', is_wp_error( $r15a ) && 0 === count( orders_for( $s ) ) );
+set_clock( 3600 * 200 + 100 + PIXVA_CLAIM_PENDING_TTL + 1 );
+$r15b = place( $s );
+check( 'H15 once the reservation has expired, the retry places exactly one order', is_int( $r15b ) && 1 === count( orders_for( $s ) ) && $GLOBALS['created'] === array( $r15b ) );
+
+// H16: a stalled attempt adopts an orphan, then loses the reservation before writing. It must not overwrite the order.
+reset_state();
+listen_created();
+set_clock( 3600 * 200 );
+$GLOBALS['created'] = array();
+$s                  = sid( 43 );
+$orphan             = pixva_insert_order( order_data() + array( 'submission_id' => $s ) ); // name 'Ali'
+stale_creating( $s );
+set_clock( 3600 * 200 + PIXVA_CLAIM_PENDING_TTL + 1 );
+$nested16 = false;
+$b16      = null;
+add_action( 'pixva_order_before_fence', function ( $sid_arg ) use ( &$nested16, &$b16 ) {
+	if ( ! $nested16 ) {
+		$nested16 = true;
+		$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $sid_arg ] = wp_json_encode( array( 's' => 'creating', 'k' => 'stalled-a', 't' => pixva_now() - PIXVA_CLAIM_PENDING_TTL - 1 ) );
+		$b16 = place( $sid_arg ); // B adopts the same orphan and links it, with the same data.
+	}
+} );
+$stale_data         = order_data() + array( 'name' => 'Stale' );
+$stale_data['name'] = 'Stale';
+$a16                = pixva_place_order_once( $s, $stale_data );
+inbox_clear_hooks();
+check( 'H16 the stalled attempt returns the order B linked', $a16 === $orphan && $b16 === $orphan );
+check( 'H16 the stalled attempt did not overwrite the order it lost (name unchanged)', 'Ali' === get_post_meta( $orphan, '_pixva_order_name', true ), get_post_meta( $orphan, '_pixva_order_name', true ) );
+check( 'H16 one order, announced once', 1 === count( orders_for( $s ) ) && $GLOBALS['created'] === array( $orphan ) );
 
 // ---------------------------------------------------------------------------
 // I. Client address: forwarded headers are trusted only from a configured proxy.
@@ -1553,6 +1611,16 @@ check( 'M13 the taken-over stalled attempt returns the message the other attempt
 check( 'M13 the stalled attempt inserts nothing: exactly one inbox post', 1 === count( inbox_posts() ) );
 check( 'M13 the reservation links the one post', (int) ( inbox_msg_row( $m13_sid )['o'] ?? 0 ) === $m13_b );
 
+// M14 (Round 5): a failed inbox insert releases its own reservation; the retry places the message at once.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_fails'] = 1;
+$m14_sid = sid( 0x4f );
+$r14a    = pixva_place_inbox_once( $m14_sid, inbox_fields() );
+check( 'M14 a failed insert returns an error and leaves no reservation', is_wp_error( $r14a ) && ! isset( $GLOBALS['wpdb']->rows[ 'pixva_msg_' . $m14_sid ] ) );
+$r14b = pixva_place_inbox_once( $m14_sid, inbox_fields() );
+check( 'M14 the immediate retry places exactly one message', is_int( $r14b ) && 1 === count( inbox_posts() ) );
+
 // ---------------------------------------------------------------------------
 // N. Round 4 / F2: internal notes compare-and-write (repairs.php).
 //    SIMULATED: the other writer runs between the staff member's page load
@@ -1650,6 +1718,33 @@ $GLOBALS['can'] = true;
 n_post( array( 'notes' => 'attack', 'notes_base' => pixva_notes_fingerprint( 'keep me' ) ), 'bad' );
 pixva_save_order_box( 101 );
 check( 'N9 bad nonce: nothing written', n_notes() === 'keep me' );
+
+// N10 (Round 5 / F2): a status change refused by a live order lock is reported, not dropped silently.
+n_setup( 'keep 10' );
+$GLOBALS['can']                                  = true;
+$GLOBALS['current_user']                         = 7;
+$GLOBALS['post_meta'][101]['_pixva_order_status'] = 'new';
+$GLOBALS['wpdb']->rows['pixva_olock_101']        = 'other-owner|' . pixva_now();
+n_post( array( 'notes' => 'keep 10', 'notes_base' => pixva_notes_fingerprint( 'keep 10' ), 'status' => 'received' ) );
+pixva_save_order_box( 101 );
+check( 'N10 a status refused by the live lock leaves the status unchanged', 'new' === ( $GLOBALS['post_meta'][101]['_pixva_order_status'] ?? '' ) );
+check( 'N10 the refused status change records a status notice for this user', 'status' === n_notice_reason() );
+unset( $GLOBALS['wpdb']->rows['pixva_olock_101'] );
+
+// N11 (Round 5 / F4): technician and warranty saves are lock-protected; a refused save is reported and writes nothing.
+n_setup( 'keep 11' );
+$GLOBALS['can']                                  = true;
+$GLOBALS['current_user']                         = 7;
+$GLOBALS['post_meta'][101]['_pixva_warranty_until'] = '2030-01-01';
+$GLOBALS['wpdb']->rows['pixva_olock_101']        = 'other-owner|' . pixva_now();
+n_post( array( 'notes' => 'keep 11', 'notes_base' => pixva_notes_fingerprint( 'keep 11' ), 'w_until' => '2031-01-01', 'technician' => 0 ) );
+pixva_save_order_box( 101 );
+check( 'N11 a warranty save refused by the live lock writes nothing', '2030-01-01' === ( $GLOBALS['post_meta'][101]['_pixva_warranty_until'] ?? '' ) );
+check( 'N11 the refused save records a busy notice for this user', 'busy' === n_notice_reason() );
+unset( $GLOBALS['wpdb']->rows['pixva_olock_101'] );
+n_post( array( 'notes' => 'keep 11', 'notes_base' => pixva_notes_fingerprint( 'keep 11' ), 'w_until' => '2031-01-01' ) );
+pixva_save_order_box( 101 );
+check( 'N11 with the lock free the same warranty save is written', '2031-01-01' === ( $GLOBALS['post_meta'][101]['_pixva_warranty_until'] ?? '' ) );
 
 // ---------------------------------------------------------------------------
 // O. Round 4 / F3: authorisation matrix. SIMULATED: user_can() and the core
@@ -1780,6 +1875,18 @@ check( 'P8 valid status and existing list are not reverted or cleared', $p_befor
 $GLOBALS['post_meta'][101]['_pixva_order_status'] = 'garbage';
 pixva_migrate_order_v2( 101 );
 check( 'P9 invalid status set to new (unchanged rule)', 'new' === $GLOBALS['post_meta'][101]['_pixva_order_status'] );
+
+// P11 (Round 5 / F7): a status change between two migration runs keeps its history entry.
+reset_state();
+$GLOBALS['post_meta'][101]['_pixva_order_code']   = 'PXV-ABC-123';
+$GLOBALS['post_meta'][101]['_pixva_order_status'] = 'new';
+$GLOBALS['post_meta'][101]['_pixva_order_steps']  = '{"new":100}';
+pixva_migrate_order_v2( 101 );
+pixva_set_order_status( 101, 'received', 'between runs' );
+pixva_migrate_order_v2( 101 );
+$p11 = json_decode( (string) $GLOBALS['post_meta'][101]['_pixva_order_steps'], true );
+check( 'P11 history after two runs keeps the migrated entry and the status change', is_array( $p11 ) && 2 === count( $p11 ) && 'new' === $p11[0]['s'] && 'received' === $p11[1]['s'] && 'between runs' === $p11[1]['n'] );
+check( 'P11 status after the second run is still the changed status', 'received' === $GLOBALS['post_meta'][101]['_pixva_order_status'] );
 
 // P10: step 7 runs each order under the order lock (static check; runtime NOT TESTED).
 $p_src = (string) file_get_contents( $root . 'migration.php' );

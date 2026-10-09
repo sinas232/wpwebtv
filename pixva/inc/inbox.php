@@ -158,6 +158,8 @@ function pixva_place_inbox_once( $sid, array $fields ) {
 				true
 			);
 			if ( is_wp_error( $id ) ) {
+				// No post exists: release our own reservation so the retry is not refused as busy.
+				pixva_delete_option_row( $name, $mine );
 				return new WP_Error( 'save', __( 'ارسال پیام ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' ), array( 'status' => 500 ) );
 			}
 			$id = (int) $id;
