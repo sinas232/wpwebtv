@@ -30,7 +30,7 @@ $pixva_colors = array(
 	<div class="container section px">
 		<?php pixva_page_intro(); ?>
 
-		<section class="px-tool" data-pixel-test aria-labelledby="px-h">
+		<section class="px-tool" data-pixel-test data-label-prev="<?php echo esc_attr__( 'رنگ قبلی', 'pixva' ); ?>" data-label-next="<?php echo esc_attr__( 'رنگ بعدی', 'pixva' ); ?>" data-label-exit="<?php echo esc_attr__( 'خروج از تمام‌صفحه', 'pixva' ); ?>" aria-labelledby="px-h">
 			<header class="px-tool__head">
 				<div>
 					<p class="px-kicker"><?php esc_html_e( 'ابزار بررسی نمایشگر', 'pixva' ); ?></p>
