@@ -1,0 +1,2 @@
+# Development-only files are not part of the installable theme ZIP.
+pixva/phpcs.xml export-ignore
