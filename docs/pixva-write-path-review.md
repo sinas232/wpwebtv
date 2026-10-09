@@ -22,7 +22,7 @@ Legend. **Lock**: the per-order advisory lock `pixva_olock_<id>` (`pixva_with_or
 | W12 | Customer id (`_pixva_customer_id`) by migration | `switch_themes`, first admin request after upgrade | Admin only | **No lock** | Written only if empty; a claim running at the same moment could be overwritten (F7). |
 | W13 | Order steps migration (`migration.php` ~330–346) | Same as W12 | Admin only | No lock | Rewrites the history list in place; safe only if no status change runs at the same moment (F7). |
 | W14 | Demo order trash (`PXV-DEMO-2401`, migration) | Same as W12 | Admin only | No lock | Trash, not delete. |
-| W15 | Order deletion in duplicate removal (`pixva_remove_duplicate_orders`) | Called by W9, after the link or when the reservation is already linked | Internal | Under the claim | Deletes unlinked duplicates. Their photo files are **not** deleted (F6). |
+| W15 | Order deletion in duplicate removal (`pixva_remove_duplicate_orders`) | Called by W9, after the link or when the reservation is already linked | Internal | Under the claim | Round 5: marks unlinked duplicates `_pixva_superseded_by` the kept order. **Nothing is deleted** (no post, no photo file). Photo files are not deleted (F6). |
 | W16 | Prune of reservation and claim rows (`pixva_prune_expiring_rows`) | WP-Cron (`pixva_prune_rows`) | Internal | Uses compare-and-delete | Linked reservations are kept for 30 days (tested, O8). |
 
 ## 2. Findings from this review
@@ -50,7 +50,7 @@ Option A (recommended, no form change): give the inbox post a stable slug derive
 **Implementation (Round 4, `pixva/inc/inbox.php`, simulated tests only):**
 - Reservation: the option row `pixva_msg_<sid>` (UNIQUE `option_name` via `add_option()`, compare-and-replace via `$wpdb->update` on the exact old value). States: `creating` (with token and time), then `linked` (with message id). The mail marker is the field `m` in the same row, not post meta. This differs from the proposal's `_pixva_msg_notified` meta: one row carries both the link and the mail state, so they cannot disagree.
 - A `creating` row is taken over only after `PIXVA_CLAIM_PENDING_TTL`. A live one returns `busy` (HTTP 409, the existing code) and inserts nothing.
-- A stalled attempt checks that it still owns the row before inserting (fence). The check and the insert are not one atomic step: a takeover in that gap can still produce one duplicate post (residual R-F1-1 below).
+- A stalled attempt checks that it still owns the row before inserting (fence). The check and the insert are not one atomic step: a takeover in that gap can still produce one duplicate post (residual R-F1-1 below). Round 5: such a duplicate is kept and reported by the audit, never deleted.
 - Public contract unchanged: same form fields, same `_pixva_sid`, same response shape.
 
 **Email windows (never claim exactly-once email):**
@@ -60,7 +60,7 @@ Option A (recommended, no form change): give the inbox post a stable slug derive
 **Residuals:**
 - R-F1-1: a stalled attempt that resumes after its row expired, in the window between the fence check and the insert, can insert a second post. Duplicate, not loss. Not atomic. Needs a real MySQL/MariaDB test (NOT TESTED).
 - R-F1-2: no real database has been tested. The uniqueness primitives (UNIQUE `option_name`, conditional UPDATE) were exercised only on the stubbed `wpdb` (`FakeWpdb`), which models their semantics. SQLite and the stub are not MySQL/MariaDB proof.
-- The order path (`pixva_place_order_once`) has the same takeover of a live `creating` row. It is not changed in Round 4 and is listed as OPEN (see the Round 4 report).
+- Round 5: the order path no longer takes over a live `creating` row. It returns `busy` until the reservation TTL has passed (tests H14, H15; race port phase 2). The fence before the insert and before the adopt write is also in place. The window between the fence and the write is still open (see the Round 5 report, F1-order).
 
 Option B (form change): add a client-generated message id. Rejected: it changes the form contract.
 
