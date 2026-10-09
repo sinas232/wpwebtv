@@ -96,12 +96,14 @@ A failure or SKIP is counted as NOT PASS. The earlier run of section M had 4 fai
 
 ## 4. Packaging
 
-- Source commit: see `git log` for the commit that contains this report (the commit after `1255daa`). The ZIP was built from that commit with `git archive`, which honours `export-ignore` (`pixva/phpcs.xml` is excluded).
-- ZIP path: `dist/pixva.zip`. Its SHA-256 and the source commit it was built from are recorded in the commit message of the ZIP commit, and in section 5 below.
-- The ZIP contains only `pixva/`, and it includes `pixva/inc/inbox.php`.
+- Source commit: `256d033` (code, tests, docs). The ZIP was built from it with `git archive --format=zip -0 256d033 pixva`, which honours `export-ignore`.
+- ZIP commit: `65cc20e` (`dist/pixva.zip` only). SHA-256 `66cc7a799dce9839358380132a648d7b4a17e36b273e5d78745ab321d27c9933`, 1128230 bytes, 89 entries (80 files and 9 directories). `unzip -t` clean.
+- Contents check: the 80 files are the 81 files of `256d033:pixva` minus `pixva/phpcs.xml` (`export-ignore`). Every other file matches the commit byte for byte. `pixva/inc/inbox.php` is present. No file outside `pixva/` is present.
+- The PHP suite (233 checks) was run against the code extracted from this ZIP: 233 passed, 0 failed.
 
 ## 5. Final status
 
 - Operational release: **NO-GO**.
 - Real MySQL/MariaDB: **NOT TESTED**. WordPress runtime: **NOT TESTED**. Staging: **not accessible, NOT TESTED**.
+- ZIP: `dist/pixva.zip`, SHA-256 `66cc7a799dce9839358380132a648d7b4a17e36b273e5d78745ab321d27c9933`, built from source commit `256d033`.
 - The results in section 2 are SIMULATED or SQLite-port evidence and are labelled as such. None of them is a WordPress runtime result.
