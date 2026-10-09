@@ -7061,6 +7061,18 @@ fieldset.field--error {
 	}
 }
 
+/* Very narrow phones (≤359px, e.g. 320px): the decorative fallback mark (aria-hidden)
+   is dropped so the site name keeps whole words; the name itself stays visible. */
+@media (max-width: 359px) {
+	.site-header .brand__mark {
+		display: none;
+	}
+
+	.site-header .brand__name {
+		font-size: var(--fs-xs);
+	}
+}
+
 @media (max-width: 429px) {
 	.site-header .site-header__m-cta {
 		padding-inline: var(--s-3);
