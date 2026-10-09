@@ -207,9 +207,6 @@ function pixva_order_phone_matches( $order_id, $phone ) {
  * @return int|WP_Error Order id.
  */
 function pixva_verify_order_access( $code, $phone ) {
-	if ( ! pixva_rate_limit( 'lookup', 20, 10 * MINUTE_IN_SECONDS ) ) {
-		return new WP_Error( 'rate', __( 'تعداد درخواست‌ها زیاد است. چند دقیقه دیگر دوباره تلاش کنید.', 'pixva' ), array( 'status' => 429 ) );
-	}
 	$code  = pixva_normalize_order_code( $code );
 	$phone = pixva_normalize_mobile( $phone );
 	if ( '' === $code || ! pixva_is_valid_iranian_mobile( $phone ) ) {
@@ -219,13 +216,21 @@ function pixva_verify_order_access( $code, $phone ) {
 		return new WP_Error( 'locked', __( 'به دلیل تلاش‌های ناموفق، پیگیری این کد موقتاً قفل شده است.', 'pixva' ), array( 'status' => 429 ) );
 	}
 	$id = pixva_find_order_by_code( $code );
-	if ( ! $id || ! pixva_order_phone_matches( $id, $phone ) ) {
-		pixva_record_code_attempt_failure( $code );
-		// Same message for unknown code and wrong phone (no oracle).
-		return new WP_Error( 'not_found', __( 'پرونده‌ای با این کد و شماره پیدا نشد.', 'pixva' ), array( 'status' => 404 ) );
+	if ( $id && pixva_order_phone_matches( $id, $phone ) ) {
+		// A correct lookup is never refused by the general client budget, so a
+		// client behind a shared address cannot lock real customers out this way.
+		pixva_clear_code_attempt_failures( $code );
+		return $id;
 	}
-	pixva_clear_code_attempt_failures( $code );
-	return $id;
+	// Only failures use the general client budget (enumeration volume). It is
+	// read-then-write, so it limits volume and does not prove brute-force resistance.
+	if ( pixva_rate_exhausted( 'lookup', 20, 10 * MINUTE_IN_SECONDS ) ) {
+		return new WP_Error( 'rate', __( 'تعداد درخواست‌ها زیاد است. چند دقیقه دیگر دوباره تلاش کنید.', 'pixva' ), array( 'status' => 429 ) );
+	}
+	pixva_rate_count( 'lookup', 10 * MINUTE_IN_SECONDS );
+	pixva_record_code_attempt_failure( $code );
+	// Same message for unknown code and wrong phone (no oracle).
+	return new WP_Error( 'not_found', __( 'پرونده‌ای با این کد و شماره پیدا نشد.', 'pixva' ), array( 'status' => 404 ) );
 }
 
 /**
@@ -345,19 +350,54 @@ function pixva_clear_code_attempt_failures( $code ) {
  * @return int|WP_Error
  */
 function pixva_create_order( $d ) {
-	$code = pixva_generate_order_code();
-	$id   = wp_insert_post(
-		array(
-			'post_type'   => 'pixva_orders',
-			'post_status' => 'private',
-			'post_title'  => $code,
-			'post_author' => 0,
-		),
-		true
-	);
+	$id = pixva_insert_order( $d );
 	if ( is_wp_error( $id ) ) {
 		return $id;
 	}
+	do_action( 'pixva_order_created', $id );
+	return $id;
+}
+
+/**
+ * Insert an order and its data, without announcing it.
+ *
+ * The post is created with post_name = submission id (when given) in the same
+ * INSERT as the post row, so a retry can find it by pixva_orders_by_submission()
+ * even if the process dies before the reservation is linked.
+ *
+ * @param array $d Validated data (see pixva_create_order()).
+ * @return int|WP_Error
+ */
+function pixva_insert_order( $d ) {
+	$code = pixva_generate_order_code();
+	$args = array(
+		'post_type'   => 'pixva_orders',
+		'post_status' => 'private',
+		'post_title'  => $code,
+		'post_author' => 0,
+	);
+	$sid  = pixva_normalize_submission_id( $d['submission_id'] ?? '' );
+	if ( '' !== $sid ) {
+		$args['post_name'] = $sid;
+	}
+	$id = wp_insert_post( $args, true );
+	if ( is_wp_error( $id ) ) {
+		return $id;
+	}
+	pixva_write_order_data( (int) $id, $d, $code );
+	return (int) $id;
+}
+
+/**
+ * Write the order meta. Idempotent: an adopted order is rewritten with the same
+ * data, so a partly written order is completed.
+ *
+ * @param int    $id   Order id.
+ * @param array  $d    Validated data.
+ * @param string $code Order code.
+ * @return void
+ */
+function pixva_write_order_data( $id, $d, $code ) {
 	$now  = time();
 	$meta = array(
 		'_pixva_order_code'        => $code,
@@ -392,8 +432,171 @@ function pixva_create_order( $d ) {
 			update_post_meta( $id, $key, is_string( $value ) && ! in_array( $key, $json, true ) ? wp_slash( $value ) : $value );
 		}
 	}
-	do_action( 'pixva_order_created', $id );
-	return (int) $id;
+}
+
+/**
+ * Whether an id is an existing order post.
+ *
+ * @param int $id Post id.
+ * @return bool
+ */
+function pixva_order_exists( $id ) {
+	$post = get_post( (int) $id );
+	return is_object( $post ) && 'pixva_orders' === $post->post_type;
+}
+
+/**
+ * Order ids whose post_name starts with this submission id (lowest id first).
+ * Includes WordPress's suffixed slugs (sid-2) and trashed posts. Uses the
+ * indexed post_name column (WordPress core: KEY post_name).
+ *
+ * @param string $sid Normalised submission id.
+ * @return int[]
+ */
+function pixva_orders_by_submission( $sid ) {
+	global $wpdb;
+	$sid = pixva_normalize_submission_id( $sid );
+	if ( '' === $sid ) {
+		return array();
+	}
+	$ids = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_name LIKE %s ORDER BY ID ASC LIMIT 20", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			'pixva_orders',
+			$wpdb->esc_like( $sid ) . '%'
+		) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	);
+	return array_map( 'intval', (array) $ids );
+}
+
+/**
+ * Delete order posts for this submission id other than the linked one.
+ * Only called once the reservation links $keep: after that no other post can be
+ * linked to this id, so the others are unannounced duplicates.
+ *
+ * @param string $sid  Submission id.
+ * @param int    $keep Linked order id.
+ * @return void
+ */
+function pixva_remove_duplicate_orders( $sid, $keep ) {
+	foreach ( pixva_orders_by_submission( $sid ) as $id ) {
+		if ( $id !== (int) $keep ) {
+			wp_delete_post( $id, true );
+		}
+	}
+}
+
+/**
+ * Place the order for a submission exactly once.
+ *
+ * Caller must hold the submission claim (pixva_claim_submission()). The claim is
+ * exclusive, so when this runs every earlier attempt for the id has expired.
+ *
+ * Reservation row pixva_ord_<sid> in wp_options:
+ *   creating: {s, k (token), t}  an attempt is placing the order
+ *   linked:   {s, o (order id), t}  the order is final and was announced once
+ *
+ * Steps (all state changes are UNIQUE create or compare-and-replace):
+ *  1. Read the reservation. Linked to an existing order: return that order.
+ *  2. Otherwise create it (UNIQUE) as "creating" with our token, or replace a
+ *     stale "creating" row with ours (compare on the exact old value).
+ *  3. Adopt an order a previous attempt already inserted (found by post_name),
+ *     otherwise insert one. A post is never inserted when one exists.
+ *  4. Link: compare-and-replace our "creating" row with "linked". Only the
+ *     request whose link succeeds fires pixva_order_created (the notification).
+ *     Duplicates are then deleted.
+ *  5. If the link fails, another attempt took over. Re-read and retry. Our
+ *     unlinked order is removed by whoever links the reservation.
+ *
+ * Error handling: a WP_Error from the insert returns the error with the
+ * reservation still "creating", so a retry adopts whatever was written. A fatal
+ * error at any step leaves the claim pending; after PIXVA_CLAIM_PENDING_TTL the
+ * next attempt runs steps 1–4 and recovers the same order.
+ *
+ * Residual: an attempt that stalls for longer than the claim TTL between step 3
+ * and step 4 is fenced at step 4 (its link fails). No other order can be linked.
+ * If its insert completes first, the unlinked post is removed by the next
+ * attempt that links the reservation. Between the insert and the link there is
+ * no DB transaction. Verify on the target engine (see tests/unit/README.md).
+ *
+ * @param string $sid Submission id (32 hex, normalised here too).
+ * @param array  $d   Validated data for pixva_insert_order().
+ * @return int|WP_Error Order id.
+ */
+function pixva_place_order_once( $sid, $d ) {
+	$sid = pixva_normalize_submission_id( $sid );
+	if ( '' === $sid ) {
+		return new WP_Error( 'sid', __( 'شناسه ارسال نامعتبر است.', 'pixva' ), array( 'status' => 400 ) );
+	}
+	$name  = 'pixva_ord_' . $sid;
+	$token = wp_generate_password( 24, false );
+	$mine  = (string) wp_json_encode(
+		array(
+			's' => 'creating',
+			'k' => $token,
+			't' => pixva_now(),
+		)
+	);
+	$d['submission_id'] = $sid;
+
+	for ( $try = 0; $try < 5; $try++ ) {
+		$held = pixva_option_value( $name );
+		if ( null === $held ) {
+			if ( ! pixva_create_once( $name, $mine ) ) {
+				continue; // Created by someone else between the two reads: re-read.
+			}
+		} else {
+			$row = json_decode( $held, true );
+			if ( is_array( $row ) && 'linked' === ( $row['s'] ?? '' ) && pixva_order_exists( (int) ( $row['o'] ?? 0 ) ) ) {
+				pixva_remove_duplicate_orders( $sid, (int) $row['o'] );
+				return (int) $row['o'];
+			}
+			// "creating" by an expired attempt, or "linked" to a deleted order: take over.
+			if ( ! pixva_replace_option_row( $name, $held, $mine ) ) {
+				continue;
+			}
+		}
+
+		// We own the reservation. Adopt an order a previous attempt inserted, or insert one.
+		$found = pixva_orders_by_submission( $sid );
+		if ( $found ) {
+			$id   = $found[0];
+			$code = (string) get_post_meta( $id, '_pixva_order_code', true );
+			if ( '' === $code ) {
+				// Partly written by a crashed attempt: give it a code and matching title.
+				$code = pixva_generate_order_code();
+				wp_update_post(
+					array(
+						'ID'         => $id,
+						'post_title' => $code,
+					)
+				);
+			}
+			pixva_write_order_data( $id, $d, $code );
+		} else {
+			do_action( 'pixva_order_before_insert', $sid );
+			$id = pixva_insert_order( $d );
+			if ( is_wp_error( $id ) ) {
+				return $id; // Reservation stays "creating" with our token; a retry adopts any partial write.
+			}
+		}
+
+		do_action( 'pixva_order_before_link', $sid, $id );
+		$linked = (string) wp_json_encode(
+			array(
+				's' => 'linked',
+				'o' => $id,
+				't' => pixva_now(),
+			)
+		);
+		if ( pixva_replace_option_row( $name, $mine, $linked ) ) {
+			pixva_remove_duplicate_orders( $sid, $id );
+			do_action( 'pixva_order_created', $id );
+			return $id;
+		}
+		// Taken over while we worked (we were fenced out). Re-read on the next pass.
+	}
+	return new WP_Error( 'busy', __( 'ثبت درخواست ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
 }
 
 /**
@@ -453,6 +656,32 @@ function pixva_set_order_status( $order_id, $status, $note = '' ) {
 		do_action( 'pixva_order_status_changed', $order_id, $outcome['status'], $outcome['from'] );
 	}
 	return true;
+}
+
+/**
+ * Run $fn while holding the per-order lock (keyed by order id, never by code).
+ *
+ * Used for order writes that are not status changes but still read and write
+ * order history or ownership. The lock is released even if $fn throws.
+ *
+ * @param int      $order_id Order id.
+ * @param callable $fn       Work to run under the lock.
+ * @return mixed|WP_Error The callable's result, or WP_Error when the lock is busy.
+ */
+function pixva_with_order_lock( $order_id, $fn ) {
+	$order_id = (int) $order_id;
+	$owner    = pixva_order_lock_acquire( $order_id );
+	if ( is_wp_error( $owner ) ) {
+		return $owner;
+	}
+	try {
+		$result = $fn();
+	} finally {
+		if ( ! pixva_order_lock_release( $order_id, $owner ) ) {
+			do_action( 'pixva_order_lock_lost', $order_id );
+		}
+	}
+	return $result;
 }
 
 /**
@@ -845,31 +1074,37 @@ function pixva_save_order_box( $post_id ) {
 	$in = isset( $_POST['pixva_o'] ) && is_array( $_POST['pixva_o'] ) ? wp_unslash( $_POST['pixva_o'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized per key.
 
 	if ( ! get_post_meta( $post_id, '_pixva_order_code', true ) ) {
-		$code = pixva_generate_order_code();
-		update_post_meta( $post_id, '_pixva_order_code', $code );
-		remove_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10 );
-		wp_update_post(
-			array(
-				'ID'          => $post_id,
-				'post_title'  => $code,
-				'post_status' => 'private',
-			)
-		);
-		add_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10, 1 );
-		update_post_meta(
+		// Initialises history and status, so it must not race a status change.
+		pixva_with_order_lock(
 			$post_id,
-			'_pixva_order_steps',
-			pixva_json_meta(
-				array(
+			static function () use ( $post_id ) {
+				$code = pixva_generate_order_code();
+				update_post_meta( $post_id, '_pixva_order_code', $code );
+				remove_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10 );
+				wp_update_post(
 					array(
-						's' => 'new',
-						't' => time(),
-						'n' => '',
-					),
-				)
-			)
+						'ID'          => $post_id,
+						'post_title'  => $code,
+						'post_status' => 'private',
+					)
+				);
+				add_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10, 1 );
+				update_post_meta(
+					$post_id,
+					'_pixva_order_steps',
+					pixva_json_meta(
+						array(
+							array(
+								's' => 'new',
+								't' => time(),
+								'n' => '',
+							),
+						)
+					)
+				);
+				update_post_meta( $post_id, '_pixva_order_status', 'new' );
+			}
 		);
-		update_post_meta( $post_id, '_pixva_order_status', 'new' );
 	}
 
 	if ( current_user_can( 'pixva_view_order_pii' ) ) {

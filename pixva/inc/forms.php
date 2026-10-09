@@ -359,7 +359,8 @@ function pixva_handle_booking() {
 		}
 	}
 
-	$id = pixva_create_order(
+	$id = pixva_place_order_once(
+		pixva_normalize_submission_id( pixva_get_post_var( '_pixva_sid' ) ),
 		array(
 			'name'        => $name,
 			'phone'       => $phone,
@@ -626,12 +627,25 @@ function pixva_handle_claim() {
 		$data = (array) $id->get_error_data();
 		return 'invalid' === $id->get_error_code() ? pixva_validation_error( array( 'code' => $id->get_error_message() ) ) : new WP_Error( 'claim', $id->get_error_message(), array( 'status' => (int) ( $data['status'] ?? 404 ) ) );
 	}
-	$owner = (int) get_post_meta( $id, '_pixva_customer_id', true );
-	if ( $owner && $owner !== $uid ) {
+	$took_ownership = pixva_with_order_lock(
+		$id,
+		static function () use ( $id, $uid ) {
+			// Read and write under the order lock, so two accounts cannot both take an unowned order.
+			$owner = (int) get_post_meta( $id, '_pixva_customer_id', true );
+			if ( $owner && $owner !== $uid ) {
+				return false;
+			}
+			update_post_meta( $id, '_pixva_customer_id', $uid );
+			return true;
+		}
+	);
+	if ( is_wp_error( $took_ownership ) ) {
+		return new WP_Error( 'busy', __( 'این پرونده هم‌اکنون در حال به‌روزرسانی است. لطفاً چند لحظه دیگر دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
+	}
+	if ( ! $took_ownership ) {
 		// Same message as not found: do not reveal that the order exists.
 		return new WP_Error( 'claim', __( 'پرونده‌ای با این کد و شماره پیدا نشد.', 'pixva' ), array( 'status' => 404 ) );
 	}
-	update_post_meta( $id, '_pixva_customer_id', $uid );
 	return array(
 		'message'  => __( 'پرونده به حساب شما افزوده شد.', 'pixva' ),
 		'redirect' => pixva_route_url( 'account_repairs' ),
@@ -662,9 +676,19 @@ function pixva_handle_order_update() {
 		return pixva_validation_error( array( 'status' => $res->get_error_message() ) );
 	}
 	if ( '' !== trim( $intern ) ) {
-		$prev = (string) get_post_meta( $id, '_pixva_order_notes', true );
 		$line = '[' . wp_date( 'Y-m-d H:i' ) . ' — ' . wp_get_current_user()->display_name . '] ' . $intern;
-		update_post_meta( $id, '_pixva_order_notes', wp_slash( trim( $prev . "\n" . $line ) ) );
+		$done = pixva_with_order_lock(
+			$id,
+			static function () use ( $id, $line ) {
+				$prev = (string) get_post_meta( $id, '_pixva_order_notes', true );
+				update_post_meta( $id, '_pixva_order_notes', wp_slash( trim( $prev . "\n" . $line ) ) );
+				return true;
+			}
+		);
+		if ( is_wp_error( $done ) ) {
+			// The status change above was saved; only the internal note was not.
+			return new WP_Error( 'busy', __( 'وضعیت ذخیره شد، اما یادداشت داخلی ذخیره نشد. دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
+		}
 	}
 	return array( 'message' => __( 'پرونده به‌روزرسانی شد.', 'pixva' ) );
 }

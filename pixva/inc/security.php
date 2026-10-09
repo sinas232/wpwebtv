@@ -134,17 +134,128 @@ add_action( 'send_headers', 'pixva_send_security_headers' );
  * @return string
  */
 function pixva_client_key() {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
+	$ip = pixva_client_ip();
 	/**
-	 * Client IP used for rate limiting. Defaults to REMOTE_ADDR, which cannot
-	 * be spoofed with request headers. Behind a reverse proxy/CDN, REMOTE_ADDR is
-	 * the proxy itself: configure the web server to restore the real IP, or return
-	 * a trusted value from this filter. Never trust a client-supplied header here.
+	 * Client IP used for rate limiting. Defaults to pixva_client_ip(). Return a
+	 * trusted value from this filter only if your own infrastructure provides one.
 	 *
-	 * @param string $ip REMOTE_ADDR.
+	 * @param string $ip Resolved client IP.
 	 */
 	$ip = (string) apply_filters( 'pixva_client_ip', $ip );
 	return substr( hash_hmac( 'sha256', pixva_ip_scope( $ip ), wp_salt( 'nonce' ) ), 0, 32 );
+}
+
+/**
+ * Resolve the client address without trusting client headers.
+ *
+ * REMOTE_ADDR is the only address the server can vouch for. Forwarded headers
+ * are read only when REMOTE_ADDR is a proxy the site owner listed as trusted
+ * (filter 'pixva_trusted_proxies', or the PIXVA_TRUSTED_PROXIES constant, as a
+ * list of IPs or CIDR ranges). The chain is walked from the right; the first
+ * address that is not a trusted proxy is the client. A malformed chain falls
+ * back to REMOTE_ADDR. With no trusted proxies configured, REMOTE_ADDR is used
+ * and headers are ignored, so behind a proxy every visitor shares the proxy's
+ * scope: see docs/pixva-staging-checklist.md section 1.
+ *
+ * @return string Address or the literal REMOTE_ADDR text.
+ */
+function pixva_client_ip() {
+	$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
+	$remote = (string) $remote;
+
+	$trusted = apply_filters( 'pixva_trusted_proxies', defined( 'PIXVA_TRUSTED_PROXIES' ) ? (array) PIXVA_TRUSTED_PROXIES : array() );
+	$trusted = array_values( array_filter( array_map( 'strval', (array) $trusted ) ) );
+	if ( array() === $trusted || ! pixva_ip_in_list( $remote, $trusted ) ) {
+		return $remote; // The peer is not a trusted proxy: its headers are ignored.
+	}
+
+	$header = (string) apply_filters( 'pixva_client_ip_header', defined( 'PIXVA_CLIENT_IP_HEADER' ) ? PIXVA_CLIENT_IP_HEADER : 'HTTP_X_FORWARDED_FOR' );
+	if ( ! preg_match( '/^HTTP_[A-Z0-9_]+$/', $header ) || ! isset( $_SERVER[ $header ] ) ) {
+		return $remote;
+	}
+	$raw = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+	if ( '' === $raw ) {
+		return $remote;
+	}
+	foreach ( array_reverse( array_map( 'trim', explode( ',', $raw ) ) ) as $hop ) {
+		if ( false === filter_var( $hop, FILTER_VALIDATE_IP ) ) {
+			return $remote; // Malformed chain: do not guess.
+		}
+		if ( ! pixva_ip_in_list( $hop, $trusted ) ) {
+			return $hop;
+		}
+	}
+	return $remote; // Every hop is a trusted proxy.
+}
+
+/**
+ * Whether an address falls inside any of the given IPs or CIDR ranges.
+ *
+ * @param string $ip    Address.
+ * @param array  $cidrs IPs or CIDR strings.
+ * @return bool
+ */
+function pixva_ip_in_list( $ip, array $cidrs ) {
+	$bin = @inet_pton( (string) $ip ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- invalid input returns false.
+	if ( false === $bin ) {
+		return false;
+	}
+	$bin = pixva_unmap_ipv4( $bin );
+	foreach ( $cidrs as $cidr ) {
+		$cidr = trim( (string) $cidr );
+		$bits = null;
+		if ( false !== strpos( $cidr, '/' ) ) {
+			list( $cidr, $bits ) = explode( '/', $cidr, 2 );
+		}
+		$net = @inet_pton( $cidr ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( false === $net ) {
+			continue;
+		}
+		$net  = pixva_unmap_ipv4( $net );
+		$max  = strlen( $net ) * 8;
+		$bits = null === $bits ? $max : (int) $bits;
+		if ( $bits < 0 || $bits > $max || strlen( $bin ) !== strlen( $net ) ) {
+			continue;
+		}
+		if ( pixva_prefix_equal( $bin, $net, $bits ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * IPv4-mapped IPv6 (::ffff:a.b.c.d) to the 4-byte form.
+ *
+ * @param string $bin Packed address.
+ * @return string
+ */
+function pixva_unmap_ipv4( $bin ) {
+	if ( 16 === strlen( $bin ) && 0 === strncmp( $bin, str_repeat( "\0", 10 ) . "\xff\xff", 12 ) ) {
+		return substr( $bin, 12 );
+	}
+	return $bin;
+}
+
+/**
+ * Compare the first $bits bits of two packed addresses.
+ *
+ * @param string $a    Packed address.
+ * @param string $b    Packed address.
+ * @param int    $bits Prefix length.
+ * @return bool
+ */
+function pixva_prefix_equal( $a, $b, $bits ) {
+	$full = intdiv( $bits, 8 );
+	$rem  = $bits % 8;
+	if ( substr( $a, 0, $full ) !== substr( $b, 0, $full ) ) {
+		return false;
+	}
+	if ( 0 === $rem ) {
+		return true;
+	}
+	$mask = ( 0xFF << ( 8 - $rem ) ) & 0xFF;
+	return ( ord( $a[ $full ] ) & $mask ) === ( ord( $b[ $full ] ) & $mask );
 }
 
 /**
@@ -180,19 +291,61 @@ function pixva_ip_scope( $ip ) {
  * @return bool
  */
 function pixva_rate_limit( $action, $max = 10, $window = HOUR_IN_SECONDS ) {
+	if ( pixva_rate_exhausted( $action, $max, $window ) ) {
+		return false;
+	}
+	pixva_rate_count( $action, $window );
+	return true;
+}
+
+/**
+ * Whether this client has used up the bucket. Read only.
+ *
+ * Note: this is a read-then-write transient counter, not an atomic primitive.
+ * Concurrent requests from one client can overshoot $max by up to the number of
+ * requests in flight. It limits request volume; it is not a brute-force control.
+ *
+ * @param string $action Bucket name.
+ * @param int    $max    Max hits per window.
+ * @param int    $window Window seconds.
+ * @return bool
+ */
+function pixva_rate_exhausted( $action, $max = 10, $window = HOUR_IN_SECONDS ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- window kept for a uniform signature.
 	$max = (int) apply_filters( 'pixva_rate_limit_max', (int) $max, $action );
-	$key = 'pixva_rl_' . sanitize_key( $action ) . '_' . pixva_client_key();
+	$hit = get_transient( pixva_rate_key( $action ) );
+	$hit = is_array( $hit ) ? $hit : array(
+		'n' => 0,
+		't' => time(),
+	);
+	return $hit['n'] >= $max;
+}
+
+/**
+ * Count one hit against this client's bucket.
+ *
+ * @param string $action Bucket name.
+ * @param int    $window Window seconds.
+ * @return void
+ */
+function pixva_rate_count( $action, $window = HOUR_IN_SECONDS ) {
+	$key = pixva_rate_key( $action );
 	$hit = get_transient( $key );
 	$hit = is_array( $hit ) ? $hit : array(
 		'n' => 0,
 		't' => time(),
 	);
-	if ( $hit['n'] >= $max ) {
-		return false;
-	}
 	++$hit['n'];
 	set_transient( $key, $hit, max( 1, (int) $window - ( time() - (int) $hit['t'] ) ) );
-	return true;
+}
+
+/**
+ * Transient key for one bucket and client.
+ *
+ * @param string $action Bucket name.
+ * @return string
+ */
+function pixva_rate_key( $action ) {
+	return 'pixva_rl_' . sanitize_key( $action ) . '_' . pixva_client_key();
 }
 
 /**
@@ -362,6 +515,18 @@ function pixva_prune_expiring_rows() {
 			$pos = strrpos( $value, '|' );
 			return false !== $pos && (int) substr( $value, $pos + 1 ) < $now - HOUR_IN_SECONDS;
 		},
+		// Order reservations: a link is kept for PIXVA_ORDER_LINK_TTL. After that the
+		// order itself is found again by its submission id (post_name), so pruning
+		// the link does not allow a second order. A stale "creating" row is dead.
+		// An unreadable row is kept, because deleting it could drop a link.
+		'pixva_ord_' => static function ( $value ) use ( $now ) {
+			$row = json_decode( $value, true );
+			if ( ! is_array( $row ) || ! isset( $row['s'], $row['t'] ) ) {
+				return false;
+			}
+			$ttl = 'linked' === $row['s'] ? PIXVA_ORDER_LINK_TTL : PIXVA_CLAIM_PENDING_TTL;
+			return (int) $row['t'] + $ttl <= $now;
+		},
 		// Claims: an outcome past its TTL, or a pending claim past its TTL, is dead.
 		'pixva_sub_' => static function ( $value ) use ( $now ) {
 			$row = json_decode( $value, true );
@@ -400,6 +565,9 @@ const PIXVA_CLAIM_PENDING_TTL = 300;
 
 /** Seconds a stored outcome is replayed for a repeated submission id (one day, as before). */
 const PIXVA_CLAIM_DONE_TTL = 86400;
+
+/** Seconds an order reservation link is kept (30 days). See pixva_place_order_once(). */
+const PIXVA_ORDER_LINK_TTL = 2592000;
 
 /**
  * Claims owned by this request: submission id => exact stored pending value.
