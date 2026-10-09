@@ -41,6 +41,12 @@
 		if (!overlay) {
 			return;
 		}
+		if (ev.key === 'Tab') {
+			// Focus containment: the viewer is modal, so Tab must not reach the page behind it.
+			ev.preventDefault();
+			overlay.focus();
+			return;
+		}
 		if (ev.key === 'Escape') {
 			close();
 		} else if (ev.key === 'ArrowLeft' || ev.key === ' ' || ev.key === 'Enter') {
@@ -101,6 +107,13 @@
 			pixva.track('pixel_test_started', { label: colors[index] });
 		}
 	}
+
+	// If focus reaches the page behind the open viewer (e.g. a pointer or assistive tech), bring it back.
+	document.addEventListener('focusin', function (ev) {
+		if (overlay && !overlay.contains(ev.target)) {
+			overlay.focus();
+		}
+	});
 
 	document.addEventListener('fullscreenchange', function () {
 		if (!document.fullscreenElement && overlay) {

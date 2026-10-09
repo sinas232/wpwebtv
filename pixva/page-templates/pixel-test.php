@@ -61,7 +61,7 @@ $pixva_colors = array(
 
 			<div class="px-control" data-pixel-js hidden>
 				<button type="button" class="btn btn--primary btn--lg" data-pixel-fullscreen><?php echo wp_kses( pixva_icon( 'expand' ), pixva_svg_allowed() ); ?> <?php esc_html_e( 'شروع تست تمام‌صفحه', 'pixva' ); ?></button>
-				<p class="field__help"><?php esc_html_e( 'در حالت تمام‌صفحه: کلیک یا کلیدهای جهت/فاصله = رنگ بعدی، Esc = خروج.', 'pixva' ); ?></p>
+				<p class="field__help"><?php esc_html_e( 'در حالت تمام‌صفحه: کلیک، فاصله، Enter یا ← = رنگ بعدی؛ → = رنگ قبلی؛ Esc = خروج.', 'pixva' ); ?></p>
 			</div>
 
 			<div class="px-monitor">
