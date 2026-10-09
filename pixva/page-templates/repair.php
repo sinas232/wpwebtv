@@ -91,8 +91,8 @@ $pixva_modes = pixva_service_modes();
 			__( 'یکی را انتخاب کنید تا صفحه سرویس آن باز شود.', 'pixva' ),
 			__( 'خدمات', 'pixva' )
 		);
-		pixva_service_feature( $pixva_services[0] );
-		pixva_service_rows( array_slice( $pixva_services, 1 ) );
+		pixva_service_feature( $pixva_services[0], 1 );
+		pixva_service_rows( array_slice( $pixva_services, 1 ), 2 );
 		pixva_section_close();
 	endif;
 	$pixva_faq = pixva_faq_items( 'booking' );

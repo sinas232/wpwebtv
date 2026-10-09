@@ -40,6 +40,12 @@ while ( have_posts() ) :
 	<main id="main" class="site-main">
 		<?php pixva_page_header( get_the_title(), has_excerpt() ? get_the_excerpt() : '', '' !== $pixva_en ? $pixva_en : __( 'برند', 'pixva' ) ); ?>
 		<div class="container section">
+			<?php
+			$pixva_logo = absint( get_post_meta( $pixva_id, '_pixva_brand_logo', true ) );
+			if ( $pixva_logo ) :
+				echo '<p class="brand-detail__logo">' . wp_get_attachment_image( $pixva_logo, 'medium', false, array( 'alt' => '', 'loading' => 'lazy', 'class' => 'brand-wall__logo' ) ) . '</p>'; // Decorative: the brand name is the heading.
+			endif;
+			?>
 			<div class="entry-content container--narrow"><?php the_content(); ?></div>
 
 			<?php if ( $pixva_models ) : ?>
@@ -71,19 +77,7 @@ while ( have_posts() ) :
 			?>
 			<div class="panel panel--inline">
 				<p><?php echo esc_html( sprintf( /* translators: %s: brand. */ __( 'تلویزیون %s شما ایراد دارد؟', 'pixva' ), trim( preg_replace( '/^تعمیر\s+(تلویزیون\s+)?/u', '', get_the_title() ) ) ) ); ?></p>
-				<a class="btn btn--primary" href="
-				<?php
-				echo esc_url(
-					pixva_route_url(
-						'diagnosis',
-						array(
-							'brand' => (string) $pixva_id,
-							'step'  => '1',
-						)
-					)
-				);
-				?>
-													"><?php esc_html_e( 'تشخیص آنلاین', 'pixva' ); ?></a>
+				<a class="btn btn--primary" href="<?php echo esc_url( pixva_route_url( 'diagnosis', array( 'brand' => (string) $pixva_id, 'step' => '1' ) ) ); ?>"><?php esc_html_e( 'تشخیص آنلاین', 'pixva' ); ?></a>
 				<a class="btn btn--accent" data-track="cta_click" data-track-label="booking" data-track-location="brand" href="<?php echo esc_url( pixva_route_url( 'booking', array( 'brand' => (string) $pixva_id ) ) ); ?>"><?php esc_html_e( 'ثبت درخواست تعمیر', 'pixva' ); ?></a>
 			</div>
 		</div>

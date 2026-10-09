@@ -21,9 +21,9 @@ get_header();
 				the_post();
 				$pixva_items[] = get_post();
 			endwhile;
-			pixva_service_feature( $pixva_items[0] );
+			pixva_service_feature( $pixva_items[0], 1 );
 			if ( count( $pixva_items ) > 1 ) :
-				pixva_service_rows( array_slice( $pixva_items, 1 ) );
+				pixva_service_rows( array_slice( $pixva_items, 1 ), 2 );
 			endif;
 			?>
 			<?php pixva_pagination(); ?>

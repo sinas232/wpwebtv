@@ -1085,7 +1085,7 @@ function pixva_plain_excerpt( $post, $words = 26 ) {
  * @param WP_Post|int $post Post.
  * @return void
  */
-function pixva_service_feature( $post ) {
+function pixva_service_feature( $post, $number = 1 ) {
 	$post = get_post( $post );
 	if ( ! $post ) {
 		return;
@@ -1099,7 +1099,7 @@ function pixva_service_feature( $post ) {
 	}
 	echo '</div>';
 	echo '<div class="feature__body">';
-	echo '<p class="feature__kicker">' . esc_html__( 'خدمت تعمیر', 'pixva' ) . '</p>';
+	echo '<p class="feature__kicker">' . esc_html__( 'خدمت تعمیر', 'pixva' ) . ' · ' . esc_html( pixva_fa_num( sprintf( '%02d', max( 1, (int) $number ) ) ) ) . '</p>';
 	echo '<h2 class="feature__title"><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h2>';
 	$excerpt = pixva_plain_excerpt( $post, 30 );
 	if ( '' !== trim( $excerpt ) ) {
@@ -1113,15 +1113,16 @@ function pixva_service_feature( $post ) {
  * Compact numbered service rows (editorial list, not cards).
  *
  * @param array $posts Service posts.
+ * @param int   $start Number of the first row (the feature card is 01).
  * @return void
  */
-function pixva_service_rows( $posts ) {
+function pixva_service_rows( $posts, $start = 1 ) {
 	$posts = array_filter( array_map( 'get_post', (array) $posts ) );
 	if ( ! $posts ) {
 		return;
 	}
 	echo '<ul class="rows">';
-	$i = 0;
+	$i = max( 1, (int) $start ) - 1;
 	foreach ( $posts as $p ) {
 		++$i;
 		echo '<li><a class="rows__item reveal" style="--d:' . (int) min( $i, 6 ) . '" href="' . esc_url( get_permalink( $p ) ) . '">';
