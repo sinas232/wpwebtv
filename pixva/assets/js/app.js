@@ -161,6 +161,15 @@
 		onScroll();
 	}
 
+	/* Mobile sticky CTA: shown once the first screen has been scrolled past. */
+	if (document.querySelector('.m-cta')) {
+		var onMobileCta = function () {
+			document.documentElement.classList.toggle('m-cta-on', window.scrollY > window.innerHeight * 0.6);
+		};
+		window.addEventListener('scroll', onMobileCta, { passive: true });
+		onMobileCta();
+	}
+
 	/* ------------------------------------------------------------------ */
 	/* Scroll reveal (progressive enhancement; content is visible without  */
 	/* JS and with reduced motion — .reveal only hides under .js + motion). */

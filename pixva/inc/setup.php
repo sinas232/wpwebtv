@@ -394,6 +394,14 @@ add_action( 'after_switch_theme', 'pixva_on_switch_theme' );
 function pixva_maybe_flush_rewrites() {
 	if ( get_option( 'pixva_flush_rewrites' ) ) {
 		delete_option( 'pixva_flush_rewrites' );
+		// WP_Rewrite reads permalink_structure once at load time. pixva_install() changes it
+		// during the same request (e.g. upgrade from /%postname%/ to /blog/%postname%/), so
+		// re-read it here; otherwise the flush stores rules for the OLD structure and posts 404.
+		global $wp_rewrite;
+		// init() resets bottom rules and endpoints registered earlier in this request; keep them.
+		$kept = array( $wp_rewrite->extra_rules, $wp_rewrite->non_wp_rules, $wp_rewrite->endpoints );
+		$wp_rewrite->init();
+		list( $wp_rewrite->extra_rules, $wp_rewrite->non_wp_rules, $wp_rewrite->endpoints ) = $kept;
 		flush_rewrite_rules( false );
 	}
 }

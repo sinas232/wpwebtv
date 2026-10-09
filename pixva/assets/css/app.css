@@ -7043,12 +7043,16 @@ fieldset.field--error {
 		flex: 1 1 auto;
 	}
 
-	.site-header .brand__name,
+	/* Long site titles wrap onto as many lines as needed instead of being truncated. */
 	.site-header .brand__text {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 		min-inline-size: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.site-header .brand__name {
+		display: block;
+		min-inline-size: 0;
+		overflow-wrap: break-word;
 	}
 
 	.site-header .site-header__m-cta {
@@ -7057,10 +7061,32 @@ fieldset.field--error {
 	}
 }
 
-@media (max-width: 379px) {
+@media (max-width: 429px) {
 	.site-header .site-header__m-cta {
 		padding-inline: var(--s-3);
 		font-size: var(--fs-xs);
+	}
+
+	/* Narrow phones (≤429px): give the site title room (wraps on whole words). */
+	.site-header__bar {
+		gap: var(--s-2);
+	}
+
+	.site-header .brand {
+		gap: var(--s-2);
+	}
+
+	.site-header .brand__mark {
+		inline-size: 32px;
+		block-size: 32px;
+	}
+
+	.site-header .brand__name {
+		font-size: var(--fs-sm);
+	}
+
+	.site-header .nav-toggle {
+		inline-size: 40px;
 	}
 }
 
@@ -8693,6 +8719,22 @@ fieldset.field--error {
 @media (max-width: 767px) {
 	html {
 		scroll-padding-block-end: 104px;
+	}
+}
+
+/* Mobile sticky CTA appears after the first screen (the header already
+   carries the booking button at the top), so the hero and the first
+   diagnosis card are fully readable on arrival. Hidden state keeps the
+   links out of the tab order (visibility), so focus never lands on it. */
+@media (max-width: 767px) {
+	.js .m-cta {
+		transform: translateY(110%);
+		visibility: hidden;
+	}
+
+	.js.m-cta-on .m-cta {
+		transform: none;
+		visibility: visible;
 	}
 }
 
