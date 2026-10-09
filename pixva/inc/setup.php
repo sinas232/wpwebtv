@@ -158,6 +158,32 @@ function pixva_assets() {
 add_action( 'wp_enqueue_scripts', 'pixva_assets' );
 
 /**
+ * Drop core block-library CSS on pages that contain no block markup.
+ * PIXVA templates are classic PHP (no blocks); measured 100% of the 113 KB
+ * block-library stylesheet unused on the homepage, tools and services routes.
+ * Pages whose content (singular post, or any post in the loop) has blocks keep it.
+ * theme.json / global-styles is intentionally left untouched.
+ *
+ * @return void
+ */
+function pixva_trim_block_styles() {
+	$queried = get_queried_object();
+	if ( $queried instanceof WP_Post && has_blocks( $queried->post_content ) ) {
+		return;
+	}
+	$loop = isset( $GLOBALS['wp_query'] ) && is_array( $GLOBALS['wp_query']->posts ) ? $GLOBALS['wp_query']->posts : array();
+	foreach ( $loop as $item ) {
+		if ( $item instanceof WP_Post && has_blocks( $item->post_content ) ) {
+			return;
+		}
+	}
+	wp_dequeue_style( 'wp-block-library' );
+	wp_dequeue_style( 'wp-block-library-theme' );
+	wp_dequeue_style( 'classic-theme-styles' );
+}
+add_action( 'wp_enqueue_scripts', 'pixva_trim_block_styles', 100 );
+
+/**
  * Preload the single variable font file used above the fold.
  *
  * @return void
