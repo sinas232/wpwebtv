@@ -74,7 +74,39 @@ MUTATIONS = [
     ("A3 audit does not report unreferenced photo files", "audit.php",
      "if ( ! isset( $photo_owner[ $file ] ) ) {", "if ( false ) {"),
     ("A4 audit gains a write (deletes an unreferenced file)", "audit.php",
-     "$add( 'photo_unreferenced', 'warn', 'photo', $file,", "@unlink( $private_dir_gone ?? '' ); $add( 'photo_unreferenced', 'warn', 'photo', $file,"),
+     "\t\t\t$add(\n\t\t\t\t'photo_unreferenced',", "\t\t\t@unlink( $private_dir_gone ?? '' );\n\t\t\t$add(\n\t\t\t\t'photo_unreferenced',"),
+    # Inbox, Round 4 / F1 (inbox.php)
+    ("F1a no adoption of an existing message for the id", "inbox.php",
+     "\t\t$found = pixva_inbox_by_submission( $sid );", "\t\t$found = array();"),
+    ("F1b no live-attempt guard (a live creating row is taken over)", "inbox.php",
+     "if ( is_array( $row ) && 'creating' === ( $row['s'] ?? '' ) && (int) ( $row['t'] ?? 0 ) + PIXVA_CLAIM_PENDING_TTL > pixva_now() ) {",
+     "if ( false ) {"),
+    ("F1c no fence before insert (stalled attempt inserts after takeover)", "inbox.php",
+     "if ( pixva_option_value( $name ) !== $mine ) {", "if ( false ) {"),
+    ("F1d marker written before the mail (email can be lost)", "inbox.php",
+     "\tdo_action( 'pixva_inbox_before_mail', $sid, (int) $id );\n\tcall_user_func( $send, (int) $id );",
+     "\tpixva_replace_option_row( $name, $held, (string) wp_json_encode( array( 's' => 'linked', 'o' => (int) $id, 't' => (int) ( $row['t'] ?? pixva_now() ), 'm' => 1 ) ) );\n\tdo_action( 'pixva_inbox_before_mail', $sid, (int) $id );\n\tcall_user_func( $send, (int) $id );"),
+    # Notes compare-and-write, Round 4 / F2 (repairs.php)
+    ("F2a notes saved without the fingerprint compare (overwrite)", "repairs.php",
+     "if ( '' === $base || ! hash_equals( pixva_notes_fingerprint( $current ), $base ) ) {", "if ( false ) {"),
+    # Authorisation, Round 4 / F3 (capabilities.php)
+    ("F3a non-responsible technician gets the responsible-technician path", "capabilities.php",
+     "if ( $tech_id && $tech_id === (int) $user_id && user_can( $user_id, 'pixva_work_orders' ) ) {",
+     "if ( $tech_id && user_can( $user_id, 'pixva_work_orders' ) ) {"),
+    # Migration, Round 4 / F7 (migration.php)
+    ("F7a no migration lock (second run proceeds)", "migration.php",
+     "if ( null === $token ) {\n\t\treturn;", "if ( false ) {\n\t\treturn;"),
+    ("F7b valid status overwritten by the fallback", "migration.php",
+     "if ( ! isset( pixva_order_statuses()[ (string) get_post_meta( $oid, '_pixva_order_status', true ) ] ) ) {",
+     "if ( true ) {"),
+    ("F7c history list re-converted on every run (duplicates)", "migration.php",
+     "if ( is_array( $steps ) && $steps && ! isset( $steps[0] ) ) {", "if ( is_array( $steps ) && $steps ) {"),
+    ("F1e inbox reservations pruned on the order TTL (not the message TTL)", "security.php",
+     "$life = 'linked' === $row['s'] ? PIXVA_ORDER_LINK_TTL : PIXVA_CLAIM_PENDING_TTL;\n\t\t\treturn (int) $row['t'] + $life <= $now;",
+     "$life = PIXVA_CLAIM_PENDING_TTL;\n\t\t\treturn (int) $row['t'] + $life <= $now;"),
+    # Read-only report, Round 4 / F6 (audit.php)
+    ("F6a unreferenced photo report drops its size", "audit.php",
+     "'bytes'    => $info['bytes'],", "'bytes'    => null,"),
 ]
 
 

@@ -35,7 +35,7 @@ Legend. **Lock**: the per-order advisory lock `pixva_olock_<id>` (`pixva_with_or
 - **F6 (orphaned private photos).** Photos are stored before W9. Orphans arise from: (a) a placement error after storage (`pixva_place_order_once` returns `WP_Error` and the booking handler does not delete the stored files); (b) adoption replacing the photo list (W10); (c) duplicate removal (W15). A file cannot be assigned to a deleted order afterwards, so cleanup is manual (checklist 3k). Fixing (a) safely needs the rule that the `busy` error path can leave an unlinked order that references the files, so deletion there is **not** safe without a ledger.
 - **F7 (migration without a guard).** W12 and W13 run on the first admin request after upgrade, with no lock and no "already running" flag. Two admin requests at the same moment can race. Mitigation: upgrade with a single admin session and no booking traffic (checklist 3j).
 
-## 3. Inbox idempotency: proposal (NOT implemented; decision required)
+## 3. Inbox idempotency: Option A (implemented in Round 4; F1)
 
 Current contract (must not change): the contact form posts the same fields, and `_pixva_sid` is already a hidden field rendered for every form. The claim (`pixva_claim_submission`) runs before the handler. The handler returns the original outcome for a finished claim and 409 for a pending one.
 
@@ -47,9 +47,22 @@ Option A (recommended, no form change): give the inbox post a stable slug derive
 - Residual: a crash between the mail call and the marker write sends a second email. That is an accepted trade-off (duplicate email is safer than a lost message), and it must be stated to the user.
 - Tests required before merge: fatal after insert, fatal after mail, retry after TTL, duplicate request during pending, legacy post, and negative controls for each guard.
 
-Option B (form change): add a client-generated message id. Rejected for this round because it changes the form contract.
+**Implementation (Round 4, `pixva/inc/inbox.php`, simulated tests only):**
+- Reservation: the option row `pixva_msg_<sid>` (UNIQUE `option_name` via `add_option()`, compare-and-replace via `$wpdb->update` on the exact old value). States: `creating` (with token and time), then `linked` (with message id). The mail marker is the field `m` in the same row, not post meta. This differs from the proposal's `_pixva_msg_notified` meta: one row carries both the link and the mail state, so they cannot disagree.
+- A `creating` row is taken over only after `PIXVA_CLAIM_PENDING_TTL`. A live one returns `busy` (HTTP 409, the existing code) and inserts nothing.
+- A stalled attempt checks that it still owns the row before inserting (fence). The check and the insert are not one atomic step: a takeover in that gap can still produce one duplicate post (residual R-F1-1 below).
+- Public contract unchanged: same form fields, same `_pixva_sid`, same response shape.
 
-Until a decision is made, F1 is an open finding. Operational release stays NO-GO for this item.
+**Email windows (never claim exactly-once email):**
+- Mail sent, crash before the marker: the retry sends a second email. The message is not lost. This duplicate is simulated in test M5.
+- Marker written before the mail, crash before the mail: the email is lost. This is why the marker is written after the mail. Control F1d shows that the order is tested (M6).
+
+**Residuals:**
+- R-F1-1: a stalled attempt that resumes after its row expired, in the window between the fence check and the insert, can insert a second post. Duplicate, not loss. Not atomic. Needs a real MySQL/MariaDB test (NOT TESTED).
+- R-F1-2: no real database has been tested. The uniqueness primitives (UNIQUE `option_name`, conditional UPDATE) were exercised only on the stubbed `wpdb` (`FakeWpdb`), which models their semantics. SQLite and the stub are not MySQL/MariaDB proof.
+- The order path (`pixva_place_order_once`) has the same takeover of a live `creating` row. It is not changed in Round 4 and is listed as OPEN (see the Round 4 report).
+
+Option B (form change): add a client-generated message id. Rejected: it changes the form contract.
 
 ## 4. Migration and activation (reviewed separately)
 
@@ -62,4 +75,9 @@ Until a decision is made, F1 is an open finding. Operational release stays NO-GO
 
 - Code review: done (this document).
 - Runtime checks of W1–W16 on real MySQL/MariaDB: NOT TESTED. Staging not accessible.
-- F1, F2, F3, F6, F7: open. F4, F5: documented residuals.
+- F1 (inbox duplicate): Option A implemented; simulated tests pass; real MySQL/MariaDB NOT TESTED; residual R-F1-1.
+- F2 (notes overwrite): compare-and-write under the order lock; simulated tests; see the Round 4 report.
+- F3 (meta-box authorisation): simulated matrix; no vulnerability proven in the model; see the Round 4 report.
+- F6 (private photos): read-only report extended with size, mtime and reason; no cleanup.
+- F7 (migration): run lock and per-order lock added; simulated tests.
+- F4, F5: documented residuals (unchanged in Round 4; see the Round 4 report).

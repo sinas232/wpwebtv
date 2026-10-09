@@ -1040,7 +1040,7 @@ function pixva_render_order_box( $post ) {
 		echo '<option value="' . esc_attr( $u->ID ) . '" ' . selected( $tech, (int) $u->ID, false ) . '>' . esc_html( $u->display_name ) . '</option>';
 	}
 	echo '</select></td></tr>';
-	echo '<tr><th><label for="pixva-o-notes">' . esc_html__( 'یادداشت داخلی', 'pixva' ) . '</label></th><td><textarea class="large-text" rows="3" id="pixva-o-notes" name="pixva_o[notes]">' . esc_textarea( get_post_meta( $id, '_pixva_order_notes', true ) ) . '</textarea><p class="description">' . esc_html__( 'هرگز به مشتری نمایش داده نمی‌شود.', 'pixva' ) . '</p></td></tr>';
+	echo '<tr><th><label for="pixva-o-notes">' . esc_html__( 'یادداشت داخلی', 'pixva' ) . '</label></th><td><textarea class="large-text" rows="3" id="pixva-o-notes" name="pixva_o[notes]">' . esc_textarea( get_post_meta( $id, '_pixva_order_notes', true ) ) . '</textarea><input type="hidden" name="pixva_o[notes_base]" value="' . esc_attr( pixva_notes_fingerprint( get_post_meta( $id, '_pixva_order_notes', true ) ) ) . '"><p class="description">' . esc_html__( 'هرگز به مشتری نمایش داده نمی‌شود.', 'pixva' ) . '</p></td></tr>';
 	echo '<tr><th>' . esc_html__( 'گارانتی', 'pixva' ) . '</th><td><label>' . esc_html__( 'شروع', 'pixva' ) . ' <input type="date" name="pixva_o[w_start]" value="' . esc_attr( get_post_meta( $id, '_pixva_warranty_start', true ) ) . '"></label> <label>' . esc_html__( 'پایان', 'pixva' ) . ' <input type="date" name="pixva_o[w_until]" value="' . esc_attr( get_post_meta( $id, '_pixva_warranty_until', true ) ) . '"></label>';
 	$days = pixva_warranty_policy_days();
 	echo '<p class="description">' . ( $days ? esc_html( sprintf( /* translators: %s: days. */ __( 'با تغییر وضعیت به «تحویل شد»، گارانتی %s روزه طبق سیاست ثبت‌شده اعمال می‌شود؛ می‌توانید دستی تغییرش دهید.', 'pixva' ), pixva_fa_num( $days ) ) ) : esc_html__( 'سیاست گارانتی پیش‌فرض تنظیم نشده؛ در صورت ارائه گارانتی، تاریخ‌ها را دستی وارد کنید.', 'pixva' ) ) . '</p></td></tr>';
@@ -1054,6 +1054,93 @@ function pixva_render_order_box( $post ) {
 	}
 	echo '</tbody></table>';
 }
+
+/**
+ * Keyed fingerprint of an internal-notes value (wp_hash: salted, so the form
+ * does not carry the note text, and the value cannot be guessed offline).
+ *
+ * @param mixed $value Notes value.
+ * @return string
+ */
+function pixva_notes_fingerprint( $value ) {
+	return wp_hash( (string) $value );
+}
+
+/**
+ * Save internal notes only if they still match what the form was loaded with.
+ *
+ * Read the current notes, compare their fingerprint with the one the form sent,
+ * and write, all under the order lock. The public note path appends under the
+ * same lock, so a note added after the form was loaded is never overwritten
+ * silently. A missing fingerprint (page loaded before this version) is refused.
+ *
+ * Residual: the compare and the write are two statements under the advisory
+ * lock. A stale lock owner can still write after a takeover (see F5 in
+ * docs/pixva-write-path-review.md). This is not a database transaction.
+ *
+ * @param int    $order_id Order id.
+ * @param string $notes_new Sanitised new notes.
+ * @param string $base     Fingerprint the form was loaded with.
+ * @return string 'saved', 'same', 'conflict' or 'busy'.
+ */
+function pixva_save_order_notes_cas( $order_id, $notes_new, $base ) {
+	$result = pixva_with_order_lock(
+		$order_id,
+		static function () use ( $order_id, $notes_new, $base ) {
+			$current = (string) get_post_meta( $order_id, '_pixva_order_notes', true );
+			if ( '' === $base || ! hash_equals( pixva_notes_fingerprint( $current ), $base ) ) {
+				return 'conflict';
+			}
+			if ( $notes_new === $current ) {
+				return 'same';
+			}
+			update_post_meta( $order_id, '_pixva_order_notes', wp_slash( $notes_new ) );
+			return 'saved';
+		}
+	);
+	if ( is_wp_error( $result ) ) {
+		return 'busy';
+	}
+	return (string) $result;
+}
+
+/**
+ * Remember a refused notes save for the next admin screen of this user.
+ *
+ * @param int    $user_id  User.
+ * @param int    $order_id Order.
+ * @param string $reason   Reason code.
+ * @return void
+ */
+function pixva_notes_set_notice( $user_id, $order_id, $reason ) {
+	set_transient(
+		'pixva_notes_notice_' . (int) $user_id,
+		array(
+			'order'  => (int) $order_id,
+			'reason' => (string) $reason,
+		),
+		120
+	);
+}
+
+/**
+ * Show the refused-notes notice (admin screens only; no note text is shown).
+ *
+ * @return void
+ */
+function pixva_notes_admin_notice() {
+	$key    = 'pixva_notes_notice_' . get_current_user_id();
+	$notice = get_transient( $key );
+	if ( ! is_array( $notice ) ) {
+		return;
+	}
+	delete_transient( $key );
+	$message = 'conflict' === ( $notice['reason'] ?? '' )
+		? __( 'یادداشت داخلی همزمان تغییر کرده است و یادداشت شما ذخیره نشد. صفحه را دوباره باز کنید و متن را دوباره وارد کنید.', 'pixva' )
+		: __( 'ذخیره یادداشت داخلی ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' );
+	echo '<div class="notice notice-error"><p>' . esc_html( $message ) . '</p></div>';
+}
+add_action( 'admin_notices', 'pixva_notes_admin_notice' );
 
 /**
  * Save the order management box.
@@ -1129,7 +1216,15 @@ function pixva_save_order_box( $post_id ) {
 		}
 	}
 	if ( isset( $in['notes'] ) ) {
-		update_post_meta( $post_id, '_pixva_order_notes', wp_slash( sanitize_textarea_field( (string) $in['notes'] ) ) );
+		// Compare-and-write under the order lock (see pixva_save_order_notes_cas()).
+		$notes_result = pixva_save_order_notes_cas(
+			$post_id,
+			sanitize_textarea_field( (string) $in['notes'] ),
+			isset( $in['notes_base'] ) ? sanitize_text_field( (string) $in['notes_base'] ) : ''
+		);
+		if ( 'saved' !== $notes_result && 'same' !== $notes_result ) {
+			pixva_notes_set_notice( get_current_user_id(), $post_id, $notes_result );
+		}
 	}
 	if ( isset( $in['technician'] ) ) {
 		$tech = absint( $in['technician'] );

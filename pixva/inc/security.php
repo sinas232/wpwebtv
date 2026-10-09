@@ -527,6 +527,15 @@ function pixva_prune_expiring_rows() {
 			$ttl = 'linked' === $row['s'] ? PIXVA_ORDER_LINK_TTL : PIXVA_CLAIM_PENDING_TTL;
 			return (int) $row['t'] + $ttl <= $now;
 		},
+		// Inbox reservations (pixva_msg_): same rule as order reservations.
+		'pixva_msg_'   => static function ( $value ) use ( $now ) {
+			$row = json_decode( $value, true );
+			if ( ! is_array( $row ) || ! isset( $row['s'], $row['t'] ) ) {
+				return false;
+			}
+			$life = 'linked' === $row['s'] ? PIXVA_ORDER_LINK_TTL : PIXVA_CLAIM_PENDING_TTL;
+			return (int) $row['t'] + $life <= $now;
+		},
 		// Claims: an outcome past its TTL, or a pending claim past its TTL, is dead.
 		'pixva_sub_' => static function ( $value ) use ( $now ) {
 			$row = json_decode( $value, true );

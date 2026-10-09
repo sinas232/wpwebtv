@@ -425,24 +425,27 @@ function pixva_handle_contact() {
 	if ( $e ) {
 		return pixva_validation_error( $e );
 	}
-	$id = wp_insert_post(
+	// One message per submission id (pixva_place_inbox_once), then at-least-once staff email.
+	$sid = pixva_normalize_submission_id( pixva_get_post_var( '_pixva_sid' ) );
+	$id  = pixva_place_inbox_once(
+		$sid,
 		array(
-			'post_type'   => 'pixva_inbox',
-			'post_status' => 'private',
-			/* translators: %s: date. */
-			'post_title'  => sprintf( __( 'پیام %s', 'pixva' ), wp_date( 'Y-m-d H:i' ) ),
-			'post_author' => 0,
-		),
-		true
+			'name'  => $name,
+			'phone' => $phone,
+			'email' => $email,
+			'body'  => $message,
+		)
 	);
 	if ( is_wp_error( $id ) ) {
 		return new WP_Error( 'save', __( 'ارسال پیام ممکن نشد. لطفاً دوباره تلاش کنید.', 'pixva' ), array( 'status' => 500 ) );
 	}
-	update_post_meta( $id, '_pixva_msg_name', wp_slash( $name ) );
-	update_post_meta( $id, '_pixva_msg_phone', wp_slash( $phone ) );
-	update_post_meta( $id, '_pixva_msg_email', wp_slash( $email ) );
-	update_post_meta( $id, '_pixva_msg_body', wp_slash( $message ) );
-	pixva_safe_mail( pixva_notify_email(), __( 'پیام جدید از فرم تماس', 'pixva' ), __( 'پیام جدیدی ثبت شد:', 'pixva' ) . ' ' . admin_url( 'post.php?post=' . (int) $id . '&action=edit' ) );
+	pixva_inbox_mail_once(
+		$sid,
+		$id,
+		static function ( $message_id ) {
+			return pixva_safe_mail( pixva_notify_email(), __( 'پیام جدید از فرم تماس', 'pixva' ), __( 'پیام جدیدی ثبت شد:', 'pixva' ) . ' ' . admin_url( 'post.php?post=' . (int) $message_id . '&action=edit' ) );
+		}
+	);
 	return array( 'message' => __( 'پیام شما دریافت شد. به‌زودی پاسخ می‌دهیم.', 'pixva' ) );
 }
 

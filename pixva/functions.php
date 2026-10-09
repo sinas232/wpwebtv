@@ -46,6 +46,7 @@ $pixva_modules = array(
 	'admin',
 	'migration',
 	'audit',
+	'inbox',
 );
 
 foreach ( $pixva_modules as $pixva_module ) {

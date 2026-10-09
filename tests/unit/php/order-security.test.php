@@ -38,7 +38,13 @@ class WP_Error {
 	public function __construct( $code = '', $message = '', $data = null ) {
 		$this->code    = $code;
 		$this->message = $message;
-		$this->data    = $data;
+			$this->data    = $data;
+	}
+	public function get_error_code() {
+		return $this->code;
+	}
+	public function get_error_message() {
+		return $this->message;
 	}
 }
 function is_wp_error( $thing ) {
@@ -301,11 +307,86 @@ function current_user_can( $cap, ...$args ) {
 	return ! empty( $GLOBALS['can'] );
 }
 
+function get_option( $name, $default = false ) {
+	return array_key_exists( $name, $GLOBALS['wpdb']->rows ) ? $GLOBALS['wpdb']->rows[ $name ] : $default;
+}
+function add_option( $name, $value = '', $deprecated = '', $autoload = 'yes' ) {
+	// UNIQUE(option_name) enforced by FakeWpdb::insert(), as in WordPress.
+	return (bool) $GLOBALS['wpdb']->insert( 'wp_options', array( 'option_name' => $name, 'option_value' => (string) $value ) );
+}
+function update_option( $name, $value, $autoload = null ) {
+	$GLOBALS['wpdb']->rows[ $name ] = (string) $value;
+	return true;
+}
+function wp_hash( $data, $scheme = 'auth' ) {
+	return hash_hmac( 'sha256', (string) $data, 'test-salt' );
+}
+function esc_html( $s ) {
+	return htmlspecialchars( (string) $s, ENT_QUOTES );
+}
+function esc_attr( $s ) {
+	return htmlspecialchars( (string) $s, ENT_QUOTES );
+}
+function esc_textarea( $s ) {
+	return htmlspecialchars( (string) $s, ENT_QUOTES );
+}
+function absint( $n ) {
+	return abs( (int) $n );
+}
+function wp_verify_nonce( $nonce, $action = '' ) {
+	return 'good' === $nonce;
+}
+function wp_is_post_revision( $id ) {
+	return false;
+}
+function remove_action( $tag, $cb, $priority = 10 ) {
+	return true;
+}
+function delete_post_meta( $id, $key ) {
+	unset( $GLOBALS['post_meta'][ $id ][ $key ] );
+	return true;
+}
+// Install-path stubs (used only if a migration runs; P6 checks that it does not).
+// Recorders for the install steps (defined in other modules; not loaded here).
+function pixva_register_content_model() {
+	$GLOBALS['install_steps'][] = 'content';
+}
+function pixva_install() {
+	$GLOBALS['install_steps'][] = 'install';
+}
+function get_role( $name ) {
+	return null;
+}
+function add_role( ...$args ) {
+	return null;
+}
+function get_users( $args = array() ) {
+	return array();
+}
+function register_post_type( ...$args ) {
+	return null;
+}
+function register_taxonomy( ...$args ) {
+	return null;
+}
+function flush_rewrite_rules( ...$args ) {
+	return null;
+}
+function get_current_user_id() {
+	return (int) ( $GLOBALS['current_user'] ?? 0 );
+}
+function user_can( $user_id, $cap ) {
+	return in_array( $cap, $GLOBALS['users'][ (int) $user_id ]['caps'] ?? array(), true );
+}
+
 $root = dirname( __DIR__, 3 ) . '/pixva/inc/';
 require_once $root . 'helpers.php';
 require_once $root . 'security.php';
 require_once $root . 'repairs.php';
 require_once $root . 'audit.php';
+require_once $root . 'inbox.php';
+require_once $root . 'capabilities.php';
+require_once $root . 'migration.php';
 
 // ---------------------------------------------------------------------------
 // Harness.
@@ -1239,5 +1320,502 @@ check( 'H11 audit.php has no write, delete or private_dir() call (static check)'
 
 
 // ---------------------------------------------------------------------------
+// M. Contact inbox (pixva/inc/inbox.php), Round 4 / F1. Simulated store:
+//    the stubbed wpdb and post store, not MySQL. Crashes are exceptions thrown
+//    from the pixva_inbox_* hooks at the exact step being tested.
+// ---------------------------------------------------------------------------
+class SimulatedCrash extends RuntimeException {}
+function inbox_fields() {
+	return array( 'name' => 'Sara', 'phone' => '09121234567', 'email' => '', 'body' => 'hello there, the set is dead' );
+}
+function inbox_posts() {
+	return array_values( array_filter( array_keys( $GLOBALS['post_rows'] ), fn( $id ) => 'pixva_inbox' === $GLOBALS['post_rows'][ $id ]['post_type'] ) );
+}
+function inbox_msg_row( $s ) {
+	return json_decode( (string) ( $GLOBALS['wpdb']->rows[ 'pixva_msg_' . $s ] ?? '' ), true );
+}
+function inbox_crash_at( $hook ) {
+	add_action( $hook, function () {
+		throw new SimulatedCrash( 'simulated crash' );
+	} );
+}
+function inbox_clear_hooks() {
+	$GLOBALS['hooks']['action'] = array();
+}
+function inbox_mailer( &$log ) {
+	return function ( $id ) use ( &$log ) {
+		$log[] = $id;
+		return true;
+	};
+}
+function inbox_try( callable $fn ) {
+	try {
+		return $fn();
+	} catch ( SimulatedCrash $e ) {
+		return 'crashed';
+	}
+}
+
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x40 );
+
+// M0 the claim already admits one request per id; a second concurrent request is refused.
+$m_first  = pixva_claim_submission( $m_sid );
+$m_second = pixva_claim_submission( $m_sid );
+check( 'M0 a second request with the same id gets a pending claim, not a second run', true === $m_first && is_array( $m_second ) && ! empty( $m_second['pending'] ) );
+pixva_release_submission( $m_sid );
+
+// M1 first placement inserts one inbox post named by the submission id, linked.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x41 );
+$id1                   = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M1 first placement creates one inbox post named by the id', is_int( $id1 ) && 1 === count( inbox_posts() ) && $GLOBALS['post_rows'][ $id1 ]['post_name'] === $m_sid );
+check( 'M1 the reservation links that post', ( inbox_msg_row( $m_sid )['s'] ?? '' ) === 'linked' && (int) inbox_msg_row( $m_sid )['o'] === $id1 );
+check( 'M1 the message fields are stored', ( $GLOBALS['post_meta'][ $id1 ]['_pixva_msg_body'] ?? '' ) === inbox_fields()['body'] );
+
+// M2 the same id again: same post, no second insert.
+$id2 = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M2 the same id returns the same post and inserts nothing', $id2 === $id1 && 1 === count( inbox_posts() ) && 1 === count( $GLOBALS['insert_log'] ) );
+
+// M3 crash after the insert, before the link; the claim has expired; the retry adopts the same post.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x42 );
+inbox_crash_at( 'pixva_inbox_before_link' );
+$r3a = inbox_try( fn() => pixva_place_inbox_once( $m_sid, inbox_fields() ) );
+inbox_clear_hooks();
+check( 'M3 the crash happened after the insert and before the link', 'crashed' === $r3a && 1 === count( inbox_posts() ) && ( inbox_msg_row( $m_sid )['s'] ?? '' ) === 'creating' );
+set_clock( 3600 * 300 + PIXVA_CLAIM_PENDING_TTL + 5 );
+$r3b = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M3 the retry after the TTL adopts the crashed post: still one message', is_int( $r3b ) && 1 === count( inbox_posts() ) && $r3b === (int) ( inbox_posts()[0] ?? 0 ) );
+check( 'M3 the retry links the reservation to that post', (int) ( inbox_msg_row( $m_sid )['o'] ?? 0 ) === $r3b );
+
+// M4 crash after the link, before the mail. The retry sends the mail once and does not create a message.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$mail                  = array();
+$m_sid                 = sid( 0x43 );
+$id4                   = pixva_place_inbox_once( $m_sid, inbox_fields() );
+inbox_crash_at( 'pixva_inbox_before_mail' );
+$mailer4 = inbox_mailer( $mail );
+$r4a     = inbox_try( function () use ( $m_sid, $id4, $mailer4 ) {
+	return pixva_inbox_mail_once( $m_sid, $id4, $mailer4 );
+} );
+inbox_clear_hooks();
+check( 'M4 a crash before the mail sends nothing', 'crashed' === $r4a && array() === $mail );
+$id4b = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M4 the retry returns the linked message without inserting', $id4b === $id4 && 1 === count( inbox_posts() ) );
+pixva_inbox_mail_once( $m_sid, $id4b, $mailer4 );
+check( 'M4 the retry sends the mail exactly once', $mail === array( $id4 ) );
+
+// M5 crash after the mail, before the marker. The mail may repeat (documented); it is never lost.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$mail                  = array();
+$m_sid                 = sid( 0x44 );
+$id5                   = pixva_place_inbox_once( $m_sid, inbox_fields() );
+$mailer5               = inbox_mailer( $mail );
+inbox_crash_at( 'pixva_inbox_before_mark' );
+$r5a = inbox_try( function () use ( $m_sid, $id5, $mailer5 ) {
+	return pixva_inbox_mail_once( $m_sid, $id5, $mailer5 );
+} );
+inbox_clear_hooks();
+check( 'M5 the mail went out before the crash', 'crashed' === $r5a && $mail === array( $id5 ) );
+check( 'M5 the marker was not written, so the state still says "not mailed"', empty( inbox_msg_row( $m_sid )['m'] ?? null ) );
+pixva_inbox_mail_once( $m_sid, $id5, $mailer5 );
+check( 'M5 the retry mails again (at-least-once in this window): two sends, no loss', $mail === array( $id5, $id5 ) );
+pixva_inbox_mail_once( $m_sid, $id5, $mailer5 );
+check( 'M5 after the marker is written, further attempts do not mail', count( $mail ) === 2 && 1 === (int) inbox_msg_row( $m_sid )['m'] );
+
+// M6 crash before the mail call and after the link: the email is not lost on retry (marker is written after mail).
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$mail                  = array();
+$m_sid                 = sid( 0x45 );
+$id6                   = pixva_place_inbox_once( $m_sid, inbox_fields() );
+$mailer6 = inbox_mailer( $mail );
+inbox_crash_at( 'pixva_inbox_before_mail' );
+inbox_try( function () use ( $m_sid, $id6, $mailer6 ) {
+	return pixva_inbox_mail_once( $m_sid, $id6, $mailer6 );
+} );
+inbox_clear_hooks();
+pixva_inbox_mail_once( $m_sid, $id6, $mailer6 );
+check( 'M6 the email is not lost when the crash comes before the mail', $mail === array( $id6 ) );
+
+// M7 two attempts with the same id, interleaved: B runs while A is between insert and link.
+// A is live, so B must NOT take over: B returns busy and inserts nothing; A links and returns its id.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x46 );
+$b_result              = null;
+add_action(
+	'pixva_inbox_before_link',
+	function () use ( $m_sid, &$b_result ) {
+		static $ran = false;
+		if ( $ran ) {
+			return;
+		}
+		$ran      = true;
+		$b_result = pixva_place_inbox_once( $m_sid, inbox_fields() ); // B runs to completion first.
+	}
+);
+$a_result = pixva_place_inbox_once( $m_sid, inbox_fields() );
+inbox_clear_hooks();
+check( 'M7 the first attempt returns its message id', is_int( $a_result ) );
+check( 'M7 the second attempt, while the first is live, returns busy (no takeover)', is_wp_error( $b_result ) && 'busy' === $b_result->get_error_code() );
+check( 'M7 exactly one inbox post exists for the id', 1 === count( inbox_posts() ) );
+check( 'M7 the reservation is linked to that post', (int) ( inbox_msg_row( $m_sid )['o'] ?? 0 ) === $a_result );
+
+// M8 a message linked to a post that was deleted: the next attempt takes it over (no dangling link).
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x47 );
+$id8                   = pixva_place_inbox_once( $m_sid, inbox_fields() );
+wp_delete_post( $id8, true );
+$id8b = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M8 a link to a deleted message is replaced by a new message for the same id', is_int( $id8b ) && $id8b !== $id8 && 1 === count( inbox_posts() ) );
+
+// M9 a reservation with an unreadable value is taken over; the placement does not stop.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m_sid                 = sid( 0x48 );
+$GLOBALS['wpdb']->rows[ 'pixva_msg_' . $m_sid ] = 'not-json';
+$id9 = pixva_place_inbox_once( $m_sid, inbox_fields() );
+check( 'M9 an unreadable reservation is taken over and the message is placed', is_int( $id9 ) && 1 === count( inbox_posts() ) );
+
+// M10 the prune spec covers the new prefix: a linked row older than the link TTL goes; a fresh one stays.
+reset_state();
+set_clock( 3600 * 300 );
+$now_m = pixva_now();
+$GLOBALS['wpdb']->rows['pixva_msg_' . sid( 0x49 )] = wp_json_encode( array( 's' => 'linked', 'o' => 9, 't' => $now_m - PIXVA_ORDER_LINK_TTL - 1 ) );
+$GLOBALS['wpdb']->rows['pixva_msg_' . sid( 0x4a )] = wp_json_encode( array( 's' => 'linked', 'o' => 10, 't' => $now_m - 60 ) );
+$GLOBALS['wpdb']->rows['pixva_msg_' . sid( 0x4e )] = wp_json_encode( array( 's' => 'linked', 'o' => 11, 't' => $now_m - PIXVA_CLAIM_PENDING_TTL - 3600 ) );
+pixva_prune_expiring_rows();
+check( 'M10 a linked message past the claim TTL but inside the link TTL is kept', isset( $GLOBALS['wpdb']->rows[ 'pixva_msg_' . sid( 0x4e ) ] ) );
+check( 'M10 an expired message link is pruned and a fresh one kept', ! isset( $GLOBALS['wpdb']->rows[ 'pixva_msg_' . sid( 0x49 ) ] ) && isset( $GLOBALS['wpdb']->rows[ 'pixva_msg_' . sid( 0x4a ) ] ) );
+
+// M11 static: the handler sends mail only through the mail-once path (no direct wp_insert_post for pixva_inbox left in forms.php).
+$forms_src = (string) file_get_contents( $root . 'forms.php' );
+$h_start   = strpos( $forms_src, 'function pixva_handle_contact()' );
+$h_end     = strpos( $forms_src, 'function pixva_inbox_meta_box()' );
+$h_body    = false === $h_start || false === $h_end ? '' : substr( $forms_src, $h_start, $h_end - $h_start );
+check( 'M11 the contact handler inserts through pixva_place_inbox_once and mails through pixva_inbox_mail_once', false !== strpos( $h_body, 'pixva_place_inbox_once(' ) && false !== strpos( $h_body, 'pixva_inbox_mail_once(' ) && false === strpos( $h_body, 'wp_insert_post(' ) );
+
+
+// ---------------------------------------------------------------------------
+
+// M12: a live "creating" attempt is not taken over (no second message while it is between insert and link).
+$m12_sid = sid( 0x4b );
+$GLOBALS['post_rows'][960] = array( 'post_type' => 'pixva_inbox', 'post_name' => $m12_sid );
+$GLOBALS['wpdb']->rows[ 'pixva_msg_' . $m12_sid ] = wp_json_encode( array( 's' => 'creating', 'k' => 'live-attempt', 't' => pixva_now() ) );
+$m12_before = $GLOBALS['post_rows'];
+$r12a       = pixva_place_inbox_once( $m12_sid, inbox_fields() );
+check( 'M12 a live creating row returns busy, not a second message', is_wp_error( $r12a ) && 'busy' === $r12a->get_error_code() );
+check( 'M12 no new inbox post while the other attempt is live', $m12_before === $GLOBALS['post_rows'] && 1 === count( inbox_posts() ) );
+check( 'M12 the live attempt keeps its reservation', 'live-attempt' === ( inbox_msg_row( $m12_sid )['k'] ?? '' ) );
+$GLOBALS['wpdb']->rows[ 'pixva_msg_' . $m12_sid ] = wp_json_encode( array( 's' => 'creating', 'k' => 'dead', 't' => pixva_now() - PIXVA_CLAIM_PENDING_TTL - 1 ) );
+$r12b = pixva_place_inbox_once( $m12_sid, inbox_fields() );
+check( 'M12 an expired creating row is taken over and adopts the existing post', is_int( $r12b ) && 960 === $r12b && 1 === count( inbox_posts() ) );
+
+// M13: a stalled attempt whose reservation expired and was taken over must not insert a second message.
+reset_state();
+set_clock( 3600 * 300 );
+$GLOBALS['insert_log'] = array();
+$m13_sid = sid( 0x4c );
+$m13_b   = null;
+add_action(
+	'pixva_inbox_before_insert',
+	function () use ( $m13_sid, &$m13_b ) {
+		static $ran = false;
+		if ( $ran ) {
+			return;
+		}
+		$ran = true;
+		// Time passes: the stalled attempt's row expires, and another request takes it over and places the message.
+		$GLOBALS['wpdb']->rows[ 'pixva_msg_' . $m13_sid ] = wp_json_encode( array( 's' => 'creating', 'k' => 'stalled', 't' => pixva_now() - PIXVA_CLAIM_PENDING_TTL - 1 ) );
+		$m13_b = pixva_place_inbox_once( $m13_sid, inbox_fields() );
+	}
+);
+$m13_a = pixva_place_inbox_once( $m13_sid, inbox_fields() );
+inbox_clear_hooks();
+check( 'M13 the taken-over stalled attempt returns the message the other attempt placed', is_int( $m13_b ) && $m13_a === $m13_b );
+check( 'M13 the stalled attempt inserts nothing: exactly one inbox post', 1 === count( inbox_posts() ) );
+check( 'M13 the reservation links the one post', (int) ( inbox_msg_row( $m13_sid )['o'] ?? 0 ) === $m13_b );
+
+// ---------------------------------------------------------------------------
+// N. Round 4 / F2: internal notes compare-and-write (repairs.php).
+//    SIMULATED: the other writer runs between the staff member's page load
+//    (which sends the fingerprint) and the save, on the stubbed store. Real
+//    MySQL row locking is NOT TESTED here.
+// ---------------------------------------------------------------------------
+function n_setup( $notes ) {
+	reset_state();
+	$GLOBALS['post_meta'][101]['_pixva_order_code']  = 'PXV-ABC-123';
+	$GLOBALS['post_meta'][101]['_pixva_order_notes'] = $notes;
+	$GLOBALS['current_user'] = 7;
+}
+function n_post( $fields, $nonce = 'good' ) {
+	$_POST = array( 'pixva_order_admin_nonce' => $nonce, 'pixva_o' => $fields );
+}
+function n_notes() {
+	return (string) ( $GLOBALS['post_meta'][101]['_pixva_order_notes'] ?? '' );
+}
+function n_public_append( $text ) {
+	// Same write shape as the public note path in pixva_handle_order_update().
+	pixva_with_order_lock( 101, static function () use ( $text ) {
+		$cur = (string) get_post_meta( 101, '_pixva_order_notes', true );
+		update_post_meta( 101, '_pixva_order_notes', trim( $cur . "\n" . $text ) );
+		return true;
+	} );
+}
+function n_notice_reason_for( $uid ) {
+	$n = get_transient( 'pixva_notes_notice_' . $uid );
+	return is_array( $n ) ? $n['reason'] : '';
+}
+function n_notice_reason() {
+	$n = get_transient( 'pixva_notes_notice_7' );
+	return is_array( $n ) ? $n['reason'] : '';
+}
+
+n_setup( 'old note' );
+$n_base0 = pixva_notes_fingerprint( 'old note' );
+check( 'N0 the fingerprint is not the note text', $n_base0 !== 'old note' && strlen( $n_base0 ) === 64 );
+
+// N1: a note added after the form was loaded is not overwritten.
+n_public_append( 'customer asks about delivery' );
+n_post( array( 'notes' => 'staff text', 'notes_base' => $n_base0 ) );
+pixva_save_order_box( 101 );
+check( 'N1 public note added after load survives the staff save', n_notes() === "old note\ncustomer asks about delivery", n_notes() );
+check( 'N1 the refused save records a conflict notice for this user', n_notice_reason() === 'conflict', n_notice_reason() );
+
+// N2: the reloaded form (current fingerprint) saves.
+n_post( array( 'notes' => 'staff text', 'notes_base' => pixva_notes_fingerprint( n_notes() ) ) );
+pixva_save_order_box( 101 );
+check( 'N2 a save from a current form is written', n_notes() === 'staff text', n_notes() );
+
+// N3: two staff members load the same notes; A saves, B's save is refused.
+$n_base2 = pixva_notes_fingerprint( 'staff text' );
+n_post( array( 'notes' => 'A text', 'notes_base' => $n_base2 ) );
+pixva_save_order_box( 101 );
+$GLOBALS['current_user'] = 8;
+n_post( array( 'notes' => 'B text', 'notes_base' => $n_base2 ) );
+pixva_save_order_box( 101 );
+check( 'N3 concurrent two-note save: first writer kept, second refused', n_notes() === 'A text', n_notes() );
+check( 'N3 the refused writer (user 8) is told the save was refused', n_notice_reason_for( 8 ) === 'conflict' );
+
+// N4: a form without a fingerprint (page loaded before this version) is refused.
+n_post( array( 'notes' => 'no base' ) );
+pixva_save_order_box( 101 );
+check( 'N4 missing fingerprint: nothing written', n_notes() === 'A text', n_notes() );
+
+// N5: a wrong fingerprint is refused.
+n_post( array( 'notes' => 'bad base', 'notes_base' => 'deadbeef' ) );
+pixva_save_order_box( 101 );
+check( 'N5 wrong fingerprint: nothing written', n_notes() === 'A text', n_notes() );
+
+// N6: unchanged text is a no-op.
+n_post( array( 'notes' => 'A text', 'notes_base' => pixva_notes_fingerprint( 'A text' ) ) );
+pixva_save_order_box( 101 );
+check( 'N6 same text with a current fingerprint: value unchanged', n_notes() === 'A text', n_notes() );
+
+// N7: the notice shows no note text.
+$GLOBALS['current_user'] = 8;
+pixva_notes_set_notice( 8, 101, 'conflict' );
+ob_start();
+pixva_notes_admin_notice();
+$n_out = ob_get_clean();
+check( 'N7 notice text is shown and contains no note text', false !== strpos( $n_out, 'همزمان' ) && false === strpos( $n_out, 'A text' ) );
+check( 'N7 notice is shown once', '' === ( function () { ob_start(); pixva_notes_admin_notice(); return ob_get_clean(); } )() );
+
+// N8: no edit_post => the meta-box save changes nothing (F3 gate).
+n_setup( 'keep me' );
+$GLOBALS['can'] = false;
+n_post( array( 'notes' => 'attack', 'notes_base' => pixva_notes_fingerprint( 'keep me' ), 'brand' => 'X' ) );
+pixva_save_order_box( 101 );
+check( 'N8 no edit capability: notes and brand unchanged', n_notes() === 'keep me' && ! isset( $GLOBALS['post_meta'][101]['_pixva_order_brand'] ) );
+
+// N9: bad nonce changes nothing.
+$GLOBALS['can'] = true;
+n_post( array( 'notes' => 'attack', 'notes_base' => pixva_notes_fingerprint( 'keep me' ) ), 'bad' );
+pixva_save_order_box( 101 );
+check( 'N9 bad nonce: nothing written', n_notes() === 'keep me' );
+
+// ---------------------------------------------------------------------------
+// O. Round 4 / F3: authorisation matrix. SIMULATED: user_can() and the core
+//    edit_post mapping are simulated from the plugin's own role table; core
+//    meta-cap mapping in a real WordPress is NOT TESTED here.
+// ---------------------------------------------------------------------------
+n_setup( 'o-notes' );
+$GLOBALS['post_meta'][101]['_pixva_technician_id'] = 4;
+$GLOBALS['post_meta'][101]['_pixva_customer_id']   = 6;
+$GLOBALS['post_rows'][101]                          = array( 'post_type' => 'pixva_orders', 'post_name' => 'pxv-abc-123' );
+$GLOBALS['users'] = array(
+	1 => array( 'label' => 'admin',                 'caps' => array_merge( pixva_role_caps()['administrator'], array( 'read' ) ) ),
+	2 => array( 'label' => 'manager',               'caps' => pixva_role_caps()['pixva_manager'] ),
+	3 => array( 'label' => 'work-orders-only',      'caps' => array( 'pixva_work_orders' ) ),
+	4 => array( 'label' => 'responsible-technician', 'caps' => pixva_role_caps()['pixva_technician'] ),
+	5 => array( 'label' => 'non-responsible-technician', 'caps' => pixva_role_caps()['pixva_technician'] ),
+	6 => array( 'label' => 'customer-owner',        'caps' => pixva_role_caps()['pixva_customer'] ),
+	7 => array( 'label' => 'customer-other',        'caps' => pixva_role_caps()['pixva_customer'] ),
+);
+function f3_can( $uid, $cap, $order = 101 ) {
+	$caps   = $GLOBALS['users'][ $uid ]['caps'];
+	$mapped = pixva_map_meta_cap( array( 'do_not_allow' ), $cap, $uid, array( $order ) );
+	foreach ( $mapped as $m ) {
+		if ( 'do_not_allow' === $m || ! in_array( $m, $caps, true ) ) {
+			return false;
+		}
+	}
+	return ! empty( $mapped );
+}
+$f3_expect = array(
+	// uid => [ pixva_work_order, pixva_view_order, core edit_post (edit_others), pii ]
+	1 => array( true,  true,  true,  true ),
+	2 => array( true,  true,  true,  true ),
+	3 => array( false, false, false, false ),
+	4 => array( true,  true,  false, false ),
+	5 => array( false, false, false, false ),
+	6 => array( false, true,  false, false ),
+	7 => array( false, false, false, false ),
+);
+foreach ( $f3_expect as $uid => $exp ) {
+	$lab = $GLOBALS['users'][ $uid ]['label'];
+	check( "O $lab pixva_work_order (status/notes via form)", f3_can( $uid, 'pixva_work_order' ) === $exp[0] );
+	check( "O $lab pixva_view_order", f3_can( $uid, 'pixva_view_order' ) === $exp[1] );
+	check( "O $lab edit_post (simulated core mapping to edit_others)", in_array( 'edit_others_pixva_orders', $GLOBALS['users'][ $uid ]['caps'], true ) === $exp[2] );
+	check( "O $lab pixva_view_order_pii (PII fields)", in_array( 'pixva_view_order_pii', $GLOBALS['users'][ $uid ]['caps'], true ) === $exp[3] );
+}
+
+// O-save: every meta-box save path, for each role, with edit_post as simulated.
+foreach ( $f3_expect as $uid => $exp ) {
+	n_setup( 'o-notes' );
+	$GLOBALS['post_meta'][101]['_pixva_technician_id'] = 4;
+	$GLOBALS['post_meta'][101]['_pixva_customer_id']   = 6;
+	$GLOBALS['current_user'] = $uid;
+	$GLOBALS['can']          = $exp[2];
+	$before = $GLOBALS['post_meta'][101];
+	n_post(
+		array(
+			'notes'      => 'changed',
+			'notes_base' => pixva_notes_fingerprint( 'o-notes' ),
+			'brand'      => 'Brand2',
+			'model'      => 'M2',
+			'estimate'   => '999',
+			'name'       => 'Nope',
+			'phone'      => '09121112222',
+			'w_start'    => '2026-01-01',
+		)
+	);
+	pixva_save_order_box( 101 );
+	$lab = $GLOBALS['users'][ $uid ]['label'];
+	if ( $exp[2] ) {
+		check( "O-save $lab (edit allowed) is written", n_notes() === 'changed' );
+	} else {
+		check( "O-save $lab (edit denied) changes nothing", $before === $GLOBALS['post_meta'][101] );
+	}
+}
+
+// ---------------------------------------------------------------------------
+// P. Round 4 / F7: migration lock and per-order migration.
+// ---------------------------------------------------------------------------
+reset_state();
+$GLOBALS['post_meta'][101]['_pixva_order_code'] = 'PXV-ABC-123';
+$p_t1 = pixva_migration_lock_acquire();
+check( 'P1 first migration run acquires the lock', is_string( $p_t1 ) && '' !== $p_t1 );
+check( 'P2 a second run while held does not acquire', null === pixva_migration_lock_acquire() );
+pixva_migration_lock_release( 'not-the-token' );
+check( 'P3 release with a wrong token keeps the lock', null === pixva_migration_lock_acquire() );
+pixva_migration_lock_release( $p_t1 );
+$p_t2 = pixva_migration_lock_acquire();
+check( 'P4 release with the right token frees the lock', is_string( $p_t2 ) );
+pixva_migration_lock_release( $p_t2 );
+
+$GLOBALS['wpdb']->rows['pixva_migration_lock'] = 'crashed-owner|' . ( time() - PIXVA_MIGRATION_LOCK_TTL - 5 );
+$p_t3 = pixva_migration_lock_acquire();
+check( 'P5 a stale lock (crashed run) is taken over', is_string( $p_t3 ) );
+pixva_migration_lock_release( $p_t3 );
+
+reset_state();
+$GLOBALS['install_steps']                      = array();
+$GLOBALS['wpdb']->rows['pixva_migration_lock'] = 'live-owner|' . time();
+$GLOBALS['wpdb']->rows['pixva_db_version']     = '1.0.0';
+pixva_run_migrations();
+check( 'P6a while the lock is held, no install step runs', array() === $GLOBALS['install_steps'] );
+check( 'P6 run while another migration holds the lock: db version not touched', get_option( 'pixva_db_version' ) === '1.0.0' );
+check( 'P6b the other run\'s lock is still in place', str_starts_with( (string) get_option( 'pixva_migration_lock', '' ), 'live-owner|' ) );
+
+// P7: legacy steps map is converted once, and a second run does not change it.
+reset_state();
+$GLOBALS['post_meta'][101]['_pixva_order_code']  = 'PXV-ABC-123';
+$GLOBALS['post_meta'][101]['_pixva_order_steps'] = '{"new":100,"repaired":200}';
+$GLOBALS['post_meta'][101]['_pixva_order_status'] = 'repaired';
+pixva_migrate_order_v2( 101 );
+$p_once = $GLOBALS['post_meta'][101]['_pixva_order_steps'];
+$p_list = json_decode( $p_once, true );
+check( 'P7 legacy map converted to a list of history entries', is_array( $p_list ) && 2 === count( $p_list ) && 'new' === $p_list[0]['s'] && 200 === $p_list[1]['t'] );
+pixva_migrate_order_v2( 101 );
+check( 'P7b second migration run leaves history unchanged (no duplicates)', $GLOBALS['post_meta'][101]['_pixva_order_steps'] === $p_once );
+
+// P8: a status set and history written while migrating is not reverted.
+reset_state();
+$GLOBALS['post_meta'][101]['_pixva_order_code']   = 'PXV-ABC-123';
+$GLOBALS['post_meta'][101]['_pixva_order_status'] = 'delivered';
+$GLOBALS['post_meta'][101]['_pixva_order_steps']  = pixva_json_meta( array( array( 's' => 'new', 't' => 1, 'n' => '' ), array( 's' => 'delivered', 't' => 2, 'n' => '' ) ) );
+$p_before = $GLOBALS['post_meta'][101];
+pixva_migrate_order_v2( 101 );
+check( 'P8 valid status and existing list are not reverted or cleared', $p_before['_pixva_order_status'] === $GLOBALS['post_meta'][101]['_pixva_order_status'] && $p_before['_pixva_order_steps'] === $GLOBALS['post_meta'][101]['_pixva_order_steps'] );
+
+// P9: an invalid status is set to 'new' (existing behaviour, kept).
+$GLOBALS['post_meta'][101]['_pixva_order_status'] = 'garbage';
+pixva_migrate_order_v2( 101 );
+check( 'P9 invalid status set to new (unchanged rule)', 'new' === $GLOBALS['post_meta'][101]['_pixva_order_status'] );
+
+// P10: step 7 runs each order under the order lock (static check; runtime NOT TESTED).
+$p_src = (string) file_get_contents( $root . 'migration.php' );
+check( 'P10 step 7 calls pixva_migrate_order_v2 inside pixva_with_order_lock', (bool) preg_match( '/pixva_with_order_lock\(\s*\$oid,\s*static function \(\) use \( \$oid \) \{\s*pixva_migrate_order_v2\( \$oid \)/s', $p_src ) );
+check( 'P10b pixva_run_migrations takes the migration lock', (bool) preg_match( '/function pixva_run_migrations\(\) \{.*?pixva_migration_lock_acquire\(\).*?pixva_run_migrations_locked/s', $p_src ) );
+
+
+// ---------------------------------------------------------------------------
+// Q. Round 4 / F6: read-only private-photo report. No deletion is tested or
+//    implemented; the checks show the report carries name, size, mtime and a
+//    reason, with no absolute path, and that the files are still there.
+// ---------------------------------------------------------------------------
+$q_snap = array(
+	'submissions' => array(),
+	'reservations' => array(),
+	'orders'       => array(),
+	'files'        => array( 'orphan.jpg' ),
+	'file_info'    => array( 'orphan.jpg' => array( 'bytes' => 1234, 'mtime' => 1700000000 ) ),
+);
+$q_rep = pixva_audit_build( $q_snap, 3600 * 300 );
+$q_f   = array_values( array_filter( $q_rep['findings'], fn( $f ) => 'photo_unreferenced' === $f['code'] ) )[0] ?? array();
+check( 'Q1 unreferenced photo finding has relative name, size, mtime, reason and action=none',
+	( $q_f['id'] ?? '' ) === 'orphan.jpg' && ( $q_f['bytes'] ?? 0 ) === 1234 && ( $q_f['modified'] ?? '' ) === '2023-11-14T22:13:20+00:00' && ( $q_f['reason'] ?? '' ) === 'no_order_reference' && ( $q_f['action'] ?? '' ) === 'none' );
+
+$q_dir = sys_get_temp_dir() . '/pixva-audit-' . bin2hex( random_bytes( 4 ) );
+mkdir( $q_dir );
+file_put_contents( $q_dir . '/orphan.jpg', str_repeat( 'x', 77 ) );
+file_put_contents( $q_dir . '/.htaccess', 'deny' );
+$q_real = pixva_audit_build( pixva_audit_collect( $q_dir ), 3600 * 300 );
+$q_json = (string) json_encode( $q_real, JSON_UNESCAPED_SLASHES );
+check( 'Q2 real directory: file reported with its byte size', false !== strpos( $q_json, '"bytes":77' ) );
+check( 'Q3 report contains no absolute path of the private directory', false === strpos( $q_json, $q_dir ) && false === strpos( $q_json, sys_get_temp_dir() ) );
+check( 'Q4 read-only: the file still exists after the audit', is_file( $q_dir . '/orphan.jpg' ) && 77 === filesize( $q_dir . '/orphan.jpg' ) );
+unlink( $q_dir . '/orphan.jpg' );
+unlink( $q_dir . '/.htaccess' );
+rmdir( $q_dir );
+
 echo "\n$passed passed, $failed failed\n";
 exit( $failed ? 1 : 0 );

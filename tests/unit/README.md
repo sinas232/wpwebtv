@@ -13,8 +13,8 @@ Evidence kinds:
 
 | Suite | Evidence | Command | Result |
 |---|---|---|---|
-| `php/order-security.test.php` (135 checks, sections A–K) | Unit (stubbed WordPress and wpdb) | `PHP=8.3 php-wasm-cli tests/unit/php/order-security.test.php` | `135 passed, 0 failed` |
-| `php/mutation-controls.py` (19 controls: 15 order/IP/lock, 4 audit) | Unit, negative controls | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=19 survivors=0` (see the final line of the run) |
+| `php/order-security.test.php` (233 checks, sections A–Q) | Unit (stubbed WordPress and wpdb; SIMULATED, not MySQL/MariaDB) | `php-wasm-cli tests/unit/php/order-security.test.php` | `233 passed, 0 failed` (Round 4 final run; see the Round 4 report for the run date and runner) |
+| `php/mutation-controls.py` (30 controls: 15 order/IP/lock, 4 audit, 11 Round 4: F1 inbox, F2 notes, F3 role, F6 report, F7 migration) | Unit, negative controls | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=30 survivors=0` (see the final line of the run) |
 | `php/render-fixtures.php` | Unit (writes `js/fixtures/render.json`) | `php-wasm-cli tests/unit/php/render-fixtures.php` | 3 fixtures; output identical to the committed file |
 | `db/reservation_sqlite_race.py` | Port on SQLite 3.40 (NOT MySQL/MariaDB) | `python3 tests/unit/db/reservation_sqlite_race.py 300 24` | `violations=0` over 300 rounds of 24 racing requests with random crashes (crashes are counted in the run output; recovery created exactly one order and one announcement each time) |
 | `php/audit` (section H of the PHP suite, read-only audit) | Unit (stubbed store, temp directory) | included in `order-security.test.php` | H1–H11 pass; H11 is a static check that `audit.php` has no write, delete or private-directory call |
@@ -27,6 +27,14 @@ Evidence kinds:
 The `PHP=8.3` variable in the commands above is not a version selector. The runner used for the Round 3 results is `@php-wasm/cli` 3.1.57, which runs PHP 8.5.10 (check with `php-wasm-cli -r 'echo PHP_VERSION;'`). Record the version actually run.
 
 `php-wasm-cli` can return exit code 0 even after a PHP fatal error. Read the `N passed, M failed` line and check for `Fatal`.
+
+## Round 4 sections (simulated; not MySQL/MariaDB, not WordPress)
+
+- **M. Contact inbox (F1):** Option A reservation `pixva_msg_<sid>` (UNIQUE option row, compare-and-replace). Covers same-SID concurrency (M7), crash after insert (M3), crash before/after the mail (M4–M6), retry, a live `creating` row returning `busy` (M12), a stalled attempt fenced after takeover (M13), and pruning of inbox reservations (M10). The email windows are simulated: a duplicate when the mail is sent before the marker and a crash follows (M5); no loss in the other order.
+- **N. Internal notes (F2):** compare-and-write under the order lock with a keyed fingerprint of the value the form was loaded with. Covers a note added after load (N1), a concurrent two-save race (N3), a missing or wrong fingerprint (N4, N5), and a notice that shows no note text (N7).
+- **O. Authorisation (F3):** the six-role matrix from the plugin's own role table, with `user_can()` and core `edit_post` simulated (`O` and `O-save`). Core meta-cap mapping in real WordPress is NOT TESTED.
+- **P. Migration (F7):** the run lock (acquire, held, wrong-token release, stale takeover), per-order migration idempotence, and no reversion of status or history.
+- **Q. Private-photo report (F6):** name, size, mtime and reason on the unreferenced-file finding; no absolute path in the output; the file still exists after the audit. No deletion code exists.
 
 ## What the PHP suite covers
 
@@ -62,6 +70,8 @@ The mutation set runs as a background process: it takes several minutes.
 | B1 | general budget refuses correct lookups | 1 |
 | I1 | forwarded header trusted from any peer | 3 |
 | I2 | chain walked from the left | 2 |
+
+The Round 4 controls (F1a–F1e inbox, F2a notes, F3a role path, F6a report, F7a–F7c migration) are in `mutation-controls.py` with the same rule: each must make the suite fail.
 
 `reservation_sqlite_race.py` has its own negative controls, run over 300 rounds each: `RACE_MUTANT=no_adopt` (recovery inserts again instead of adopting) gives violations in 104 rounds; `RACE_MUTANT=no_cas` (read-then-write replacement) gives violations in 146 rounds, most with two or more announcements.
 

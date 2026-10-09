@@ -69,6 +69,16 @@ function pixva_audit_collect( $private_dir ) {
 				continue;
 			}
 			$snap['files'][] = $file;
+
+			// Read-only stat, only for readable files. No paths are kept in the snapshot.
+			$path  = $private_dir . '/' . $file;
+			$size  = is_readable( $path ) ? filesize( $path ) : false;
+			$mtime = is_readable( $path ) ? filemtime( $path ) : false;
+
+			$snap['file_info'][ $file ] = array(
+				'bytes' => false === $size ? null : (int) $size,
+				'mtime' => false === $mtime ? 0 : (int) $mtime,
+			);
 		}
 	}
 	return $snap;
@@ -111,13 +121,16 @@ function pixva_audit_decode_list( $raw ) {
  */
 function pixva_audit_build( array $snap, $now ) {
 	$findings = array();
-	$add      = static function ( $code, $severity, $kind, $id, $detail ) use ( &$findings ) {
-		$findings[] = array(
-			'code'     => $code,
-			'severity' => $severity,
-			'object'   => $kind,
-			'id'       => (string) $id,
-			'detail'   => $detail,
+	$add      = static function ( $code, $severity, $kind, $id, $detail, $extra = array() ) use ( &$findings ) {
+		$findings[] = array_merge(
+			array(
+				'code'     => $code,
+				'severity' => $severity,
+				'object'   => $kind,
+				'id'       => (string) $id,
+				'detail'   => $detail,
+			),
+			$extra
 		);
 	};
 
@@ -212,15 +225,31 @@ function pixva_audit_build( array $snap, $now ) {
 	$on_disk = array_fill_keys( $snap['files'], true );
 	foreach ( $photo_owner as $file => $ids ) {
 		if ( ! isset( $on_disk[ $file ] ) ) {
-			$add( 'photo_reference_missing', 'error', 'photo', $file, 'Referenced by order(s) ' . implode( ',', $ids ) . ' but the file is not in the private directory.' );
+			$add( 'photo_reference_missing', 'error', 'photo', $file, 'Referenced by order(s) ' . implode( ',', $ids ) . ' but the file is not in the private directory.', array( 'reason' => 'reference_missing' ) );
 		}
 		if ( count( $ids ) > 1 ) {
-			$add( 'photo_shared', 'error', 'photo', $file, 'Referenced by more than one order: ' . implode( ',', $ids ) . '.' );
+			$add( 'photo_shared', 'error', 'photo', $file, 'Referenced by more than one order: ' . implode( ',', $ids ) . '.', array( 'reason' => 'reference_shared' ) );
 		}
 	}
 	foreach ( $snap['files'] as $file ) {
 		if ( ! isset( $photo_owner[ $file ] ) ) {
-			$add( 'photo_unreferenced', 'warn', 'photo', $file, 'No order references this file. Its owner cannot be verified, so it is reported only and never deleted automatically.' );
+			$info = $snap['file_info'][ $file ] ?? array(
+				'bytes' => null,
+				'mtime' => 0,
+			);
+			$add(
+				'photo_unreferenced',
+				'warn',
+				'photo',
+				$file,
+				'No order references this file. Its owner cannot be verified, so it is reported only and never deleted automatically.',
+				array(
+					'reason'   => 'no_order_reference',
+					'bytes'    => $info['bytes'],
+					'modified' => $info['mtime'] ? gmdate( 'c', (int) $info['mtime'] ) : null,
+					'action'   => 'none',
+				)
+			);
 		}
 	}
 

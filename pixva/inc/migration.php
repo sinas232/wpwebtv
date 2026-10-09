@@ -58,6 +58,120 @@ function pixva_run_migrations() {
 	if ( version_compare( $from ? $from : '0', PIXVA_DB_VERSION, '>=' ) ) {
 		return;
 	}
+	// One migration run at a time. A second request returns and the first one finishes.
+	$token = pixva_migration_lock_acquire();
+	if ( null === $token ) {
+		return;
+	}
+	try {
+		pixva_run_migrations_locked( $from );
+	} finally {
+		pixva_migration_lock_release( $token );
+	}
+}
+
+/**
+ * Migrate one order from the v1 format. Only fills missing fields and converts
+ * a legacy steps map to a list. Never clears a valid status or rewrites a list
+ * that already exists, so running it twice changes nothing the second time.
+ * Call under the order lock.
+ *
+ * @param int $oid Order id.
+ * @return void
+ */
+function pixva_migrate_order_v2( $oid ) {
+	if ( ! get_post_meta( $oid, '_pixva_warranty_source', true ) ) {
+		update_post_meta( $oid, '_pixva_warranty_source', 'legacy' );
+	}
+	$phone = (string) get_post_meta( $oid, '_pixva_order_phone', true );
+	if ( '' !== $phone && ! get_post_meta( $oid, '_pixva_phone_hash', true ) ) {
+		update_post_meta( $oid, '_pixva_phone_hash', pixva_phone_hash( $phone ) );
+	}
+	$user = (int) get_post_meta( $oid, '_pixva_order_user', true );
+	if ( $user && ! get_post_meta( $oid, '_pixva_customer_id', true ) ) {
+		update_post_meta( $oid, '_pixva_customer_id', $user );
+	}
+	$steps = json_decode( (string) get_post_meta( $oid, '_pixva_order_steps', true ), true );
+	if ( is_array( $steps ) && $steps && ! isset( $steps[0] ) ) {
+		$list = array();
+		foreach ( $steps as $s => $t ) {
+			$list[] = array(
+				's' => sanitize_key( $s ),
+				't' => (int) $t,
+				'n' => '',
+			);
+		}
+		update_post_meta( $oid, '_pixva_order_steps', pixva_json_meta( $list ) );
+	}
+	if ( ! isset( pixva_order_statuses()[ (string) get_post_meta( $oid, '_pixva_order_status', true ) ] ) ) {
+		update_post_meta( $oid, '_pixva_order_status', 'new' );
+	}
+}
+
+if ( ! defined( 'PIXVA_MIGRATION_LOCK_TTL' ) ) {
+	/** Seconds after which a migration lock is treated as abandoned. */
+	define( 'PIXVA_MIGRATION_LOCK_TTL', 600 );
+}
+
+/**
+ * Acquire the migration lock row. add_option() is an INSERT against the unique
+ * option_name key, so only one request can create it. A lock older than
+ * PIXVA_MIGRATION_LOCK_TTL is treated as left behind by a crashed run and is
+ * taken over with a conditional delete (matches the old token only).
+ *
+ * @return string|null Token to release with, or null if another run holds it.
+ */
+function pixva_migration_lock_acquire() {
+	global $wpdb;
+	$name  = 'pixva_migration_lock';
+	$token = wp_generate_password( 24, false ) . '|' . time();
+	if ( add_option( $name, $token, '', 'no' ) ) {
+		return $token;
+	}
+	$held  = (string) get_option( $name, '' );
+	$taken = (int) substr( $held, (int) strrpos( $held, '|' ) + 1 );
+	if ( '' !== $held && time() - $taken <= PIXVA_MIGRATION_LOCK_TTL ) {
+		return null;
+	}
+	// Stale: delete only if the row still holds the value we just read.
+	if ( '' !== $held ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- conditional delete (compare-and-take-over) has no WP API.
+		$wpdb->delete(
+			$wpdb->options,
+			array(
+				'option_name'  => $name,
+				'option_value' => $held,
+			)
+		);
+	}
+	return add_option( $name, $token, '', 'no' ) ? $token : null;
+}
+
+/**
+ * Release the migration lock, only if it still holds this run's token.
+ *
+ * @param string $token Token from pixva_migration_lock_acquire().
+ * @return void
+ */
+function pixva_migration_lock_release( $token ) {
+	global $wpdb;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- release only if the row still holds our token; no WP API.
+	$wpdb->delete(
+		$wpdb->options,
+		array(
+			'option_name'  => 'pixva_migration_lock',
+			'option_value' => (string) $token,
+		)
+	);
+}
+
+/**
+ * The migration steps. Call only while holding the migration lock.
+ *
+ * @param string $from Version stored before this run.
+ * @return void
+ */
+function pixva_run_migrations_locked( $from ) {
 	$legacy = '' === $from && ( get_option( 'pixva_theme_version' ) || get_option( 'pixva_installed' ) );
 
 	pixva_install_roles();
@@ -319,32 +433,15 @@ function pixva_migrate_v1() {
 			pixva_migration_log( __( 'به زباله‌دان رفت', 'pixva' ), $code, __( 'سفارش نمایشی ساختگی نسخه قبل (شماره ۰۹۱۲۱۱۱۱۱۱۱).', 'pixva' ), $oid );
 			continue;
 		}
-		if ( ! get_post_meta( $oid, '_pixva_warranty_source', true ) ) {
-			update_post_meta( $oid, '_pixva_warranty_source', 'legacy' );
-		}
-		$phone = (string) get_post_meta( $oid, '_pixva_order_phone', true );
-		if ( '' !== $phone && ! get_post_meta( $oid, '_pixva_phone_hash', true ) ) {
-			update_post_meta( $oid, '_pixva_phone_hash', pixva_phone_hash( $phone ) );
-		}
-		$user = (int) get_post_meta( $oid, '_pixva_order_user', true );
-		if ( $user && ! get_post_meta( $oid, '_pixva_customer_id', true ) ) {
-			update_post_meta( $oid, '_pixva_customer_id', $user );
-		}
-		$steps = json_decode( (string) get_post_meta( $oid, '_pixva_order_steps', true ), true );
-		if ( is_array( $steps ) && $steps && ! isset( $steps[0] ) ) {
-			$list = array();
-			foreach ( $steps as $s => $t ) {
-				$list[] = array(
-					's' => sanitize_key( $s ),
-					't' => (int) $t,
-					'n' => '',
-				);
+		// Under the order lock, re-reading inside it, so a status change made while
+		// this run is going is not overwritten with the old legacy history.
+		pixva_with_order_lock(
+			$oid,
+			static function () use ( $oid ) {
+				pixva_migrate_order_v2( $oid );
+				return true;
 			}
-			update_post_meta( $oid, '_pixva_order_steps', pixva_json_meta( $list ) );
-		}
-		if ( ! isset( pixva_order_statuses()[ (string) get_post_meta( $oid, '_pixva_order_status', true ) ] ) ) {
-			update_post_meta( $oid, '_pixva_order_status', 'new' );
-		}
+		);
 	}
 
 	// 8. Roles: B2B role was a phantom feature → users become customers.
