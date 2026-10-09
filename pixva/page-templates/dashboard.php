@@ -19,7 +19,7 @@ $pixva_user = wp_get_current_user();
 ?>
 <main id="main" class="site-main">
 	<?php pixva_page_header( get_the_title() ); ?>
-	<div class="container section">
+	<div class="container section db">
 		<?php if ( ! $pixva_user->exists() ) : ?>
 			<section class="panel form-wrap" aria-labelledby="db-login">
 				<h2 class="panel__title" id="db-login"><?php esc_html_e( 'ورود کارکنان', 'pixva' ); ?></h2>
@@ -60,10 +60,10 @@ $pixva_user = wp_get_current_user();
 				$pixva_counts = pixva_order_status_counts();
 				$pixva_list   = admin_url( 'edit.php?post_type=pixva_orders' );
 				?>
-				<section class="section--tight" aria-labelledby="db-orders">
+				<section class="section--tight db-board" aria-labelledby="db-orders">
 					<h2 id="db-orders"><?php esc_html_e( 'درخواست‌ها بر اساس وضعیت', 'pixva' ); ?></h2>
 					<?php if ( array_sum( $pixva_counts ) ) : ?>
-						<ul class="stats">
+						<ul class="stats db-stats">
 							<?php foreach ( pixva_order_statuses() as $pixva_k => $pixva_s ) : ?>
 								<li class="badge--status-<?php echo esc_attr( $pixva_k ); ?>"><span class="stats__num"><?php echo esc_html( pixva_fa_num( $pixva_counts[ $pixva_k ] ?? 0 ) ); ?></span> <span><?php echo esc_html( $pixva_s['label'] ); ?></span></li>
 							<?php endforeach; ?>
@@ -74,7 +74,7 @@ $pixva_user = wp_get_current_user();
 					<p><a class="btn btn--ghost" href="<?php echo esc_url( $pixva_list ); ?>"><?php esc_html_e( 'مدیریت درخواست‌ها', 'pixva' ); ?></a></p>
 				</section>
 
-				<div class="grid grid--2">
+				<div class="grid grid--2 db-panels">
 					<section class="panel" aria-labelledby="db-unassigned">
 						<h2 class="panel__title" id="db-unassigned"><?php esc_html_e( 'بدون تکنسین', 'pixva' ); ?></h2>
 						<?php $pixva_ids = pixva_unassigned_orders(); ?>
@@ -105,7 +105,7 @@ $pixva_user = wp_get_current_user();
 				</div>
 				<?php if ( current_user_can( 'edit_pixva_messages' ) ) : ?>
 					<?php $pixva_msgs = wp_count_posts( 'pixva_inbox' ); ?>
-					<p><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=pixva_inbox' ) ); ?>"><?php echo esc_html( sprintf( /* translators: %s: count. */ __( 'پیام‌های تماس: %s', 'pixva' ), pixva_fa_num( (int) ( $pixva_msgs->private ?? 0 ) ) ) ); ?></a></p>
+					<p class="db-inbox"><a class="db-inbox__link" href="<?php echo esc_url( admin_url( 'edit.php?post_type=pixva_inbox' ) ); ?>"><?php echo esc_html( sprintf( /* translators: %s: count. */ __( 'پیام‌های تماس: %s', 'pixva' ), pixva_fa_num( (int) ( $pixva_msgs->private ?? 0 ) ) ) ); ?></a></p>
 				<?php endif; ?>
 			<?php endif; ?>
 
@@ -193,13 +193,13 @@ $pixva_user = wp_get_current_user();
 
 			<?php if ( current_user_can( 'pixva_view_content_health' ) ) : ?>
 				<?php $pixva_health = pixva_content_health(); ?>
-				<section class="section--tight" aria-labelledby="db-health">
+				<section class="section--tight db-health" aria-labelledby="db-health">
 					<h2 id="db-health"><?php esc_html_e( 'سلامت محتوا', 'pixva' ); ?></h2>
 					<?php if ( ! $pixva_health ) : ?>
 						<p><?php esc_html_e( 'مشکلی در محتوای منتشرشده پیدا نشد.', 'pixva' ); ?></p>
 					<?php endif; ?>
 					<?php foreach ( $pixva_health as $pixva_group ) : ?>
-						<details class="panel">
+						<details class="panel db-detail">
 							<summary><?php echo esc_html( $pixva_group['label'] ); ?> (<?php echo esc_html( pixva_fa_num( count( $pixva_group['items'] ) ) ); ?>)</summary>
 							<ul class="link-list">
 								<?php foreach ( $pixva_group['items'] as $pixva_item ) : ?>

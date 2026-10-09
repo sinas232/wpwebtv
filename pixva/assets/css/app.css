@@ -8965,3 +8965,71 @@ fieldset.field--error {
 .single-post .page-head .post-meta { color: #cbd5e1; }
 .single-post .page-head [aria-current="page"] { color: #ffffff; }
 .single-post .page-head a { color: #cbd5e1; }
+
+/* ==========================================================================
+   Staff dashboard (v2.5): status board, panels and inbox card. Logic and
+   capability checks are unchanged; only classes/visuals were added.
+   ========================================================================== */
+.db { display: grid; gap: var(--s-10); }
+.db-board { display: grid; gap: var(--s-5); }
+.db-board > h2 { margin: 0; font-size: var(--fs-xl); font-weight: 900; color: var(--c-primary); }
+.db-stats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid var(--c-border);
+	border-radius: var(--r-xl);
+	background: var(--c-white);
+	overflow: hidden;
+}
+.db-stats > li {
+	display: grid;
+	gap: var(--s-1);
+	padding: var(--s-5);
+	border-inline-end: 1px solid var(--c-border);
+	border-block-end: 1px solid var(--c-border);
+	color: var(--c-muted);
+	font-size: var(--fs-sm);
+}
+.db-stats > li::before {
+	content: "";
+	display: block;
+	inline-size: 28px;
+	block-size: 3px;
+	border-radius: 2px;
+	background: var(--c-accent);
+}
+.db-stats .stats__num { font-size: clamp(1.8rem, 1.4rem + 1.2vw, 2.4rem); font-weight: 900; line-height: 1; color: var(--c-primary); }
+.db-board .btn { justify-self: start; }
+.db-panels { gap: var(--s-5); }
+.db-panels .panel { border-radius: var(--r-lg); }
+.db-inbox { margin: 0; }
+.db-inbox__link {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--s-4);
+	padding: var(--s-4) var(--s-5);
+	border: 1px solid var(--c-border);
+	border-radius: var(--r-lg);
+	background: var(--c-white);
+	color: var(--c-primary);
+	font-weight: 800;
+	text-decoration: none;
+}
+.db-inbox__link::after { content: "←"; color: var(--c-accent-text); }
+.db-inbox__link:hover { border-color: var(--c-accent); }
+.db-health { display: grid; gap: var(--s-3); }
+.db-health > h2 { margin: 0; font-size: var(--fs-lg); font-weight: 900; color: var(--c-primary); }
+.db-detail { border-radius: var(--r-lg); padding: var(--s-4) var(--s-5); }
+.db-detail > summary { cursor: pointer; font-weight: 800; color: var(--c-primary); }
+@media (max-width: 639px) {
+	.db-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+	.db-stats > li { padding: var(--s-4); }
+}
+@media (min-width: 900px) {
+	.db-stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+}
