@@ -29,6 +29,7 @@ $pixva_user = wp_get_current_user();
 						'redirect'       => pixva_current_url(),
 						'label_username' => __( 'ایمیل یا نام کاربری', 'pixva' ),
 						'label_password' => __( 'رمز عبور', 'pixva' ),
+						'label_remember' => __( 'مرا به خاطر بسپار', 'pixva' ),
 						'label_log_in'   => __( 'ورود', 'pixva' ),
 						'id_submit'      => 'db-login-submit',
 					)
