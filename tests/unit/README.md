@@ -13,10 +13,12 @@ Evidence kinds:
 
 | Suite | Evidence | Command | Result |
 |---|---|---|---|
-| `php/order-security.test.php` (112 checks) | Unit (stubbed) | `PHP=8.3 php-wasm-cli tests/unit/php/order-security.test.php` | `112 passed, 0 failed` |
-| `php/mutation-controls.py` (15 controls) | Unit, negative controls | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=15 survivors=0` |
+| `php/order-security.test.php` (135 checks, sections A–K) | Unit (stubbed WordPress and wpdb) | `PHP=8.3 php-wasm-cli tests/unit/php/order-security.test.php` | `135 passed, 0 failed` |
+| `php/mutation-controls.py` (19 controls: 15 order/IP/lock, 4 audit) | Unit, negative controls | `PHP_CLI=php-wasm-cli python3 tests/unit/php/mutation-controls.py` | `controls=19 survivors=0` (see the final line of the run) |
 | `php/render-fixtures.php` | Unit (writes `js/fixtures/render.json`) | `php-wasm-cli tests/unit/php/render-fixtures.php` | 3 fixtures; output identical to the committed file |
-| `db/reservation_sqlite_race.py` | Port on a real engine (SQLite, not MySQL) | `python3 tests/unit/db/reservation_sqlite_race.py 300 24` | `violations=0` over 300 rounds of 24 racing requests with random crashes (265 crashes; recovery created exactly one order and one announcement each time) |
+| `db/reservation_sqlite_race.py` | Port on SQLite 3.40 (NOT MySQL/MariaDB) | `python3 tests/unit/db/reservation_sqlite_race.py 300 24` | `violations=0` over 300 rounds of 24 racing requests with random crashes (crashes are counted in the run output; recovery created exactly one order and one announcement each time) |
+| `php/audit` (section H of the PHP suite, read-only audit) | Unit (stubbed store, temp directory) | included in `order-security.test.php` | H1–H11 pass; H11 is a static check that `audit.php` has no write, delete or private-directory call |
+| Static analysis: PHPCS 4.0.4 with WordPress Coding Standards (develop), PHPCSUtils, PHPCSExtra; ruleset `pixva/phpcs.xml` | Static, run under php-wasm | `php-wasm-cli <phpcs>/bin/phpcs -p --report=summary --standard=phpcs.xml .` in `pixva/` | `27 ERRORS and 82 WARNINGS in 17 files`: identical to the pre-change baseline. `pixva/inc/audit.php` adds none. The 27 errors are pre-existing and listed in `docs/pixva-write-path-review.md`. Not fixed in this round. |
 | `js/safe-html.test.cjs` (22) | Unit (jsdom) | `NODE_PATH=<node_modules> node tests/unit/js/safe-html.test.cjs` | `22 passed` |
 | `js/safe-html-fixtures.test.cjs` (20) | Unit (jsdom, real PHP fixtures) | `NODE_PATH=<node_modules> node tests/unit/js/safe-html-fixtures.test.cjs` | `20 passed` |
 | `js/safe-html.chromium.cjs` (13) | Browser (Chromium 153, headless) | `LD_LIBRARY_PATH=<libs> NODE_PATH=<node_modules> node tests/unit/js/safe-html.chromium.cjs` | `13 passed` |
@@ -36,6 +38,8 @@ Evidence kinds:
 - **Pruning** (section G): expired rows only, including order reservations (30-day link TTL, stale attempts), unreadable rows kept, unrelated options untouched.
 
 ## Mutation controls
+
+The mutation set runs as a background process: it takes several minutes.
 
 `mutation-controls.py` applies one mutation at a time to a temporary copy and requires the suite to fail. Current controls (all caught):
 
@@ -79,4 +83,7 @@ The sandbox Chromium needs `libnspr4` and related libraries. They came from the 
 - WP-Cron execution of `pixva_prune_rows`.
 - Clock skew between PHP workers.
 - Distributed brute force from many addresses (see the checklist, section 5).
+- Private folder deny rules on Nginx and Apache (checklist 3i). The theme writes only the Apache `.htaccess`; the real server response is NOT TESTED.
+- Upgrade on a real site: `pixva_run_migrations` and `wp pixva audit` on a real database (checklist 3j). NOT TESTED.
+- Inbox duplicates after a crash (finding F1): the behaviour is reasoned, not run; see `docs/pixva-write-path-review.md`.
 - Browsers other than Chromium.

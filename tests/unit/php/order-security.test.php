@@ -130,11 +130,32 @@ class FakeWpdb {
 		return array_key_exists( $name, $this->rows ) ? $this->rows[ $name ] : null;
 	}
 	public function get_results( $prepared ) {
-		$pattern = str_replace( '\\_', '_', (string) $prepared['args'][0] );
-		$prefix  = rtrim( $pattern, '%' );
-		$out     = array();
+		if ( false !== strpos( (string) $prepared['sql'], 'wp_posts' ) ) {
+			// audit: SELECT ID, post_name, post_status FROM wp_posts WHERE post_type = ...
+			$out = array();
+			foreach ( $GLOBALS['post_rows'] as $id => $row ) {
+				if ( $row['post_type'] === $prepared['args'][0] ) {
+					$out[] = (object) array(
+						'ID'          => (int) $id,
+						'post_name'   => $row['post_name'],
+						'post_status' => 'private',
+					);
+				}
+			}
+			return $out;
+		}
+		// audit: option_name LIKE 'pixva_sub_%' OR option_name LIKE 'pixva_ord_%'.
+		$prefixes = array();
+		foreach ( (array) $prepared['args'] as $pattern ) {
+			$prefixes[] = rtrim( str_replace( '\\_', '_', (string) $pattern ), '%' );
+		}
+		$out = array();
 		foreach ( $this->rows as $name => $value ) {
-			if ( 0 === strpos( $name, $prefix ) ) {
+			$hit = false;
+			foreach ( $prefixes as $prefix ) {
+				$hit = $hit || 0 === strpos( $name, $prefix );
+			}
+			if ( $hit ) {
 				$out[] = (object) array(
 					'option_name'  => $name,
 					'option_value' => $value,
@@ -284,6 +305,7 @@ $root = dirname( __DIR__, 3 ) . '/pixva/inc/';
 require_once $root . 'helpers.php';
 require_once $root . 'security.php';
 require_once $root . 'repairs.php';
+require_once $root . 'audit.php';
 
 // ---------------------------------------------------------------------------
 // Harness.
@@ -1101,6 +1123,120 @@ pixva_with_order_lock( 101, static function () {
 	return true;
 } );
 check( 'K3 a lock lost during the work fires pixva_order_lock_lost and leaves the new owner in place', $lost === array( 101 ) && 'someone-else|' . pixva_now() === $GLOBALS['wpdb']->rows['pixva_olock_101'] );
+
+// ---------------------------------------------------------------------------
+// H. Read-only audit (pixva/inc/audit.php). Pure builder over snapshots, plus
+//    the collector against the stub store and a temporary private directory.
+// ---------------------------------------------------------------------------
+$now_h = 1000000;
+$sid_a = sid( 0xa1 );
+$sid_b = sid( 0xb2 );
+function audit_codes( $report ) {
+	return array_values( array_unique( array_column( $report['findings'], 'code' ) ) );
+}
+function audit_has( $report, $code ) {
+	return in_array( $code, audit_codes( $report ), true );
+}
+function audit_order( $id, $slug, $code, $photos = array(), $status = 'new' ) {
+	return array( 'id' => $id, 'slug' => $slug, 'code' => $code, 'status' => $status, 'photos' => $photos );
+}
+function audit_linked( $sid, $oid, $t ) {
+	return (string) wp_json_encode( array( 's' => 'linked', 'o' => $oid, 't' => $t ) );
+}
+function audit_creating( $t ) {
+	return (string) wp_json_encode( array( 's' => 'creating', 'k' => 'tok', 't' => $t ) );
+}
+
+// H1 healthy snapshot: no error or warning findings.
+$healthy = array(
+	'submissions'  => array( $sid_a => (string) wp_json_encode( array( 's' => 'done', 't' => $now_h - 10 ) ) ),
+	'reservations' => array( $sid_a => audit_linked( $sid_a, 301, $now_h - 10 ) ),
+	'orders'       => array( audit_order( 301, $sid_a, 'PXV-AAA-111', array( 'p1.jpg' ) ) ),
+	'files'        => array( 'p1.jpg' ),
+);
+$r = pixva_audit_build( $healthy, $now_h );
+check( 'H1 a consistent snapshot has no error or warning findings', ! isset( $r['summary']['error'] ) && ! isset( $r['summary']['warn'] ), wp_json_encode( $r['findings'] ) );
+check( 'H1 photo map links the file to its order', $r['photo_map'] === array( 'p1.jpg' => array( 301 ) ) );
+
+// H2 linked reservation whose order is missing.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_linked( $sid_a, 999, $now_h ) ), 'orders' => array(), 'files' => array() ), $now_h );
+check( 'H2 a link to a missing order is an error', audit_has( $r, 'reservation_linked_order_missing' ) && 'error' === $r['findings'][0]['severity'] );
+
+// H3 stale creating, no order; and within TTL it is only informational.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_creating( $now_h - PIXVA_CLAIM_PENDING_TTL - 5 ) ), 'orders' => array(), 'files' => array() ), $now_h );
+check( 'H3 a stale creating reservation with no order is reported as stale', audit_has( $r, 'reservation_creating_stale' ) );
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_creating( $now_h - 5 ) ), 'orders' => array(), 'files' => array() ), $now_h );
+check( 'H3 a fresh creating reservation is info, not stale', audit_has( $r, 'reservation_creating_active' ) && ! audit_has( $r, 'reservation_creating_stale' ) );
+
+// H4 stale creating with an order inserted but not linked: detail says the next attempt adopts it.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_creating( $now_h - 999 ) ), 'orders' => array( audit_order( 302, $sid_a, '' ) ), 'files' => array() ), $now_h );
+$stale = array_values( array_filter( $r['findings'], fn( $f ) => 'reservation_creating_stale' === $f['code'] ) );
+check( 'H4 an unlinked order behind a stale reservation is named as adoptable', count( $stale ) === 1 && false !== strpos( $stale[0]['detail'], 'adopts' ) );
+
+// H5 two orders with the same submission id (one with a WordPress -2 suffix).
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_linked( $sid_a, 303, $now_h ) ), 'orders' => array( audit_order( 303, $sid_a, 'PXV-B1-000' ), audit_order( 304, $sid_a . '-2', 'PXV-B2-000' ) ), 'files' => array() ), $now_h );
+check( 'H5 two orders sharing a submission id (with -2 suffix) are a duplicate error', audit_has( $r, 'submission_duplicate_orders' ) );
+
+// H6 missing and duplicate tracking codes.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array(), 'orders' => array( audit_order( 305, '', '' ), audit_order( 306, '', 'PXV-SAME-1' ), audit_order( 307, '', 'PXV-SAME-1' ) ), 'files' => array() ), $now_h );
+check( 'H6 an order without a tracking code is an error', audit_has( $r, 'order_missing_code' ) );
+check( 'H6 two orders with one tracking code are an error', audit_has( $r, 'order_code_duplicate' ) );
+
+// H7 photos: missing file, shared file, unreferenced file.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array(), 'orders' => array( audit_order( 308, '', 'PXV-P1', array( 'gone.jpg', 'shared.jpg' ) ), audit_order( 309, '', 'PXV-P2', array( 'shared.jpg' ) ) ), 'files' => array( 'shared.jpg', 'orphan.jpg' ) ), $now_h );
+check( 'H7 a referenced file that is not on disk is an error', audit_has( $r, 'photo_reference_missing' ) );
+check( 'H7 a file referenced by two orders is an error', audit_has( $r, 'photo_shared' ) );
+$orphan = array_values( array_filter( $r['findings'], fn( $f ) => 'photo_unreferenced' === $f['code'] ) );
+check( 'H7 an unreferenced file is reported as a warning only, with its name', count( $orphan ) === 1 && 'orphan.jpg' === $orphan[0]['id'] && 'warn' === $orphan[0]['severity'] );
+
+// H8 claims: expired pending is a warning; a done claim is nothing; a broken JSON row is an error.
+$r = pixva_audit_build( array( 'submissions' => array( $sid_a => (string) wp_json_encode( array( 's' => 'pending', 't' => $now_h - PIXVA_CLAIM_PENDING_TTL - 1 ) ), $sid_b => (string) wp_json_encode( array( 's' => 'done', 't' => $now_h - 1 ) ), sid( 0xc3 ) => '{broken' ), 'reservations' => array(), 'orders' => array(), 'files' => array() ), $now_h );
+$codes = array_column( $r['findings'], 'code', 'id' );
+check( 'H8 an expired pending claim is reported', 'claim_pending_expired' === ( $codes[ $sid_a ] ?? '' ) );
+check( 'H8 a finished claim produces no finding', ! isset( $codes[ $sid_b ] ) );
+check( 'H8 an unreadable claim is an error', 'claim_unreadable' === ( $codes[ sid( 0xc3 ) ] ?? '' ) );
+
+// H9 a link that names an order with a different submission id, and an order linked elsewhere.
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_linked( $sid_a, 310, $now_h ) ), 'orders' => array( audit_order( 310, $sid_b, 'PXV-X1' ) ), 'files' => array() ), $now_h );
+check( 'H9 a linked order that is not named by its submission id is an error', audit_has( $r, 'reservation_linked_order_sid_mismatch' ) );
+$r = pixva_audit_build( array( 'submissions' => array(), 'reservations' => array( $sid_a => audit_linked( $sid_a, 311, $now_h ) ), 'orders' => array( audit_order( 311, $sid_a, 'PXV-X2' ), audit_order( 312, $sid_a, 'PXV-X3' ) ), 'files' => array() ), $now_h );
+check( 'H9 an order not linked by its reservation is a warning', audit_has( $r, 'order_not_linked' ) || audit_has( $r, 'submission_duplicate_orders' ) );
+
+// H10 collector against the stub store and a temporary private directory.
+reset_state();
+$GLOBALS['post_rows'][102] = array( 'post_type' => 'pixva_orders', 'post_name' => $sid_a );
+$GLOBALS['post_meta'][102] = array( '_pixva_order_code' => 'PXV-C0-102', '_pixva_order_status' => 'new', '_pixva_order_photos' => '["c1.jpg"]' );
+$GLOBALS['post_meta'][101]['_pixva_order_code'] = 'PXV-ABC-123';
+$GLOBALS['wpdb']->rows[ 'pixva_sub_' . $sid_a ] = (string) wp_json_encode( array( 's' => 'done', 't' => $now_h ) );
+$GLOBALS['wpdb']->rows[ 'pixva_ord_' . $sid_a ] = audit_linked( $sid_a, 102, $now_h );
+$GLOBALS['wpdb']->rows['siteurl'] = 'https://example.test';
+$dir_h = sys_get_temp_dir() . '/pixva-audit-' . getmypid();
+@mkdir( $dir_h );
+file_put_contents( $dir_h . '/c1.jpg', 'x' );
+file_put_contents( $dir_h . '/index.php', '<?php' );
+file_put_contents( $dir_h . '/.htaccess', 'Require all denied' );
+$before = array( $GLOBALS['wpdb']->rows, $GLOBALS['post_meta'], $GLOBALS['post_rows'], $GLOBALS['insert_log'], $GLOBALS['deleted_log'] );
+$snap_h = pixva_audit_collect( $dir_h );
+$r_h    = pixva_audit_build( $snap_h, $now_h );
+$after  = array( $GLOBALS['wpdb']->rows, $GLOBALS['post_meta'], $GLOBALS['post_rows'], $GLOBALS['insert_log'], $GLOBALS['deleted_log'] );
+check( 'H10 the collector reads the linked reservation, both orders and the photo file', count( $snap_h['orders'] ) === 2 && array( 'c1.jpg' ) === $snap_h['files'] && isset( $snap_h['reservations'][ $sid_a ] ) );
+check( 'H10 index.php and .htaccess are not listed as photos', ! in_array( '.htaccess', $snap_h['files'], true ) && ! in_array( 'index.php', $snap_h['files'], true ) );
+check( 'H10 the audit makes no writes (store unchanged)', $before === $after );
+check( 'H10 the photo map ties c1.jpg to order 102', ( $r_h['photo_map']['c1.jpg'] ?? array() ) === array( 102 ) );
+check( 'H10 a clean live snapshot has no error findings', ! isset( $r_h['summary']['error'] ), wp_json_encode( $r_h['findings'] ) );
+unlink( $dir_h . '/c1.jpg' );
+unlink( $dir_h . '/index.php' );
+unlink( $dir_h . '/.htaccess' );
+rmdir( $dir_h );
+
+// H11 static guard: the audit module contains no write, delete or file-removal call.
+$audit_src = (string) file_get_contents( $root . 'audit.php' );
+$audit_src = preg_replace( '#/\*.*?\*/#s', '', $audit_src ); // Scan code only, not docblocks.
+$audit_src = preg_replace( '#^\s*//.*$#m', '', $audit_src );
+$forbidden = array( 'wp_delete_file', 'wp_delete_post', 'delete_post_meta', 'update_post_meta', 'update_option', 'delete_option', 'add_option', 'wp_insert_post', 'wp_update_post', 'unlink(', 'wp_mkdir_p', 'file_put_contents', 'pixva_private_dir(' );
+$hits      = array_values( array_filter( $forbidden, fn( $needle ) => false !== strpos( $audit_src, $needle ) ) );
+check( 'H11 audit.php has no write, delete or private_dir() call (static check)', array() === $hits, implode( ',', $hits ) );
+
 
 // ---------------------------------------------------------------------------
 echo "\n$passed passed, $failed failed\n";

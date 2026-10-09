@@ -66,6 +66,15 @@ MUTATIONS = [
     ("I2 chain walked from the left (spoofable)", "security.php",
      "foreach ( array_reverse( array_map( 'trim', explode( ',', $raw ) ) ) as $hop ) {",
      "foreach ( array_map( 'trim', explode( ',', $raw ) ) as $hop ) {"),
+    # Read-only audit (H-section tests).
+    ("A1 audit does not report a link to a missing order", "audit.php",
+     "if ( ! isset( $orders_by_id[ $oid ] ) ) {", "if ( false ) {"),
+    ("A2 audit does not group duplicate submission ids", "audit.php",
+     "if ( count( $ids ) > 1 ) {\n\t\t\t$add( 'submission_duplicate_orders'", "if ( false ) {\n\t\t\t$add( 'submission_duplicate_orders'"),
+    ("A3 audit does not report unreferenced photo files", "audit.php",
+     "if ( ! isset( $photo_owner[ $file ] ) ) {", "if ( false ) {"),
+    ("A4 audit gains a write (deletes an unreferenced file)", "audit.php",
+     "$add( 'photo_unreferenced', 'warn', 'photo', $file,", "@unlink( $private_dir_gone ?? '' ); $add( 'photo_unreferenced', 'warn', 'photo', $file,"),
 ]
 
 

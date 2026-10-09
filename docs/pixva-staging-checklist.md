@@ -173,6 +173,71 @@ Repeat 3b with the hook on `pixva_order_before_insert` (crash before insert), an
 3. Expect expired rows removed. Linked `pixva_ord_` rows younger than 30 days remain. Fresh rows do not change.
 4. Check the WP-Cron schedule: `wp cron event list` shows `pixva_prune_rows` hourly. If the site does not run WP-Cron, install a system cron (`wp cron event run --due-now` every 5 minutes) or the prune never runs.
 
+
+### 3i. [GATE, MANDATORY] Private photo folder is not web-reachable
+
+Customer photos are stored in `wp-content/uploads/pixva-private/` (filenames are random, but they are still personal data). The theme writes an Apache `.htaccess` there. **Nothing in the theme writes an Nginx rule.** On Nginx the folder is public unless you add a rule. This is an operational requirement, and the release is not acceptable without it.
+
+Apache (2.4): the `.htaccess` is only honoured if the vhost has `AllowOverride` covering `Require` (`AllowOverride All` or `AuthConfig`). If it is `None`, add to the vhost:
+
+```apache
+<Directory "/var/www/html/wp-content/uploads/pixva-private">
+    Require all denied
+</Directory>
+```
+
+Nginx: add inside the server block that serves the site (adjust the path if `uploads` is moved):
+
+```nginx
+location ^~ /wp-content/uploads/pixva-private/ {
+    deny all;
+    return 404;
+}
+```
+
+Check on Staging (replace the host and a real stored filename, or any name):
+
+1. `curl -sI https://<staging-host>/wp-content/uploads/pixva-private/index.php` returns 403 or 404, not 200.
+2. Upload one test photo through the booking form. Request `https://<staging-host>/wp-content/uploads/pixva-private/<stored-name>` directly. Expect 403 or 404. The name is shown only in `_pixva_order_photos` (admin).
+3. The authorised stream still works: as a staff user, open the order's photo link. Expect the image.
+
+Record the server software and version, and the result of each step. Until 1 and 2 pass on Staging, the photo storage is **NOT TESTED** as a deployment.
+
+### 3j. Pending claims and reservations on upgrade (read-only identification)
+
+Run this before and after the upgrade. It changes nothing.
+
+1. `wp pixva audit` (text) or `wp pixva audit --format=json > audit.json`. The command is available only when WP-CLI is loaded. Keep the output out of the public web root and out of the ZIP.
+2. Findings, by code:
+
+| Code | Severity | Meaning | Action |
+| --- | --- | --- | --- |
+| `claim_pending_expired` | warn | A `pixva_sub_` claim is pending past 300 s. | None needed. A resubmission with the same id recovers it. Check only if the customer reports a problem. |
+| `claim_unreadable` | error | A claim value is not JSON. | Treated as dead after its TTL. Record it, then delete that single row by hand after the audit (`DELETE FROM wp_options WHERE option_name = 'pixva_sub_<id>'`). |
+| `reservation_creating_stale` | warn | Placement stopped. Detail says whether an unlinked order exists. | The next attempt with that id adopts the order or inserts one. No manual action unless the customer reports a problem. |
+| `reservation_creating_active` | info | Placement is in progress. | None. |
+| `reservation_linked_order_missing` | error | A reservation links to a deleted order. | The next attempt takes it over. Staff may also delete the reservation row once the customer has been told. |
+| `reservation_linked_order_sid_mismatch` | error | The linked order is not named by this id. | Stop. Do not delete either row automatically. Inspect both orders and decide by hand. |
+| `reservation_unreadable` / `reservation_unknown_state` | error | Corrupt or unknown state. | As for `claim_unreadable`. Record first. |
+| `submission_duplicate_orders` | error | More than one order has one submission id. | The reservation keeps one. Unlinked duplicates are removed by the placement path. Linked and duplicate orders need a human decision. |
+| `order_code_duplicate` | error | Two orders share a tracking code, so lookup is ambiguous. | Staff change one code in the order box. Do not guess. |
+| `order_missing_code` | error | An order has no tracking code. | Save the order in the admin box, which assigns a code under the order lock. |
+| `order_without_sid` | info | Admin-created or legacy order. | Expected. |
+| `order_without_reservation` / `order_not_linked` | info / warn | Legacy or manually changed. | Compare with the duplicate and linked findings before changing anything. |
+| `photo_reference_missing` | error | An order names a file that is not on disk. | Customer must re-upload. Do not edit the order's photo list by hand without a note in the order. |
+| `photo_shared` | error | One file is referenced by two orders. | Decide which order keeps it. Do not delete the file while either order is open. |
+| `photo_unreferenced` | warn | A file in `pixva-private/` that no order names. | **Reported only.** Its owner cannot be verified, so it is never deleted automatically. See 3k. |
+
+3. Procedure for any `error` finding: (a) take a database backup; (b) record the finding and the rows concerned; (c) make the change by hand, one object at a time; (d) run `wp pixva audit` again and record the result.
+4. Never run a bulk delete from this list. The audit module contains no delete path; a test (H11) checks that.
+
+### 3k. Private photo cleanup (manual, not automatic)
+
+There is **no automatic photo cleanup** in this release. The reason is that a file left by a failed or retried submission has no verifiable owner once its order is gone: order deletion does not remove photos, and no ledger records which file belonged to which order. Automatic deletion would break the rule that files are deleted only when their owning order is deleted and no valid reference remains. Stored photos are therefore reported (`photo_unreferenced`), not removed.
+
+Known sources of unreferenced files (for the report): a booking that failed after upload; a retry that adopted an order and wrote a new photo list (the earlier files are no longer named); duplicate removal. Until a ledger exists, clean up by hand: list files from `wp pixva audit --format=json` (`photo_unreferenced`), confirm each name in the database, back up, then delete the file. Record the deletion. Any future automatic cleanup needs a test, a dry-run mode and reporting before it is enabled.
+
+
 ---
 
 ## 4. Real database (MySQL or MariaDB) [GATE]
@@ -197,10 +262,30 @@ Record the result of each step, the engine, the server version, and the exact da
 - **Hour boundary.** The failure window is fixed, so up to 10 failures can happen around the boundary (for example 5 just before and 5 just after). Documented, not fixed.
 - **Stalled attempt longer than the claim TTL (300 s).** Such an attempt is fenced at the link step. An unlinked order it inserted is removed by the next attempt that links the reservation. Photos it uploaded remain in the private folder (pre-existing behaviour for failed submissions; clean up manually if needed).
 - **Before the upgrade.** A submission whose claim was pending at the moment of upgrade has no reservation row, and its earlier order (if any) has no submission id. A retry of that exact submission can create a second order. Check for pending `pixva_sub_` rows before upgrading, and avoid upgrading during peak booking hours.
-- **Contact messages** (`pixva_inbox`) use the claim, but not the order reservation. A crash after the message insert can still leave a duplicate message. This is not an order.
+- **Contact messages** (`pixva_inbox`) use the claim, but not the order reservation. A crash after the message insert, followed by a resubmission after the 300 s claim TTL, creates a second message and a second staff email. Open finding F1 in `docs/pixva-write-path-review.md`; the fix needs a decision (Option A is proposed there). Not fixed in this release.
+- **Private photos without an order.** Failed or retried submissions can leave files in `pixva-private/` that no order names. Reported by `wp pixva audit`; not deleted automatically (checklist 3k). Finding F6.
+- **Order meta races (admin screen).** Internal notes saved from the meta box and technician/warranty fields are not under the order lock; a concurrent public note can be lost (F2), and the last admin save wins (F4). Status and history are protected.
+- **Migration.** The v1-to-v2 migration and the activation writes have no lock and no concurrency guard (F7). Upgrade with one admin session and no booking traffic.
+- **Fence is not atomic with the status write** (F5): the owner check and the two status writes are separate statements. A takeover in that gap is possible only after the 30 s stale threshold. Residual.
 - **Submission id as a bearer for the order code.** A submission id, once used, returns the same order code for 30 days (it previously returned it for 1 day, and then created a new order). The id is sent only to the submitter's form. The code alone does not open order details: the phone number is also required.
 - **Admin meta fields** (name, brand, notes saved from the admin screen) are last-writer-wins. Status and history are protected by the lock. Admin-only data is not.
 - **Engine.** The MySQL/MariaDB behaviour is NOT TESTED in this release unless section 4 has been run.
+
+---
+
+## 5a. Exact Staging prerequisites
+
+Staging is not accessible from the build environment. Nothing below has been run on Staging. Each item must be done before a Staging result can be reported as a WordPress runtime test.
+
+1. A WordPress install (6.5 or later, the theme's `minimum_wp_version`) with the ZIP's SHA-256 recorded, served over HTTPS.
+2. The production database engine and version (MySQL or MariaDB, InnoDB), recorded. The theme sets no version floor for it; the UNIQUE index on `wp_options.option_name` must be present (section 4).
+3. The server's PHP version, recorded. `phpcs.xml` targets `testVersion 7.4-`; the actual runtime is not established until Staging runs.
+4. WP-CLI installed on the Staging host, so that `wp pixva audit` runs (section 3j).
+5. Apache with `AllowOverride` covering `Require`, or the explicit vhost block, and the Nginx rule from section 3i. Both verified by a real HTTP request.
+6. Reverse-proxy and CDN configuration written from the real environment (section 1). No header is trusted until the trusted-proxy list has been verified on Staging.
+7. Access to the Staging admin with a user holding `pixva_manage_orders` and a second user holding `pixva_work_orders` only, for the authorisation checks in the write-path review.
+8. An SMTP setup or mail catcher, so that the staff notification can be counted (section 3, F1).
+9. Permission to run the concurrency scripts (3a, 3d, 3e) with at least 20 parallel requests.
 
 ---
 
