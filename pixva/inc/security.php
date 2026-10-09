@@ -137,14 +137,38 @@ function pixva_client_key() {
 	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
 	/**
 	 * Client IP used for rate limiting. Defaults to REMOTE_ADDR, which cannot
-	 * be spoofed with request headers. Behind a reverse proxy/CDN, configure
-	 * the web server to restore the real IP (nginx real_ip, Apache remoteip)
-	 * or filter this value using the proxy's trusted header.
+	 * be spoofed with request headers. Behind a reverse proxy/CDN, REMOTE_ADDR is
+	 * the proxy itself: configure the web server to restore the real IP, or return
+	 * a trusted value from this filter. Never trust a client-supplied header here.
 	 *
 	 * @param string $ip REMOTE_ADDR.
 	 */
 	$ip = (string) apply_filters( 'pixva_client_ip', $ip );
-	return substr( hash_hmac( 'sha256', $ip, wp_salt( 'nonce' ) ), 0, 32 );
+	return substr( hash_hmac( 'sha256', pixva_ip_scope( $ip ), wp_salt( 'nonce' ) ), 0, 32 );
+}
+
+/**
+ * Scope string for an IP address used in rate-limit and lockout keys.
+ *
+ * IPv6: one customer usually controls a whole /64, so every address in it maps
+ * to the same scope. IPv4-mapped IPv6 maps to its IPv4 scope. Anything that is
+ * not a valid address shares one scope, so garbage input cannot create unlimited buckets.
+ *
+ * @param string $ip Address.
+ * @return string
+ */
+function pixva_ip_scope( $ip ) {
+	$bin = @inet_pton( (string) $ip ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- invalid input returns false.
+	if ( false === $bin ) {
+		return 'invalid';
+	}
+	if ( 16 === strlen( $bin ) ) {
+		if ( 0 === strncmp( $bin, str_repeat( "\0", 10 ) . "\xff\xff", 12 ) ) {
+			return 'v4:' . inet_ntop( substr( $bin, 12 ) );
+		}
+		return 'v6:' . inet_ntop( substr( $bin, 0, 8 ) . str_repeat( "\0", 8 ) );
+	}
+	return 'v4:' . inet_ntop( $bin );
 }
 
 /**
@@ -284,49 +308,241 @@ function pixva_submission_id() {
 }
 
 /**
- * Claim a submission id. Returns the stored result if it was already
- * processed, true if it is new (and now reserved), false if invalid.
+ * Replace a private option row only when its stored value still equals $expected.
+ *
+ * One UPDATE with the old value in the WHERE clause: of two callers holding the
+ * same expected value, at most one gets 1 affected row.
+ *
+ * @param string $name     Option name.
+ * @param string $expected Value the caller read.
+ * @param string $new      Replacement value.
+ * @return bool True when this call performed the replacement.
+ */
+function pixva_replace_option_row( $name, $expected, $new ) {
+	global $wpdb;
+	$rows = $wpdb->update(
+		$wpdb->options,
+		array( 'option_value' => (string) $new ),
+		array(
+			'option_name'  => $name,
+			'option_value' => (string) $expected,
+		),
+		array( '%s' ),
+		array( '%s', '%s' )
+	);
+	wp_cache_delete( $name, 'options' );
+	return 1 === $rows;
+}
+
+/**
+ * Delete expired private rows so wp_options does not grow without bound.
+ *
+ * Covers lookup attempt slots, suspicious-lookup counters, submission claims and
+ * order status locks. Each row is deleted only if its stored value still matches
+ * what was read (see pixva_delete_option_row()). Runs hourly from WP-Cron, capped
+ * per run.
+ *
+ * @return int Number of rows removed.
+ */
+function pixva_prune_expiring_rows() {
+	global $wpdb;
+	$now     = pixva_now();
+	$removed = 0;
+	$budget  = 2000;
+	$specs   = array(
+		// Attempt and suspicious-lookup slots store the time they were created.
+		'pixva_cf_' => static function ( $value ) use ( $now ) {
+			return ctype_digit( $value ) && (int) $value < $now - 2 * HOUR_IN_SECONDS;
+		},
+		'pixva_cg_' => static function ( $value ) use ( $now ) {
+			return ctype_digit( $value ) && (int) $value < $now - 2 * HOUR_IN_SECONDS;
+		},
+		// Order locks store "owner|time"; a lock older than an hour is abandoned.
+		'pixva_olock_' => static function ( $value ) use ( $now ) {
+			$pos = strrpos( $value, '|' );
+			return false !== $pos && (int) substr( $value, $pos + 1 ) < $now - HOUR_IN_SECONDS;
+		},
+		// Claims: an outcome past its TTL, or a pending claim past its TTL, is dead.
+		'pixva_sub_' => static function ( $value ) use ( $now ) {
+			$row = json_decode( $value, true );
+			if ( ! is_array( $row ) || ! isset( $row['s'], $row['t'] ) ) {
+				return true;
+			}
+			$ttl = 'done' === $row['s'] ? PIXVA_CLAIM_DONE_TTL : PIXVA_CLAIM_PENDING_TTL;
+			return (int) $row['t'] + $ttl <= $now;
+		},
+	);
+	foreach ( $specs as $prefix => $is_expired ) {
+		$like = $wpdb->esc_like( $prefix ) . '%';
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT 500", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$like
+			) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		);
+		foreach ( (array) $rows as $row ) {
+			if ( --$budget < 0 ) {
+				return $removed;
+			}
+			if ( $is_expired( (string) $row->option_value ) && pixva_delete_option_row( (string) $row->option_name, (string) $row->option_value ) ) {
+				++$removed;
+			}
+		}
+	}
+	return $removed;
+}
+
+/**
+ * Seconds a claim may stay "pending" before another request may take it over.
+ * It must exceed the longest legitimate handler run (photo upload + order insert).
+ */
+const PIXVA_CLAIM_PENDING_TTL = 300;
+
+/** Seconds a stored outcome is replayed for a repeated submission id (one day, as before). */
+const PIXVA_CLAIM_DONE_TTL = 86400;
+
+/**
+ * Claims owned by this request: submission id => exact stored pending value.
+ *
+ * @return array<string,string>
+ */
+function &pixva_claim_registry() {
+	static $registry = array();
+	return $registry;
+}
+
+/**
+ * Normalised 32-character submission id, or '' when invalid.
+ *
+ * @param string $id Raw id from the form.
+ * @return string
+ */
+function pixva_normalize_submission_id( $id ) {
+	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
+	return 32 === strlen( $id ) ? $id : '';
+}
+
+/**
+ * Claim a submission id.
+ *
+ * Returns true when this request now owns the id and must run the handler,
+ * the stored outcome (array) when the id was already processed, a pending
+ * marker when another request is still processing it, or false when invalid.
+ *
+ * Concurrency: the first row is created with pixva_create_once() (UNIQUE
+ * option_name), so exactly one of several simultaneous claims gets true. Moving
+ * a row from pending to done, or taking over a stale claim, is a compare-and-
+ * replace on the exact stored value: two processes cannot both win.
  *
  * @param string $id Submission id from the form.
  * @return true|false|array
  */
 function pixva_claim_submission( $id ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	if ( strlen( $id ) !== 32 ) {
+	$id = pixva_normalize_submission_id( $id );
+	if ( '' === $id ) {
 		return false;
 	}
-	$key  = 'pixva_sub_' . $id;
-	$prev = get_transient( $key );
-	if ( is_array( $prev ) ) {
-		return $prev;
+	$name = 'pixva_sub_' . $id;
+	for ( $try = 0; $try < 3; $try++ ) {
+		$now     = pixva_now();
+		$pending = (string) wp_json_encode(
+			array(
+				's' => 'pending',
+				'k' => wp_generate_password( 24, false ),
+				't' => $now,
+			)
+		);
+		if ( pixva_create_once( $name, $pending ) ) {
+			$registry        = &pixva_claim_registry();
+			$registry[ $id ] = $pending;
+			return true;
+		}
+		$held = pixva_option_value( $name );
+		if ( null === $held ) {
+			continue; // Removed between the two reads; try again.
+		}
+		$row = json_decode( $held, true );
+		if ( ! is_array( $row ) || ! isset( $row['s'], $row['t'] ) ) {
+			$claimed = pixva_replace_option_row( $name, $held, $pending ); // Unreadable row: replace it.
+		} else {
+			$age = $now - (int) $row['t'];
+			if ( 'done' === $row['s'] && $age < PIXVA_CLAIM_DONE_TTL ) {
+				return isset( $row['r'] ) ? (array) $row['r'] : array();
+			}
+			if ( 'pending' === $row['s'] && $age < PIXVA_CLAIM_PENDING_TTL ) {
+				return array( 'pending' => true );
+			}
+			// Expired outcome, or a pending claim whose owner is presumed dead.
+			$claimed = pixva_replace_option_row( $name, $held, $pending );
+		}
+		if ( $claimed ) {
+			$registry        = &pixva_claim_registry();
+			$registry[ $id ] = $pending;
+			return true;
+		}
 	}
-	set_transient( $key, array( 'pending' => true ), DAY_IN_SECONDS );
-	return true;
+	return array( 'pending' => true );
 }
 
 /**
- * Store the outcome of a processed submission id.
+ * Store the outcome of a claim this request owns.
+ *
+ * Only the owner can finish: the row must still hold the exact pending value
+ * this request wrote. If the claim was taken over (the handler ran longer than
+ * PIXVA_CLAIM_PENDING_TTL), nothing is written and the action
+ * pixva_submission_lease_lost fires so the duplicate can be investigated.
  *
  * @param string $id     Submission id.
  * @param array  $result Result payload (no PII beyond what the submitter already has).
- * @return void
+ * @return bool True when the outcome was stored.
  */
 function pixva_finish_submission( $id, $result ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	if ( strlen( $id ) === 32 ) {
-		set_transient( 'pixva_sub_' . $id, (array) $result, DAY_IN_SECONDS );
+	$id       = pixva_normalize_submission_id( $id );
+	$registry = &pixva_claim_registry();
+	if ( '' === $id || ! isset( $registry[ $id ] ) ) {
+		return false;
 	}
+	$pending = $registry[ $id ];
+	unset( $registry[ $id ] );
+	$done = (string) wp_json_encode(
+		array(
+			's' => 'done',
+			't' => pixva_now(),
+			'r' => (array) $result,
+		)
+	);
+	$ok = pixva_replace_option_row( 'pixva_sub_' . $id, $pending, $done );
+	if ( ! $ok ) {
+		do_action( 'pixva_submission_lease_lost', $id );
+	}
+	return $ok;
 }
 
 /**
- * Release a reserved id after a validation failure so the user can retry.
+ * Release a claim this request owns after a validation or handler error, so the
+ * user can retry with the same id. Conditional on the exact pending value.
  *
  * @param string $id Submission id.
- * @return void
+ * @return bool
  */
 function pixva_release_submission( $id ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	delete_transient( 'pixva_sub_' . $id );
+	$id       = pixva_normalize_submission_id( $id );
+	$registry = &pixva_claim_registry();
+	if ( '' === $id || ! isset( $registry[ $id ] ) ) {
+		return false;
+	}
+	$pending = $registry[ $id ];
+	unset( $registry[ $id ] );
+	return pixva_delete_option_row( 'pixva_sub_' . $id, $pending );
+}
+
+/**
+ * Current time, filterable so tests can cross hour and claim boundaries.
+ *
+ * @return int
+ */
+function pixva_now() {
+	return (int) apply_filters( 'pixva_now', time() );
 }
 
 /*

@@ -447,3 +447,29 @@ function pixva_language_attributes( $output ) {
 	return false === strpos( $output, 'dir=' ) ? $output . ' dir="rtl"' : $output;
 }
 add_filter( 'language_attributes', 'pixva_language_attributes' );
+
+/**
+ * Hourly housekeeping: prune expired private rows (lookup attempts, claims,
+ * order locks) so wp_options does not grow without bound.
+ */
+add_action( 'pixva_prune_rows', 'pixva_prune_expiring_rows' );
+
+/**
+ * Schedule the housekeeping event once.
+ *
+ * @return void
+ */
+function pixva_schedule_maintenance() {
+	if ( ! wp_next_scheduled( 'pixva_prune_rows' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'hourly', 'pixva_prune_rows' );
+	}
+}
+add_action( 'init', 'pixva_schedule_maintenance' );
+
+/** Remove the housekeeping event when the theme is switched away. */
+add_action(
+	'switch_theme',
+	static function () {
+		wp_clear_scheduled_hook( 'pixva_prune_rows' );
+	}
+);

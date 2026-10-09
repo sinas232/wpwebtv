@@ -127,7 +127,7 @@
 						window.location.assign(url);
 						return;
 					}
-					pixva.setSafeHTML(results, nr.innerHTML);
+					pixva.setSafeFromNode(results, nr); // parsed, sanitised in place; no serialise/re-parse round trip
 					if (count && nc) {
 						count.textContent = nc.textContent.trim();
 					}

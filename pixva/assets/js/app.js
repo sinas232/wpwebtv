@@ -107,6 +107,13 @@
 		src: 1, stroke: 1, 'stroke-linecap': 1, 'stroke-linejoin': 1, 'stroke-width': 1,
 		title: 1, viewbox: 1, width: 1, x: 1, x1: 1, x2: 1, y: 1, y1: 1, y2: 1
 	};
+	// Ids that would shadow or clobber browser/page globals (DOM clobbering).
+	var RESERVED_IDS = {
+		alert: 1, body: 1, cookie: 1, document: 1, eval: 1, fetch: 1, forms: 1, frames: 1,
+		head: 1, history: 1, innerHTML: 1, location: 1, localStorage: 1, navigator: 1,
+		opener: 1, parent: 1, pixva: 1, PIXVA: 1, sessionStorage: 1, self: 1, top: 1,
+		window: 1, dataLayer: 1, console: 1
+	};
 	var SAFE_ID = /^[A-Za-z][A-Za-z0-9_-]{0,79}$/;
 
 	function safeUrl(value) {
@@ -125,7 +132,7 @@
 			if (keep && name === 'href' && tag !== 'a') { keep = false; }
 			if (keep && name === 'src' && tag !== 'img') { keep = false; }
 			if (keep && (name === 'href' || name === 'src') && !safeUrl(attr.value)) { keep = false; }
-			if (keep && name === 'id' && !SAFE_ID.test(attr.value)) { keep = false; }
+			if (keep && name === 'id' && (!SAFE_ID.test(attr.value) || RESERVED_IDS[attr.value])) { keep = false; }
 			if (!keep) { el.removeAttribute(attr.name); }
 		});
 	}
@@ -147,6 +154,16 @@
 		});
 	}
 
+	/* Sanitise a node that is already in an inert document (e.g. DOMParser), then move its children. */
+	function setSafeFromNode(target, source) {
+		if (!target || !source) { return; }
+		cleanNode(source);
+		var frag = document.createDocumentFragment();
+		while (source.firstChild) { frag.appendChild(source.firstChild); }
+		target.textContent = '';
+		target.appendChild(frag);
+	}
+
 	function setSafeHTML(target, html) {
 		if (!target) { return; }
 		var parsed = new DOMParser().parseFromString('<!doctype html><body>' + String(html == null ? '' : html), 'text/html');
@@ -160,6 +177,7 @@
 	var pixva = (window.pixva = window.pixva || {});
 	pixva.track = track;
 	pixva.setSafeHTML = setSafeHTML;
+	pixva.setSafeFromNode = setSafeFromNode;
 
 	(cfg.pending || []).forEach(function (e) {
 		track(e.name, e.props);

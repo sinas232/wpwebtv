@@ -260,7 +260,7 @@ const PIXVA_CODE_ATTEMPT_MAX = 5;
  * @return bool
  */
 function pixva_code_attempts_locked( $code ) {
-	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	$bucket = (int) floor( pixva_now() / HOUR_IN_SECONDS );
 	for ( $slot = 1; $slot <= PIXVA_CODE_ATTEMPT_MAX; $slot++ ) {
 		if ( null === pixva_option_value( pixva_code_attempt_slot( $code, $bucket, $slot ) ) ) {
 			return false;
@@ -276,17 +276,47 @@ function pixva_code_attempts_locked( $code ) {
  * @return void
  */
 function pixva_record_code_attempt_failure( $code ) {
-	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	$bucket = (int) floor( pixva_now() / HOUR_IN_SECONDS );
 	for ( $slot = 1; $slot <= PIXVA_CODE_ATTEMPT_MAX; $slot++ ) {
-		if ( pixva_create_once( pixva_code_attempt_slot( $code, $bucket, $slot ), (string) time() ) ) {
+		if ( pixva_create_once( pixva_code_attempt_slot( $code, $bucket, $slot ), (string) pixva_now() ) ) {
 			break;
 		}
 	}
+	pixva_count_code_failure_for_monitoring( $code, $bucket );
 	// Drop the previous hour's slots for this scope so rows do not pile up.
 	foreach ( range( 1, PIXVA_CODE_ATTEMPT_MAX ) as $slot ) {
 		pixva_delete_option_row( pixva_code_attempt_slot( $code, $bucket - 1, $slot ), (string) pixva_option_value( pixva_code_attempt_slot( $code, $bucket - 1, $slot ) ) );
 	}
 }
+
+/**
+ * Monitoring only: count failed lookups per code across all clients, per hour.
+ *
+ * This never blocks anyone (a per-code block is the denial-of-service this design
+ * avoids). It fires pixva_suspicious_lookup once when PIXVA_CODE_GLOBAL_ALERT
+ * failures are seen for a code in an hour, so site owners can react. The slots
+ * are capped at PIXVA_CODE_GLOBAL_ALERT rows per code per hour and are pruned
+ * by pixva_prune_expiring_rows().
+ *
+ * @param string $code   Normalised order code.
+ * @param int    $bucket Clock hour index.
+ * @return void
+ */
+function pixva_count_code_failure_for_monitoring( $code, $bucket ) {
+	$scope = substr( hash_hmac( 'sha256', strtoupper( (string) $code ), wp_salt( 'auth' ) ), 0, 32 );
+	for ( $n = 1; $n <= PIXVA_CODE_GLOBAL_ALERT; $n++ ) {
+		$name = 'pixva_cg_' . $scope . '_' . (int) $bucket . '_' . $n;
+		if ( pixva_create_once( $name, (string) pixva_now() ) ) {
+			if ( PIXVA_CODE_GLOBAL_ALERT === $n ) {
+				do_action( 'pixva_suspicious_lookup', substr( $scope, 0, 12 ), $n, (int) $bucket );
+			}
+			return;
+		}
+	}
+}
+
+/** Failed lookups for one code in one hour that trigger the monitoring action. */
+const PIXVA_CODE_GLOBAL_ALERT = 50;
 
 /**
  * Forget this client's failures for the code after a successful lookup.
@@ -295,7 +325,7 @@ function pixva_record_code_attempt_failure( $code ) {
  * @return void
  */
 function pixva_clear_code_attempt_failures( $code ) {
-	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	$bucket = (int) floor( pixva_now() / HOUR_IN_SECONDS );
 	foreach ( array( $bucket, $bucket - 1 ) as $b ) {
 		foreach ( range( 1, PIXVA_CODE_ATTEMPT_MAX ) as $slot ) {
 			$name  = pixva_code_attempt_slot( $code, $b, $slot );
@@ -409,10 +439,20 @@ function pixva_set_order_status( $order_id, $status, $note = '' ) {
 		return $owner;
 	}
 	try {
-		return pixva_set_order_status_locked( $order_id, $status, $note );
+		$outcome = pixva_set_order_status_locked( $order_id, $status, $note, $owner );
 	} finally {
-		pixva_order_lock_release( $order_id, $owner );
+		if ( ! pixva_order_lock_release( $order_id, $owner ) ) {
+			do_action( 'pixva_order_lock_lost', $order_id );
+		}
 	}
+	if ( is_wp_error( $outcome ) ) {
+		return $outcome;
+	}
+	if ( ! empty( $outcome['changed'] ) ) {
+		// Listeners run after the lock is released, so they cannot deadlock or extend it.
+		do_action( 'pixva_order_status_changed', $order_id, $outcome['status'], $outcome['from'] );
+	}
+	return true;
 }
 
 /**
@@ -436,7 +476,7 @@ function pixva_order_lock_acquire( $order_id ) {
 	$name     = 'pixva_olock_' . (int) $order_id;
 	$deadline = microtime( true ) + 10;
 	do {
-		$owner = wp_generate_password( 24, false ) . '|' . time();
+		$owner = wp_generate_password( 24, false ) . '|' . pixva_now();
 		if ( pixva_create_once( $name, $owner ) ) {
 			return $owner;
 		}
@@ -445,7 +485,7 @@ function pixva_order_lock_acquire( $order_id ) {
 			continue; // Released between the two reads; try again at once.
 		}
 		$taken_at = (int) substr( $held, (int) strrpos( $held, '|' ) + 1 );
-		if ( time() - $taken_at > PIXVA_ORDER_LOCK_STALE ) {
+		if ( pixva_now() - $taken_at > PIXVA_ORDER_LOCK_STALE ) {
 			pixva_delete_option_row( $name, $held ); // Only removes that exact stale owner.
 			continue;
 		}
@@ -464,7 +504,18 @@ function pixva_order_lock_acquire( $order_id ) {
  * @return void
  */
 function pixva_order_lock_release( $order_id, $owner ) {
-	pixva_delete_option_row( 'pixva_olock_' . (int) $order_id, $owner );
+	return pixva_delete_option_row( 'pixva_olock_' . (int) $order_id, $owner );
+}
+
+/**
+ * Whether the order lock still holds this owner token (fencing check).
+ *
+ * @param int    $order_id Order.
+ * @param string $owner    Token from pixva_order_lock_acquire().
+ * @return bool
+ */
+function pixva_order_lock_held( $order_id, $owner ) {
+	return (string) $owner === (string) pixva_option_value( 'pixva_olock_' . (int) $order_id );
 }
 
 /** Seconds after which an order lock is considered abandoned. */
@@ -479,14 +530,14 @@ const PIXVA_ORDER_LOCK_STALE = 30;
  * @param string $note     Public note.
  * @return true|WP_Error
  */
-function pixva_set_order_status_locked( $order_id, $status, $note = '' ) {
+function pixva_set_order_status_locked( $order_id, $status, $note = '', $owner = null ) {
 	$statuses = pixva_order_statuses();
 	if ( ! isset( $statuses[ $status ] ) ) {
 		return new WP_Error( 'status', __( 'وضعیت نامعتبر است.', 'pixva' ) );
 	}
 	$current = (string) get_post_meta( $order_id, '_pixva_order_status', true );
 	if ( $current === $status && '' === $note ) {
-		return true;
+		return array( 'changed' => false );
 	}
 	if ( in_array( $current, array( 'delivered', 'cancelled' ), true ) && ! current_user_can( 'pixva_manage_orders' ) ) {
 		return new WP_Error( 'closed', __( 'این پرونده بسته شده و فقط مدیر می‌تواند آن را تغییر دهد.', 'pixva' ) );
@@ -494,9 +545,13 @@ function pixva_set_order_status_locked( $order_id, $status, $note = '' ) {
 	$history   = pixva_order_history( $order_id );
 	$history[] = array(
 		's' => $status,
-		't' => time(),
+		't' => pixva_now(),
 		'n' => pixva_substr( sanitize_textarea_field( $note ), 0, 500 ),
 	);
+	// Fencing: if the lock was taken over while this request was running, stop before writing.
+	if ( null !== $owner && ! pixva_order_lock_held( $order_id, $owner ) ) {
+		return new WP_Error( 'busy', __( 'این پرونده در حال به‌روزرسانی است؛ چند لحظه بعد دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
+	}
 	update_post_meta( $order_id, '_pixva_order_status', $status );
 	update_post_meta( $order_id, '_pixva_order_steps', pixva_json_meta( $history ) );
 
@@ -509,8 +564,11 @@ function pixva_set_order_status_locked( $order_id, $status, $note = '' ) {
 			update_post_meta( $order_id, '_pixva_warranty_source', 'policy' );
 		}
 	}
-	do_action( 'pixva_order_status_changed', $order_id, $status, $current );
-	return true;
+	return array(
+		'changed' => true,
+		'status'  => $status,
+		'from'    => $current,
+	);
 }
 
 /**
