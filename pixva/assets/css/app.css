@@ -8572,15 +8572,24 @@ fieldset.field--error {
 }
 
 @media (max-width: 639px) {
-	.lookup-console > .lookup,
 	.order {
 		padding: var(--s-5);
 		border-radius: var(--r-lg);
 	}
 
+	/* Narrow phones: smaller inner padding and button padding so the form cannot
+	   exceed the console (the 64px button padding forced the grid track to 216px and
+	   pushed the document 25px wider than a 320px viewport on /tracking/ and /warranty/). */
+	.lookup-console > .lookup {
+		padding: var(--s-4);
+		border-radius: var(--r-lg);
+		min-inline-size: 0;
+	}
+
 	.lookup-console > .lookup .btn {
 		inline-size: 100%;
 		justify-content: center;
+		padding-inline: var(--s-4);
 	}
 }
 
