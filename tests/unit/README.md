@@ -24,6 +24,8 @@ Evidence kinds:
 | `js/safe-html.chromium.cjs` (13) | Browser (Chromium 153, headless) | `LD_LIBRARY_PATH=<libs> NODE_PATH=<node_modules> node tests/unit/js/safe-html.chromium.cjs` | `13 passed` |
 | `js/safe-html.chromium.cjs` with `NAIVE_CONTROL=1` | Browser, negative control | same, plus `NAIVE_CONTROL=1` | `5 passed, 8 failed` (the naive `innerHTML` control must fail) |
 
+The `PHP=8.3` variable in the commands above is not a version selector. The runner used for the Round 3 results is `@php-wasm/cli` 3.1.57, which runs PHP 8.5.10 (check with `php-wasm-cli -r 'echo PHP_VERSION;'`). Record the version actually run.
+
 `php-wasm-cli` can return exit code 0 even after a PHP fatal error. Read the `N passed, M failed` line and check for `Fatal`.
 
 ## What the PHP suite covers
