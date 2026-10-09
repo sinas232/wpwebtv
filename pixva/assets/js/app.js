@@ -76,8 +76,90 @@
 		};
 	}
 
+	/* ------------------------------------------------------------------ */
+	/* Safe HTML insertion                                                 */
+	/* ------------------------------------------------------------------ */
+	/*
+	 * Server fragments (order view, warranty view, estimate, error results)
+	 * are inserted with an allow-list sanitizer instead of a raw innerHTML
+	 * assignment. The HTML is parsed into an inert DOMParser document, every
+	 * element outside SAFE_TAGS is unwrapped (or dropped with its content when
+	 * it is executable/embedded), and every attribute outside SAFE_ATTRS is
+	 * removed. URL attributes must use http(s), mailto, tel, fragment or
+	 * relative forms. Server-side escaping remains the first line of defence;
+	 * this is the second.
+	 */
+	var SAFE_TAGS = {
+		a: 1, article: 1, b: 1, br: 1, circle: 1, details: 1, div: 1, em: 1, g: 1,
+		h2: 1, h3: 1, header: 1, i: 1, img: 1, li: 1, line: 1, ol: 1, p: 1, path: 1,
+		polygon: 1, polyline: 1, rect: 1, span: 1, strong: 1, summary: 1, svg: 1,
+		time: 1, ul: 1
+	};
+	var DROP_TAGS = {
+		base: 1, button: 1, embed: 1, form: 1, frame: 1, iframe: 1, input: 1, link: 1,
+		meta: 1, noscript: 1, object: 1, script: 1, select: 1, style: 1, template: 1,
+		textarea: 1, title: 1
+	};
+	var SAFE_ATTRS = {
+		'aria-hidden': 1, 'clip-rule': 1, alt: 1, class: 1, cx: 1, cy: 1, d: 1,
+		datetime: 1, dir: 1, fill: 1, 'fill-rule': 1, focusable: 1, height: 1, hidden: 1,
+		href: 1, id: 1, lang: 1, loading: 1, points: 1, r: 1, role: 1, rx: 1, ry: 1,
+		src: 1, stroke: 1, 'stroke-linecap': 1, 'stroke-linejoin': 1, 'stroke-width': 1,
+		title: 1, viewbox: 1, width: 1, x: 1, x1: 1, x2: 1, y: 1, y1: 1, y2: 1
+	};
+	var SAFE_ID = /^[A-Za-z][A-Za-z0-9_-]{0,79}$/;
+
+	function safeUrl(value) {
+		// Strip whitespace and control characters that browsers ignore in schemes.
+		var v = String(value).replace(/[\u0000-\u0020\u007f]/g, '');
+		if (/^[a-z][a-z0-9+.-]*:/i.test(v)) {
+			return /^(https?|mailto|tel):/i.test(v);
+		}
+		return true; // relative, fragment or protocol-relative path
+	}
+
+	function cleanAttributes(el, tag) {
+		Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+			var name = attr.name.toLowerCase();
+			var keep = SAFE_ATTRS[name] || /^(aria|data)-[a-z0-9_-]+$/.test(name);
+			if (keep && name === 'href' && tag !== 'a') { keep = false; }
+			if (keep && name === 'src' && tag !== 'img') { keep = false; }
+			if (keep && (name === 'href' || name === 'src') && !safeUrl(attr.value)) { keep = false; }
+			if (keep && name === 'id' && !SAFE_ID.test(attr.value)) { keep = false; }
+			if (!keep) { el.removeAttribute(attr.name); }
+		});
+	}
+
+	function cleanNode(node) {
+		Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+			if (child.nodeType === 3) { return; } // text is inert
+			if (child.nodeType !== 1) { node.removeChild(child); return; } // comments, PIs
+			var tag = String(child.localName || child.nodeName).toLowerCase();
+			if (DROP_TAGS[tag]) { node.removeChild(child); return; }
+			if (!SAFE_TAGS[tag]) {
+				cleanNode(child);
+				while (child.firstChild) { node.insertBefore(child.firstChild, child); }
+				node.removeChild(child);
+				return;
+			}
+			cleanAttributes(child, tag);
+			cleanNode(child);
+		});
+	}
+
+	function setSafeHTML(target, html) {
+		if (!target) { return; }
+		var parsed = new DOMParser().parseFromString('<!doctype html><body>' + String(html == null ? '' : html), 'text/html');
+		cleanNode(parsed.body);
+		var frag = document.createDocumentFragment();
+		while (parsed.body.firstChild) { frag.appendChild(parsed.body.firstChild); }
+		target.textContent = '';
+		target.appendChild(frag);
+	}
+
 	var pixva = (window.pixva = window.pixva || {});
 	pixva.track = track;
+	pixva.setSafeHTML = setSafeHTML;
 
 	(cfg.pending || []).forEach(function (e) {
 		track(e.name, e.props);

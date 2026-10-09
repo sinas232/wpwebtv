@@ -215,18 +215,96 @@ function pixva_verify_order_access( $code, $phone ) {
 	if ( '' === $code || ! pixva_is_valid_iranian_mobile( $phone ) ) {
 		return new WP_Error( 'invalid', __( 'کد پیگیری یا شماره همراه به‌درستی وارد نشده است.', 'pixva' ), array( 'status' => 400 ) );
 	}
-	$lock_key = 'pixva_codefail_' . md5( $code );
-	if ( (int) get_transient( $lock_key ) >= 5 ) {
+	if ( pixva_code_attempts_locked( $code ) ) {
 		return new WP_Error( 'locked', __( 'به دلیل تلاش‌های ناموفق، پیگیری این کد موقتاً قفل شده است.', 'pixva' ), array( 'status' => 429 ) );
 	}
 	$id = pixva_find_order_by_code( $code );
 	if ( ! $id || ! pixva_order_phone_matches( $id, $phone ) ) {
-		set_transient( $lock_key, (int) get_transient( $lock_key ) + 1, HOUR_IN_SECONDS );
+		pixva_record_code_attempt_failure( $code );
 		// Same message for unknown code and wrong phone (no oracle).
 		return new WP_Error( 'not_found', __( 'پرونده‌ای با این کد و شماره پیدا نشد.', 'pixva' ), array( 'status' => 404 ) );
 	}
-	delete_transient( $lock_key );
+	pixva_clear_code_attempt_failures( $code );
 	return $id;
+}
+
+/**
+ * Failed-attempt counter scope for one order code.
+ *
+ * The scope is (code, client key, clock hour). Failures from one client never
+ * count against another client, so a person who only knows the code cannot lock
+ * the real customer out. The client key comes from REMOTE_ADDR (see
+ * pixva_client_key()). Keys are HMAC-hashed so the code does not appear in
+ * wp_options.
+ *
+ * @param string $code   Normalised order code.
+ * @param int    $bucket Clock hour index.
+ * @param int    $slot   Attempt slot, 1..PIXVA_CODE_ATTEMPT_MAX.
+ * @return string
+ */
+function pixva_code_attempt_slot( $code, $bucket, $slot ) {
+	$scope = hash_hmac( 'sha256', strtoupper( (string) $code ) . '|' . pixva_client_key(), wp_salt( 'auth' ) );
+	return 'pixva_cf_' . substr( $scope, 0, 32 ) . '_' . (int) $bucket . '_' . (int) $slot;
+}
+
+/** Maximum failed attempts per (code, client, hour) before the lookup refuses. */
+const PIXVA_CODE_ATTEMPT_MAX = 5;
+
+/**
+ * Whether this client has used up its failed attempts for this code this hour.
+ *
+ * Slots are created with pixva_create_once(), so concurrent failures can never
+ * create more than PIXVA_CODE_ATTEMPT_MAX rows.
+ *
+ * @param string $code Normalised order code.
+ * @return bool
+ */
+function pixva_code_attempts_locked( $code ) {
+	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	for ( $slot = 1; $slot <= PIXVA_CODE_ATTEMPT_MAX; $slot++ ) {
+		if ( null === pixva_option_value( pixva_code_attempt_slot( $code, $bucket, $slot ) ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Record one failed lookup for this (code, client) in the current hour.
+ *
+ * @param string $code Normalised order code.
+ * @return void
+ */
+function pixva_record_code_attempt_failure( $code ) {
+	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	for ( $slot = 1; $slot <= PIXVA_CODE_ATTEMPT_MAX; $slot++ ) {
+		if ( pixva_create_once( pixva_code_attempt_slot( $code, $bucket, $slot ), (string) time() ) ) {
+			break;
+		}
+	}
+	// Drop the previous hour's slots for this scope so rows do not pile up.
+	foreach ( range( 1, PIXVA_CODE_ATTEMPT_MAX ) as $slot ) {
+		pixva_delete_option_row( pixva_code_attempt_slot( $code, $bucket - 1, $slot ), (string) pixva_option_value( pixva_code_attempt_slot( $code, $bucket - 1, $slot ) ) );
+	}
+}
+
+/**
+ * Forget this client's failures for the code after a successful lookup.
+ *
+ * @param string $code Normalised order code.
+ * @return void
+ */
+function pixva_clear_code_attempt_failures( $code ) {
+	$bucket = (int) floor( time() / HOUR_IN_SECONDS );
+	foreach ( array( $bucket, $bucket - 1 ) as $b ) {
+		foreach ( range( 1, PIXVA_CODE_ATTEMPT_MAX ) as $slot ) {
+			$name  = pixva_code_attempt_slot( $code, $b, $slot );
+			$value = pixva_option_value( $name );
+			if ( null !== $value ) {
+				pixva_delete_option_row( $name, $value );
+			}
+		}
+	}
 }
 
 /**
@@ -325,6 +403,83 @@ function pixva_order_history( $order_id ) {
  * @return true|WP_Error
  */
 function pixva_set_order_status( $order_id, $status, $note = '' ) {
+	$order_id = (int) $order_id;
+	$owner    = pixva_order_lock_acquire( $order_id );
+	if ( is_wp_error( $owner ) ) {
+		return $owner;
+	}
+	try {
+		return pixva_set_order_status_locked( $order_id, $status, $note );
+	} finally {
+		pixva_order_lock_release( $order_id, $owner );
+	}
+}
+
+/**
+ * Per-order mutex for status changes.
+ *
+ * A status change reads the current status and history, then writes both.
+ * Without a lock, two overlapping changes both read the same history and the
+ * second write drops the first entry; a change can also be checked against a
+ * status that another request has just replaced. The lock covers the whole
+ * read-check-write sequence.
+ *
+ * It is built on pixva_create_once(), so acquiring is atomic at the database
+ * level. A lock older than PIXVA_ORDER_LOCK_STALE seconds is treated as left
+ * behind by a crashed request and removed with a compare-and-delete, so two
+ * processes cannot both take over the same stale lock.
+ *
+ * @param int $order_id Order.
+ * @return string|WP_Error Owner token to pass to pixva_order_lock_release().
+ */
+function pixva_order_lock_acquire( $order_id ) {
+	$name     = 'pixva_olock_' . (int) $order_id;
+	$deadline = microtime( true ) + 10;
+	do {
+		$owner = wp_generate_password( 24, false ) . '|' . time();
+		if ( pixva_create_once( $name, $owner ) ) {
+			return $owner;
+		}
+		$held = pixva_option_value( $name );
+		if ( null === $held ) {
+			continue; // Released between the two reads; try again at once.
+		}
+		$taken_at = (int) substr( $held, (int) strrpos( $held, '|' ) + 1 );
+		if ( time() - $taken_at > PIXVA_ORDER_LOCK_STALE ) {
+			pixva_delete_option_row( $name, $held ); // Only removes that exact stale owner.
+			continue;
+		}
+		usleep( 50000 );
+	} while ( microtime( true ) < $deadline );
+
+	return new WP_Error( 'busy', __( 'این پرونده در حال به‌روزرسانی است؛ چند لحظه بعد دوباره تلاش کنید.', 'pixva' ), array( 'status' => 409 ) );
+}
+
+/**
+ * Release an order lock this request owns. A lock taken over by someone else
+ * is left untouched, because the delete is conditional on the owner token.
+ *
+ * @param int    $order_id Order.
+ * @param string $owner    Token from pixva_order_lock_acquire().
+ * @return void
+ */
+function pixva_order_lock_release( $order_id, $owner ) {
+	pixva_delete_option_row( 'pixva_olock_' . (int) $order_id, $owner );
+}
+
+/** Seconds after which an order lock is considered abandoned. */
+const PIXVA_ORDER_LOCK_STALE = 30;
+
+/**
+ * Status change body. Call only through pixva_set_order_status(), which holds
+ * the order lock.
+ *
+ * @param int    $order_id Order.
+ * @param string $status   Target status key.
+ * @param string $note     Public note.
+ * @return true|WP_Error
+ */
+function pixva_set_order_status_locked( $order_id, $status, $note = '' ) {
 	$statuses = pixva_order_statuses();
 	if ( ! isset( $statuses[ $status ] ) ) {
 		return new WP_Error( 'status', __( 'وضعیت نامعتبر است.', 'pixva' ) );

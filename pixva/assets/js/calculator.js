@@ -71,7 +71,7 @@
 					result.appendChild(pixva.notice('error', (x.d && x.d.message) || (cfg.i18n && cfg.i18n.error) || '', true));
 					return;
 				}
-				result.innerHTML = x.d.html || ''; // server-rendered, escaped by PHP
+				pixva.setSafeHTML(result, x.d.html || ''); // server fragment, sanitised client-side too
 				pixva.track('price_calculator_completed', { available: !!x.d.available, label: body.service });
 				if (focusResult) {
 					result.focus();

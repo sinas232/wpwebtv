@@ -65,7 +65,7 @@
 				.then(function (x) {
 					out.textContent = '';
 					if (x.ok && x.d && typeof x.d.html === 'string') {
-						out.innerHTML = x.d.html; // server-rendered, escaped in PHP; no PII
+						pixva.setSafeHTML(out, x.d.html); // server fragment, sanitised client-side too; no PII
 						if (event) {
 							pixva.track(event, { result: 'found', status: endpoint === 'track' ? x.d.status : (x.d.warranty && x.d.warranty.state) });
 						}
@@ -127,7 +127,7 @@
 						window.location.assign(url);
 						return;
 					}
-					results.innerHTML = nr.innerHTML;
+					pixva.setSafeHTML(results, nr.innerHTML);
 					if (count && nc) {
 						count.textContent = nc.textContent.trim();
 					}

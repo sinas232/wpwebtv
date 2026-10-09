@@ -171,6 +171,82 @@ function pixva_rate_limit( $action, $max = 10, $window = HOUR_IN_SECONDS ) {
 	return true;
 }
 
+/**
+ * Create one private option row, only if no row with that name exists.
+ *
+ * add_option() is NOT atomic: it runs get_option() and then an upsert, so two
+ * concurrent callers can both see "missing" and both succeed. Transients are
+ * read-then-write for the same reason. A plain INSERT against wp_options, whose
+ * option_name column is UNIQUE, is different: the second concurrent insert
+ * fails at the database, so exactly one caller gets true. This is the
+ * primitive used for mutual exclusion and for counting failures.
+ *
+ * Reads and deletes for these rows go straight to the database (see
+ * pixva_option_value() and pixva_delete_option_row()) so the WordPress object
+ * cache cannot hide another process's write.
+ *
+ * @param string $name  Option name (at most 191 characters).
+ * @param string $value Stored value.
+ * @return bool True only for the single caller that created the row.
+ */
+function pixva_create_once( $name, $value ) {
+	global $wpdb;
+	$suppress = $wpdb->suppress_errors( true );
+	$rows     = $wpdb->insert(
+		$wpdb->options,
+		array(
+			'option_name'  => $name,
+			'option_value' => (string) $value,
+			'autoload'     => 'no',
+		),
+		array( '%s', '%s', '%s' )
+	);
+	$wpdb->suppress_errors( $suppress );
+	if ( 1 === $rows ) {
+		wp_cache_delete( $name, 'options' );
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Current stored value of a private option row, read from the database.
+ *
+ * @param string $name Option name.
+ * @return string|null Null when the row does not exist.
+ */
+function pixva_option_value( $name ) {
+	global $wpdb;
+	$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- must bypass the object cache.
+		$wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1", $name ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	);
+	return null === $value ? null : (string) $value;
+}
+
+/**
+ * Delete a private option row only when its stored value still matches.
+ *
+ * The compare and the delete happen in one statement, so a process that has
+ * just been replaced by another owner can never remove the new owner's row.
+ *
+ * @param string $name           Option name.
+ * @param string $expected_value Value the caller believes is stored.
+ * @return bool True when this call removed the row.
+ */
+function pixva_delete_option_row( $name, $expected_value ) {
+	global $wpdb;
+	$rows = $wpdb->delete(
+		$wpdb->options,
+		array(
+			'option_name'  => $name,
+			'option_value' => (string) $expected_value,
+		),
+		array( '%s', '%s' )
+	);
+	wp_cache_delete( $name, 'options' );
+	return 1 === $rows;
+}
+
 /*
  * ---------------------------------------------------------------------------
  * 3) Spam & duplicate protection
