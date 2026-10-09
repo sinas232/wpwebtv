@@ -177,6 +177,12 @@ function pixva_trim_block_styles() {
 			return;
 		}
 	}
+	// FAQ answers are printed on several routes via pixva_faq_items(), not as the queried post.
+	foreach ( get_posts( array( 'post_type' => 'pixva_faq', 'post_status' => 'publish', 'numberposts' => -1, 'no_found_rows' => true ) ) as $faq ) {
+		if ( has_blocks( $faq->post_content ) ) {
+			return;
+		}
+	}
 	wp_dequeue_style( 'wp-block-library' );
 	wp_dequeue_style( 'wp-block-library-theme' );
 	wp_dequeue_style( 'classic-theme-styles' );
