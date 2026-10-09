@@ -259,7 +259,8 @@ hr {
 }
 
 .skip-link {
-	position: absolute;
+	/* fixed: an off-screen skip link must not widen the document (RTL overflow scroll at 320px on /tracking/). */
+	position: fixed;
 	inset-inline-start: var(--s-2);
 	inset-block-start: -100px;
 	z-index: 1000;
