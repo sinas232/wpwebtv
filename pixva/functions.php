@@ -45,6 +45,10 @@ $pixva_modules = array(
 	'setup',
 	'admin',
 	'migration',
+	'elementor',
+	'elementor-widgets',
+	'shortcodes',
+	'announcement',
 );
 
 foreach ( $pixva_modules as $pixva_module ) {

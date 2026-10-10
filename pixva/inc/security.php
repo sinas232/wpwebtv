@@ -174,8 +174,98 @@ function pixva_rate_limit( $action, $max = 10, $window = HOUR_IN_SECONDS ) {
 /*
  * ---------------------------------------------------------------------------
  * 3) Spam & duplicate protection
+ *
+ * Submission idempotency records are stored in `wp_options` (autoload "no")
+ * instead of transients: the `option_name` UNIQUE index makes the claiming
+ * INSERT atomic, so two concurrent requests carrying the same submission id
+ * can never both proceed. Transients (plain SELECT/UPDATE) have no such
+ * guarantee. A crashed request leaves a "pending" record that is taken over
+ * after PIXVA_SUB_PENDING_TTL so the user is not locked out until the
+ * record's full TTL; finished records are replayed for PIXVA_SUB_TTL.
  * ---------------------------------------------------------------------------
  */
+
+/**
+ * How long a finished submission keeps replaying its result (seconds).
+ */
+const PIXVA_SUB_TTL = DAY_IN_SECONDS;
+
+/**
+ * After this many seconds a "pending" record is considered abandoned
+ * (request crashed between claim and finish) and may be taken over.
+ */
+const PIXVA_SUB_PENDING_TTL = 3 * MINUTE_IN_SECONDS;
+
+/**
+ * Normalise a submission id from the form. Returns '' when malformed.
+ *
+ * @param string $id Raw id.
+ * @return string
+ */
+function pixva_submission_normalize_id( $id ) {
+	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
+	return 32 === strlen( $id ) ? $id : '';
+}
+
+/**
+ * Read a submission record straight from the database (bypasses the
+ * notoptions/alloptions caches so arbitration always sees the latest row).
+ *
+ * @param string $id Normalised submission id.
+ * @return array|null Unserialised row or null when absent.
+ */
+function pixva_submission_row( $id ) {
+	global $wpdb;
+	$raw = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM ' . $wpdb->options . ' WHERE option_name = %s LIMIT 1', 'pixva_sub_' . $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- idempotency arbitration must not read a stale cache.
+	if ( null === $raw ) {
+		return null;
+	}
+	$row = maybe_unserialize( $raw );
+	return ( is_array( $row ) && isset( $row['s'], $row['t'] ) ) ? $row : null;
+}
+
+/**
+ * Delete one stored submission row (unconditional; caller owns the row).
+ *
+ * @param string $id Normalised submission id.
+ * @return void
+ */
+function pixva_submission_delete( $id ) {
+	global $wpdb;
+	$wpdb->delete( $wpdb->options, array( 'option_name' => 'pixva_sub_' . $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	// Raw delete bypasses delete_option(): drop both caches so a later
+	// add_option() in the same request does not see the removed row.
+	wp_cache_delete( 'pixva_sub_' . $id, 'options' );
+	wp_cache_delete( 'notoptions', 'options' );
+}
+
+/**
+ * Opportunistically remove expired submission records (throttled to once
+ * per hour). Options have no built-in expiry like transients do.
+ *
+ * @return void
+ */
+function pixva_gc_submissions() {
+	$last = (int) get_option( 'pixva_sub_gc', 0 );
+	if ( time() - $last < HOUR_IN_SECONDS ) {
+		return;
+	}
+	update_option( 'pixva_sub_gc', time(), false ); // Throttle marker only; losing the race is harmless.
+	global $wpdb;
+	$rows = $wpdb->get_results( 'SELECT option_name, option_value FROM ' . $wpdb->options . " WHERE option_name LIKE 'pixva_sub_%' LIMIT 1000" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- prefix scan, no user input.
+	foreach ( (array) $rows as $row ) {
+		if ( 0 !== strpos( (string) $row->option_name, 'pixva_sub_' ) ) {
+			continue;
+		}
+		$rec = maybe_unserialize( $row->option_value );
+		$age = is_array( $rec ) && isset( $rec['t'] ) ? time() - (int) $rec['t'] : PHP_INT_MAX;
+		$ttl = is_array( $rec ) && 'pending' === ( $rec['s'] ?? '' ) ? PIXVA_SUB_PENDING_TTL : PIXVA_SUB_TTL;
+		if ( $age > $ttl ) {
+			$wpdb->delete( $wpdb->options, array( 'option_name' => $row->option_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		}
+	}
+	wp_cache_delete( 'notoptions', 'options' );
+}
 
 /**
  * Hidden honeypot field. Visually hidden & out of tab order; screen readers
@@ -209,37 +299,117 @@ function pixva_submission_id() {
 
 /**
  * Claim a submission id. Returns the stored result if it was already
- * processed, true if it is new (and now reserved), false if invalid.
+ * processed, array('pending' => true) while another request holds it,
+ * true when this request reserved it, false if invalid.
  *
- * @param string $id Submission id from the form.
+ * The reservation INSERT relies on the UNIQUE index of `option_name`, so
+ * exactly one of several concurrent requests wins the claim.
+ *
+ * @param string $id    Submission id from the form.
+ * @param string $action Form action the id is being claimed for (binding
+ *                       prevents a booking id being replayed to another form).
  * @return true|false|array
  */
-function pixva_claim_submission( $id ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	if ( strlen( $id ) !== 32 ) {
+function pixva_claim_submission( $id, $action = '' ) {
+	$id = pixva_submission_normalize_id( $id );
+	if ( '' === $id ) {
 		return false;
 	}
-	$key  = 'pixva_sub_' . $id;
-	$prev = get_transient( $key );
-	if ( is_array( $prev ) ) {
-		return $prev;
+	pixva_gc_submissions();
+	$key = 'pixva_sub_' . $id;
+	for ( $try = 0; $try < 3; $try++ ) {
+		global $wpdb;
+		$raw = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM ' . $wpdb->options . ' WHERE option_name = %s LIMIT 1', $key ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic arbitration.
+		if ( null === $raw ) {
+			$record = array(
+				's' => 'pending',
+				't' => time(),
+				'a' => (string) $action,
+			);
+			if ( add_option( $key, $record, '', 'no' ) ) {
+				return true;
+			}
+			continue; // Lost the INSERT race: re-read the winner's row.
+		}
+		$row = maybe_unserialize( $raw );
+		if ( ! is_array( $row ) || ! isset( $row['s'], $row['t'] ) ) {
+			return false; // Corrupt row: reject instead of guessing.
+		}
+		if ( $action && isset( $row['a'] ) && '' !== (string) $row['a'] && $row['a'] !== $action ) {
+			return false; // Id was issued for a different form.
+		}
+		$age = time() - (int) $row['t'];
+		if ( 'done' === $row['s'] ) {
+			if ( $age > PIXVA_SUB_TTL ) {
+				$wpdb->delete( $wpdb->options, array( 'option_name' => $key, 'option_value' => $raw ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- CAS delete of our own expired row.
+				wp_cache_delete( $key, 'options' );
+				wp_cache_delete( 'notoptions', 'options' );
+				continue;
+			}
+			return is_array( $row['p'] ?? null ) ? $row['p'] : array();
+		}
+		// Pending record.
+		if ( $age < PIXVA_SUB_PENDING_TTL ) {
+			return array( 'pending' => true );
+		}
+		// Abandoned by a crashed request: take over with a CAS replace so a
+		// second takeover cannot clobber a third request's fresh claim.
+		$fresh = array(
+			's' => 'pending',
+			't' => time(),
+			'a' => (string) $action,
+		);
+		$n = $wpdb->update(
+			$wpdb->options,
+			array( 'option_value' => maybe_serialize( $fresh ) ),
+			array(
+				'option_name'  => $key,
+				'option_value' => $raw,
+			),
+			null,
+			null
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		if ( false !== $n ) {
+				wp_cache_delete( $key, 'options' );
+				wp_cache_delete( 'notoptions', 'options' );
+				return true;
+			}
 	}
-	set_transient( $key, array( 'pending' => true ), DAY_IN_SECONDS );
-	return true;
+	return false;
 }
 
 /**
- * Store the outcome of a processed submission id.
+ * Store the outcome of a processed submission id (replayed on double submit).
  *
  * @param string $id     Submission id.
  * @param array  $result Result payload (no PII beyond what the submitter already has).
  * @return void
  */
 function pixva_finish_submission( $id, $result ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	if ( strlen( $id ) === 32 ) {
-		set_transient( 'pixva_sub_' . $id, (array) $result, DAY_IN_SECONDS );
+	$id = pixva_submission_normalize_id( $id );
+	if ( '' === $id ) {
+		return;
 	}
+	global $wpdb;
+	$key    = 'pixva_sub_' . $id;
+	$record = array(
+		's' => 'done',
+		't' => time(),
+		'p' => (array) $result,
+	);
+	$updated = $wpdb->update(
+		$wpdb->options,
+		array( 'option_value' => maybe_serialize( $record ) ),
+		array( 'option_name' => $key ),
+		null,
+		null
+	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- claim row is owned by this request.
+	if ( empty( $updated ) ) {
+		// Row vanished (explicit release raced the finish): re-insert once.
+		add_option( $key, $record, '', 'no' );
+	}
+	wp_cache_delete( $key, 'options' );
+	wp_cache_delete( 'notoptions', 'options' );
 }
 
 /**
@@ -249,8 +419,11 @@ function pixva_finish_submission( $id, $result ) {
  * @return void
  */
 function pixva_release_submission( $id ) {
-	$id = sanitize_key( str_replace( '-', '', (string) $id ) );
-	delete_transient( 'pixva_sub_' . $id );
+	$id = pixva_submission_normalize_id( $id );
+	if ( '' === $id ) {
+		return;
+	}
+	pixva_submission_delete( $id );
 }
 
 /*

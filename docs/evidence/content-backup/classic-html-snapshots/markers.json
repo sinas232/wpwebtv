@@ -1,0 +1,236 @@
+{
+ ".html": {
+  "h1": [
+   "تشخیص و تعمیر تلویزیون، شفاف و قابل پیگیری"
+  ],
+  "h2": [
+   "مشکل رایج خود را انتخاب کنید",
+   "ابزارهای رایگان عیب‌یابی",
+   "روند کار چطور است؟",
+   "از مجله پیکسوا",
+   "مطمئن نیستید ایراد از کجاست؟",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "hero-title",
+   "home-problems",
+   "home-tools",
+   "home-process",
+   "home-blog",
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": true,
+  "has_cta": true,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "about_.html": {
+  "h1": [
+   "درباره ما"
+  ],
+  "h2": [
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": false,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "contact_.html": {
+  "h1": [
+   "تماس با ما"
+  ],
+  "h2": [
+   "ارسال پیام",
+   "راه‌های ارتباط",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ct-details",
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": false,
+  "has_form": true,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "faq_.html": {
+  "h1": [
+   "پرسش‌های متداول"
+  ],
+  "h2": [
+   "مطمئن نیستید ایراد از کجاست؟",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": true,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": true,
+  "has_toc": false
+ },
+ "problems_.html": {
+  "h1": [
+   "مشکلات رایج تلویزیون"
+  ],
+  "h2": [
+   "ابزارهای عیب‌یابی",
+   "مطمئن نیستید ایراد از کجاست؟",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "problems-tools",
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": true,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": true,
+  "has_toc": false
+ },
+ "repair_.html": {
+  "h1": [
+   "تعمیر تلویزیون"
+  ],
+  "h2": [
+   "روند تعمیر",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "repair-process",
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": true,
+  "has_cta": false,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "repair_book_.html": {
+  "h1": [
+   "ثبت درخواست تعمیر"
+  ],
+  "h2": [
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": false,
+  "has_form": true,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "tools_.html": {
+  "h1": [
+   "ابزارها"
+  ],
+  "h2": [
+   "مطمئن نیستید ایراد از کجاست؟",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": true,
+  "has_form": false,
+  "has_lookup": false,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "tracking_.html": {
+  "h1": [
+   "پیگیری تعمیر"
+  ],
+  "h2": [
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": false,
+  "has_form": false,
+  "has_lookup": true,
+  "has_empty": false,
+  "has_toc": false
+ },
+ "warranty_.html": {
+  "h1": [
+   "گارانتی تعمیر"
+  ],
+  "h2": [
+   "سیاست گارانتی",
+   "استعلام گارانتی تعمیر",
+   "ابزارها",
+   "پیکسوا",
+   "خدمات مشتری"
+  ],
+  "sections": [
+   "wr-policy",
+   "wr-lookup",
+   "ft-tools",
+   "ft-links",
+   "ft-service"
+  ],
+  "has_steps": false,
+  "has_cta": false,
+  "has_form": false,
+  "has_lookup": true,
+  "has_empty": false,
+  "has_toc": false
+ }
+}

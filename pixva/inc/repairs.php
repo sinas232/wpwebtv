@@ -169,6 +169,77 @@ function pixva_find_order_by_code( $code ) {
 }
 
 /**
+ * Order id created for a form submission id (idempotent-recovery lookup; 0 when none).
+ *
+ * @param string $sid Submission id.
+ * @return int
+ */
+function pixva_find_order_by_submission( $sid ) {
+	$sid = pixva_submission_normalize_id( $sid );
+	if ( '' === $sid ) {
+		return 0;
+	}
+	$ids = get_posts(
+		array(
+			'post_type'        => 'pixva_orders',
+			'post_status'      => 'any',
+			'meta_key'         => '_pixva_submission_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_value'       => $sid, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			'posts_per_page'   => 1,
+			'fields'           => 'ids',
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		)
+	);
+	return $ids ? (int) $ids[0] : 0;
+}
+
+/**
+ * Raw (database-form) value of one meta row — first row, mirroring
+ * get_post_meta( …, true ) — without touching the per-request meta cache.
+ *
+ * Used as the compare value of compare-and-swap writes so concurrent
+ * requests arbitrate on the database, not on a stale cache.
+ *
+ * @param int    $post_id Post id.
+ * @param string $key     Meta key.
+ * @return string|null Null when the row does not exist.
+ */
+function pixva_meta_raw( $post_id, $key ) {
+	global $wpdb;
+	return $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- CAS read, must not be cached.
+		$wpdb->prepare(
+			'SELECT meta_value FROM ' . $wpdb->postmeta . ' WHERE post_id = %d AND meta_key = %s ORDER BY meta_id ASC LIMIT 1',
+			(int) $post_id,
+			$key
+		)
+	);
+}
+
+/**
+ * Compare-and-swap write of one meta row: updates only when the stored value
+ * is still exactly $old_raw.
+ *
+ * @param int         $post_id Post id.
+ * @param string      $key     Meta key.
+ * @param string|null $old_raw Expected current value (null = match any existing row).
+ * @param string      $new     New value already in stored form (not slashed).
+ * @return int|false Rows affected (0 = lost race), false on database error.
+ */
+function pixva_update_meta_cas( $post_id, $key, $old_raw, $new ) {
+	global $wpdb;
+	$where = array(
+		'post_id'  => (int) $post_id,
+		'meta_key' => $key,
+	);
+	if ( null !== $old_raw ) {
+		$where['meta_value'] = $old_raw;
+	}
+	$n = $wpdb->update( $wpdb->postmeta, array( 'meta_value' => (string) $new ), $where, null, null ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- optimistic concurrency primitive.
+	return false === $n ? false : (int) $n;
+}
+
+/**
  * Keyed hash of a phone for comparisons.
  *
  * @param string $phone Phone.
@@ -238,15 +309,19 @@ function pixva_verify_order_access( $code, $phone ) {
  */
 function pixva_create_order( $d ) {
 	$code = pixva_generate_order_code();
-	$id   = wp_insert_post(
-		array(
-			'post_type'   => 'pixva_orders',
-			'post_status' => 'private',
-			'post_title'  => $code,
-			'post_author' => 0,
-		),
-		true
+	$pid  = pixva_submission_normalize_id( $d['submission_id'] ?? '' );
+	$args = array(
+		'post_type'   => 'pixva_orders',
+		'post_status' => 'private',
+		'post_title'  => $code,
+		'post_author' => 0,
 	);
+	// The idempotency key is written by the insert itself so a crash between
+	// the post row and the first meta write can never orphan an untracked order.
+	if ( '' !== $pid ) {
+		$args['meta_input'] = array( '_pixva_submission_id' => $pid );
+	}
+	$id = wp_insert_post( $args, true );
 	if ( is_wp_error( $id ) ) {
 		return $id;
 	}
@@ -289,13 +364,13 @@ function pixva_create_order( $d ) {
 }
 
 /**
- * Status history.
+ * Parse a raw `_pixva_order_steps` value into a normalised history list.
  *
- * @param int $order_id Order.
+ * @param string $raw Stored JSON (or null/'' when absent).
  * @return array<int,array{s:string,t:int,n:string}>
  */
-function pixva_order_history( $order_id ) {
-	$steps = json_decode( (string) get_post_meta( $order_id, '_pixva_order_steps', true ), true );
+function pixva_parse_order_history( $raw ) {
+	$steps = json_decode( (string) $raw, true );
 	$out   = array();
 	foreach ( is_array( $steps ) ? $steps : array() as $key => $step ) {
 		// v1.x stored {status: timestamp}; v2 stores a list.
@@ -317,33 +392,124 @@ function pixva_order_history( $order_id ) {
 }
 
 /**
+ * Status history.
+ *
+ * @param int $order_id Order.
+ * @return array<int,array{s:string,t:int,n:string}>
+ */
+function pixva_order_history( $order_id ) {
+	return pixva_parse_order_history( (string) get_post_meta( $order_id, '_pixva_order_steps', true ) );
+}
+
+/**
  * Change status, append history, apply warranty on delivery.
+ *
+ * Concurrency: both writes are compare-and-swap operations against the
+ * database — the status update is guarded by the previously observed value
+ * and the history append by the previously observed JSON — so a stale writer
+ * can never overwrite a newer one and history entries are append-only. On a
+ * lost race the caller receives a `conflict` WP_Error instead of a silent
+ * overwrite. Two separate rows cannot be updated in one atomic unit through
+ * the portable WordPress meta API (no transaction primitive); under extreme
+ * concurrent edits the history keeps every event and the status reflects the
+ * last successful guarded write.
  *
  * @param int    $order_id Order.
  * @param string $status   New status.
  * @param string $note     Public note (shown to the customer).
- * @return true|WP_Error
+ * @return true|WP_Error WP_Error codes: status, closed, conflict, db.
  */
 function pixva_set_order_status( $order_id, $status, $note = '' ) {
 	$statuses = pixva_order_statuses();
 	if ( ! isset( $statuses[ $status ] ) ) {
 		return new WP_Error( 'status', __( 'وضعیت نامعتبر است.', 'pixva' ) );
 	}
-	$current = (string) get_post_meta( $order_id, '_pixva_order_status', true );
-	if ( $current === $status && '' === $note ) {
-		return true;
+	$note        = pixva_substr( sanitize_textarea_field( $note ), 0, 500 );
+	$from        = null;
+	$status_done = false;
+	$steps_done  = false;
+	$entry       = null;
+	for ( $attempt = 0; $attempt < 5 && ! ( $status_done && $steps_done ); $attempt++ ) {
+		if ( ! $status_done ) {
+			$raw_status = pixva_meta_raw( $order_id, '_pixva_order_status' );
+			$current    = (string) $raw_status;
+			if ( null === $from ) {
+				$from = $current;
+			}
+			if ( $current === $status && '' === $note ) {
+				return true;
+			}
+			if ( in_array( $current, array( 'delivered', 'cancelled' ), true ) && ! current_user_can( 'pixva_manage_orders' ) ) {
+				return new WP_Error( 'closed', __( 'این پرونده بسته شده و فقط مدیر می‌تواند آن را تغییر دهد.', 'pixva' ) );
+			}
+			if ( $current === $status ) {
+				$status_done = true; // Same value: no write needed (note-only change).
+			} elseif ( null === $raw_status ) {
+				// Row missing (never initialised): plain insert, then verify.
+				add_post_meta( $order_id, '_pixva_order_status', $status );
+				$status_done = $status === (string) pixva_meta_raw( $order_id, '_pixva_order_status' );
+			} else {
+				$n = pixva_update_meta_cas( $order_id, '_pixva_order_status', $raw_status, $status );
+				if ( false === $n ) {
+					return new WP_Error( 'db', __( 'به‌روزرسانی انجام نشد. دوباره تلاش کنید.', 'pixva' ), array( 'status' => 500 ) );
+				}
+				if ( 1 === $n ) {
+					$status_done = true;
+				} else {
+					// Lost the race: the status changed under us.
+					$fresh = (string) pixva_meta_raw( $order_id, '_pixva_order_status' );
+					if ( $fresh === $status ) {
+						$status_done = true; // Same transition applied concurrently.
+					} else {
+						return new WP_Error(
+							'conflict',
+							__( 'پرونده همزمان توسط کاربر دیگری تغییر کرد. وضعیت را دوباره بارگذاری کنید.', 'pixva' ),
+							array( 'status' => 409 )
+						);
+					}
+				}
+			}
+			if ( $status_done ) {
+				wp_cache_delete( (int) $order_id, 'post_meta' );
+			}
+		}
+		if ( $steps_done ) {
+			continue;
+		}
+		if ( null === $entry ) {
+			$entry = array(
+				's' => $status,
+				't' => time(),
+				'n' => $note,
+			);
+		}
+		$raw_steps = pixva_meta_raw( $order_id, '_pixva_order_steps' );
+		$history   = pixva_parse_order_history( $raw_steps );
+		$history[] = $entry;
+		$new_json  = (string) wp_json_encode( $history, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+		if ( null === $raw_steps ) {
+			if ( add_post_meta( $order_id, '_pixva_order_steps', wp_slash( $new_json ) ) ) {
+				$steps_done = true;
+				wp_cache_delete( (int) $order_id, 'post_meta' );
+			}
+			continue; // Row appeared underneath us: retry with the fresh value.
+		}
+		$n = pixva_update_meta_cas( $order_id, '_pixva_order_steps', $raw_steps, $new_json );
+		if ( false === $n ) {
+			return new WP_Error( 'db', __( 'تاریخچه پرونده به‌روزرسانی نشد. دوباره تلاش کنید.', 'pixva' ), array( 'status' => 500 ) );
+		}
+		if ( 1 === $n ) {
+			$steps_done = true;
+			wp_cache_delete( (int) $order_id, 'post_meta' );
+		} // 0 = another writer appended first: re-read and append to the fresh list.
 	}
-	if ( in_array( $current, array( 'delivered', 'cancelled' ), true ) && ! current_user_can( 'pixva_manage_orders' ) ) {
-		return new WP_Error( 'closed', __( 'این پرونده بسته شده و فقط مدیر می‌تواند آن را تغییر دهد.', 'pixva' ) );
+	if ( ! $status_done || ! $steps_done ) {
+		return new WP_Error(
+			'conflict',
+			__( 'پرونده همزمان توسط کاربر دیگری تغییر کرد. وضعیت را دوباره بارگذاری کنید.', 'pixva' ),
+			array( 'status' => 409 )
+		);
 	}
-	$history   = pixva_order_history( $order_id );
-	$history[] = array(
-		's' => $status,
-		't' => time(),
-		'n' => pixva_substr( sanitize_textarea_field( $note ), 0, 500 ),
-	);
-	update_post_meta( $order_id, '_pixva_order_status', $status );
-	update_post_meta( $order_id, '_pixva_order_steps', pixva_json_meta( $history ) );
 
 	if ( 'delivered' === $status && ! get_post_meta( $order_id, '_pixva_warranty_until', true ) ) {
 		$days = pixva_warranty_policy_days();
@@ -354,8 +520,55 @@ function pixva_set_order_status( $order_id, $status, $note = '' ) {
 			update_post_meta( $order_id, '_pixva_warranty_source', 'policy' );
 		}
 	}
-	do_action( 'pixva_order_status_changed', $order_id, $status, $current );
+	do_action( 'pixva_order_status_changed', $order_id, $status, (string) $from );
 	return true;
+}
+
+/**
+ * Append one line to the internal staff notes with optimistic concurrency.
+ *
+ * Every write path that appends (never rewrites) notes goes through here, so
+ * two concurrent notes cannot silently overwrite each other: the append is a
+ * CAS against the previously read value and retries on a lost race.
+ *
+ * @param int    $order_id Order.
+ * @param string $text     Note text (already sanitised by the caller).
+ * @param string $author   Display name shown in the line header.
+ * @return true|WP_Error
+ */
+function pixva_append_order_note( $order_id, $text, $author ) {
+	$text = trim( (string) $text );
+	if ( '' === $text ) {
+		return true;
+	}
+	$line = '[' . wp_date( 'Y-m-d H:i' ) . ' — ' . trim( (string) $author ) . '] ' . $text;
+	for ( $attempt = 0; $attempt < 5; $attempt++ ) {
+		$raw  = pixva_meta_raw( $order_id, '_pixva_order_notes' );
+		$prev = null === $raw ? '' : (string) $raw;
+		$new  = trim( $prev . "\n" . $line );
+		if ( null === $raw ) {
+			// First note on this order: add_post_meta( unique ) arbitrates on the
+			// meta index check; on a lost race re-read and retry the append.
+			if ( add_post_meta( $order_id, '_pixva_order_notes', wp_slash( $new ), true ) ) {
+				wp_cache_delete( (int) $order_id, 'post_meta' );
+				return true;
+			}
+			continue;
+		}
+		$n = pixva_update_meta_cas( $order_id, '_pixva_order_notes', $raw, $new );
+		if ( false === $n ) {
+			return new WP_Error( 'db', __( 'یادداشت ذخیره نشد. دوباره تلاش کنید.', 'pixva' ), array( 'status' => 500 ) );
+		}
+		if ( 1 === $n ) {
+			wp_cache_delete( (int) $order_id, 'post_meta' );
+			return true;
+		}
+	}
+	return new WP_Error(
+		'conflict',
+		__( 'یادداشت همزمان توسط کاربر دیگری ثبت شد. صفحه را تازه کنید.', 'pixva' ),
+		array( 'status' => 409 )
+	);
 }
 
 /**
@@ -501,6 +714,10 @@ function pixva_technicians() {
  * @return void
  */
 function pixva_notify_new_order( $order_id ) {
+	// Sent-marker: an idempotent-recovery retry must not email staff twice.
+	if ( get_post_meta( $order_id, '_pixva_notify_sent', true ) ) {
+		return;
+	}
 	$code = (string) get_post_meta( $order_id, '_pixva_order_code', true );
 	/* translators: %s: order code. */
 	$subject = sprintf( __( 'درخواست تعمیر جدید %s', 'pixva' ), $code );
@@ -515,7 +732,9 @@ function pixva_notify_new_order( $order_id ) {
 			sprintf( __( 'جزئیات: %s', 'pixva' ), admin_url( 'post.php?post=' . (int) $order_id . '&action=edit' ) ),
 		)
 	);
-	pixva_safe_mail( pixva_notify_email(), $subject, $body );
+	if ( pixva_safe_mail( pixva_notify_email(), $subject, $body ) ) {
+		update_post_meta( $order_id, '_pixva_notify_sent', 1 );
+	}
 }
 add_action( 'pixva_order_created', 'pixva_notify_new_order' );
 
@@ -598,7 +817,7 @@ function pixva_render_order_box( $post ) {
 		echo '<option value="' . esc_attr( $u->ID ) . '" ' . selected( $tech, (int) $u->ID, false ) . '>' . esc_html( $u->display_name ) . '</option>';
 	}
 	echo '</select></td></tr>';
-	echo '<tr><th><label for="pixva-o-notes">' . esc_html__( 'یادداشت داخلی', 'pixva' ) . '</label></th><td><textarea class="large-text" rows="3" id="pixva-o-notes" name="pixva_o[notes]">' . esc_textarea( get_post_meta( $id, '_pixva_order_notes', true ) ) . '</textarea><p class="description">' . esc_html__( 'هرگز به مشتری نمایش داده نمی‌شود.', 'pixva' ) . '</p></td></tr>';
+	echo '<tr><th><label for="pixva-o-notes">' . esc_html__( 'یادداشت داخلی', 'pixva' ) . '</label></th><td><textarea class="large-text" rows="3" id="pixva-o-notes" name="pixva_o[notes]">' . esc_textarea( get_post_meta( $id, '_pixva_order_notes', true ) ) . '</textarea><input type="hidden" name="pixva_o[notes_base]" value="' . esc_attr( (string) pixva_meta_raw( $id, '_pixva_order_notes' ) ) . '"><p class="description">' . esc_html__( 'هرگز به مشتری نمایش داده نمی‌شود.', 'pixva' ) . '</p></td></tr>';
 	echo '<tr><th>' . esc_html__( 'گارانتی', 'pixva' ) . '</th><td><label>' . esc_html__( 'شروع', 'pixva' ) . ' <input type="date" name="pixva_o[w_start]" value="' . esc_attr( get_post_meta( $id, '_pixva_warranty_start', true ) ) . '"></label> <label>' . esc_html__( 'پایان', 'pixva' ) . ' <input type="date" name="pixva_o[w_until]" value="' . esc_attr( get_post_meta( $id, '_pixva_warranty_until', true ) ) . '"></label>';
 	$days = pixva_warranty_policy_days();
 	echo '<p class="description">' . ( $days ? esc_html( sprintf( /* translators: %s: days. */ __( 'با تغییر وضعیت به «تحویل شد»، گارانتی %s روزه طبق سیاست ثبت‌شده اعمال می‌شود؛ می‌توانید دستی تغییرش دهید.', 'pixva' ), pixva_fa_num( $days ) ) ) : esc_html__( 'سیاست گارانتی پیش‌فرض تنظیم نشده؛ در صورت ارائه گارانتی، تاریخ‌ها را دستی وارد کنید.', 'pixva' ) ) . '</p></td></tr>';
@@ -681,7 +900,30 @@ function pixva_save_order_box( $post_id ) {
 		}
 	}
 	if ( isset( $in['notes'] ) ) {
-		update_post_meta( $post_id, '_pixva_order_notes', wp_slash( sanitize_textarea_field( (string) $in['notes'] ) ) );
+		// Optimistic concurrency: the form carries the value it was rendered
+		// with; if the stored notes changed in the meantime the save is skipped
+		// (with a notice) instead of silently overwriting the other edit.
+		$normalize = static function ( $v ) {
+			return str_replace( array( "\r\n", "\r" ), "\n", (string) $v );
+		};
+		$raw  = pixva_meta_raw( $post_id, '_pixva_order_notes' );
+		$cur  = null === $raw ? '' : (string) $raw;
+		$new  = sanitize_textarea_field( (string) $in['notes'] );
+		$base = isset( $in['notes_base'] ) ? $normalize( $in['notes_base'] ) : null;
+		if ( $new !== $cur ) {
+			if ( null === $base || $base !== $normalize( $cur ) ) {
+				set_transient( 'pixva_notes_conflict_' . get_current_user_id(), 1, 60 );
+			} elseif ( null === $raw ) {
+				if ( '' !== $new && ! add_post_meta( $post_id, '_pixva_order_notes', wp_slash( $new ), true ) ) {
+					set_transient( 'pixva_notes_conflict_' . get_current_user_id(), 1, 60 );
+				}
+			} else {
+				$n = pixva_update_meta_cas( $post_id, '_pixva_order_notes', $raw, $new );
+				if ( false === $n || 0 === $n ) {
+					set_transient( 'pixva_notes_conflict_' . get_current_user_id(), 1, 60 );
+				}
+			}
+		}
 	}
 	if ( isset( $in['technician'] ) ) {
 		$tech = absint( $in['technician'] );
@@ -714,6 +956,21 @@ function pixva_save_order_box( $post_id ) {
 	}
 }
 add_action( 'save_post_pixva_orders', 'pixva_save_order_box', 10, 1 );
+
+/**
+ * Show a notice when a concurrent notes edit was detected and skipped.
+ *
+ * @return void
+ */
+function pixva_notes_conflict_notice() {
+	$uid = get_current_user_id();
+	if ( ! $uid || ! get_transient( 'pixva_notes_conflict_' . $uid ) ) {
+		return;
+	}
+	delete_transient( 'pixva_notes_conflict_' . $uid );
+	echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'یادداشت‌های داخلی همزمان توسط کاربر دیگری تغییر کرده بود؛ ذخیرهٔ یادداشت انجام نشد تا روی نسخهٔ تازه‌تر نوشته نشود. صفحه را تازه کنید و در صورت نیاز دوباره وارد کنید.', 'pixva' ) . '</p></div>';
+}
+add_action( 'admin_notices', 'pixva_notes_conflict_notice' );
 
 /**
  * Orders are always private, whatever the publish box says.
@@ -757,7 +1014,8 @@ add_filter( 'manage_pixva_orders_posts_columns', 'pixva_order_columns' );
 function pixva_order_column_cells( $col, $post_id ) {
 	if ( 'pixva_status' === $col ) {
 		$s = (string) get_post_meta( $post_id, '_pixva_order_status', true );
-		echo esc_html( pixva_order_statuses()[ $s ]['label'] ?? $s );
+		$label = pixva_order_statuses()[ $s ]['label'] ?? $s;
+		echo '<span class="pixva-badge pixva-badge--' . esc_attr( $s ? $s : 'new' ) . '">' . esc_html( $label ) . '</span>';
 	} elseif ( 'pixva_device' === $col ) {
 		echo esc_html( trim( get_post_meta( $post_id, '_pixva_order_brand', true ) . ' ' . get_post_meta( $post_id, '_pixva_order_model', true ) ) );
 	} elseif ( 'pixva_tech' === $col ) {
@@ -766,3 +1024,102 @@ function pixva_order_column_cells( $col, $post_id ) {
 	}
 }
 add_action( 'manage_pixva_orders_posts_custom_column', 'pixva_order_column_cells', 10, 2 );
+
+/*
+ * ---------------------------------------------------------------------------
+ * Orders list workflow: status filter dropdown + search by code/phone/name.
+ * All server-side; capability checks remain on the CPT + screen access.
+ * ---------------------------------------------------------------------------
+ */
+
+/**
+ * Status filter dropdown on the orders list table.
+ *
+ * @param string $post_type Current list post type.
+ * @return void
+ */
+function pixva_orders_admin_filter( $post_type ) {
+	if ( 'pixva_orders' !== $post_type || ! current_user_can( 'pixva_manage_orders' ) ) {
+		return;
+	}
+	$current = isset( $_GET['pixva_status'] ) ? sanitize_key( wp_unslash( $_GET['pixva_status'] ) ) : '';
+	echo '<select name="pixva_status">';
+	echo '<option value="">' . esc_html__( 'همه وضعیت‌ها', 'pixva' ) . '</option>';
+	foreach ( pixva_order_statuses() as $key => $def ) {
+		printf(
+			'<option value="%1$s" %2$s>%3$s</option>',
+			esc_attr( $key ),
+			selected( $current, $key, false ),
+			esc_html( $def['label'] )
+		);
+	}
+	echo '</select>';
+}
+add_action( 'restrict_manage_posts', 'pixva_orders_admin_filter' );
+
+/**
+ * Apply the status filter to the orders list query.
+ *
+ * @param WP_Query $q Query.
+ * @return void
+ */
+function pixva_orders_admin_query( $q ) {
+	if ( ! is_admin() || ! $q->is_main_query() ) {
+		return;
+	}
+	$type = $q->get( 'post_type' );
+	if ( 'pixva_orders' !== $type || ! current_user_can( 'pixva_manage_orders' ) ) {
+		return;
+	}
+	$status = isset( $_GET['pixva_status'] ) ? sanitize_key( wp_unslash( $_GET['pixva_status'] ) ) : '';
+	if ( '' !== $status && array_key_exists( $status, pixva_order_statuses() ) ) {
+		$q->set(
+			'meta_query',
+			array(
+				array(
+					'key'   => '_pixva_order_status',
+					'value' => $status,
+				),
+			)
+		);
+	}
+}
+add_action( 'pre_get_posts', 'pixva_orders_admin_query' );
+
+/**
+ * Extend the orders list search with customer phone and name (staff need
+ * both; the screen itself is gated by pixva_manage_orders). The default
+ * title search already matches the tracking code (post_title).
+ *
+ * @param string    $search SQL fragment.
+ * @param WP_Query  $q      Query.
+ * @return string
+ */
+function pixva_orders_admin_search( $search, $q ) {
+	if ( ! is_admin() || ! $q->is_search() || ! $q->is_main_query() ) {
+		return $search;
+	}
+	$type = $q->get( 'post_type' );
+	if ( 'pixva_orders' !== $type || ! current_user_can( 'pixva_manage_orders' ) ) {
+		return $search;
+	}
+	global $wpdb;
+	$term = trim( (string) $q->get( 's' ) );
+	if ( '' === $term ) {
+		return $search;
+	}
+	$like   = '%' . $wpdb->esc_like( $term ) . '%';
+	$exists = $wpdb->prepare(
+		"EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key IN ('_pixva_order_phone','_pixva_order_name') AND pm.meta_value LIKE %s)",
+		$like
+	);
+	// Re-wrap: (title/name match) OR (phone/name meta match) inside one AND group,
+	// so a non-matching row can never leak past the post-type conditions.
+	$inner = trim( (string) $search );
+	$inner = preg_replace( '/^AND\s+/i', '', $inner );
+	if ( '' === $inner ) {
+		return ' AND ( ' . $exists . ' )';
+	}
+	return ' AND ( ( ' . $inner . ' ) OR ' . $exists . ' )';
+}
+add_filter( 'posts_search', 'pixva_orders_admin_search', 10, 2 );

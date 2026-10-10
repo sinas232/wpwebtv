@@ -14,8 +14,13 @@ get_header();
 $pixva_front    = get_post( (int) get_option( 'page_on_front' ) );
 $pixva_lead     = pixva_front_lead();
 $pixva_problems = pixva_diagnosis_problems();
+// When the front page is built with Elementor, its saved content is the whole
+// page: the classic sections below are skipped so the editor output is exactly
+// what visitors see (no duplicated sections under the Elementor content).
+$pixva_is_el = pixva_front_page_is_elementor();
 ?>
 <main id="main" class="site-main">
+	<?php if ( ! $pixva_is_el ) : ?>
 	<section class="hero" aria-labelledby="hero-title">
 		<div class="container hero__grid">
 			<div class="hero__text">
@@ -45,6 +50,7 @@ $pixva_problems = pixva_diagnosis_problems();
 			</div>
 		</div>
 	</section>
+	<?php endif; ?>
 
 	<?php
 	if ( $pixva_front && '' !== trim( $pixva_front->post_content ) ) {
@@ -54,6 +60,7 @@ $pixva_problems = pixva_diagnosis_problems();
 	}
 	?>
 
+	<?php if ( ! $pixva_is_el ) : ?>
 	<?php pixva_section_open( 'home-problems', __( 'مشکل رایج خود را انتخاب کنید', 'pixva' ), pixva_route_url( 'problems' ) ); ?>
 		<?php if ( ! pixva_problem_tiles( 8 ) ) : ?>
 			<ul class="grid grid--tiles">
@@ -171,6 +178,7 @@ $pixva_problems = pixva_diagnosis_problems();
 	?>
 
 	<div class="container"><?php pixva_cta_box( '', '', 'home_footer' ); ?></div>
+	<?php endif; ?>
 </main>
 <?php
 get_footer();

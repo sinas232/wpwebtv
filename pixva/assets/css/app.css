@@ -1558,3 +1558,10 @@
 	.order,
 	.panel { border-color: var(--c-muted); break-inside: avoid; }
 }
+
+/* ==========================================================================
+   PIXVA notice bar (Elementor widget / [pixva_notice] shortcode)
+   ========================================================================== */
+.pixva-notice-bar { background: #0B1C2E; color: #F8FAFC; padding-block: var(--s-2, 0.75rem); text-align: center; }
+.pixva-notice-bar p { margin: 0; }
+.pixva-notice-bar a { color: #FF5C35; font-weight: 700; text-decoration: underline; }

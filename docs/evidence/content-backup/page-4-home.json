@@ -1,0 +1,19 @@
+{
+  "id": 4,
+  "slug": "home",
+  "title": "خانه",
+  "status": "publish",
+  "mode": "",
+  "has_data": 1,
+  "data_len": 267,
+  "data": "[{\"id\":\"a1b2c3d\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"e4f5a6b\",\"elType\":\"widget\",\"settings\":{\"pixva_hero_title\":\"\\u062a\\u06cc\\u062a\\u0631 \\u0635\\u0641\\u062d\\u0647 \\u0627\\u0648\\u0644 \\u0628\\u0627 Elementor\"},\"elements\":[],\"widgetType\":\"pixva-hero\"}]}]",
+  "auto_id": 0,
+  "revisions": [
+    {
+      "id": 27,
+      "date": "2026-10-10 08:28:56",
+      "excerpt": "<!-- elementor -->",
+      "edata": ""
+    }
+  ]
+}

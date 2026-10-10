@@ -14,6 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 nocache_headers();
+
+// Elementor takeover: when this page is saved with Elementor the document
+// below the header IS the page (classic sections are skipped). Classic
+// behavior is untouched whenever the flag/data is absent.
+if ( pixva_elementor_takeover() ) {
+	pixva_elementor_render_page( __( 'کد پیگیری و شماره همراهی را که هنگام ثبت درخواست وارد کرده‌اید بنویسید.', 'pixva' ) );
+	return;
+}
 $pixva_res = pixva_handle_page_lookup( 'pixva_track' );
 get_header();
 ?>

@@ -1,0 +1,12 @@
+# PIXVA admin redesign verification — run 4 (2026-10-10T10:30:19Z, boot D)
+PASS  hub menu item directly after overview
+PASS  overview: quick actions + 3 panels + checklist + stat cards
+PASS  orders: status filter present
+PASS  orders: status badges present
+PASS  orders: search box present
+PASS  orders: search by code (PXV-UHPB-ZNSW)
+PASS  orders: filter by status «ثبت شد» returns rows
+PASS  orders: filtered list not empty
+PASS  admin: Vazirmatn font enqueued
+PASS  hub: cards + steps + announcement form
+ADMIN CHECKS RUN4 COMPLETE

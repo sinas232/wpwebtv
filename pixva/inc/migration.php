@@ -27,6 +27,70 @@ if ( ! defined( 'ABSPATH' ) ) {
 const PIXVA_DB_VERSION = '2.0.0';
 
 /**
+ * A migration lock older than this is considered abandoned (the holding
+ * request crashed before releasing) and may be taken over.
+ */
+const PIXVA_MIGRATION_LOCK_TTL = 10 * MINUTE_IN_SECONDS;
+
+/**
+ * Acquire the migration lock.
+ *
+ * The lock is an autoload=no option claimed with an INSERT that relies on the
+ * UNIQUE index of `option_name`, so exactly one of several concurrent
+ * processes wins. Stale locks (crash without release) are taken over with a
+ * compare-and-swap on the observed row. Without a lock, two simultaneous
+ * admin requests could run pixva_migrate_v1() twice (duplicate log entries,
+ * racing option writes).
+ *
+ * @return bool True when this process owns the lock.
+ */
+function pixva_migration_lock_acquire() {
+	global $wpdb;
+	$key = 'pixva_migration_lock';
+	$now = time();
+	for ( $try = 0; $try < 3; $try++ ) {
+		if ( add_option( $key, array( 't' => $now ), '', 'no' ) ) {
+			return true;
+		}
+		$raw = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM ' . $wpdb->options . ' WHERE option_name = %s LIMIT 1', $key ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- lock arbitration.
+		if ( null === $raw ) {
+			continue; // Released in between: claim again.
+		}
+		$row = maybe_unserialize( $raw );
+		$age = ( is_array( $row ) && isset( $row['t'] ) ) ? $now - (int) $row['t'] : PHP_INT_MAX;
+		if ( $age < PIXVA_MIGRATION_LOCK_TTL ) {
+			return false; // Held by a live process.
+		}
+		$n = $wpdb->update(
+			$wpdb->options,
+			array( 'option_value' => maybe_serialize( array( 't' => $now ) ) ),
+			array(
+				'option_name'  => $key,
+				'option_value' => $raw,
+			),
+			null,
+			null
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- stale-lock takeover.
+		if ( false !== $n && 1 === (int) $n ) {
+				wp_cache_delete( $key, 'options' );
+				wp_cache_delete( 'notoptions', 'options' );
+				return true;
+			}
+	}
+	return false;
+}
+
+/**
+ * Release the migration lock (best effort; a crash leaves a stale lock that
+ * pixva_migration_lock_acquire() takes over after the TTL).
+ *
+ * @return void
+ */
+function pixva_migration_lock_release() {
+	delete_option( 'pixva_migration_lock' );
+}
+
+/**
  * Append to the migration log.
  *
  * @param string $action Action.
@@ -58,18 +122,27 @@ function pixva_run_migrations() {
 	if ( version_compare( $from ? $from : '0', PIXVA_DB_VERSION, '>=' ) ) {
 		return;
 	}
-	$legacy = '' === $from && ( get_option( 'pixva_theme_version' ) || get_option( 'pixva_installed' ) );
-
-	pixva_install_roles();
-	pixva_register_content_model();
-	if ( $legacy ) {
-		pixva_migrate_v1();
+	// Concurrent-run guard: only one process migrates; the rest return and
+	// re-check the version on their next admin request.
+	if ( ! pixva_migration_lock_acquire() ) {
+		return;
 	}
-	pixva_install();
-	update_option( 'pixva_db_version', PIXVA_DB_VERSION );
-	update_option( 'pixva_flush_rewrites', 1 );
-	if ( $legacy ) {
-		pixva_migration_log( __( 'پایان', 'pixva' ), 'v' . get_option( 'pixva_theme_version', '1.x' ) . ' → v' . PIXVA_DB_VERSION, __( 'ارتقا کامل شد.', 'pixva' ) );
+	try {
+		$legacy = '' === $from && ( get_option( 'pixva_theme_version' ) || get_option( 'pixva_installed' ) );
+
+		pixva_install_roles();
+		pixva_register_content_model();
+		if ( $legacy ) {
+			pixva_migrate_v1();
+		}
+		pixva_install();
+		update_option( 'pixva_db_version', PIXVA_DB_VERSION );
+		update_option( 'pixva_flush_rewrites', 1 );
+		if ( $legacy ) {
+			pixva_migration_log( __( 'پایان', 'pixva' ), 'v' . get_option( 'pixva_theme_version', '1.x' ) . ' → v' . PIXVA_DB_VERSION, __( 'ارتقا کامل شد.', 'pixva' ) );
+		}
+	} finally {
+		pixva_migration_lock_release();
 	}
 }
 

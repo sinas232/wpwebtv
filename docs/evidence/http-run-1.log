@@ -1,0 +1,40 @@
+PASS  unit-suite-reachable
+PASS  unit-suite-all-pass
+PASS  booking-page-renders
+PASS  booking-prg-redirect
+PASS  booking-creates-order
+PASS  booking-replay-idempotent
+PASS  booking-result-shows-code
+PASS  booking-ajax-success
+PASS  booking-bad-nonce-rejected
+PASS  booking-honeypot-no-order
+PASS  contact-stores-message
+PASS  contact-replay-idempotent
+PASS  track-unknown-code-404
+PASS  track-valid-proof-ok
+PASS  track-no-pii
+PASS  track-per-code-lockout
+PASS  photo-booking-ok
+PASS  photo-order-created
+PASS  photo-url-present-for-staff
+PASS  photo-stream-200
+PASS  photo-stream-bytes
+PASS  photo-stream-headers
+PASS  photo-no-nonce-403
+PASS  photo-anonymous-denied
+PASS  photo-foreign-customer-denied
+INFO  direct-private-file GET → HTTP 200 (Playground serves static files without .htaccess; real Nginx/Apache rules are NOT verified here)
+PASS  registration-redirect
+PASS  dashboard-anon-200
+PASS  dashboard-anon-login-form
+PASS  dashboard-admin-200
+PASS  dashboard-admin-content
+PASS  dashboard-customer-403
+PASS  rest-users-listing-restricted
+PASS  security-headers-present
+PASS  author-archive-404
+PASS  error-codes-rest-200
+PASS  rest-no-store
+PASS  booking-rate-limit
+----------------------------------------
+HTTP SUITE: PASS=37 FAIL=0

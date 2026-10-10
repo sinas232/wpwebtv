@@ -212,7 +212,8 @@ function pixva_claim_hours() {
  * @return string
  */
 function pixva_primary_phone() {
-	return pixva_has_claim( 'phone' ) ? (string) pixva_claim( 'phone' ) : (string) pixva_claim( 'mobile' );
+	$phone = pixva_has_claim( 'phone' ) ? (string) pixva_claim( 'phone' ) : (string) pixva_claim( 'mobile' );
+	return (string) apply_filters( 'pixva_primary_phone', $phone );
 }
 
 /**

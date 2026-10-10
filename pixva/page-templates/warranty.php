@@ -14,6 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 nocache_headers();
+
+// Elementor takeover: when this page is saved with Elementor the document
+// below the header IS the page (classic sections are skipped). Classic
+// behavior is untouched whenever the flag/data is absent.
+if ( pixva_elementor_takeover() ) {
+	pixva_elementor_render_page( '' );
+	return;
+}
+
 $pixva_res  = pixva_handle_page_lookup( 'pixva_warranty' );
 $pixva_days = pixva_warranty_policy_days();
 $pixva_on   = (bool) pixva_claim( 'warranty_enabled' );

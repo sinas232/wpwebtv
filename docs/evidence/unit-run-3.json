@@ -1,0 +1,14 @@
+{
+  "suite": "unit",
+  "run": 3,
+  "date": "2026-10-10",
+  "server": {
+    "wp": "7.1.3",
+    "php": "8.3.33",
+    "port": 9414,
+    "boot": "D (Elementor ON)"
+  },
+  "passed": 25,
+  "failed": 0,
+  "note": "In-process suite via POST /wp-json/pixva-test/v1/run (tools/harness/run.js stage A)."
+}

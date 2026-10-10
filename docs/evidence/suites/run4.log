@@ -1,0 +1,68 @@
+UNIT  wp=7.1.3 php=8.3.33 passed=25 failed=0
+  PASS  s1_theme (3 assertions, 0ms)
+  PASS  s2_roles (6 assertions, 0ms)
+  PASS  s3_routes (7 assertions, 44ms)
+  PASS  i1_claim_cycle (4 assertions, 36ms)
+  PASS  i2_invalid_and_binding (5 assertions, 10ms)
+  PASS  i3_stale_takeover (3 assertions, 23ms)
+  PASS  i4_expired_done (1 assertions, 19ms)
+  PASS  o1_booking_recovery (4 assertions, 157ms)
+  PASS  o2_contact_recovery (7 assertions, 89ms)
+  PASS  h1_status_append (5 assertions, 164ms)
+  PASS  h2_status_sequence (4 assertions, 215ms)
+  PASS  h3_invalid_and_closed (2 assertions, 128ms)
+  PASS  h4_note_only (4 assertions, 150ms)
+  PASS  h5_cas_primitive (4 assertions, 148ms)
+  PASS  n1_append_notes (5 assertions, 139ms)
+  PASS  n2_admin_notes_conflict (4 assertions, 399ms)
+  PASS  c1_claim_order (7 assertions, 562ms)
+  PASS  a1_cap_matrix (13 assertions, 1108ms)
+  PASS  a2_order_update_auth (6 assertions, 931ms)
+  PASS  p1_public_view_pii (5 assertions, 202ms)
+  PASS  m1_migration_lock (3 assertions, 25ms)
+  PASS  m2_stale_lock_takeover (2 assertions, 23ms)
+  PASS  m3_migrations_idempotent (2 assertions, 0ms)
+  PASS  l1_rate_limiter (1 assertions, 18ms)
+  PASS  x1_mail_hardening (3 assertions, 0ms)
+PASS  unit-suite-reachable
+PASS  unit-suite-all-pass
+PASS  booking-page-renders
+PASS  booking-prg-redirect
+PASS  booking-creates-order
+PASS  booking-replay-idempotent
+PASS  booking-result-shows-code
+PASS  booking-ajax-success
+PASS  booking-bad-nonce-rejected
+PASS  booking-honeypot-no-order
+PASS  contact-stores-message
+PASS  contact-replay-idempotent
+PASS  track-unknown-code-404
+PASS  track-valid-proof-ok
+PASS  track-no-pii
+PASS  track-per-code-lockout
+PASS  photo-booking-ok
+PASS  photo-order-created
+PASS  photo-url-present-for-staff
+PASS  photo-stream-200
+PASS  photo-stream-bytes
+PASS  photo-stream-headers
+PASS  photo-no-nonce-403
+PASS  photo-anonymous-denied
+PASS  photo-foreign-customer-denied
+INFO  direct-private-file GET → HTTP 200 (Playground serves static files without .htaccess; real Nginx/Apache rules are NOT verified here)
+PASS  registration-redirect
+PASS  dashboard-anon-200
+PASS  dashboard-anon-login-form
+PASS  dashboard-admin-200
+PASS  dashboard-admin-content
+PASS  dashboard-customer-403
+PASS  rest-users-listing-restricted
+PASS  security-headers-present
+PASS  author-archive-404
+PASS  error-codes-rest-200
+PASS  rest-no-store
+PASS  booking-rate-limit
+----------------------------------------
+HTTP SUITE: PASS=37 FAIL=0
+----------------------------------------
+RESULT: ALL SUITES PASS

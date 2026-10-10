@@ -1,0 +1,50 @@
+# PIXVA + Elementor verification
+# WP 7.1.3 / PHP 8.3.33 (Playground SQLite), Elementor 4.4.0
+
+=== A. Registration ===
+widget_count=85 pixva_widgets=17 hooked=20 pri=20
+list: pixva-hero, pixva-services, pixva-brands, pixva-problems, pixva-tools, pixva-steps, pixva-faq, pixva-cta, pixva-contact, pixva-notice, pixva-breadcrumbs, pixva-posts, pixva-booking-form, pixva-tracking-form, pixva-warranty-form, pixva-contact-form, pixva-service-modes
+
+=== B. Frontend (10 pages, HTTP + markers) ===
+PASS  home HTTP 200
+PASS  problems HTTP 200
+PASS  tools HTTP 200
+PASS  repair HTTP 200
+PASS  booking HTTP 200
+PASS  tracking HTTP 200
+PASS  warranty HTTP 200
+PASS  faq HTTP 200
+PASS  contact HTTP 200
+PASS  about HTTP 200
+PASS home: no duplicated classic sections
+PASS all pages: no PHP fatal
+markers: 49 pass / 0 fail
+
+=== C. Elementor editor loads (10 pages) ===
+PASS  editor pid=4 (200, config)
+PASS  editor pid=6 (200, config)
+PASS  editor pid=7 (200, config)
+PASS  editor pid=11 (200, config)
+PASS  editor pid=12 (200, config)
+PASS  editor pid=13 (200, config)
+PASS  editor pid=14 (200, config)
+PASS  editor pid=15 (200, config)
+PASS  editor pid=16 (200, config)
+PASS  editor pid=17 (200, config)
+
+=== D. Orders workflow (badge + filter + search) ===
+PASS  status filter dropdown
+PASS  status badges in list
+PASS  badge modifier classes
+PASS  search by tracking code (PXV-UHPB-ZNSW)
+
+=== E. Admin menu + overview surfaces ===
+PASS  hub second + quick actions + panels + stat cards + checklist
+
+=== F. Shortcodes page ===
+PASS  shortcodes page 200
+PASS  [pixva_steps] renders
+PASS  [pixva_cta] renders
+PASS  raw shortcodes never leak
+
+TOTAL: PASS=29 FAIL=0

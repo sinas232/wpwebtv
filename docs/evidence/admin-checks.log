@@ -1,0 +1,24 @@
+# PIXVA admin dashboard / settings-hub / capability checks (run B, Elementor OFF)
+# Server: WP 7.1.3 / PHP 8.3.33 (Playground), fresh boot, theme pixva @ arena branch
+# Tooling: curl + python marker assertions (scripted in-session)
+Login admin/password .................. PASS (cookie set)
+GET /wp-admin/admin.php?page=pixva .... 200 PASS (pixva-stat-cards + checklist rendered)
+GET /wp-admin/admin.php?page=pixva-hub  200 PASS (hub grid + quick-start + announcement form)
+GET /wp-admin/index.php ................ 200 PASS (health + orders + messages widgets for admin)
+GET /wp-admin/admin.php?page=pixva-business 200 PASS (settings form)
+Role=editor (server-created user):
+  - sees config-health widget .......... PASS
+  - does NOT see orders widget ......... PASS (cap pixva_manage_orders enforced server-side)
+  - does NOT see messages widget ....... PASS (cap edit_pixva_messages enforced server-side)
+  - overview: no order stat cards ...... PASS (cap-scoped)
+  - overview checklist accessible ...... PASS
+  - hub accessible (view_dashboard) .... PASS
+  - announcement form hidden ........... PASS (cap pixva_manage_settings enforced)
+Capability matrix total: 7/7 PASS (editor) + 4/4 PASS (admin pages)
+Shortcode render checks (page /sc-test/, Elementor OFF):
+  [pixva_steps] ol.steps + items ....... PASS
+  [pixva_cta] cta banner ................ PASS
+  [pixva_faq] empty on fresh install ... PASS (expected: no fabricated FAQ entries)
+  [pixva_notice] nothing when unset .... PASS (no fabricated announcement)
+  [pixva_contact] graceful ............. PASS
+  raw shortcodes never leak ............ PASS

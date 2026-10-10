@@ -350,15 +350,120 @@ add_action( 'after_switch_theme', 'pixva_on_switch_theme' );
 /**
  * Flush rewrites once after install/upgrade (late init, after all rules exist).
  *
+ * Also re-flushes once when the rule-order marker is missing: rewrite rules
+ * generated while core's "verbose page rules" flag is on put the generic
+ * page rules BEFORE the post rules, which pixva_disable_verbose_page_rules()
+ * must not see (a root catch-all would swallow /blog/{slug}/ URLs).
+ *
  * @return void
  */
 function pixva_maybe_flush_rewrites() {
-	if ( get_option( 'pixva_flush_rewrites' ) ) {
+	if ( get_option( 'pixva_flush_rewrites' ) || '1' !== (string) get_option( 'pixva_rewrite_order' ) ) {
 		delete_option( 'pixva_flush_rewrites' );
+		update_option( 'pixva_rewrite_order', '1', false );
 		flush_rewrite_rules( false );
 	}
 }
 add_action( 'init', 'pixva_maybe_flush_rewrites', 99 );
+
+/**
+ * Self-heal: fresh installs sometimes store an incomplete rules array (no
+ * `blog/{slug}` post rules and/or `category_base` not applied), which 404s
+ * every post and the documented /blog/category/{term}/ URLs. Detect that
+ * state once after wp_loaded (all rules registered, verbose flag already
+ * off) and re-generate. Guarded by a marker so a site never flush-loops.
+ *
+ * @return void
+ */
+function pixva_verify_rewrite_rules() {
+	$rules = (array) get_option( 'rewrite_rules' );
+	if ( ! $rules ) {
+		return;
+	}
+	$base           = (string) get_option( 'category_base' );
+	$has_post_rule  = false;
+	$has_base_rule  = '' === $base;
+	foreach ( $rules as $k => $v ) {
+		if ( ! $has_post_rule && ( 'index.php?name=$matches[1]' === $v || str_starts_with( (string) $k, 'blog/' ) ) ) {
+			$has_post_rule = true;
+		}
+		if ( ! $has_base_rule && str_starts_with( (string) $k, $base ) ) {
+			$has_base_rule = true;
+		}
+		if ( $has_post_rule && $has_base_rule ) {
+			break;
+		}
+	}
+	if ( $has_post_rule && $has_base_rule ) {
+		return;
+	}
+	$attempts = (int) get_option( 'pixva_rules_repaired', 0 );
+	if ( $attempts >= 3 ) {
+		return; // bounded: never flush-loop.
+	}
+	update_option( 'pixva_rules_repaired', $attempts + 1, false );
+	// Flushes issued from inside the wp_loaded action on the very first
+	// requests of a fresh install can persist a partial rules array; the
+	// shutdown context (everything registered, main query done) reliably
+	// stores the complete set — verified against fresh boots.
+	add_action(
+		'shutdown',
+		static function () {
+			flush_rewrite_rules( false );
+		}
+	);
+}
+add_action( 'wp_loaded', 'pixva_verify_rewrite_rules', 100 );
+
+/**
+ * Keep root URLs on the generic page rule (no "verbose page rules").
+ *
+ * The permalink structure /blog/%postname%/ makes core set
+ * WP_Rewrite::$use_verbose_page_rules, so parse_request() rejects the
+ * generic rule whenever the URL is not an existing PAGE. With PIXVA that
+ * breaks the whole 404-driven redirect layer (redirects.php keys off
+ * is_404()):
+ *  - legacy post slugs (/hello-world/) land on the front page instead of
+ *    301 → /blog/hello-world/,
+ *  - old /category/… paths go home instead of the term link,
+ *  - genuinely missing URLs soft-404 (301 → /) instead of 404/410.
+ * Pages live only at the root and posts only under /blog/, so the generic
+ * rule is unambiguous here. Runs after init (where a flush would reset the
+ * flag) and before WP::parse_request().
+ *
+ * @return void
+ */
+function pixva_disable_verbose_page_rules() {
+	global $wp_rewrite;
+	if ( $wp_rewrite instanceof WP_Rewrite ) {
+		$wp_rewrite->use_verbose_page_rules = false;
+	}
+}
+add_action( 'wp_loaded', 'pixva_disable_verbose_page_rules', 99 );
+
+/**
+ * Order the generic page rules AFTER the post rules.
+ *
+ * When core generates rules with use_verbose_page_rules = true it merges
+ * page_rewrite before post_rewrite (safe only with the parse-time page
+ * existence check that pixva disables). Recreate the non-verbose order so
+ * /blog/{slug}/ still resolves to the post while root catch-alls remain
+ * available for pages and the 404 pipeline.
+ *
+ * @param array<string,string> $rules Generated rules.
+ * @return array<string,string>
+ */
+function pixva_rewrite_rules_order( $rules ) {
+	$page_rules = array();
+	foreach ( (array) $rules as $key => $query ) {
+		if ( str_starts_with( (string) $key, '(.?.+?)' ) && false !== strpos( (string) $query, 'pagename=' ) ) {
+			$page_rules[ $key ] = $query;
+			unset( $rules[ $key ] );
+		}
+	}
+	return $page_rules ? ( (array) $rules + $page_rules ) : (array) $rules;
+}
+add_filter( 'rewrite_rules_array', 'pixva_rewrite_rules_order' );
 
 /**
  * Whether the current request renders the Persian-only front end.

@@ -1,0 +1,84 @@
+=== T12: route crawl (status, h1, robots, canonical) ===
+    / 200 hops=0 h1=1 —
+    /services/ 200 hops=0 h1=1 —
+    /brands/ 200 hops=0 h1=1 —
+    /problems/ 200 hops=0 h1=1 —
+    /tools/ 200 hops=0 h1=1 —
+    /tools/diagnosis/ 200 hops=0 h1=1 —
+    /tools/price-calculator/ 200 hops=0 h1=1 —
+    /tools/pixel-test/ 200 hops=0 h1=1 —
+    /tools/error-codes/ 301 hops=0 h1=0 —
+    /error-codes/ 200 hops=0 h1=1 —
+    /repair/ 200 hops=0 h1=1 —
+    /repair/book/ 200 hops=0 h1=1 —
+    /tracking/ 200 hops=0 h1=1 —
+    /warranty/ 200 hops=0 h1=1 —
+    /portfolio/ 200 hops=0 h1=1 —
+    /blog/ 200 hops=0 h1=1 —
+    /about/ 200 hops=0 h1=1 —
+    /contact/ 200 hops=0 h1=1 —
+    /faq/ 200 hops=0 h1=1 —
+    /account/ 200 hops=0 h1=1 —
+    /account/repairs/ 200 hops=0 h1=1 —
+    /account/warranty/ 200 hops=0 h1=1 —
+    /account/profile/ 200 hops=0 h1=1 —
+    /dashboard/ 200 hops=0 h1=1 —
+FAIL  T12-route-crawl — bad=24
+=== T13: booking validation (invalid POST → field errors) ===
+FAIL  T13-invalid-booking-422 — http=403 errors=1
+=== T16: booking prefill from diagnosis (rendered smoke; full matrix NOT TESTED) ===
+    GET /repair/book/?from=diagnosis → 200 (template prefill logic statically reviewed)
+INFO  T16-prefill: rendered smoke only — full symptom matrix NOT TESTED
+=== T17: contact rate limit (6/h) ===
+PASS  T17-contact-rate-limit
+=== T23: dashboard per role ===
+    pixva_technician → HTTP 200 (PII-hits=0)
+    pixva_manager → HTTP 200 (PII-hits=0)
+    editor → HTTP 200 (PII-hits=0)
+PASS  T23-dashboard-roles
+=== T24: REST endpoints ===
+    GET /wp-json/pixva/v1/error-codes → 200
+    GET /wp-json/pixva/v1/models → 400
+    GET /wp-json/pixva/v1/estimate → 404
+    POST diagnosis(invalid) → 400
+FAIL  T24-rest-endpoints — estimate=0 diagnosis=400
+=== T25: REST exposure ===
+    users→404 orders→404
+PASS  T25-rest-exposure
+=== T27/T28: thin content noindex + front description ===
+FAIL  T27-sample-noindex — noindex-hits=0
+PASS  T28-front-description
+=== T31: robots.txt ===
+    User-agent: *
+    Disallow: /wp-admin/
+    Allow: /wp-admin/admin-ajax.php
+    
+    Sitemap: http://127.0.0.1:9412/wp-sitemap.xml
+PASS  T31-robots
+=== T33: admin overview checklist ===
+    checklist links=3
+PASS  T33-admin-checklist
+=== T35: sitemap integrity ===
+    index: http://127.0.0.1:9412/wp-sitemap.xml
+    BAD http://127.0.0.1:9412/blog/category/uncategorized/ → 301 noindex=0
+    checked=15 bad=1
+FAIL  T35-sitemap — n=15 bad=1
+=== T36: one-hop redirect variants ===
+    /services → 200 hops=1
+    /contact → 200 hops=1
+    /about → 200 hops=1
+    /faq → 200 hops=1
+    /index.php/services/ → 200 hops=1
+    /?pagename=services → 404 hops=0
+PASS  T36-one-hop
+=== T38: rendered fake-data scan (12 key pages) ===
+    HIT /repair/book/: ۰۹۱۲۳۴� 
+FAIL  T38-fake-data-scan — pages-with-hits=1
+----------------------------------------
+EXTRA CHECKS: PASS=7 FAIL=6
+  - T12-route-crawl — bad=24
+  - T13-invalid-booking-422 — http=403 errors=1
+  - T24-rest-endpoints — estimate=0 diagnosis=400
+  - T27-sample-noindex — noindex-hits=0
+  - T35-sitemap — n=15 bad=1
+  - T38-fake-data-scan — pages-with-hits=1

@@ -1,0 +1,14 @@
+{
+  "name": "wpwebtv-dev",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Development & test tooling for the PIXVA WordPress theme (lint, runtime harness). Not part of the theme ZIP.",
+  "scripts": {
+    "lint:php": "node tools/php-lint-wasm.js pixva",
+    "test": "node tools/php-lint-wasm.js pixva && node --check pixva/assets/js/app.js && node tools/harness/run.js"
+  },
+  "devDependencies": {
+    "@php-wasm/cli": "3.1.57",
+    "@wp-playground/cli": "3.1.57"
+  }
+}

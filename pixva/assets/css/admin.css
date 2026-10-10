@@ -98,3 +98,197 @@
 .column-pixva_status {
 	width: 140px;
 }
+
+/* PIXVA stat cards / hub / dashboard widgets (RTL-first) */
+.pixva-stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.pixva-stat-card { background: #fff; border: 1px solid #E2E8F0; border-inline-start: 4px solid #FF5C35; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.pixva-stat-card__label { color: #64748B; font-size: 13px; }
+.pixva-stat-card__value { color: #0B1C2E; font-size: 28px; font-weight: 800; line-height: 1.2; }
+.pixva-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 12px 0 24px; }
+.pixva-hub-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; }
+.pixva-hub-card h3 { margin-top: 0; color: #0B1C2E; }
+.pixva-hub-card ul { margin: 0; padding-inline-start: 18px; }
+.pixva-hub-card li { margin-block: 6px; }
+.pixva-hub-steps { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 12px 12px 36px; }
+.pixva-hub-steps li { margin-block: 8px; }
+.pixva-chip { display: inline-block; background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 999px; padding: 1px 10px; font-size: 12px; color: #0B1C2E; }
+.pixva-dash-health li { margin-block: 6px; }
+.pixva-dash-health .dashicons-yes-alt { color: #00A86B; }
+.pixva-dash-health .dashicons-warning { color: #F59E0B; }
+@media (max-width: 782px) {
+	.pixva-stat-cards, .pixva-hub-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   PIXVA Admin Design System — RTL-first, brand tokens, workflow surfaces.
+   Palette mirrors the public theme: deep navy / orange accent / soft slate.
+   ========================================================================== */
+
+@font-face {
+	font-family: 'Vazirmatn';
+	src: url('../fonts/vazirmatn-variable.woff2') format('woff2-variations');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+.pixva-admin,
+.edit-php.post_type-pixva_orders .wp-list-table,
+.toplevel_page_pixva,
+.post-type-pixva_orders #wpbody {
+	font-family: 'Vazirmatn', -apple-system, 'Segoe UI', Tahoma, sans-serif;
+}
+
+.pixva-admin { direction: rtl; }
+
+/* --- shared tokens ------------------------------------------------------ */
+.pixva-admin { --pxv-navy: #0B1C2E; --pxv-accent: #FF5C35; --pxv-slate: #64748B;
+	--pxv-line: #E2E8F0; --pxv-soft: #F8FAFC; --pxv-ok: #00A86B; --pxv-warn: #F59E0B; }
+
+/* --- panels (cards around overview sections) ---------------------------- */
+.pixva-panel {
+	background: #fff;
+	border: 1px solid var(--pxv-line);
+	border-radius: 12px;
+	padding: 8px 20px 16px;
+	margin: 16px 0;
+	box-shadow: 0 1px 2px rgba(11, 28, 46, .04);
+}
+.pixva-panel > h2:first-child {
+	margin-top: 8px;
+	color: var(--pxv-navy);
+	font-size: 16px;
+	font-weight: 800;
+	border-inline-start: 4px solid var(--pxv-accent);
+	padding-inline-start: 10px;
+}
+.pixva-panel table { margin-top: 8px; }
+@media (max-width: 782px) {
+	.pixva-panel { padding: 6px 12px 12px; overflow-x: auto; }
+}
+
+/* --- quick actions ------------------------------------------------------ */
+.pixva-quick-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 14px 0 4px;
+}
+.pixva-quick-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: #fff;
+	border: 1px solid var(--pxv-line);
+	border-radius: 10px;
+	padding: 8px 14px;
+	color: var(--pxv-navy);
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 13px;
+	transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.pixva-quick-action .dashicons { color: var(--pxv-accent); font-size: 18px; width: 18px; height: 18px; }
+.pixva-quick-action:hover, .pixva-quick-action:focus {
+	border-color: var(--pxv-accent);
+	box-shadow: 0 2px 8px rgba(255, 92, 53, .18);
+	transform: translateY(-1px);
+	color: var(--pxv-navy);
+}
+
+/* --- stat cards (refresh) ------------------------------------------------ */
+.pixva-stat-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.pixva-stat-card {
+	border-inline-start-width: 4px;
+	border-radius: 12px;
+	transition: box-shadow .15s, transform .15s;
+}
+.pixva-stat-card:hover { box-shadow: 0 4px 14px rgba(11, 28, 46, .08); transform: translateY(-1px); }
+.pixva-stat-card__label { font-weight: 600; letter-spacing: .01em; }
+.pixva-stat-card__value { font-variant-numeric: tabular-nums; }
+.pixva-stat-card a { color: var(--pxv-accent); text-decoration: none; font-weight: 700; font-size: 13px; }
+.pixva-stat-card a:hover { text-decoration: underline; }
+
+/* --- checklist ---------------------------------------------------------- */
+.pixva-checklist li { padding: 9px 2px; }
+.pixva-checklist a { color: var(--pxv-navy); text-decoration: none; font-weight: 600; }
+.pixva-checklist a:hover { color: var(--pxv-accent); }
+.pixva-checklist .is-done a { color: var(--pxv-ok); }
+
+/* --- hub ---------------------------------------------------------------- */
+.pixva-hub-card {
+	border-radius: 12px;
+	border-top: 3px solid var(--pxv-accent);
+	transition: box-shadow .15s, transform .15s;
+}
+.pixva-hub-card:hover { box-shadow: 0 6px 18px rgba(11, 28, 46, .09); transform: translateY(-2px); }
+.pixva-hub-card h3 { font-size: 15px; font-weight: 800; }
+.pixva-hub-card a { color: var(--pxv-navy); font-weight: 600; text-decoration: none; }
+.pixva-hub-card a:hover { color: var(--pxv-accent); }
+.pixva-hub-card li { margin-block: 8px; }
+.pixva-hub-steps { border-radius: 12px; border-inline-start: 4px solid var(--pxv-accent); }
+.pixva-hub-steps a { color: var(--pxv-accent); font-weight: 700; }
+
+/* --- dashboard widgets -------------------------------------------------- */
+#pixva_dashboard_health .pixva-dash-health,
+#pixva_dashboard_orders .pixva-dash-orders { margin: 0; }
+.pixva-dash-orders .pixva-badge, .pixva-dash-messages a { vertical-align: middle; }
+#dashboard .postbox h2 { font-weight: 800; }
+
+/* --- status badges (orders list) ---------------------------------------- */
+.pixva-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.8;
+	white-space: nowrap;
+	background: #F1F5F9;
+	color: var(--pxv-navy);
+	border: 1px solid var(--pxv-line);
+}
+.pixva-badge--new       { background: #EAF2FF; color: #1D4ED8; border-color: #BFDBFE; }
+.pixva-badge--received  { background: #EEF2FF; color: #4338CA; border-color: #C7D2FE; }
+.pixva-badge--diagnosed { background: #F5F3FF; color: #6D28D9; border-color: #DDD6FE; }
+.pixva-badge--waiting   { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+.pixva-badge--parts     { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.pixva-badge--repairing { background: #ECFEFF; color: #0E7490; border-color: #A5F3FC; }
+.pixva-badge--testing   { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.pixva-badge--ready     { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+.pixva-badge--delivered { background: #F1F5F9; color: #334155; border-color: #CBD5E1; }
+.pixva-badge--cancelled { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
+
+/* --- orders list table -------------------------------------------------- */
+.post-type-pixva_orders .wp-list-table td { vertical-align: middle; }
+.post-type-pixva_orders .wp-list-table .column-title a { font-weight: 700; font-family: ui-monospace, 'Vazirmatn', monospace; direction: ltr; display: inline-block; }
+.post-type-pixva_orders .wp-list-table th { font-weight: 700; }
+#posts-filter select[name="pixva_status"] { margin-inline-end: 8px; min-width: 160px; }
+
+/* --- forms -------------------------------------------------------------- */
+.pixva-admin .form-table th { width: 220px; font-weight: 700; color: var(--pxv-navy); }
+.pixva-admin .form-table td { color: #1E293B; }
+.pixva-admin input[type="text"]:focus,
+.pixva-admin input[type="email"]:focus,
+.pixva-admin input[type="url"]:focus,
+.pixva-admin input[type="number"]:focus,
+.pixva-admin textarea:focus,
+.pixva-admin select:focus {
+	border-color: var(--pxv-accent);
+	box-shadow: 0 0 0 2px rgba(255, 92, 53, .18);
+}
+.pixva-admin .button-primary {
+	background: var(--pxv-navy);
+	border-color: var(--pxv-navy);
+	border-radius: 8px;
+}
+.pixva-admin .button-primary:hover { background: #132c46; }
+
+/* --- responsive --------------------------------------------------------- */
+@media (max-width: 782px) {
+	.pixva-quick-action { flex: 1 1 45%; justify-content: center; }
+	.pixva-admin .form-table th { width: auto; display: block; padding-bottom: 0; border: 0; }
+	.pixva-admin .form-table td { display: block; padding-top: 4px; }
+	.post-type-pixva_orders .wp-list-table .column-pixva_tech,
+	.post-type-pixva_orders .wp-list-table .column-pixva_device { display: none; }
+}

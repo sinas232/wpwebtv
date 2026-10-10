@@ -27,6 +27,9 @@ function pixva_admin_menu() {
 	$cap = current_user_can( 'pixva_manage_settings' ) ? 'pixva_manage_settings' : 'pixva_manage_redirects';
 	add_menu_page( __( 'پیکسوا', 'pixva' ), __( 'پیکسوا', 'pixva' ), $cap, 'pixva', 'pixva_admin_overview', 'dashicons-desktop', 2 );
 	add_submenu_page( 'pixva', __( 'وضعیت راه‌اندازی', 'pixva' ), __( 'وضعیت راه‌اندازی', 'pixva' ), $cap, 'pixva', 'pixva_admin_overview' );
+	// Settings hub right after the overview: it is the index of every real
+	// settings screen, so it must be the second stop in the menu.
+	add_submenu_page( 'pixva', __( 'تنظیمات و راهنما', 'pixva' ), __( 'تنظیمات و راهنما', 'pixva' ), 'pixva_view_dashboard', 'pixva-hub', 'pixva_admin_hub' );
 	add_submenu_page( 'pixva', __( 'اطلاعات کسب‌وکار', 'pixva' ), __( 'اطلاعات کسب‌وکار', 'pixva' ), 'pixva_manage_settings', 'pixva-business', 'pixva_admin_business' );
 	add_submenu_page( 'pixva', __( 'قیمت‌گذاری', 'pixva' ), __( 'قیمت‌گذاری', 'pixva' ), 'pixva_manage_settings', 'pixva-pricing', 'pixva_admin_pricing' );
 	add_submenu_page( 'pixva', __( 'انتقال‌ها (ریدایرکت)', 'pixva' ), __( 'انتقال‌ها', 'pixva' ), 'pixva_manage_redirects', 'pixva-redirects', 'pixva_admin_redirects' );
@@ -91,24 +94,50 @@ function pixva_admin_overview() {
 	);
 	echo '<div class="wrap pixva-admin"><h1>' . esc_html__( 'پیکسوا — وضعیت راه‌اندازی', 'pixva' ) . '</h1>';
 	echo '<p>' . esc_html__( 'هر مورد فقط وقتی در سایت نمایش داده می‌شود که اطلاعات واقعی آن را وارد کرده باشید. هیچ داده پیش‌فرض ساختگی وجود ندارد.', 'pixva' ) . '</p>';
-	echo '<h2>' . esc_html__( 'فهرست بررسی', 'pixva' ) . '</h2><ul class="pixva-checklist">';
+	pixva_admin_stat_cards();
+
+	// Quick actions: one-click shortcuts to the screens staff use daily.
+	echo '<div class="pixva-quick-actions">';
+	$pixva_shortcuts = array();
+	if ( current_user_can( 'pixva_manage_orders' ) ) {
+		$pixva_shortcuts[] = array( admin_url( 'edit.php?post_type=pixva_orders' ), __( 'مدیریت درخواست‌ها', 'pixva' ), 'dashicons-clipboard' );
+	}
+	if ( current_user_can( 'edit_pixva_messages' ) ) {
+		$pixva_shortcuts[] = array( admin_url( 'edit.php?post_type=pixva_inbox' ), __( 'پیام‌های رسیده', 'pixva' ), 'dashicons-email-alt' );
+	}
+	if ( current_user_can( 'pixva_view_dashboard' ) ) {
+		$pixva_shortcuts[] = array( admin_url( 'admin.php?page=pixva-hub' ), __( 'تنظیمات و راهنما', 'pixva' ), 'dashicons-admin-settings-alt' );
+	}
+	if ( current_user_can( 'pixva_manage_settings' ) ) {
+		$pixva_shortcuts[] = array( admin_url( 'admin.php?page=pixva-business' ), __( 'اطلاعات کسب‌وکار', 'pixva' ), 'dashicons-building' );
+	}
+	$pixva_front_edit = pixva_hub_elementor_url();
+	if ( $pixva_front_edit && current_user_can( 'edit_pages' ) ) {
+		$pixva_shortcuts[] = array( $pixva_front_edit, __( 'ویرایش صفحه اصلی', 'pixva' ), 'dashicons-edit' );
+	}
+	foreach ( $pixva_shortcuts as $pixva_sc ) {
+		echo '<a class="pixva-quick-action" href="' . esc_url( $pixva_sc[0] ) . '"><span class="dashicons ' . esc_attr( $pixva_sc[2] ) . '" aria-hidden="true"></span><span>' . esc_html( $pixva_sc[1] ) . '</span></a>';
+	}
+	echo '</div>';
+
+	echo '<div class="pixva-panel"><h2>' . esc_html__( 'فهرست بررسی', 'pixva' ) . '</h2><ul class="pixva-checklist">';
 	foreach ( $checks as $c ) {
 		echo '<li class="' . ( $c[0] ? 'is-done' : 'is-todo' ) . '"><span class="dashicons ' . ( $c[0] ? 'dashicons-yes-alt' : 'dashicons-marker' ) . '" aria-hidden="true"></span> <a href="' . esc_url( $c[2] ) . '">' . esc_html( $c[1] ) . '</a> <span class="screen-reader-text">' . esc_html( $c[0] ? __( 'انجام شده', 'pixva' ) : __( 'انجام نشده', 'pixva' ) ) . '</span></li>';
 	}
-	echo '</ul>';
-	echo '<h2>' . esc_html__( 'محتوا', 'pixva' ) . '</h2><table class="widefat striped"><thead><tr><th>' . esc_html__( 'نوع', 'pixva' ) . '</th><th>' . esc_html__( 'منتشرشده', 'pixva' ) . '</th><th>' . esc_html__( 'پیش‌نویس', 'pixva' ) . '</th></tr></thead><tbody>';
+	echo '</ul></div>';
+	echo '<div class="pixva-panel"><h2>' . esc_html__( 'محتوا', 'pixva' ) . '</h2><table class="widefat striped"><thead><tr><th>' . esc_html__( 'نوع', 'pixva' ) . '</th><th>' . esc_html__( 'منتشرشده', 'pixva' ) . '</th><th>' . esc_html__( 'پیش‌نویس', 'pixva' ) . '</th></tr></thead><tbody>';
 	foreach ( array( 'tv_services', 'tv_brands', 'tv_model', 'pixva_error', 'repair_cases', 'pixva_faq', 'post' ) as $type ) {
 		$o = get_post_type_object( $type );
 		$c = wp_count_posts( $type );
 		echo '<tr><td><a href="' . esc_url( admin_url( 'edit.php?post_type=' . $type ) ) . '">' . esc_html( $o ? $o->labels->name : $type ) . '</a></td><td>' . esc_html( pixva_fa_num( (int) ( $c->publish ?? 0 ) ) ) . '</td><td>' . esc_html( pixva_fa_num( (int) ( $c->draft ?? 0 ) ) ) . '</td></tr>';
 	}
-	echo '</tbody></table>';
-	echo '<h2>' . esc_html__( 'صفحه‌های سیستمی', 'pixva' ) . '</h2><table class="widefat striped"><thead><tr><th>' . esc_html__( 'مسیر', 'pixva' ) . '</th><th>' . esc_html__( 'منبع', 'pixva' ) . '</th><th>' . esc_html__( 'ایندکس', 'pixva' ) . '</th></tr></thead><tbody>';
+	echo '</tbody></table></div>';
+	echo '<div class="pixva-panel"><h2>' . esc_html__( 'صفحه‌های سیستمی', 'pixva' ) . '</h2><table class="widefat striped"><thead><tr><th>' . esc_html__( 'مسیر', 'pixva' ) . '</th><th>' . esc_html__( 'منبع', 'pixva' ) . '</th><th>' . esc_html__( 'ایندکس', 'pixva' ) . '</th></tr></thead><tbody>';
 	foreach ( pixva_routes() as $key => $def ) {
 		$ok = 'page' !== $def['source'] || pixva_route_page_id( $key );
 		echo '<tr><td><code dir="ltr">' . esc_html( $def['path'] ) . '</code> ' . ( $ok ? '' : '<strong>' . esc_html__( '(صفحه وجود ندارد — تم را دوباره فعال کنید)', 'pixva' ) . '</strong>' ) . '</td><td>' . esc_html( $def['source'] ) . '</td><td>' . ( $def['index'] ? '✓' : '—' ) . '</td></tr>';
 	}
-	echo '</tbody></table></div>';
+	echo '</tbody></table></div></div>';
 }
 
 /**
@@ -433,4 +462,252 @@ function pixva_core_sample_content() {
 		}
 	}
 	return $ids;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Phase 4: real-data stat cards, WP dashboard widgets, settings hub.
+ * Every figure comes from the live DB; capability checks run server-side.
+ * ---------------------------------------------------------------------------
+ */
+
+/**
+ * Stat cards for the PIXVA admin overview (capability-scoped).
+ *
+ * @return void
+ */
+function pixva_admin_stat_cards() {
+	$can_orders  = current_user_can( 'pixva_manage_orders' );
+	$can_messages = current_user_can( 'edit_pixva_messages' );
+	if ( ! $can_orders && ! $can_messages ) {
+		return;
+	}
+	echo '<div class="pixva-stat-cards">';
+	if ( $can_orders ) {
+		$counts = pixva_order_status_counts();
+		$status = pixva_order_statuses();
+		$total  = array_sum( $counts );
+		$new7   = count(
+			pixva_order_query(
+				array(
+					'posts_per_page' => 100,
+					'date_query'     => array(
+						array(
+							'after' => '7 days ago',
+						),
+					),
+				)
+			)
+		);
+		echo '<div class="pixva-stat-card"><span class="pixva-stat-card__label">' . esc_html__( 'همه درخواست‌ها', 'pixva' ) . '</span><span class="pixva-stat-card__value">' . esc_html( pixva_fa_num( $total ) ) . '</span><a href="' . esc_url( admin_url( 'edit.php?post_type=pixva_orders' ) ) . '">' . esc_html__( 'مدیریت درخواست‌ها', 'pixva' ) . '</a></div>';
+		echo '<div class="pixva-stat-card"><span class="pixva-stat-card__label">' . esc_html__( 'ثبت‌شده در ۷ روز اخیر', 'pixva' ) . '</span><span class="pixva-stat-card__value">' . esc_html( pixva_fa_num( $new7 ) ) . '</span></div>';
+		$open = 0;
+		foreach ( $counts as $k => $c ) {
+			if ( ! in_array( $k, array( 'delivered', 'cancelled' ), true ) ) {
+				$open += $c;
+			}
+		}
+		echo '<div class="pixva-stat-card"><span class="pixva-stat-card__label">' . esc_html__( 'در جریان (بسته‌نشده)', 'pixva' ) . '</span><span class="pixva-stat-card__value">' . esc_html( pixva_fa_num( $open ) ) . '</span></div>';
+	}
+	if ( $can_messages ) {
+		$unread = (int) wp_count_posts( 'pixva_inbox' )->private + (int) wp_count_posts( 'pixva_inbox' )->publish;
+		echo '<div class="pixva-stat-card"><span class="pixva-stat-card__label">' . esc_html__( 'پیام‌های رسیده', 'pixva' ) . '</span><span class="pixva-stat-card__value">' . esc_html( pixva_fa_num( $unread ) ) . '</span><a href="' . esc_url( admin_url( 'edit.php?post_type=pixva_inbox' ) ) . '">' . esc_html__( 'خواندن پیام‌ها', 'pixva' ) . '</a></div>';
+	}
+	echo '</div>';
+}
+
+/**
+ * Settings hub: single categorized entry point that links to the real
+ * settings screens (no duplicated/conflicting fields — brand identity and
+ * colors/fonts stay in WordPress «هویت سایت» and Elementor «تنظیمات سایت»).
+ *
+ * @return void
+ */
+function pixva_admin_hub() {
+	if ( ! current_user_can( 'pixva_view_dashboard' ) ) {
+		wp_die( esc_html__( 'دسترسی غیرمجاز.', 'pixva' ) );
+	}
+	$a = pixva_announcement_get();
+	?>
+	<div class="wrap pixva-admin">
+		<h1><?php esc_html_e( 'پیکسوا — تنظیمات و راهنما', 'pixva' ); ?></h1>
+		<p><?php esc_html_e( 'هر دسته به صفحه واقعی خودش می‌رود؛ هیچ تنظیمی در دو جای متناقض تکرار نشده است.', 'pixva' ); ?></p>
+
+		<h2><?php esc_html_e( 'شروع سریع', 'pixva' ); ?></h2>
+		<ol class="pixva-hub-steps">
+			<li><?php echo wp_kses_post( sprintf( /* translators: link to business settings. */ __( '%s — راه تماس، نشانی، ساعت کاری و سیاست گارانتی را واقعی وارد کنید.', 'pixva' ), '<a href="' . esc_url( admin_url( 'admin.php?page=pixva-business' ) ) . '">' . esc_html__( 'اطلاعات کسب‌وکار', 'pixva' ) . '</a>' ) ); ?></li>
+			<li><?php echo wp_kses_post( sprintf( /* translators: link to content list. */ __( '%s — خدمات، برندها و پرسش‌های متداول را منتشر کنید (بدون محتوای ساختگی).', 'pixva' ), '<a href="' . esc_url( admin_url( 'edit.php?post_type=tv_services' ) ) . '">' . esc_html__( 'فهرست محتوا', 'pixva' ) . '</a>' ) ); ?></li>
+			<li><?php echo wp_kses_post( sprintf( /* translators: link to front page editor. */ __( '%s — صفحه اول را با ویجت‌های PIXVA یا Elementor بچینید.', 'pixva' ), '<a href="' . esc_url( pixva_hub_elementor_url() ) . '">' . esc_html__( 'ویرایش صفحه اول', 'pixva' ) . '</a>' ) ); ?></li>
+			<li><?php echo wp_kses_post( sprintf( /* translators: link to booking page. */ __( '%s — یک درخواست آزمایشی ثبت و کد پیگیری را در صفحه پیگیری تست کنید.', 'pixva' ), '<a href="' . esc_url( pixva_route_url( 'booking' ) ) . '">' . esc_html__( 'صفحه رزرو', 'pixva' ) . '</a>' ) ); ?></li>
+		</ol>
+
+		<h2><?php esc_html_e( 'دسته‌های تنظیمات', 'pixva' ); ?></h2>
+		<div class="pixva-hub-grid">
+			<div class="pixva-hub-card"><h3><?php esc_html_e( 'کسب‌وکار و محتوا', 'pixva' ); ?></h3>
+				<ul>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva-business' ) ); ?>"><?php esc_html_e( 'اطلاعات کسب‌وکار', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva-pricing' ) ); ?>"><?php esc_html_e( 'قیمت‌گذاری', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=pixva_faq' ) ); ?>"><?php esc_html_e( 'پرسش‌های متداول', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=tv_services' ) ); ?>"><?php esc_html_e( 'خدمات و برندها', 'pixva' ); ?></a></li>
+				</ul>
+			</div>
+			<div class="pixva-hub-card"><h3><?php esc_html_e( 'ظاهر و ویرایش بصری', 'pixva' ); ?></h3>
+				<ul>
+					<li><a href="<?php echo esc_url( pixva_hub_elementor_url() ); ?>"><?php esc_html_e( 'ویرایشگر صفحه اول (Elementor در صورت فعال بودن)', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>"><?php esc_html_e( 'هویت سایت: نام، توصیف، لوگو (وردپرس)', 'pixva' ); ?></a></li>
+					<li><span class="description"><?php esc_html_e( 'رنگ‌ها و فونت‌ها: «تنظیمات سایت» داخل ویرایشگر Elementor + theme.json قالب (یک منبع واحد؛ بدون تکرار).', 'pixva' ); ?></span></li>
+				</ul>
+			</div>
+			<div class="pixva-hub-card"><h3><?php esc_html_e( 'فرم‌ها و اعلان‌ها', 'pixva' ); ?></h3>
+				<ul>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva#pixva-announcement' ) ); ?>"><?php esc_html_e( 'نوار اعلان سایت', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=pixva_inbox' ) ); ?>"><?php esc_html_e( 'پیام‌های رسیده', 'pixva' ); ?></a></li>
+					<li><span class="description"><?php esc_html_e( 'گیرنده ایمیل اعلان از گزینه «مدیر» در تنظیمات عمومی وردپرس خوانده می‌شود.', 'pixva' ); ?></span></li>
+				</ul>
+			</div>
+			<div class="pixva-hub-card"><h3><?php esc_html_e( 'سیستم و سلامت', 'pixva' ); ?></h3>
+				<ul>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva' ) ); ?>"><?php esc_html_e( 'وضعیت راه‌اندازی و چک‌لیست', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva-redirects' ) ); ?>"><?php esc_html_e( 'انتقال‌ها (ریدایرکت)', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=pixva-migration' ) ); ?>"><?php esc_html_e( 'گزارش ارتقا', 'pixva' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'options-permalink.php' ) ); ?>"><?php esc_html_e( 'ساختار پیوندها', 'pixva' ); ?></a></li>
+				</ul>
+			</div>
+		</div>
+
+		<?php if ( current_user_can( 'pixva_manage_settings' ) ) : ?>
+		<h2 id="pixva-announcement"><?php esc_html_e( 'نوار اعلان سایت', 'pixva' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'متن کوتاهی که بالای همه صفحه‌ها نمایش داده می‌شود. خالی = بدون اعلان. این متن هرگز ساخته نمی‌شود؛ فقط شما آن را می‌نویسید.', 'pixva' ); ?></p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
+			<?php settings_fields( 'pixva_announcement' ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="pixva-ann-enabled"><?php esc_html_e( 'فعال', 'pixva' ); ?></label></th>
+					<td><input type="checkbox" id="pixva-ann-enabled" name="pixva_announcement[enabled]" value="1" <?php checked( $a['enabled'], 1 ); ?>></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="pixva-ann-text"><?php esc_html_e( 'متن اعلان', 'pixva' ); ?></label></th>
+					<td><textarea id="pixva-ann-text" name="pixva_announcement[text]" rows="3" class="large-text"><?php echo esc_textarea( $a['text'] ); ?></textarea></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="pixva-ann-url"><?php esc_html_e( 'لینک (اختیاری)', 'pixva' ); ?></label></th>
+					<td><input type="url" id="pixva-ann-url" name="pixva_announcement[url]" class="large-text" dir="ltr" value="<?php echo esc_attr( $a['url'] ); ?>"></td>
+				</tr>
+			</table>
+			<?php submit_button( __( 'ذخیره اعلان', 'pixva' ) ); ?>
+		</form>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+/**
+ * Best editor URL for the front page (Elementor when active, else WP editor).
+ *
+ * @return string
+ */
+function pixva_hub_elementor_url() {
+	$front = (int) get_option( 'page_on_front' );
+	if ( $front ) {
+		$url = get_edit_post_link( $front, 'raw' );
+		if ( $url ) {
+			return ( pixva_elementor_active() ) ? add_query_arg( 'action', 'elementor', $url ) : $url;
+		}
+	}
+	return admin_url( 'edit.php?post_type=page' );
+}
+
+/**
+ * WP admin home dashboard widgets (capability-scoped; no PII beyond what
+ * each role is allowed to see).
+ *
+ * @return void
+ */
+function pixva_dashboard_widgets() {
+	if ( current_user_can( 'pixva_view_dashboard' ) ) {
+		wp_add_dashboard_widget( 'pixva_dashboard_health', __( 'پیکسوا — سلامت پیکربندی', 'pixva' ), 'pixva_dashboard_widget_health' );
+	}
+	if ( current_user_can( 'pixva_manage_orders' ) ) {
+		wp_add_dashboard_widget( 'pixva_dashboard_orders', __( 'پیکسوا — آخرین درخواست‌ها', 'pixva' ), 'pixva_dashboard_widget_orders' );
+	}
+	if ( current_user_can( 'edit_pixva_messages' ) ) {
+		wp_add_dashboard_widget( 'pixva_dashboard_messages', __( 'پیکسوا — پیام‌های جدید', 'pixva' ), 'pixva_dashboard_widget_messages' );
+	}
+}
+add_action( 'wp_dashboard_setup', 'pixva_dashboard_widgets' );
+
+/**
+ * Config-health widget (mirrors the overview checklist, real state only).
+ *
+ * @return void
+ */
+function pixva_dashboard_widget_health() {
+	$rows = array(
+		array( pixva_has_claim( 'phone' ) || pixva_has_claim( 'mobile' ) || pixva_has_claim( 'email' ), __( 'راه تماس ثبت شده', 'pixva' ) ),
+		array( (bool) pixva_service_modes(), __( 'شیوه‌های تحویل دستگاه', 'pixva' ) ),
+		array( pixva_warranty_policy_days() > 0, __( 'سیاست گارانتی', 'pixva' ) ),
+		array( (bool) get_privacy_policy_url(), __( 'صفحه حریم خصوصی', 'pixva' ) ),
+		array( ! pixva_core_sample_content(), __( 'بدون محتوای نمونه وردپرس', 'pixva' ) ),
+	);
+	echo '<ul class="pixva-dash-health">';
+	foreach ( $rows as $r ) {
+		echo '<li>' . ( $r[0] ? '<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>' : '<span class="dashicons dashicons-warning" aria-hidden="true"></span>' ) . ' ' . esc_html( $r[1] ) . '</li>';
+	}
+	echo '</ul><p><a href="' . esc_url( admin_url( 'admin.php?page=pixva' ) ) . '">' . esc_html__( 'چک‌لیست کامل', 'pixva' ) . '</a></p>';
+}
+
+/**
+ * Recent-orders widget (codes/status only — no customer PII here).
+ *
+ * @return void
+ */
+function pixva_dashboard_widget_orders() {
+	$ids     = pixva_order_query( array( 'posts_per_page' => 5 ) );
+	$counts  = pixva_order_status_counts();
+	$status  = pixva_order_statuses();
+	echo '<p>';
+	foreach ( $counts as $k => $c ) {
+		if ( $c > 0 && isset( $status[ $k ] ) ) {
+			echo '<span class="pixva-chip">' . esc_html( $status[ $k ]['label'] ) . ' — ' . esc_html( pixva_fa_num( $c ) ) . '</span> ';
+		}
+	}
+	echo '</p>';
+	if ( ! $ids ) {
+		echo '<p>' . esc_html__( 'هنوز درخواستی ثبت نشده است.', 'pixva' ) . '</p>';
+		return;
+	}
+	echo '<ul>';
+	foreach ( $ids as $id ) {
+		$p    = get_post( $id );
+		$st   = (string) get_post_meta( $id, '_pixva_order_status', true );
+		$label = isset( $status[ $st ] ) ? $status[ $st ]['label'] : $st;
+		echo '<li><a href="' . esc_url( get_edit_post_link( $id ) ) . '">' . esc_html( get_the_title( $p ) ) . '</a> — <span class="pixva-chip">' . esc_html( $label ) . '</span> <span class="description">' . esc_html( get_the_date( '', $p ) ) . '</span></li>';
+	}
+	echo '</ul><p><a href="' . esc_url( admin_url( 'edit.php?post_type=pixva_orders' ) ) . '">' . esc_html__( 'همه درخواست‌ها', 'pixva' ) . '</a></p>';
+}
+
+/**
+ * New-messages widget (titles + dates for authorized staff only).
+ *
+ * @return void
+ */
+function pixva_dashboard_widget_messages() {
+	$items = get_posts(
+		array(
+			'post_type'      => 'pixva_inbox',
+			'post_status'    => array( 'private', 'publish' ),
+			'posts_per_page' => 5,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		)
+	);
+	if ( ! $items ) {
+		echo '<p>' . esc_html__( 'پیام جدیدی نیست.', 'pixva' ) . '</p>';
+		return;
+	}
+	echo '<ul>';
+	foreach ( $items as $m ) {
+		echo '<li><a href="' . esc_url( get_edit_post_link( $m->ID ) ) . '">' . esc_html( get_the_title( $m ) ) . '</a> <span class="description">' . esc_html( get_the_date( '', $m ) ) . '</span></li>';
+	}
+	echo '</ul><p><a href="' . esc_url( admin_url( 'edit.php?post_type=pixva_inbox' ) ) . '">' . esc_html__( 'همه پیام‌ها', 'pixva' ) . '</a></p>';
 }

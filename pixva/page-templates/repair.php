@@ -12,6 +12,14 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// Elementor takeover: when this page is saved with Elementor the document
+// below the header IS the page (classic sections are skipped). Classic
+// behavior is untouched whenever the flag/data is absent.
+if ( pixva_elementor_takeover() ) {
+	pixva_elementor_render_page( pixva_route_description( 'repair' ) );
+	return;
+}
 get_header();
 $pixva_modes = pixva_service_modes();
 ?>
