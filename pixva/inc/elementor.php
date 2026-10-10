@@ -135,3 +135,20 @@ function pixva_elementor_render_page( $lead = '' ) {
 	endwhile;
 	get_footer();
 }
+
+/**
+ * Keep typography self-hosted: the site uses the local Vazirmatn @font-face
+ * (style.css); Elementor's kit defaults would otherwise enqueue unused
+ * Google Fonts (Roboto / Roboto Slab). Widgets keep inheriting the theme
+ * font; any font explicitly chosen later can be re-enabled by removing
+ * this dequeue.
+ *
+ * @return void
+ */
+function pixva_elementor_dequeue_unused_google_fonts() {
+	foreach ( array( 'elementor-gf-roboto-css', 'elementor-gf-robotoslab-css' ) as $pixva_gf_handle ) {
+		wp_dequeue_style( $pixva_gf_handle );
+		wp_deregister_style( $pixva_gf_handle );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'pixva_elementor_dequeue_unused_google_fonts', 100 );

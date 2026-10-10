@@ -1,0 +1,33 @@
+{
+ "id": 13,
+ "slug": "tracking",
+ "title": "پیگیری تعمیر",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 203,
+ "data": "[{\"id\":\"jyb3trv\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"unk1cjj\",\"elType\":\"widget\",\"settings\":{\"pixva_track_faq\":\"yes\"},\"elements\":[],\"widgetType\":\"pixva-tracking-form\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<form method=\"post\" action=\"http://127.0.0.1:9414/wp-admin/admin-ajax.php\" data-lookup=\"track\" data-track-event=\"tracking_viewed\" novalidate><input type=\"hidden\" id=\"_pixva_nonce\" name=\"_pixva_nonce\" value=\"d92701df92\" /><input type=\"hidden\" name=\"pixva_lookup\" value=\"1\"><label for=\"f-code\">کد پیگیری *</label><input type=\"text\" value=\"\" id=\"f-code\" name=\"code\" required aria-required=\"true\" dir=\"ltr\" autocomplete=\"off\" maxlength=\"20\" autocapitalize=\"characters\" placeholder=\"PXV-XXXX-XXXX\"><p id=\"f-code-err\" hidden></p><label for=\"f-phone\">شماره همراه ثبت‌شده *</label><input type=\"tel\" value=\"\" id=\"f-phone\" name=\"phone\" required aria-required=\"true\" dir=\"ltr\" autocomplete=\"tel\" inputmode=\"tel\" maxlength=\"14\"><p id=\"f-phone-err\" hidden></p><button type=\"submit\" data-submit>نمایش وضعیت</button><p>برای حفظ حریم خصوصی، اطلاعات فقط با کد و شماره همراه ثبت‌شده نمایش داده می‌شود.</p></form>\t\t\t\n\t\t<p><a href=\"http://127.0.0.1:9414/account/repairs/\">همه درخواست‌های من</a></p>",
+ "revisions": [
+  {
+   "id": 107,
+   "date": "2026-10-10 09:45:21",
+   "excerpt": "<form method=\"post\" action=\"http://127.0.0.1:9414/wp-admin/admin-ajax.php\" data-lookup=\"track\" data-track-event=\"tracking_viewed\" novalidate><input type=\"hidden",
+   "edata": "[{\"id\":\"jyb3trv\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"unk1cjj\",\"elType\":\"widget\",\"settings\":{\"pixva_track_faq\":\"yes\"},\"elements\":[],\"widgetType\":\"pixva-tracking-form\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 106,
+   "date": "2026-10-10 09:45:20",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 90,
+   "date": "2026-10-10 09:40:09",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": 14,
+ "slug": "warranty",
+ "title": "گارانتی تعمیر",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 180,
+ "data": "[{\"id\":\"u4nnsbb\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"2jsyp0c\",\"elType\":\"widget\",\"settings\":[],\"elements\":[],\"widgetType\":\"pixva-warranty-form\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<section aria-labelledby=\"wr-policy\">\n\t\t\t\t<h2 id=\"wr-policy\">سیاست گارانتی</h2>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"8\" /><path d=\"M12 11v5M12 8v.5\" /></svg><p>سیاست گارانتی عمومی هنوز منتشر نشده است. شرایط و مدت گارانتی هر تعمیر را پیش از شروع کار از کارشناس بپرسید؛ پس از ثبت، وضعیت گارانتی تعمیر شما در این صفحه قابل استعلام است.</p>\t\t\t\t\t\t\t</section>\n\t\t\t\t\t<section aria-labelledby=\"wr-lookup\">\n\t\t\t<h2 id=\"wr-lookup\">استعلام گارانتی تعمیر</h2>\n\t\t\t<form method=\"post\" action=\"http://127.0.0.1:9414/wp-admin/admin-ajax.php\" data-lookup=\"warranty\" data-track-event=\"warranty_lookup\" novalidate><input type=\"hidden\" id=\"_pixva_nonce\" name=\"_pixva_nonce\" value=\"d1fe0d9369\" /><input type=\"hidden\" name=\"pixva_lookup\" value=\"1\"><label for=\"f-code\">کد پیگیری *</label><input type=\"text\" value=\"\" id=\"f-code\" name=\"code\" required aria-required=\"true\" dir=\"ltr\" autocomplete=\"off\" maxlength=\"20\" autocapitalize=\"characters\" placeholder=\"PXV-XXXX-XXXX\"><p id=\"f-code-err\" hidden></p><label for=\"f-phone\">شماره همراه ثبت‌شده *</label><input type=\"tel\" value=\"\" id=\"f-phone\" name=\"phone\" required aria-required=\"true\" dir=\"ltr\" autocomplete=\"tel\" inputmode=\"tel\" maxlength=\"14\"><p id=\"f-phone-err\" hidden></p><button type=\"submit\" data-submit>استعلام</button><p>برای حفظ حریم خصوصی، اطلاعات فقط با کد و شماره همراه ثبت‌شده نمایش داده می‌شود.</p></form>\t\t\t\n\t\t</section>",
+ "revisions": [
+  {
+   "id": 109,
+   "date": "2026-10-10 09:45:24",
+   "excerpt": "<section aria-labelledby=\"wr-policy\">\n\t\t\t\t<h2 id=\"wr-policy\">سیاست گارانتی</h2>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\"",
+   "edata": "[{\"id\":\"u4nnsbb\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"2jsyp0c\",\"elType\":\"widget\",\"settings\":[],\"elements\":[],\"widgetType\":\"pixva-warranty-form\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 108,
+   "date": "2026-10-10 09:45:24",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 91,
+   "date": "2026-10-10 09:40:12",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

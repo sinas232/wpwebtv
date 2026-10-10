@@ -1,0 +1,45 @@
+{
+ "id": 15,
+ "slug": "about",
+ "title": "درباره ما",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 183,
+ "data": "[{\"id\":\"ubahfdf\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b38ig7c\",\"elType\":\"widget\",\"settings\":{\"editor\":\"\"},\"elements\":[],\"widgetType\":\"text-editor\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<!-- elementor -->",
+ "revisions": [
+  {
+   "id": 116,
+   "date": "2026-10-10 09:47:17",
+   "excerpt": "<!-- elementor -->",
+   "edata": "[{\"id\":\"ubahfdf\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b38ig7c\",\"elType\":\"widget\",\"settings\":{\"editor\":\"\"},\"elements\":[],\"widgetType\":\"text-editor\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 111,
+   "date": "2026-10-10 09:45:28",
+   "excerpt": "",
+   "edata": "[{\"id\":\"ubahfdf\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b38ig7c\",\"elType\":\"widget\",\"settings\":{\"editor\":\"\"},\"elements\":[],\"widgetType\":\"text-editor\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 110,
+   "date": "2026-10-10 09:45:28",
+   "excerpt": "",
+   "edata": "[{\"id\":\"ubahfdf\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b38ig7c\",\"elType\":\"widget\",\"settings\":{\"editor\":\"\"},\"elements\":[],\"widgetType\":\"text-editor\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 93,
+   "date": "2026-10-10 09:40:16",
+   "excerpt": "",
+   "edata": "[{\"id\":\"ubahfdf\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b38ig7c\",\"elType\":\"widget\",\"settings\":{\"editor\":\"\"},\"elements\":[],\"widgetType\":\"text-editor\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 92,
+   "date": "2026-10-10 09:40:16",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "id": 25,
+ "slug": "el-booking",
+ "title": "EL Booking",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 163,
+ "data": "[{\"id\":\"a1b2c3d\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"e4f5a6b\",\"elType\":\"widget\",\"settings\":[],\"elements\":[],\"widgetType\":\"pixva-booking-form\"}]}]",
+ "auto_id": 0,
+ "template": "",
+ "content": "<!-- elementor -->",
+ "revisions": []
+}

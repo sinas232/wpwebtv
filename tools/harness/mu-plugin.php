@@ -940,6 +940,67 @@ function pixva_test_probe( $req ) {
 			$n1 = (int) $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( '_transient_' . $prefix ) . '%' ) );
 			$n2 = (int) $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%' ) );
 			return new WP_REST_Response( array( 'ok' => 1, 'deleted' => $n1 + $n2, 'like' => $prefix . '%' ), 200 );
+		case 'el_kit':
+			// Configure the Elementor kit (Site Settings) with the PIXVA palette /
+			// Vazirmatn typography, then regenerate Elementor CSS files.
+			$colors = array(
+				'primary'   => '#0B1C2E',
+				'secondary' => '#64748B',
+				'text'      => '#1E293B',
+				'accent'    => '#FF5C35',
+			);
+			$fonts = (string) ( $body['font'] ?? 'Vazirmatn' );
+			$kit_id = (int) get_option( 'elementor_active_kit', 0 );
+			if ( ! $kit_id ) {
+				return new WP_REST_Response( array( 'ok' => 0, 'error' => 'no kit' ), 500 );
+			}
+			$settings = (array) get_post_meta( $kit_id, '_elementor_page_settings', true );
+			$colors_arr = array();
+			foreach ( $colors as $k => $hex ) {
+				$colors_arr[] = array( '_id' => $k, 'title' => ucfirst( $k ), 'color' => $hex );
+			}
+			$typo = array();
+			$typo[] = array(
+				'_id' => 'primary', 'title' => 'Primary',
+				'typography_typography' => 'typography',
+				'typography_font_family' => $fonts,
+				'typography_font_weight' => '800',
+			);
+			$typo[] = array(
+				'_id' => 'secondary', 'title' => 'Secondary',
+				'typography_typography' => 'typography',
+				'typography_font_family' => $fonts,
+				'typography_font_weight' => '700',
+			);
+			$typo[] = array(
+				'_id' => 'text', 'title' => 'Text',
+				'typography_typography' => 'typography',
+				'typography_font_family' => $fonts,
+				'typography_font_weight' => '400',
+			);
+			$typo[] = array(
+				'_id' => 'accent', 'title' => 'Accent',
+				'typography_typography' => 'typography',
+				'typography_font_family' => $fonts,
+				'typography_font_weight' => '500',
+			);
+			$settings['system_colors']     = $colors_arr;
+			$settings['system_typography'] = $typo;
+			update_post_meta( $kit_id, '_elementor_page_settings', $settings );
+			if ( class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->files_manager ) {
+				\Elementor\Plugin::$instance->files_manager->clear_cache();
+			}
+			return new WP_REST_Response( array( 'ok' => 1, 'kit' => $kit_id ), 200 );
+		case 'set_option':
+			// Allowlisted config writes (test harness only, token-guarded endpoint).
+			$allow = array( 'elementor_google_font' => array( '0', '1' ) );
+			$key   = (string) ( $body['key'] ?? '' );
+			$val   = (string) ( $body['value'] ?? '' );
+			if ( ! isset( $allow[ $key ] ) || ! in_array( $val, $allow[ $key ], true ) ) {
+				return new WP_REST_Response( array( 'ok' => 0, 'error' => 'key/value not allowed' ), 400 );
+			}
+			update_option( $key, $val );
+			return new WP_REST_Response( array( 'ok' => 1, 'key' => $key, 'value' => get_option( $key ) ), 200 );
 		case 'opt_probe':
 			return new WP_REST_Response(
 				array(

@@ -120,6 +120,47 @@ function pixva_admin_overview() {
 	}
 	echo '</div>';
 
+	// Latest orders that still need follow-up (real DB rows, capability-scoped).
+	if ( current_user_can( 'pixva_manage_orders' ) ) {
+		$pixva_ids = pixva_order_query(
+			array(
+				'posts_per_page' => 5,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+		$pixva_pending = $pixva_ids ? get_posts(
+			array(
+				'post_type'      => 'pixva_orders',
+				'post__in'       => $pixva_ids,
+				'post_status'    => array( 'private', 'publish' ),
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'posts_per_page' => 5,
+			)
+		) : array();
+		echo '<div class="pixva-panel pixva-panel--orders"><h2>' . esc_html__( 'آخرین سفارش‌ها (نیازمند پیگیری)', 'pixva' ) . ' <a class="pixva-panel__more" href="' . esc_url( admin_url( 'edit.php?post_type=pixva_orders' ) ) . '">' . esc_html__( 'مشاهده همه', 'pixva' ) . '</a></h2>';
+		if ( $pixva_pending ) {
+			echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'کد سفارش', 'pixva' ) . '</th><th>' . esc_html__( 'مشتری', 'pixva' ) . '</th><th>' . esc_html__( 'دستگاه', 'pixva' ) . '</th><th>' . esc_html__( 'وضعیت', 'pixva' ) . '</th><th>' . esc_html__( 'تاریخ ثبت', 'pixva' ) . '</th></tr></thead><tbody>';
+			foreach ( $pixva_pending as $pixva_o ) {
+				$pixva_st = (string) get_post_meta( $pixva_o->ID, '_pixva_order_status', true );
+				$pixva_lb = pixva_order_statuses()[ $pixva_st ]['label'] ?? ( $pixva_st ? $pixva_st : __( 'جدید', 'pixva' ) );
+				$pixva_nm = (string) get_post_meta( $pixva_o->ID, '_pixva_order_name', true );
+				$pixva_dv = trim( (string) get_post_meta( $pixva_o->ID, '_pixva_order_brand', true ) . ' ' . (string) get_post_meta( $pixva_o->ID, '_pixva_order_model', true ) );
+				echo '<tr><td><a href="' . esc_url( get_edit_post_link( $pixva_o->ID ) ) . '"><code dir="ltr">' . esc_html( $pixva_o->post_title ) . '</code></a></td>';
+				echo '<td>' . esc_html( $pixva_nm ? $pixva_nm : '—' ) . '</td>';
+				echo '<td>' . esc_html( $pixva_dv ? $pixva_dv : '—' ) . '</td>';
+				echo '<td><span class="pixva-badge pixva-badge--' . esc_attr( $pixva_st ? $pixva_st : 'new' ) . '">' . esc_html( $pixva_lb ) . '</span></td>';
+				$pixva_ts = strtotime( (string) $pixva_o->post_date );
+				echo '<td>' . esc_html( pixva_fa_num( $pixva_ts ? wp_date( 'Y/m/j', $pixva_ts ) : (string) $pixva_o->post_date ) ) . '</td></tr>';
+			}
+			echo '</tbody></table>';
+		} else {
+			echo '<div class="pixva-empty"><p>' . esc_html__( 'هنوز سفارشی ثبت نشده است.', 'pixva' ) . '</p><p class="description">' . esc_html__( 'سفارش‌های جدید از فرم‌های سایت (ثبت درخواست/پیگیری/گارانتی) اینجا نمایش داده می‌شوند.', 'pixva' ) . '</p></div>';
+		}
+		echo '</div>';
+	}
+
 	echo '<div class="pixva-panel"><h2>' . esc_html__( 'فهرست بررسی', 'pixva' ) . '</h2><ul class="pixva-checklist">';
 	foreach ( $checks as $c ) {
 		echo '<li class="' . ( $c[0] ? 'is-done' : 'is-todo' ) . '"><span class="dashicons ' . ( $c[0] ? 'dashicons-yes-alt' : 'dashicons-marker' ) . '" aria-hidden="true"></span> <a href="' . esc_url( $c[2] ) . '">' . esc_html( $c[1] ) . '</a> <span class="screen-reader-text">' . esc_html( $c[0] ? __( 'انجام شده', 'pixva' ) : __( 'انجام نشده', 'pixva' ) ) . '</span></li>';

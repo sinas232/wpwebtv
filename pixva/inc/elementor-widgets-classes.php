@@ -281,10 +281,97 @@ class Pixva_Elementor_Hero extends Pixva_Elementor_Widget {
 		$this->add_control(
 			'pixva_hero_visual',
 			array(
-				'label'        => __( 'تصویر تزئینی تلویزیون', 'pixva' ),
+				'label'        => __( 'نمایش تصویر شاخص', 'pixva' ),
 				'type'         => \Elementor\Controls_Manager::SWITCHER,
 				'return_value' => 'yes',
 				'default'      => 'yes',
+			)
+		);
+		$this->add_control(
+			'pixva_hero_image',
+			array(
+				'label'     => __( 'تصویر شاخص', 'pixva' ),
+				'type'      => \Elementor\Controls_Manager::MEDIA,
+				'default'   => array( 'url' => get_theme_file_uri( 'assets/img/hero-tv-repair.jpg' ) ),
+				'condition' => array( 'pixva_hero_visual' => 'yes' ),
+			)
+		);
+		$this->add_control(
+			'pixva_hero_image_alt',
+			array(
+				'label'       => __( 'متن جایگزین تصویر (خالی = تزئینی)', 'pixva' ),
+				'type'        => \Elementor\Controls_Manager::TEXT,
+				'default'     => '',
+				'label_block' => true,
+				'condition'   => array( 'pixva_hero_visual' => 'yes' ),
+			)
+		);
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'pixva_hero_chips_sec',
+			array(
+				'label' => __( 'چیپ‌های ویژگی', 'pixva' ),
+				'tab'   => \Elementor\Controls_Manager::TAB_CONTENT,
+			)
+		);
+		$chip = new \Elementor\Repeater();
+		$chip->add_control(
+			'chip_text',
+			array(
+				'label'   => __( 'متن', 'pixva' ),
+				'type'    => \Elementor\Controls_Manager::TEXT,
+				'default' => __( 'پیگیری کد سفارش', 'pixva' ),
+			)
+		);
+		$chip->add_control(
+			'chip_icon',
+			array(
+				'label'   => __( 'آیکون', 'pixva' ),
+				'type'    => \Elementor\Controls_Manager::SELECT,
+				'options' => array(
+					'track'    => __( 'پیگیری (ساعت)', 'pixva' ),
+					'shield'   => __( 'سپر (گارانتی)', 'pixva' ),
+					'calendar' => __( 'تقویم (رزرو)', 'pixva' ),
+					'check'    => __( 'تیک (تأیید)', 'pixva' ),
+					'clock'    => __( 'زمان', 'pixva' ),
+					'chat'     => __( 'گفتگو', 'pixva' ),
+				),
+				'default' => 'track',
+			)
+		);
+		$chip->add_control(
+			'chip_url',
+			array(
+				'label'   => __( 'لینک (خالی = بدون لینک)', 'pixva' ),
+				'type'    => \Elementor\Controls_Manager::URL,
+				'default' => array( 'url' => '' ),
+			)
+		);
+		$this->add_control(
+			'pixva_hero_chips',
+			array(
+				'label'       => __( 'فهرست چیپ‌ها', 'pixva' ),
+				'type'        => \Elementor\Controls_Manager::REPEATER,
+				'fields'      => array( $chip->get_controls() ),
+				'title_field' => '{{{ chip_text }}}',
+				'default'     => array(
+					array(
+						'chip_text' => __( 'پیگیری کد سفارش', 'pixva' ),
+						'chip_icon' => 'track',
+						'chip_url'  => array( 'url' => pixva_route_url( 'tracking' ) ),
+					),
+					array(
+						'chip_text' => __( 'استعلام گارانتی', 'pixva' ),
+						'chip_icon' => 'shield',
+						'chip_url'  => array( 'url' => pixva_route_url( 'warranty' ) ),
+					),
+					array(
+						'chip_text' => __( 'رزرو آنلاین نوبت', 'pixva' ),
+						'chip_icon' => 'calendar',
+						'chip_url'  => array( 'url' => pixva_route_url( 'booking' ) ),
+					),
+				),
 			)
 		);
 		$this->end_controls_section();
@@ -333,6 +420,32 @@ class Pixva_Elementor_Hero extends Pixva_Elementor_Widget {
 					<p class="eyebrow"><?php echo esc_html( (string) $settings['pixva_hero_eyebrow'] ); ?></p>
 					<h1 class="hero__title" id="hero-title"><?php echo esc_html( (string) $settings['pixva_hero_title'] ); ?></h1>
 					<p class="hero__lead"><?php echo esc_html( (string) $settings['pixva_hero_lead'] ); ?></p>
+					<?php
+					$chips = array_values( array_filter( (array) ( $settings['pixva_hero_chips'] ?? array() ), static fn( $c ) => ! empty( $c['chip_text'] ) ) );
+					if ( $chips ) :
+						?>
+						<ul class="hero__chips">
+							<?php foreach ( $chips as $chip_item ) : ?>
+								<?php
+								$chip_href = ! empty( $chip_item['chip_url']['url'] ) ? (string) $chip_item['chip_url']['url'] : '';
+								$chip_icon = ! empty( $chip_item['chip_icon'] ) ? (string) $chip_item['chip_icon'] : 'check';
+								$chip_html = '<span class="hero__chip-icon" aria-hidden="true">' . wp_kses( pixva_icon( $chip_icon ), pixva_svg_allowed() ) . '</span><span class="hero__chip-text">' . esc_html( (string) $chip_item['chip_text'] ) . '</span>';
+								$chip_allowed          = pixva_svg_allowed();
+								$chip_allowed['span']  = array(
+									'class'      => true,
+									'aria-hidden' => true,
+								);
+								?>
+								<li class="hero__chip">
+									<?php if ( '' !== $chip_href ) : ?>
+										<a href="<?php echo esc_url( $chip_href ); ?>"><?php echo wp_kses( $chip_html, $chip_allowed ); ?></a>
+									<?php else : ?>
+										<?php echo wp_kses( $chip_html, $chip_allowed ); ?>
+									<?php endif; ?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
 					<?php if ( 'yes' === $settings['pixva_hero_quick'] && $problems ) : ?>
 						<form class="hero__quick" method="get" action="<?php echo esc_url( pixva_route_url( 'diagnosis' ) ); ?>" data-track-submit="cta_click" data-track-label="diagnosis" data-track-location="elementor_hero">
 							<label for="hero-problem-el"><?php esc_html_e( 'تلویزیون شما چه مشکلی دارد؟', 'pixva' ); ?></label>
@@ -360,9 +473,10 @@ class Pixva_Elementor_Hero extends Pixva_Elementor_Widget {
 					<?php endif; ?>
 				</div>
 				<?php if ( 'yes' === $settings['pixva_hero_visual'] ) : ?>
-					<div class="hero__visual" aria-hidden="true">
-						<div class="tv-mock"><div class="tv-mock__screen"><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="tv-mock__stand"></div></div>
-					</div>
+					<?php $hero_src = ! empty( $settings['pixva_hero_image']['url'] ) ? (string) $settings['pixva_hero_image']['url'] : get_theme_file_uri( 'assets/img/hero-tv-repair.jpg' ); ?>
+					<figure class="hero__visual hero__figure">
+						<img src="<?php echo esc_url( $hero_src ); ?>" alt="<?php echo esc_attr( (string) ( $settings['pixva_hero_image_alt'] ?? '' ) ); ?>" width="1376" height="768" decoding="async" fetchpriority="high" />
+					</figure>
 				<?php endif; ?>
 			</div>
 		</section>
@@ -643,7 +757,7 @@ $this->pixva_surface_controls( 'pixva_problems_style', '{{WRAPPER}} .grid--tiles
 			if ( $problems ) {
 				echo '<ul class="grid grid--tiles">';
 				foreach ( $problems as $k => $p ) {
-					echo '<li class="tile"><a href="' . esc_url( pixva_route_url( 'diagnosis', array( 'problem' => $k, 'step' => '1' ) ) ) . '"><span class="tile__title">' . esc_html( $p['label'] ) . '</span><span class="tile__text">' . esc_html( $p['desc'] ) . '</span></a></li>';
+					echo '<li class="tile"><a href="' . esc_url( pixva_route_url( 'diagnosis', array( 'problem' => $k, 'step' => '1' ) ) ) . '"><span class="tile__icon" aria-hidden="true">' . wp_kses( pixva_icon( pixva_problem_icon( (string) $k ) ), pixva_svg_allowed() ) . '</span><span class="tile__title">' . esc_html( $p['label'] ) . '</span><span class="tile__text">' . esc_html( $p['desc'] ) . '</span><span class="tile__arrow" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span></a></li>';
 				}
 				echo '</ul>';
 			}
@@ -743,8 +857,12 @@ class Pixva_Elementor_Steps extends Pixva_Elementor_Widget {
 						'item_text'  => __( 'مشخصات دستگاه و ایراد را ثبت می‌کنید و کد پیگیری می‌گیرید.', 'pixva' ),
 					),
 					array(
-						'item_title' => __( 'بررسی و اعلام هزینه', 'pixva' ),
-						'item_text'  => __( 'پس از کارشناسی، علت خرابی و هزینه پیش از شروع کار به شما اعلام می‌شود.', 'pixva' ),
+						'item_title' => __( 'بررسی دستگاه', 'pixva' ),
+						'item_text'  => __( 'دستگاه کارشناسی می‌شود تا علت خرابی مشخص شود.', 'pixva' ),
+					),
+					array(
+						'item_title' => __( 'اعلام هزینه پس از کارشناسی', 'pixva' ),
+						'item_text'  => __( 'پیش از شروع کار، علت ایراد و هزینه به شما اعلام می‌شود.', 'pixva' ),
 					),
 					array(
 						'item_title' => __( 'تعمیر با تأیید شما', 'pixva' ),
@@ -752,7 +870,7 @@ class Pixva_Elementor_Steps extends Pixva_Elementor_Widget {
 					),
 					array(
 						'item_title' => __( 'پیگیری و تحویل', 'pixva' ),
-						'item_text'  => __( 'وضعیت هر مرحله را با کد پیگیری آنلاین می‌بینید.', 'pixva' ),
+						'item_text'  => __( 'وضعیت هر مرحله را با کد پیگیری آنلاین می‌بینید و دستگاه تحویل می‌گیرید.', 'pixva' ),
 					),
 				),
 			)

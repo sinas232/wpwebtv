@@ -54,9 +54,15 @@ $pixva_is_el = pixva_front_page_is_elementor();
 
 	<?php
 	if ( $pixva_front && '' !== trim( $pixva_front->post_content ) ) {
-		echo '<section class="section"><div class="container entry-content">';
-		echo apply_filters( 'the_content', $pixva_front->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core content filter.
-		echo '</div></section>';
+		if ( $pixva_is_el ) {
+			// Elementor content owns its own containers/layout (§ Elementor plan);
+			// the classic narrow "entry-content" wrapper would cap it at 75ch.
+			echo apply_filters( 'the_content', $pixva_front->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core content filter.
+		} else {
+			echo '<section class="section"><div class="container entry-content">';
+			echo apply_filters( 'the_content', $pixva_front->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core content filter.
+			echo '</div></section>';
+		}
 	}
 	?>
 

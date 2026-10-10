@@ -1,0 +1,33 @@
+{
+ "id": 6,
+ "slug": "problems",
+ "title": "مشکلات رایج تلویزیون",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 609,
+ "data": "[{\"id\":\"8u030sn\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b7r08db\",\"elType\":\"widget\",\"settings\":{\"pixva_problems_head_show\":\"no\",\"pixva_problems_empty_mode\":\"state\"},\"elements\":[],\"widgetType\":\"pixva-problems\"},{\"id\":\"tngbsrd\",\"elType\":\"widget\",\"settings\":{\"pixva_tools_head_show\":\"yes\",\"pixva_tools_head_title\":\"\\u0627\\u0628\\u0632\\u0627\\u0631\\u0647\\u0627\\u06cc \\u0639\\u06cc\\u0628\\u200c\\u06cc\\u0627\\u0628\\u06cc\"},\"elements\":[],\"widgetType\":\"pixva-tools\"},{\"id\":\"r60xz9j\",\"elType\":\"widget\",\"settings\":{\"pixva_cta_location\":\"problems_hub\"},\"elements\":[],\"widgetType\":\"pixva-cta\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<section aria-labelledby=\"pixva_problems_head\"><h2 id=\"pixva_problems_head\"></h2><p>راهنمای مشکلات هنوز منتشر نشده است</p><p>تا آن زمان می‌توانید با تشخیص آنلاین، علت‌های محتمل ایراد تلویزیون خود را ببینید.</p><p><a href=\"http://127.0.0.1:9414/tools/diagnosis/\">شروع تشخیص آنلاین</a> <a href=\"http://127.0.0.1:9414/repair/book/\">ثبت درخواست تعمیر</a> </p></section>\t\t\t\t\n\t\t\t\t\t<section aria-labelledby=\"pixva_tools_head\"><h2 id=\"pixva_tools_head\">ابزارهای عیب‌یابی</h2><ul><li><svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 12h4l2-5 4 10 2-5h6\" /></svg><h3><a href=\"http://127.0.0.1:9414/tools/diagnosis/\">تشخیص آنلاین ایراد</a></h3><p>با چند پرسش ساده، علت‌های محتمل خرابی و بررسی‌های ایمن را ببینید.</p></li><li><svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\" /><path d=\"M8 7h8M8 11h2M12 11h2M16 11v6M8 15h2M12 15h2\" /></svg><h3><a href=\"http://127.0.0.1:9414/tools/price-calculator/\">برآورد هزینه تعمیر</a></h3><p>وضعیت قیمت‌گذاری و هزینه کارشناسی را ببینید و درخواست بررسی ثبت کنید.</p></li><li><svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"7\" rx=\"1\" /><rect x=\"13\" y=\"4\" width=\"7\" height=\"7\" rx=\"1\" /><rect x=\"4\" y=\"13\" width=\"7\" height=\"7\" rx=\"1\" /><rect x=\"13\" y=\"13\" width=\"7\" height=\"7\" rx=\"1\" /></svg><h3><a href=\"http://127.0.0.1:9414/tools/pixel-test/\">تست پیکسل و رنگ صفحه</a></h3><p>پیکسل سوخته، لکه نور و یکنواختی رنگ را با صفحه‌های تمام‌رنگ بررسی کنید.</p></li><li><svg width=\"24\" height=\"24\" viewbox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 8l-4 4 4 4M15 8l4 4-4 4\" /></svg><h3><a href=\"http://127.0.0.1:9414/error-codes/\">پایگاه کدهای خطا</a></h3><p>معنی کد خطا یا تعداد چشمک چراغ پاور را بر اساس برند جست‌وجو کنید.</p></li></ul></section>\t\t\t\t\n\t\t\t\t\t<aside aria-label=\"مطمئن نیستید ایراد از کجاست؟\"><h2>مطمئن نیستید ایراد از کجاست؟</h2><p>با ابزار تشخیص علت‌های محتمل را ببینید یا مستقیم درخواست بررسی ثبت کنید.</p><a data-track=\"cta_click\" data-track-label=\"booking\" data-track-location=\"problems_hub\" href=\"http://127.0.0.1:9414/repair/book/\">ثبت درخواست تعمیر</a><a data-track=\"cta_click\" data-track-label=\"diagnosis\" data-track-location=\"problems_hub\" href=\"http://127.0.0.1:9414/tools/diagnosis/\">تشخیص آنلاین</a></aside>",
+ "revisions": [
+  {
+   "id": 99,
+   "date": "2026-10-10 09:45:05",
+   "excerpt": "<section aria-labelledby=\"pixva_problems_head\"><h2 id=\"pixva_problems_head\"></h2><p>راهنمای مشکلات هنوز منتشر نشده است</p><p>تا آن زمان می‌توانید با تشخیص آنلای",
+   "edata": "[{\"id\":\"8u030sn\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"b7r08db\",\"elType\":\"widget\",\"settings\":{\"pixva_problems_head_show\":\"no\",\"pixva_problems_empty_mode\":\"state\"},\"elements\":[],\"widgetType\":\"pixva-problems\"},{\"id\":\"tngbsrd\",\"elType\":\"widget\",\"settings\":{\"pixva_tools_head_show\":\"yes\",\"pixva_tools_head_title\":\"\\u0627\\u0628\\u0632\\u0627\\u0631\\u0647\\u0627\\u06cc \\u0639\\u06cc\\u0628\\u200c\\u06cc\\u0627\\u0628\\u06cc\"},\"elements\":[],\"widgetType\":\"pixva-tools\"},{\"id\":\"r60xz9j\",\"elType\":\"widget\",\"settings\":{\"pixva_cta_location\":\"problems_hub\"},\"elements\":[],\"widgetType\":\"pixva-cta\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 98,
+   "date": "2026-10-10 09:45:05",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 86,
+   "date": "2026-10-10 09:39:53",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "id": 17,
+ "slug": "faq",
+ "title": "پرسش‌های متداول",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 376,
+ "data": "[{\"id\":\"jtxgtjw\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"a0vr5yp\",\"elType\":\"widget\",\"settings\":{\"pixva_faq_head_show\":\"no\",\"pixva_faq_group\":\"yes\",\"pixva_faq_topic\":\"\",\"pixva_faq_count\":50},\"elements\":[],\"widgetType\":\"pixva-faq\"},{\"id\":\"hidt9yp\",\"elType\":\"widget\",\"settings\":{\"pixva_cta_location\":\"faq\"},\"elements\":[],\"widgetType\":\"pixva-cta\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<p>هنوز پرسشی منتشر نشده است</p><p>پرسش خود را از طریق فرم تماس بفرستید.</p><p><a href=\"http://127.0.0.1:9414/contact/\">تماس با ما</a> </p>\t\t\t\t\n\t\t\t\t\t<aside aria-label=\"مطمئن نیستید ایراد از کجاست؟\"><h2>مطمئن نیستید ایراد از کجاست؟</h2><p>با ابزار تشخیص علت‌های محتمل را ببینید یا مستقیم درخواست بررسی ثبت کنید.</p><a data-track=\"cta_click\" data-track-label=\"booking\" data-track-location=\"faq\" href=\"http://127.0.0.1:9414/repair/book/\">ثبت درخواست تعمیر</a><a data-track=\"cta_click\" data-track-label=\"diagnosis\" data-track-location=\"faq\" href=\"http://127.0.0.1:9414/tools/diagnosis/\">تشخیص آنلاین</a></aside>",
+ "revisions": [
+  {
+   "id": 115,
+   "date": "2026-10-10 09:45:35",
+   "excerpt": "<p>هنوز پرسشی منتشر نشده است</p><p>پرسش خود را از طریق فرم تماس بفرستید.</p><p><a href=\"http://127.0.0.1:9414/contact/\">تماس با ما</a> </p>\t\t\t\t\n\t\t\t\t\t<aside aria",
+   "edata": "[{\"id\":\"jtxgtjw\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"a0vr5yp\",\"elType\":\"widget\",\"settings\":{\"pixva_faq_head_show\":\"no\",\"pixva_faq_group\":\"yes\",\"pixva_faq_topic\":\"\",\"pixva_faq_count\":50},\"elements\":[],\"widgetType\":\"pixva-faq\"},{\"id\":\"hidt9yp\",\"elType\":\"widget\",\"settings\":{\"pixva_cta_location\":\"faq\"},\"elements\":[],\"widgetType\":\"pixva-cta\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 114,
+   "date": "2026-10-10 09:45:35",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 95,
+   "date": "2026-10-10 09:40:24",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

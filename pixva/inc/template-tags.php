@@ -413,7 +413,7 @@ function pixva_card( $post, $meta = '', $level = 'h3' ) {
 		return;
 	}
 	$level = in_array( $level, array( 'h2', 'h3' ), true ) ? $level : 'h3';
-	echo '<article class="card">';
+	echo '<article class="card' . ( has_post_thumbnail( $post ) ? '' : ' card--plain' ) . '">';
 	if ( has_post_thumbnail( $post ) ) {
 		echo '<div class="card__media">' . get_the_post_thumbnail(
 			$post,
@@ -867,7 +867,7 @@ function pixva_tool_cards( $exclude = '' ) {
 		if ( $key === $exclude ) {
 			continue;
 		}
-		echo '<li class="tool-card"><span class="tool-card__icon" aria-hidden="true">' . wp_kses( pixva_icon( $t['icon'] ), pixva_svg_allowed() ) . '</span><h3 class="tool-card__title"><a class="card__link" href="' . esc_url( $t['url'] ) . '">' . esc_html( $t['title'] ) . '</a></h3><p>' . esc_html( $t['desc'] ) . '</p></li>';
+		echo '<li class="tool-card"><span class="tool-card__icon" aria-hidden="true">' . wp_kses( pixva_icon( $t['icon'] ), pixva_svg_allowed() ) . '</span><h3 class="tool-card__title"><a class="card__link" href="' . esc_url( $t['url'] ) . '">' . esc_html( $t['title'] ) . '</a></h3><p>' . esc_html( $t['desc'] ) . '</p><span class="tool-card__arrow" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span></li>';
 	}
 	echo '</ul>';
 }
@@ -878,6 +878,30 @@ function pixva_tool_cards( $exclude = '' ) {
  * @param int $limit Limit (0 = all).
  * @return bool Whether anything was printed.
  */
+/**
+ * Icon key for a diagnosis problem key (visual affordance on tiles).
+ *
+ * @param string $key Problem key.
+ * @return string Icon key known to pixva_icon().
+ */
+function pixva_problem_icon( $key ) {
+	static $map = array(
+		'no_power'   => 'pulse',
+		'no_picture' => 'panel',
+		'lines'      => 'grid',
+		'dim_dark'   => 'info',
+		'blink'      => 'alert',
+		'no_sound'   => 'chat',
+		'spots'      => 'expand',
+		'water'      => 'shield',
+		'physical'   => 'tool',
+		'restart'    => 'track',
+		'smart'      => 'code',
+		'remote'     => 'calc',
+	);
+	return isset( $map[ $key ] ) ? $map[ $key ] : 'alert';
+}
+
 function pixva_problem_tiles( $limit = 0 ) {
 	$terms = get_terms(
 		array(
@@ -895,11 +919,12 @@ function pixva_problem_tiles( $limit = 0 ) {
 	}
 	echo '<ul class="grid grid--tiles">';
 	foreach ( $terms as $t ) {
-		echo '<li class="tile"><a href="' . esc_url( get_term_link( $t ) ) . '"><span class="tile__title">' . esc_html( $t->name ) . '</span>';
+		$icon = $t->slug;
+		echo '<li class="tile"><a href="' . esc_url( get_term_link( $t ) ) . '"><span class="tile__icon" aria-hidden="true">' . wp_kses( pixva_icon( pixva_problem_icon( $icon ) ), pixva_svg_allowed() ) . '</span><span class="tile__title">' . esc_html( $t->name ) . '</span>';
 		if ( '' !== trim( $t->description ) ) {
 			echo '<span class="tile__text">' . esc_html( wp_trim_words( wp_strip_all_tags( $t->description ), 14 ) ) . '</span>';
 		}
-		echo '</a></li>';
+		echo '<span class="tile__arrow" aria-hidden="true">' . wp_kses( pixva_icon( 'arrow' ), pixva_svg_allowed() ) . '</span></a></li>';
 	}
 	echo '</ul>';
 	return true;

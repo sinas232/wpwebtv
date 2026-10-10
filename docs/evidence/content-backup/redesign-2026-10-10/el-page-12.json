@@ -1,0 +1,33 @@
+{
+ "id": 12,
+ "slug": "book",
+ "title": "ثبت درخواست تعمیر",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 204,
+ "data": "[{\"id\":\"2ddrvd4\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"yv5h63y\",\"elType\":\"widget\",\"settings\":{\"pixva_booking_faq\":\"yes\"},\"elements\":[],\"widgetType\":\"pixva-booking-form\"}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<form method=\"post\" enctype=\"multipart/form-data\" action=\"http://127.0.0.1:9414/wp-admin/admin-post.php\" data-pixva-form data-code-help=\"این کد را نگه دارید. با کد و شماره همراهی که وارد کردید، وضعیت درخواست را در صفحه پیگیری می‌بینید.\" data-tracking-label=\"صفحه پیگیری\" data-track-start=\"booking_started\" data-track-success=\"booking_submitted\" data-track-fail=\"booking_failed\" novalidate>\n\t\t\t\t\t<input type=\"hidden\" name=\"action\" value=\"pixva_booking\"><input type=\"hidden\" id=\"_pixva_nonce\" name=\"_pixva_nonce\" value=\"dfe86db06a\" /><input type=\"hidden\" name=\"_pixva_sid\" value=\"febf4aaa-b99c-4860-893b-c70e098a20b9\"><input type=\"hidden\" name=\"_pixva_back\" value=\"http://127.0.0.1:9414/wp-admin/admin-ajax.php\"><label for=\"pixva-hp-7423\">این فیلد را خالی بگذارید</label><input type=\"text\" id=\"pixva-hp-7423\" name=\"pixva_hp\" tabindex=\"-1\" autocomplete=\"off\" value=\"\">\t\t\t\t\t<input type=\"hidden\" name=\"from\" value=\"\">\n\t\t\t\t\t<input type=\"hidden\" name=\"symptoms\" value=\"\">\n\t\t\t\t\t<input type=\"hidden\" name=\"age\" value=\"\">\n\t\t\t\t\t<fieldset>\n\t\t\t\t\t\t<legend>اطلاعات تماس</legend>\n\t\t\t\t\t\t\t<label for=\"f-name\">نام و نام خانوادگی *</label><input type=\"text\" value=\"admin\" id=\"f-name\" name=\"name\" required aria-required=\"true\" autocomplete=\"name\" maxlength=\"60\"><p id=\"f-name-err\" hidden></p><label for=\"f-phone\">شماره همراه *</label><input type=\"tel\" value=\"\" id=\"f-phone\" name=\"phone\" required aria-required=\"true\" aria-describedby=\"f-phone-help\" autocomplete=\"tel\" inputmode=\"tel\" dir=\"ltr\" maxlength=\"14\"><p id=\"f-phone-help\">برای هماهنگی و پیگیری استفاده می‌شود؛ مثل ۰۹۱۲۳۴۵۶۷۸۹.</p><p id=\"f-phone-err\" hidden></p>\t\t\t\t\t\t\n\t\t\t\t\t</fieldset>\n\t\t\t\t\t<fieldset>\n\t\t\t\t\t\t<legend>دستگاه و ایراد</legend>\n\t\t\t\t\t\t\t<input type=\"hidden\" name=\"brand\" value=\"other\"><label for=\"f-brand_other\">برند *</label><input type=\"text\" value=\"\" id=\"f-brand_other\" name=\"brand_other\" required aria-required=\"true\" maxlength=\"40\"><p id=\"f-brand_other-err\" hidden></p><label for=\"f-model\">مدل (اختیاری)</label><input type=\"text\" value=\"\" id=\"f-model\" name=\"model\" aria-describedby=\"f-model-help\" maxlength=\"60\" dir=\"auto\"><p id=\"f-model-help\">روی برچسب پشت دستگاه.</p><p id=\"f-model-err\" hidden></p><label for=\"f-problem\">مشکل اصلی *</label><select id=\"f-problem\" name=\"problem\" required aria-required=\"true\"><option value=\"\"  selected='selected'>انتخاب کنید…</option><option value=\"no_power\" >کاملاً خاموش است</option><option value=\"no_picture\" >صدا دارد ولی تصویر ندارد</option><option value=\"lines\" >خطوط عمودی یا افقی روی تصویر</option><option value=\"dim_dark\" >تصویر تیره، کم‌نور یا نور ناهماهنگ</option><option value=\"blink\" >چراغ پاور چشمک می‌زند و روشن نمی‌شود</option><option value=\"no_sound\" >تصویر دارد ولی صدا ندارد یا صدا خراب است</option><option value=\"spots\" >لکه، نقطه یا پیکسل معیوب</option><option value=\"water\" >آب یا مایع روی دستگاه ریخته</option><option value=\"physical\" >شکستگی یا ضربه به صفحه</option><option value=\"restart\" >خودبه‌خود خاموش و روشن می‌شود</option><option value=\"smart\" >ایراد نرم‌افزار، اینترنت یا برنامه‌ها</option><option value=\"remote\" >کنترل یا دکمه‌ها کار نمی‌کند</option><option value=\"other\" >سایر / مطمئن نیستم</option></select><p id=\"f-problem-err\" hidden></p>\t\t\t\t\t\t\n\t\t\t\t\t\t<label for=\"f-description\">توضیح ایراد (اختیاری)</label><textarea rows=\"4\" id=\"f-description\" name=\"description\" aria-describedby=\"f-description-help\" maxlength=\"1500\"></textarea><p id=\"f-description-help\">از کی شروع شد؟ بعد از چه اتفاقی؟ (برای «سایر» لازم است)</p><p id=\"f-description-err\" hidden></p><label for=\"f-photos\">تصویر صفحه یا برچسب دستگاه (اختیاری)</label><input type=\"file\" value=\"\" id=\"f-photos\" name=\"photos[]\" aria-describedby=\"f-photos-help\" accept=\"image/jpeg,image/png,image/webp\" multiple=\"multiple\"><p id=\"f-photos-help\">حداکثر ۳ تصویر JPG، PNG یا WebP، هر کدام تا ۵ مگابایت. تصاویر فقط برای کارشناسان قابل مشاهده است.</p><p id=\"f-photos-err\" hidden></p>\t\t\t\t\t</fieldset>\n\t\t\t\t\t<label for=\"f-time\">زمان مناسب برای تماس (اختیاری)</label><input type=\"text\" value=\"\" id=\"f-time\" name=\"time\" maxlength=\"100\" placeholder=\"مثلاً عصرها بعد از ساعت ۱۷\"><p id=\"f-time-err\" hidden></p>\t\t\t\t\t<label for=\"f-consent\"><input type=\"checkbox\" value=\"1\" id=\"f-consent\" name=\"consent\" required aria-required=\"true\"> موافقم اطلاعات تماس و دستگاه برای رسیدگی به این درخواست ذخیره و استفاده شود.</label><p id=\"f-consent-err\" hidden></p>\n\t\t\t\t\t\t<button type=\"submit\" data-submit>ثبت درخواست</button>\n\t\t\t\t</form>",
+ "revisions": [
+  {
+   "id": 105,
+   "date": "2026-10-10 09:45:17",
+   "excerpt": "<form method=\"post\" enctype=\"multipart/form-data\" action=\"http://127.0.0.1:9414/wp-admin/admin-post.php\" data-pixva-form data-code-help=\"این کد را نگه دارید. با",
+   "edata": "[{\"id\":\"2ddrvd4\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"yv5h63y\",\"elType\":\"widget\",\"settings\":{\"pixva_booking_faq\":\"yes\"},\"elements\":[],\"widgetType\":\"pixva-booking-form\"}],\"isInner\":false}]"
+  },
+  {
+   "id": 104,
+   "date": "2026-10-10 09:45:16",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 89,
+   "date": "2026-10-10 09:40:05",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

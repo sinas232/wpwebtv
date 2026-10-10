@@ -1,0 +1,33 @@
+{
+ "id": 16,
+ "slug": "contact",
+ "title": "تماس با ما",
+ "status": "publish",
+ "mode": "builder",
+ "has_data": 1,
+ "data_len": 775,
+ "data": "[{\"id\":\"erfzkqk\",\"elType\":\"container\",\"settings\":{\"_css_classes\":\"container section layout-aside\"},\"elements\":[{\"id\":\"hplrs6d\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"59kgfjv\",\"elType\":\"widget\",\"settings\":[],\"elements\":[],\"widgetType\":\"pixva-contact-form\"}],\"isInner\":false},{\"id\":\"bltmncc\",\"elType\":\"container\",\"settings\":{\"html_tag\":\"aside\",\"_css_classes\":\"panel\"},\"elements\":[{\"id\":\"qseq6zn\",\"elType\":\"widget\",\"settings\":{\"title\":\"\\u0631\\u0627\\u0647\\u200c\\u0647\\u0627\\u06cc \\u0627\\u0631\\u062a\\u0628\\u0627\\u0637\",\"header_size\":\"h2\",\"_css_classes\":\"panel__title\"},\"elements\":[],\"widgetType\":\"heading\"},{\"id\":\"3tgh451\",\"elType\":\"widget\",\"settings\":{\"pixva_contact_head_show\":\"no\"},\"elements\":[],\"widgetType\":\"pixva-contact\"}],\"isInner\":false}],\"isInner\":false}]",
+ "auto_id": 0,
+ "template": "default",
+ "content": "<h2>ارسال پیام</h2>\n\t\t\t\t<p>برای ثبت تعمیر از فرم درخواست تعمیر استفاده کنید تا کد پیگیری بگیرید. <a href=\"http://127.0.0.1:9414/repair/book/\">ثبت درخواست تعمیر</a></p>\n\t\t\t\t<form method=\"post\" action=\"http://127.0.0.1:9414/wp-admin/admin-post.php\" data-pixva-form data-replace-on-success novalidate>\n\t\t\t\t\t<input type=\"hidden\" name=\"action\" value=\"pixva_contact\"><input type=\"hidden\" id=\"_pixva_nonce\" name=\"_pixva_nonce\" value=\"dc8685044f\" /><input type=\"hidden\" name=\"_pixva_sid\" value=\"febe602e-16de-4489-aec0-dea498e2e0e7\"><input type=\"hidden\" name=\"_pixva_back\" value=\"http://127.0.0.1:9414/wp-admin/admin-ajax.php\"><label for=\"pixva-hp-9370\">این فیلد را خالی بگذارید</label><input type=\"text\" id=\"pixva-hp-9370\" name=\"pixva_hp\" tabindex=\"-1\" autocomplete=\"off\" value=\"\">\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t<label for=\"ct-name\">نام *</label><input type=\"text\" value=\"\" id=\"ct-name\" name=\"name\" required aria-required=\"true\" autocomplete=\"name\"><p id=\"ct-name-err\" hidden></p><label for=\"ct-phone\">شماره همراه (اختیاری)</label><input type=\"tel\" value=\"\" id=\"ct-phone\" name=\"phone\" aria-describedby=\"ct-phone-help\" autocomplete=\"tel\" dir=\"ltr\" inputmode=\"tel\"><p id=\"ct-phone-help\">شماره همراه یا ایمیل؛ دست‌کم یکی لازم است.</p><p id=\"ct-phone-err\" hidden></p><label for=\"ct-email\">ایمیل (اختیاری)</label><input type=\"email\" value=\"\" id=\"ct-email\" name=\"email\" autocomplete=\"email\" dir=\"ltr\"><p id=\"ct-email-err\" hidden></p>\t\t\t\t\t\n\t\t\t\t\t<label for=\"ct-message\">پیام *</label><textarea rows=\"4\" id=\"ct-message\" name=\"message\" required aria-required=\"true\" rows=\"5\" maxlength=\"3000\"></textarea><p id=\"ct-message-err\" hidden></p><label for=\"ct-consent\"><input type=\"checkbox\" value=\"1\" id=\"ct-consent\" name=\"consent\" required aria-required=\"true\"> با ذخیره اطلاعاتم برای پاسخ‌گویی موافقم.</label><p id=\"ct-consent-err\" hidden></p>\t\t\t\t\t<button type=\"submit\" data-submit>ارسال</button>\n\t\t\t\t</form>\n\t\t\t\t\t<h2>راه‌های ارتباط</h2>\t\t\t\t\n\t\t\t\t\t<section aria-labelledby=\"pixva_contact_head\"><h2 id=\"pixva_contact_head\"></h2><p>اطلاعات تماس هنوز منتشر نشده است؛ از فرم استفاده کنید.</p></section>",
+ "revisions": [
+  {
+   "id": 113,
+   "date": "2026-10-10 09:45:32",
+   "excerpt": "<h2>ارسال پیام</h2>\n\t\t\t\t<p>برای ثبت تعمیر از فرم درخواست تعمیر استفاده کنید تا کد پیگیری بگیرید. <a href=\"http://127.0.0.1:9414/repair/book/\">ثبت درخواست تعمیر<",
+   "edata": "[{\"id\":\"erfzkqk\",\"elType\":\"container\",\"settings\":{\"_css_classes\":\"container section layout-aside\"},\"elements\":[{\"id\":\"hplrs6d\",\"elType\":\"container\",\"settings\":[],\"elements\":[{\"id\":\"59kgfjv\",\"elType\":\"widget\",\"settings\":[],\"elements\":[],\"widgetType\":\"pixva-contact-form\"}],\"isInner\":false},{\"id\":\"bltmncc\",\"elType\":\"container\",\"settings\":{\"html_tag\":\"aside\",\"_css_classes\":\"panel\"},\"elements\":[{\"id\":\"qseq6zn\",\"elType\":\"widget\",\"settings\":{\"title\":\"\\u0631\\u0627\\u0647\\u200c\\u0647\\u0627\\u06cc \\u0627\\u0631\\u062a\\u0628\\u0627\\u0637\",\"header_size\":\"h2\",\"_css_classes\":\"panel__title\"},\"elements\":[],\"widgetType\":\"heading\"},{\"id\":\"3tgh451\",\"elType\":\"widget\",\"settings\":{\"pixva_contact_head_show\":\"no\"},\"elements\":[],\"widgetType\":\"pixva-contact\"}],\"isInner\":false}],\"isInner\":false}]"
+  },
+  {
+   "id": 112,
+   "date": "2026-10-10 09:45:31",
+   "excerpt": "",
+   "edata": ""
+  },
+  {
+   "id": 94,
+   "date": "2026-10-10 09:40:20",
+   "excerpt": "",
+   "edata": ""
+  }
+ ]
+}

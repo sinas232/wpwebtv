@@ -292,3 +292,24 @@
 	.post-type-pixva_orders .wp-list-table .column-pixva_tech,
 	.post-type-pixva_orders .wp-list-table .column-pixva_device { display: none; }
 }
+
+/* Orders follow-up panel (overview) */
+.pixva-panel--orders table { margin-top: 8px; }
+.pixva-panel__more {
+	float: inline-end;
+	font-size: 13px;
+	font-weight: 700;
+	color: #FF5C35;
+	text-decoration: none;
+	margin-inline-start: 10px;
+}
+.pixva-panel__more:hover { text-decoration: underline; }
+.pixva-empty {
+	padding: 22px;
+	border: 1.5px dashed #E2E8F0;
+	border-radius: 14px;
+	text-align: center;
+	background: #F8FAFC;
+}
+.pixva-empty p { margin: 0 0 4px; font-weight: 700; color: #0B1C2E; }
+.pixva-empty .description { font-weight: 400; color: #64748B; }

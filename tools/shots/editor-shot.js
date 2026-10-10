@@ -1,65 +1,78 @@
-'use strict';
-const m = require('@sparticuz/chromium');
-const chromium = m.default;
-const fs = require('fs'); const path = require('path');
+// Evidence shot of the REAL Elementor editor with the redesigned home loaded.
+const path = require('path');
 const puppeteer = require('puppeteer-core');
-const BASE = process.argv[2] || 'http://127.0.0.1:9414';
-const POST = process.argv[3] || '4';
-const OUT = path.resolve(__dirname, '..', '..', 'docs', 'evidence', 'screenshots');
-function visible(sel) {
-  const el = document.querySelector(sel);
-  return !!el && !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-}
+const chromium = require('@sparticuz/chromium').default;
+
+const BASE = process.env.PIXVA_BASE || 'http://127.0.0.1:9414';
+const SHOTS = path.join(__dirname, '..', '..', 'docs', 'evidence', 'screenshots');
+
 (async () => {
-  const pkgRoot = path.dirname(path.dirname(require.resolve('@sparticuz/chromium')));
-  if (!fs.existsSync('/tmp/al2023')) await m.inflate(path.join(pkgRoot, 'bin', 'al2023.tar.br'));
   const browser = await puppeteer.launch({
     executablePath: await chromium.executablePath(),
-    args: chromium.args, headless: chromium.headless,
-    env: { ...process.env, LD_LIBRARY_PATH: '/tmp/al2023/lib' },
-    defaultViewport: { width: 1600, height: 1000 },
+    args: chromium.args,
+    headless: chromium.headless,
+    env: { ...process.env, LD_LIBRARY_PATH: '/tmp/al2023/lib:' + (process.env.LD_LIBRARY_PATH || '') },
+    defaultViewport: null,
   });
   const page = await browser.newPage();
-  page.setDefaultTimeout(120000);
-  await page.goto(BASE + '/wp-login.php', { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('#user_login', { timeout: 30000 });
+  await page.setViewport({ width: 1600, height: 1000 });
+
+  await page.goto(BASE + '/wp-login.php', { waitUntil: 'networkidle2', timeout: 90000 });
   await page.type('#user_login', 'admin');
   await page.type('#user_pass', 'password');
-  await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle2' }), page.click('#wp-submit')]);
-  // warm preview
-  await page.goto(BASE + `/?elementor-preview=${POST}`, { waitUntil: 'networkidle2' }).catch(() => {});
-  await page.goto(BASE + `/wp-admin/post.php?post=${POST}&action=elementor`, { waitUntil: 'networkidle2' });
-  // robust readiness: #elementor-loading hidden + panel visible + iframe widgets
-  const ready = await page.waitForFunction(() => {
-    const loader = document.querySelector('#elementor-loading');
-    const loaderHidden = !loader || getComputedStyle(loader).display === 'none';
-    const panel = document.querySelector('#elementor-panel');
-    const panelVisible = !!panel && !!(panel.offsetWidth || panel.offsetHeight || panel.getClientRects().length);
-    let widgets = -1;
-    try {
-      const f = document.querySelector('#elementor-preview iframe');
-      if (f && f.contentDocument) widgets = f.contentDocument.querySelectorAll('.elementor-widget').length;
-    } catch (e) { widgets = -2; }
-    return loaderHidden && panelVisible && widgets > 3;
-  }, { timeout: 120000, polling: 2000 }).then(() => true).catch(() => false);
-  console.log('editor ready:', ready);
-  // dismiss safe-mode toast if present
+  await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 90000 }), page.click('#wp-submit')]);
+
+  await page.goto(BASE + '/wp-admin/post.php?post=4&action=elementor', { waitUntil: 'networkidle2', timeout: 120000 });
+  await page.waitForSelector('.elementor-panel', { timeout: 60000 });
+
+  // wait until the preview actually renders widgets (heading text visible)
+  let ready = false;
+  for (let i = 0; i < 60 && !ready; i++) {
+    ready = await page.evaluate(() => {
+      const t = document.body ? '' : '';
+      const html = document.body.innerHTML;
+      return html.includes('تشخیص تعمیر تلویزیون') || html.includes('elementor-widget-heading');
+    }).catch(() => false);
+    if (!ready) await new Promise((r) => setTimeout(r, 1000));
+  }
+  // dismiss safe-mode / welcome dialogs
   await page.evaluate(() => {
-    const t = [...document.querySelectorAll('.dialog-notification, .elementor-toast, [class*=toast], [class*=notification]')]
-      .find((n) => /Can't Edit|Safe Mode/i.test(n.textContent || ''));
-    if (t) { const x = t.querySelector('button, .dialog-dismiss-button, .eicon-close'); if (x) x.click(); else t.remove(); }
+    document.querySelectorAll('.dialog-close-button, .dialog-buttons .dialog-cancel, .elementor-popup-close').forEach((b) => { try { b.click(); } catch (e) {} });
+  });
+  await new Promise((r) => setTimeout(r, 1500));
+
+  // select the editorial heading so the panel shows real controls
+  await page.evaluate(() => {
+    try {
+      let target = null;
+      const kidsOf = (m) => { const k = m.get('elements'); if (!k) return []; return k.models ? k.models : (Array.isArray(k) ? k : []); };
+      const walk = (models) => { for (const m of models) { if (m.get('elType') === 'widget' && m.get('widgetType') === 'heading' && String((m.get('settings') && m.get('settings').get('title')) || '').includes('شفافیت')) target = m; walk(kidsOf(m)); } };
+      walk(window.elementor.elements.models || []);
+      if (target && window.elementor.getContainer) {
+        const c = elementor.getContainer(target.id);
+        if (c) $e.run('document/elements/select', { container: c });
+      }
+    } catch (e) {}
   });
   await new Promise((r) => setTimeout(r, 2000));
-  const st = await page.evaluate(() => {
-    const vis = (el) => !!el && !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-    let widgets = 0; let frameTitle = '';
-    try { const f = document.querySelector('#elementor-preview iframe'); widgets = f.contentDocument.querySelectorAll('.elementor-widget').length; frameTitle = f.contentDocument.title; } catch (e) {}
-    return { panel: vis(document.querySelector('#elementor-panel')), widgets, frameTitle,
-      spinner: [...document.querySelectorAll('.elementor-loading')].some(vis) };
-  });
-  console.log('state', JSON.stringify(st));
-  const file = path.join(OUT, `elementor-editor-post${POST}.png`);
-  await page.screenshot({ path: file });
-  console.log('SHOT', file, fs.statSync(file).size, 'bytes');
+  // scroll the preview to the editorial band
+  for (const fr of page.frames()) {
+    await fr.evaluate(() => {
+      const els = [...document.querySelectorAll('.elementor-element[data-widget_type="heading.default"]')];
+      const t = els.find((e) => (e.textContent || '').includes('شفافیت'));
+      if (t) t.scrollIntoView({ block: 'center' });
+    }).catch(() => {});
+  }
+
+  const state = await page.evaluate(() => ({
+    ready: document.body.innerHTML.includes('elementor-widget-heading'),
+    panelControls: document.querySelectorAll('.elementor-control').length,
+    titleInput: !!document.querySelector('textarea[data-setting="title"], input[data-setting="title"]'),
+    loading: !!document.querySelector('#elementor-preview-loading:not(.elementor-loaded)'),
+  }));
+  console.log(JSON.stringify(state));
+
+  await page.screenshot({ path: path.join(SHOTS, 'elementor-editor-redesign.png') });
+  console.log('saved elementor-editor-redesign.png');
   await browser.close();
-})().catch((e) => { console.error('ERR', e); process.exit(1); });
+})().catch((e) => { console.error(e); process.exit(1); });
