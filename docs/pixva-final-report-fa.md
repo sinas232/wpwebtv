@@ -138,4 +138,4 @@
 |---|---|---|---|
 | ۱ | کامیت پیاده‌سازی | `e8d75fbd81b73fbb5261d85c71660117eed0ad3e` | https://github.com/sinas232/wpwebtv/commit/e8d75fbd81b73fbb5261d85c71660117eed0ad3e |
 | ۲ | کامیت معرفی این گزارش | `b3693e057918fb6c76dd70fd9995fb90d46ef13e` | https://github.com/sinas232/wpwebtv/commit/b3693e057918fb6c76dd70fd9995fb90d46ef13e |
-| ۳ | HEAD شاخه هنگام تحویل | `cf1e371` (کامیت الحاق همین بخش؛ جزئیات در `git log شاخه arena/77115f4b-wpwebtv`) | https://github.com/sinas232/wpwebtv/tree/arena/77115f4b-wpwebtv |
+| ۳ | HEAD شاخه پس از این کامیت | SHA این کامیتِ آخر را `git rev-parse origin/arena/77115f4b-wpwebtv` بگیرید (درج SHA خودِ یک کامیت در درون همان کامیت ممکن نیست)؛ SHA کامل و لینک آن در پیام تحویل ارائه شده است | https://github.com/sinas232/wpwebtv/tree/arena/77115f4b-wpwebtv |
